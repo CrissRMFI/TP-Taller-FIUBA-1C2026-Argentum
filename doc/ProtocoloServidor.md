@@ -2,13 +2,33 @@
 
 ## Formato general
 
-Todos los mensajes comienzan con un opcode de 1 byte (uint8). Los opcodes
-del servidor arrancan en 26 para evitar colisiones con los opcodes del
-cliente que van del 1 al 25. Ambos conjuntos de opcodes viven en un único
-enum en common/protocol/Opcode.h compartido entre cliente y servidor.
+Todos los mensajes comienzan con un opcode de 1 byte (`uint8`) que identifica
+el tipo de mensaje.
 
-Mensajes de tamaño variable: MENSAJE_CHAT y LISTA_ITEMS incluyen un campo
-length o cantidad que indica cuántos bytes leer a continuación.
+Los opcodes del servidor comienzan en 26 para evitar colisiones con los opcodes
+del cliente, que van del 1 al 25. Ambos conjuntos de opcodes viven en un único
+enum compartido en `common/protocol/Opcode.h`.
+
+Luego del opcode, cada mensaje contiene los campos definidos para ese tipo.
+Los campos numéricos tienen tamaño fijo y se envían en orden de red
+(network byte order):
+
+| Tipo lógico | Tamaño  | Codificación      |
+| ----------- | ------- | ----------------- |
+| uint8       | 1 byte  | sin conversión    |
+| uint16      | 2 bytes | `htons` / `ntohs` |
+| uint32      | 4 bytes | `htonl` / `ntohl` |
+
+Los campos de texto se envían siempre con longitud explícita:
+
+| Campo  | Tipo         | Descripción                 |
+| ------ | ------------ | --------------------------- |
+| length | uint16       | cantidad de bytes del texto |
+| texto  | char[length] | contenido del texto         |
+
+El receptor lee primero el opcode. Según el opcode, sabe qué campos debe leer.
+Cuando un campo es texto, lee primero su `length` y luego exactamente esa
+cantidad de bytes.
 
 ## ESTADO_PERSONAJE (opcode 26)
 
@@ -117,22 +137,24 @@ N viene del TOML — es el mismo valor que el servidor usa para el inventario.
 | casco   | uint16 | id del casco (0 = vacío)      |
 | escudo  | uint16 | id del escudo (0 = vacío)     |
 
-## MENSAJE_CHAT (opcode 37)
+### MENSAJE_CHAT (opcode 37)
 
-| Campo      | Tipo         | Descripción                 |
-| ---------- | ------------ | --------------------------- |
-| opcode     | uint8        | valor: 37                   |
-| nickOrigen | char[32]     | nick del emisor             |
-| length     | uint16       | cantidad de bytes del texto |
-| texto      | char[length] | contenido del mensaje       |
+| Campo         | Tipo                | Descripción                       |
+| ------------- | ------------------- | --------------------------------- |
+| opcode        | uint8               | valor: 37                         |
+| nickLength    | uint16              | cantidad de bytes del nick origen |
+| nickOrigen    | char[nickLength]    | nick del emisor                   |
+| mensajeLength | uint16              | cantidad de bytes del mensaje     |
+| mensaje       | char[mensajeLength] | contenido del mensaje             |
 
-## MENSAJE_CLAN (opcode 38)
+### MENSAJE_CLAN (opcode 38)
 
-| Campo  | Tipo     | Descripción                                             |
-| ------ | -------- | ------------------------------------------------------- |
-| opcode | uint8    | valor: 38                                               |
-| tipo   | uint8    | 0=entró 1=salió 2=siendo atacado 3=aceptado 4=rechazado |
-| nick   | char[32] | nick del miembro involucrado                            |
+| Campo      | Tipo             | Descripción                                             |
+| ---------- | ---------------- | ------------------------------------------------------- |
+| opcode     | uint8            | valor: 38                                               |
+| tipo       | uint8            | 0=entró 1=salió 2=siendo atacado 3=aceptado 4=rechazado |
+| nickLength | uint16           | cantidad de bytes del nick                              |
+| nick       | char[nickLength] | nick del miembro involucrado                            |
 
 ## RESUCITADO (opcode 39)
 

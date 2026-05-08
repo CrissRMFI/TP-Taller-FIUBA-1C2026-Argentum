@@ -3,25 +3,47 @@
 ## Formato general
 
 Todos los mensajes comienzan con un opcode de 1 byte (uint8) que identifica
-el tipo de mensaje. El receptor lee el opcode primero y según su valor sabe
-exactamente cuántos bytes leer a continuación.
+el tipo de mensaje.
 
-Excepción: los mensajes de chat tienen tamaño variable. Luego del opcode
-incluyen un campo length (uint16) que indica cuántos bytes de texto leer.
+Luego del opcode, cada mensaje contiene los campos definidos para ese tipo.
+Los campos numéricos tienen tamaño fijo y se envían en orden de red
+(network byte order):
 
-Los opcodes viven en un enum en common/ compartido entre cliente y servidor
-para garantizar consistencia.
+| Tipo lógico | Tamaño  | Codificación      |
+| ----------- | ------- | ----------------- |
+| uint8       | 1 byte  | sin conversión    |
+| uint16      | 2 bytes | `htons` / `ntohs` |
+| uint32      | 4 bytes | `htonl` / `ntohl` |
+
+Los campos de texto se envían siempre con longitud explícita:
+
+| Campo  | Tipo         | Descripción                 |
+| ------ | ------------ | --------------------------- |
+| length | uint16       | cantidad de bytes del texto |
+| texto  | char[length] | contenido del texto         |
+
+El receptor lee primero el opcode. Según el opcode, sabe qué campos debe leer.
+Cuando un campo es texto, lee primero su `length` y luego exactamente esa
+cantidad de bytes.
 
 ## Decisión de diseño
 
-Se eligió tamaño fijo por mensaje en todos los mensajes porque la mayoría de los mensajes contienen solo datos
-numéricos de tamaño conocido. Agregar length a todos por el caso del chat
-sería overhead innecesario. El chat es el único caso con texto de longitud
-variable y se maneja de forma explícita.
+Se eligió usar tamaño fijo para los campos numéricos y longitud explícita para
+todos los campos de texto.
+Con el formato `length + texto`, todas las cadenas se serializan de la misma
+manera. Esto simplifica la implementación del protocolo y permite trabajar con
+`std::string` en las capas superiores.
 
-Los campos de texto fijo como nicknames y nombres de clan usan char[32].
-Los mensajes de chat usan length variable porque limitar el texto de chat
-a un tamaño fijo arbitrario degradaría la experiencia.
+Aunque el formato sea variable, el servidor debe validar límites máximos según
+el tipo de dato:
+
+| Campo           | Máximo recomendado |
+| --------------- | ------------------ |
+| nickname        | 32 bytes           |
+| nombre de clan  | 32 bytes           |
+| mensaje de chat | 256 bytes          |
+
+Estos límites son nuestras reglas del protocolo y deben validarse al recibir datos.
 
 ## Mensajes
 
@@ -135,34 +157,37 @@ a un tamaño fijo arbitrario degradaría la experiencia.
 
 ### CHAT_GLOBAL (opcode 16)
 
-| Campo  | Tipo         | Descripción                 |
-| ------ | ------------ | --------------------------- |
-| opcode | uint8        | valor: 16                   |
-| length | uint16       | cantidad de bytes del texto |
-| texto  | char[length] | contenido del mensaje       |
+| Campo         | Tipo                | Descripción                   |
+| ------------- | ------------------- | ----------------------------- |
+| opcode        | uint8               | valor: 16                     |
+| mensajeLength | uint16              | cantidad de bytes del mensaje |
+| mensaje       | char[mensajeLength] | contenido del mensaje         |
 
 ### CHAT_PRIVADO (opcode 17)
 
-| Campo       | Tipo         | Descripción                 |
-| ----------- | ------------ | --------------------------- |
-| opcode      | uint8        | valor: 17                   |
-| nickDestino | char[32]     | nick del destinatario       |
-| length      | uint16       | cantidad de bytes del texto |
-| texto       | char[length] | contenido del mensaje       |
+| Campo         | Tipo                | Descripción                        |
+| ------------- | ------------------- | ---------------------------------- |
+| opcode        | uint8               | valor: 17                          |
+| nickLength    | uint16              | cantidad de bytes del nick destino |
+| nickDestino   | char[nickLength]    | nick del destinatario              |
+| mensajeLength | uint16              | cantidad de bytes del mensaje      |
+| mensaje       | char[mensajeLength] | contenido del mensaje              |
 
 ### FUNDAR_CLAN (opcode 18)
 
-| Campo      | Tipo     | Descripción     |
-| ---------- | -------- | --------------- |
-| opcode     | uint8    | valor: 18       |
-| nombreClan | char[32] | nombre del clan |
+| Campo      | Tipo                   | Descripción                           |
+| ---------- | ---------------------- | ------------------------------------- |
+| opcode     | uint8                  | valor: 18                             |
+| nombreClan | uint16                 | cantidad de bytes del nombre del clan |
+| nombreClan | char[nombreClanLength] | nombre del clan                       |
 
 ### UNIRSE_CLAN (opcode 19)
 
-| Campo      | Tipo     | Descripción     |
-| ---------- | -------- | --------------- |
-| opcode     | uint8    | valor: 19       |
-| nombreClan | char[32] | nombre del clan |
+| Campo            | Tipo                   | Descripción                           |
+| ---------------- | ---------------------- | ------------------------------------- |
+| opcode           | uint8                  | valor: 19                             |
+| nombreClanLength | uint16                 | cantidad de bytes del nombre del clan |
+| nombreClan       | char[nombreClanLength] | nombre del clan                       |
 
 ### REVISAR_CLAN (opcode 20)
 
@@ -172,31 +197,35 @@ a un tamaño fijo arbitrario degradaría la experiencia.
 
 ### CLAN_ACEPTAR (opcode 21)
 
-| Campo  | Tipo     | Descripción      |
-| ------ | -------- | ---------------- |
-| opcode | uint8    | valor: 21        |
-| nick   | char[32] | nick del jugador |
+| Campo      | Tipo             | Descripción                |
+| ---------- | ---------------- | -------------------------- |
+| opcode     | uint8            | valor: 21                  |
+| nickLength | uint16           | cantidad de bytes del nick |
+| nick       | char[nickLength] | nick del jugador           |
 
 ### CLAN_RECHAZAR (opcode 22)
 
-| Campo  | Tipo     | Descripción      |
-| ------ | -------- | ---------------- |
-| opcode | uint8    | valor: 22        |
-| nick   | char[32] | nick del jugador |
+| Campo      | Tipo             | Descripción                |
+| ---------- | ---------------- | -------------------------- |
+| opcode     | uint8            | valor: 22                  |
+| nickLength | uint16           | cantidad de bytes del nick |
+| nick       | char[nickLength] | nick del jugador           |
 
 ### CLAN_BAN (opcode 23)
 
-| Campo  | Tipo     | Descripción      |
-| ------ | -------- | ---------------- |
-| opcode | uint8    | valor: 23        |
-| nick   | char[32] | nick del jugador |
+| Campo      | Tipo             | Descripción                |
+| ---------- | ---------------- | -------------------------- |
+| opcode     | uint8            | valor: 23                  |
+| nickLength | uint16           | cantidad de bytes del nick |
+| nick       | char[nickLength] | nick del jugador           |
 
 ### CLAN_KICK (opcode 24)
 
-| Campo  | Tipo     | Descripción      |
-| ------ | -------- | ---------------- |
-| opcode | uint8    | valor: 24        |
-| nick   | char[32] | nick del jugador |
+| Campo      | Tipo             | Descripción                |
+| ---------- | ---------------- | -------------------------- |
+| opcode     | uint8            | valor: 24                  |
+| nickLength | uint16           | cantidad de bytes del nick |
+| nick       | char[nickLength] | nick del jugador           |
 
 ### DEJAR_CLAN (opcode 25)
 
