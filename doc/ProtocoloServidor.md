@@ -87,76 +87,76 @@ Enviado cuando una entidad sale del área visible o muere.
 | x      | uint16 | posición x  |
 | y      | uint16 | posición y  |
 
-## ITEM_DESAPARECIO_SUELO (opcode 31)
+## ITEM_DESAPARECIO_SUELO (opcode 34)
 
 | Campo  | Tipo   | Descripción |
 | ------ | ------ | ----------- |
-| opcode | uint8  | valor: 31   |
+| opcode | uint8  | valor: 34   |
 | x      | uint16 | posición x  |
 | y      | uint16 | posición y  |
 
-## ACTUALIZAR_INVENTARIO (opcode 32)
+## ACTUALIZAR_INVENTARIO (opcode 35)
 
 Enviado cuando el inventario cambia. Manda los slots completos.
 N viene del TOML — es el mismo valor que el servidor usa para el inventario.
 
 | Campo  | Tipo      | Descripción                     |
 | ------ | --------- | ------------------------------- |
-| opcode | uint8     | valor: 32                       |
+| opcode | uint8     | valor: 35                       |
 | size   | uint8     | cantidad de items en inventario |
 | slots  | uint16[N] | ids de items (0 = slot vacío)   |
 
-## ACTUALIZAR_EQUIPAMIENTO (opcode 33)
+## ACTUALIZAR_EQUIPAMIENTO (opcode 36)
 
 | Campo   | Tipo   | Descripción                   |
 | ------- | ------ | ----------------------------- |
-| opcode  | uint8  | valor: 33                     |
+| opcode  | uint8  | valor: 36                     |
 | arma    | uint16 | id del arma (0 = vacío)       |
 | baculo  | uint16 | id del báculo (0 = vacío)     |
 | defensa | uint16 | id de la armadura (0 = vacío) |
 | casco   | uint16 | id del casco (0 = vacío)      |
 | escudo  | uint16 | id del escudo (0 = vacío)     |
 
-## MENSAJE_CHAT (opcode 34)
+## MENSAJE_CHAT (opcode 37)
 
 | Campo      | Tipo         | Descripción                 |
 | ---------- | ------------ | --------------------------- |
-| opcode     | uint8        | valor: 34                   |
+| opcode     | uint8        | valor: 37                   |
 | nickOrigen | char[32]     | nick del emisor             |
 | length     | uint16       | cantidad de bytes del texto |
 | texto      | char[length] | contenido del mensaje       |
 
-## MENSAJE_CLAN (opcode 35)
+## MENSAJE_CLAN (opcode 38)
 
 | Campo  | Tipo     | Descripción                                             |
 | ------ | -------- | ------------------------------------------------------- |
-| opcode | uint8    | valor: 35                                               |
+| opcode | uint8    | valor: 38                                               |
 | tipo   | uint8    | 0=entró 1=salió 2=siendo atacado 3=aceptado 4=rechazado |
 | nick   | char[32] | nick del miembro involucrado                            |
 
-## RESUCITADO (opcode 36)
+## RESUCITADO (opcode 39)
 
 | Campo  | Tipo   | Descripción      |
 | ------ | ------ | ---------------- |
-| opcode | uint8  | valor: 36        |
+| opcode | uint8  | valor: 39        |
 | x      | uint16 | nueva posición x |
 | y      | uint16 | nueva posición y |
 
-## LISTA_ITEMS (opcode 37)
+## LISTA_ITEMS (opcode 40)
 
 Respuesta al comando LISTAR. Tamaño variable según cantidad de items.
 
 | Campo    | Tipo             | Descripción                   |
 | -------- | ---------------- | ----------------------------- |
-| opcode   | uint8            | valor: 37                     |
+| opcode   | uint8            | valor: 40                     |
 | cantidad | uint8            | cantidad de items en la lista |
 | ids      | uint16[cantidad] | ids de los items disponibles  |
 
-## ERROR_ACCION (opcode 38)
+## ERROR_ACCION (opcode 41)
 
 | Campo       | Tipo  | Descripción           |
 | ----------- | ----- | --------------------- |
-| opcode      | uint8 | valor: 38             |
+| opcode      | uint8 | valor: 41             |
 | codigoError | uint8 | 0=inventario lleno    |
 |             |       | 1=oro insuficiente    |
 |             |       | 2=nivel insuficiente  |
