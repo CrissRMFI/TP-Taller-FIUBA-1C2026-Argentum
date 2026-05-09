@@ -22,7 +22,8 @@ class ProtocoloServidor : public Protocolo {
 
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
-    
+    static constexpr uint16_t MAX_CLAN = 32;
+
     ComandoJugador recibirComandoMover();
     ComandoJugador recibirComandoAtacar();
     ComandoJugador recibirComandoMeditar();
@@ -40,6 +41,14 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoListar();
     ComandoJugador recibirComandoChatGlobal();
     ComandoJugador recibirComandoChatPrivado();
+    ComandoJugador recibirComandoFundarClan();
+    ComandoJugador recibirComandoUnirseClan();
+    ComandoJugador recibirComandoRevisarClan();
+    ComandoJugador recibirComandoClanAceptar();
+    ComandoJugador recibirComandoClanRechazar();
+    ComandoJugador recibirComandoClanBan();
+    ComandoJugador recibirComandoClanKick();
+    ComandoJugador recibirComandoDejarClan();
 };
 
 #endif

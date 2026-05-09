@@ -63,6 +63,22 @@ ComandoJugador ProtocoloServidor::recibirComando() {
             return recibirComandoChatGlobal();
         case Opcode::CHAT_PRIVADO:
             return recibirComandoChatPrivado();
+        case Opcode::FUNDAR_CLAN:
+            return recibirComandoFundarClan();
+        case Opcode::UNIRSE_CLAN:
+            return recibirComandoUnirseClan();
+        case Opcode::REVISAR_CLAN:
+            return recibirComandoRevisarClan();
+        case Opcode::CLAN_ACEPTAR:
+            return recibirComandoClanAceptar();
+        case Opcode::CLAN_RECHAZAR:
+            return recibirComandoClanRechazar();
+        case Opcode::CLAN_BAN:
+            return recibirComandoClanBan();
+        case Opcode::CLAN_KICK:
+            return recibirComandoClanKick();
+        case Opcode::DEJAR_CLAN:
+            return recibirComandoDejarClan();
 
 
         default:
@@ -221,5 +237,73 @@ ComandoJugador ProtocoloServidor::recibirComandoChatPrivado() {
     return ComandoJugador{
       Opcode::CHAT_PRIVADO,
       ComandoChatPrivado{nickDestino, mensaje},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoFundarClan() {
+    std::string nombreClan = recibirCadenaConMaximo(MAX_CLAN);
+
+    return ComandoJugador{
+      Opcode::FUNDAR_CLAN,
+      ComandoFundarClan{nombreClan},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoUnirseClan() {
+    std::string nombreClan = recibirCadenaConMaximo(MAX_CLAN);
+
+    return ComandoJugador{
+      Opcode::UNIRSE_CLAN,
+      ComandoUnirseClan{nombreClan},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoRevisarClan() {
+    return ComandoJugador{
+      Opcode::REVISAR_CLAN,
+      ComandoRevisarClan{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoClanAceptar() {
+    std::string nick = recibirCadenaConMaximo(MAX_NICK);
+
+    return ComandoJugador{
+      Opcode::CLAN_ACEPTAR,
+      ComandoGestionMiembreClan{nick},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoClanRechazar() {
+    std::string nick = recibirCadenaConMaximo(MAX_NICK);
+
+    return ComandoJugador{
+      Opcode::CLAN_RECHAZAR,
+      ComandoGestionMiembreClan{nick},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoClanBan() {
+    std::string nick = recibirCadenaConMaximo(MAX_NICK);
+
+    return ComandoJugador{
+      Opcode::CLAN_BAN,
+      ComandoGestionMiembreClan{nick},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoClanKick() {
+    std::string nick = recibirCadenaConMaximo(MAX_NICK);
+
+    return ComandoJugador{
+      Opcode::CLAN_KICK,
+      ComandoGestionMiembreClan{nick},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
+    return ComandoJugador{
+      Opcode::DEJAR_CLAN,
+      ComandoDejarClan{},
     };
 }
