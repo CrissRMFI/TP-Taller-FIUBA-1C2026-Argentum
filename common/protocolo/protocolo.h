@@ -3,9 +3,7 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
-
-#include "opcode.h"
+#include "./opcode.h"
 #include "../socket/socket.h"
 
 class Protocolo {
@@ -27,7 +25,10 @@ protected:
     void enviarCadena(const std::string& cadena);
     std::string recibirCadena();
 
-public:
+    std::string recibirCadenaConMaximo(uint16_t maximo);
+    void enviarCadenaConMaximo(const std::string &cadena, uint16_t maximo);
+
+  public:
     explicit Protocolo(Socket&& skt);
 
     bool estaCerrado() const;
