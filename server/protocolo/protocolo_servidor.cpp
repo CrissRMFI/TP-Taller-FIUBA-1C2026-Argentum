@@ -108,6 +108,18 @@ void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
     }
 }
 
+void ProtocoloServidor::validarTipoEntidad(uint8_t tipo) const {
+    if (tipo > MAX_TIPO_ENTIDAD) {
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::TIPO_ENTIDAD_INVALIDO));
+    }
+}
+
+void ProtocoloServidor::validarEstadoEntidad(uint8_t estado) const {
+    if (estado > MAX_ESTADO_ENTIDAD) {
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::ESTADO_ENTIDAD_INVALIDO));
+    }
+}
+
 ComandoJugador ProtocoloServidor::recibirComandoMover() {
     uint8_t direccion = recibirUnByte();
 
@@ -334,8 +346,17 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
 
 void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
     switch (mensaje.opcode) {
+        
         case Opcode::ESTADO_PERSONAJE:
             enviarEstadoPersonaje(std::get<MensajeEstadoPersonaje>(mensaje.payload));
+            break;
+        
+            case Opcode::POSICION_ENTIDAD:
+            enviarPosicionEntidad(std::get<MensajePosicionEntidad>(mensaje.payload));
+            break;
+
+        case Opcode::ENTIDAD_DESAPARECIO:
+            enviarEntidadDesaparecio(std::get<MensajeEntidadDesaparecio>(mensaje.payload));
             break;
         
         default:
@@ -354,3 +375,22 @@ void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mens
     enviarUnByte(mensaje.nivel);
     enviarCuatroBytes(mensaje.experiencia);
 }
+
+void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mensaje) {
+    validarTipoEntidad(mensaje.tipo);
+    validarEstadoEntidad(mensaje.estado);
+
+    enviarUnByte(static_cast<uint8_t>(Opcode::POSICION_ENTIDAD));
+
+    enviarDosBytes(mensaje.id);
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+    enviarUnByte(mensaje.tipo);
+    enviarUnByte(mensaje.estado);
+}
+
+void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ENTIDAD_DESAPARECIO));
+    enviarDosBytes(mensaje.id);
+}
+

@@ -18,8 +18,23 @@ struct MensajeEstadoPersonaje {
     uint32_t experiencia;
 };
 
+struct MensajePosicionEntidad {
+    uint16_t id;
+    uint16_t x;
+    uint16_t y;
+    uint8_t tipo;
+    uint8_t estado;
+};
+
+struct MensajeEntidadDesaparecio {
+    uint16_t id;
+};
+
+
 using PayloadMensajeServidor = std::variant<
-        MensajeEstadoPersonaje>;
+        MensajeEstadoPersonaje,
+        MensajePosicionEntidad,
+        MensajeEntidadDesaparecio>;
 
 
 struct MensajeServidor {

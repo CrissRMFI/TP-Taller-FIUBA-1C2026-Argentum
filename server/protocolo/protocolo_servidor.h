@@ -24,6 +24,8 @@ class ProtocoloServidor : public Protocolo {
     static constexpr uint16_t MAX_CHAT = 256;
     static constexpr uint16_t MAX_CLAN = 32;
     static constexpr uint8_t MAX_DIRECCION = 3;
+    static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
+    static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
 
     void validarDireccion(const uint8_t direccion) const;
 
@@ -53,7 +55,12 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoClanKick();
     ComandoJugador recibirComandoDejarClan();
 
+    void validarTipoEntidad(uint8_t tipo) const;
+    void validarEstadoEntidad(uint8_t estado) const;
+
     void enviarEstadoPersonaje(const MensajeEstadoPersonaje& mensaje);
+    void enviarPosicionEntidad(const MensajePosicionEntidad& mensaje);
+    void enviarEntidadDesaparecio(const MensajeEntidadDesaparecio& mensaje);
 };
 
 #endif
