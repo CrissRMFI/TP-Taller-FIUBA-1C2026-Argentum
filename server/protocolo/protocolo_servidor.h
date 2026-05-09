@@ -23,6 +23,9 @@ class ProtocoloServidor : public Protocolo {
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
     static constexpr uint16_t MAX_CLAN = 32;
+    static constexpr uint16_t MAX_DIRECCION = 3;
+
+    void validarDireccion(const uint8_t direccion) const;
 
     ComandoJugador recibirComandoMover();
     ComandoJugador recibirComandoAtacar();

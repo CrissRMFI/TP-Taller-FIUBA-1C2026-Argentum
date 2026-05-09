@@ -86,9 +86,20 @@ ComandoJugador ProtocoloServidor::recibirComando() {
     }
 }
 
+void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
+    if (direccion > MAX_DIRECCION) {
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(
+                        CodigoErrorProtocolo::DIRECCION_INVALIDA));
+    }
+}
+
+
 ComandoJugador ProtocoloServidor::recibirComandoMover() {
     uint8_t direccion = recibirUnByte();
-    
+
+    validarDireccion(direccion);
+
     return ComandoJugador{
             Opcode::MOVER,
             ComandoMover{direccion},
