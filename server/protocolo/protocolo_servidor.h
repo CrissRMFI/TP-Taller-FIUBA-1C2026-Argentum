@@ -18,6 +18,12 @@ class ProtocoloServidor : public Protocolo {
 
     void cerrarConexion();
 
+  private:
+    ComandoJugador recibirComandoMover();
+    ComandoJugador recibirComandoAtacar();
+    ComandoJugador recibirComandoMeditar();
+    
+
 };
 
 #endif
