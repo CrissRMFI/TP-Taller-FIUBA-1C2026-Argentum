@@ -120,6 +120,14 @@ void ProtocoloServidor::validarEstadoEntidad(uint8_t estado) const {
     }
 }
 
+void ProtocoloServidor::validarEsquivador(uint8_t esquivador) const {
+    if (esquivador > MAX_ESQUIVADOR) {
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(
+                        CodigoErrorProtocolo::CAMPO_INVALIDO));
+    }
+}
+
 ComandoJugador ProtocoloServidor::recibirComandoMover() {
     uint8_t direccion = recibirUnByte();
 
@@ -359,6 +367,22 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarEntidadDesaparecio(std::get<MensajeEntidadDesaparecio>(mensaje.payload));
             break;
         
+        case Opcode::DANIO_RECIBIDO:
+            enviarDanioRecibido(std::get<MensajeDanoRecibido>(mensaje.payload));
+            break;
+
+        case Opcode::DANIO_PRODUCIDO:
+            enviarDanioProducido(std::get<MensajeDanoProducido>(mensaje.payload));
+            break;
+
+        case Opcode::ESQUIVE:
+            enviarEsquive(std::get<MensajeEsquive>(mensaje.payload));
+            break;
+
+        case Opcode::MUERTE_ENTIDAD:
+            enviarMuerteEntidad(std::get<MensajeMuerteEntidad>(mensaje.payload));
+            break;
+        
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
@@ -391,6 +415,35 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
 
 void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
     enviarUnByte((uint8_t)(Opcode::ENTIDAD_DESAPARECIO));
+    enviarDosBytes(mensaje.id);
+}
+
+void ProtocoloServidor::enviarDanioRecibido(const MensajeDanoRecibido& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::DANIO_RECIBIDO));
+
+    enviarDosBytes(mensaje.cantidad);
+    enviarDosBytes(mensaje.idAtacante);
+}
+
+void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::DANIO_PRODUCIDO));
+
+    enviarDosBytes(mensaje.cantidad);
+    enviarDosBytes(mensaje.idObjetivo);
+}
+
+void ProtocoloServidor::enviarEsquive(const MensajeEsquive& mensaje) {
+    validarEsquivador(mensaje.esquivador);
+
+    enviarUnByte(static_cast<uint8_t>(Opcode::ESQUIVE));
+
+    enviarDosBytes(mensaje.idEntidad);
+    enviarUnByte(mensaje.esquivador);
+}
+
+void ProtocoloServidor::enviarMuerteEntidad(const MensajeMuerteEntidad& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::MUERTE_ENTIDAD));
+
     enviarDosBytes(mensaje.id);
 }
 

@@ -26,6 +26,7 @@ class ProtocoloServidor : public Protocolo {
     static constexpr uint8_t MAX_DIRECCION = 3;
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
+    static constexpr uint8_t MAX_ESQUIVADOR = 1;
 
     void validarDireccion(const uint8_t direccion) const;
 
@@ -57,10 +58,16 @@ class ProtocoloServidor : public Protocolo {
 
     void validarTipoEntidad(uint8_t tipo) const;
     void validarEstadoEntidad(uint8_t estado) const;
+    void validarEsquivador(uint8_t esquivador) const;
 
-    void enviarEstadoPersonaje(const MensajeEstadoPersonaje& mensaje);
+
+    void enviarEstadoPersonaje(const MensajeEstadoPersonaje &mensaje);
     void enviarPosicionEntidad(const MensajePosicionEntidad& mensaje);
     void enviarEntidadDesaparecio(const MensajeEntidadDesaparecio& mensaje);
+    void enviarDanioRecibido(const MensajeDanoRecibido& mensaje);
+    void enviarDanioProducido(const MensajeDanoProducido& mensaje);
+    void enviarEsquive(const MensajeEsquive& mensaje);
+    void enviarMuerteEntidad(const MensajeMuerteEntidad& mensaje);
 };
 
 #endif

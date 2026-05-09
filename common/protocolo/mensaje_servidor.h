@@ -30,11 +30,33 @@ struct MensajeEntidadDesaparecio {
     uint16_t id;
 };
 
+struct MensajeDanoRecibido {
+  uint16_t cantidad;
+  uint16_t idAtacante;
+};
+
+struct MensajeDanoProducido {
+  uint16_t cantidad;
+  uint16_t idObjetivo;
+};
+
+struct MensajeEsquive {
+  uint16_t idEntidad;
+  uint8_t esquivador;
+};
+
+struct MensajeMuerteEntidad {
+  uint16_t id;
+};
 
 using PayloadMensajeServidor = std::variant<
         MensajeEstadoPersonaje,
         MensajePosicionEntidad,
-        MensajeEntidadDesaparecio>;
+        MensajeEntidadDesaparecio,
+        MensajeDanoRecibido,
+        MensajeDanoProducido,
+        MensajeEsquive,
+        MensajeMuerteEntidad>;
 
 
 struct MensajeServidor {
