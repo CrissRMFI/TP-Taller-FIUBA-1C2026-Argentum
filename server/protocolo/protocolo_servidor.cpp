@@ -35,11 +35,22 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::TOMAR:
             return recibirComandoTomar();
-            
+        
+        case Opcode::TIRAR:
+            return recibirComandoTirar();
+
+        case Opcode::EQUIPAR:
+            return recibirComandoEquipar();
+
+        case Opcode::COMPRAR:
+            return recibirComandoComprar();
+
+        case Opcode::VENDER:
+            return recibirComandoVender();
+
+
         default:
-            throw std::runtime_error(
-                    MensajesErrorProtocolo::mensaje(
-                            CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
+            throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
     }
 }
 
@@ -88,5 +99,43 @@ ComandoJugador ProtocoloServidor::recibirComandoTomar() {
     return ComandoJugador{
             Opcode::TOMAR,
             ComandoTomar{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoTirar() {
+    uint8_t indiceItem = recibirUnByte();
+
+    return ComandoJugador{
+      Opcode::TIRAR,
+      ComandoTirar{indiceItem},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoEquipar() {
+    uint8_t indiceItem = recibirUnByte();
+
+    return ComandoJugador{
+      Opcode::EQUIPAR,
+      ComandoEquipar{indiceItem},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoComprar() {
+    uint16_t idItem = recibirDosBytes();
+    uint16_t idNPC = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::COMPRAR,
+      ComandoComprar{idItem, idNPC},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoVender() {
+    uint8_t indiceItem = recibirUnByte();
+    uint16_t idNPC = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::VENDER,
+      ComandoVender{indiceItem, idNPC},
     };
 }
