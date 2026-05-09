@@ -51,32 +51,46 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         
         case Opcode::DEPOSITAR_ITEM:
             return recibirComandoDepositarItem();
+
         case Opcode::DEPOSITAR_ORO:
             return recibirComandoDepositarOro();
+
         case Opcode::RETIRAR_ITEM:
             return recibirComandoRetirarItem();
+
         case Opcode::RETIRAR_ORO:
             return recibirComandoRetirarOro();
+
         case Opcode::LISTAR:
             return recibirComandoListar();
+
         case Opcode::CHAT_GLOBAL:
             return recibirComandoChatGlobal();
+
         case Opcode::CHAT_PRIVADO:
             return recibirComandoChatPrivado();
+
         case Opcode::FUNDAR_CLAN:
             return recibirComandoFundarClan();
+
         case Opcode::UNIRSE_CLAN:
             return recibirComandoUnirseClan();
+
         case Opcode::REVISAR_CLAN:
             return recibirComandoRevisarClan();
+
         case Opcode::CLAN_ACEPTAR:
             return recibirComandoClanAceptar();
+
         case Opcode::CLAN_RECHAZAR:
             return recibirComandoClanRechazar();
+
         case Opcode::CLAN_BAN:
             return recibirComandoClanBan();
+
         case Opcode::CLAN_KICK:
             return recibirComandoClanKick();
+            
         case Opcode::DEJAR_CLAN:
             return recibirComandoDejarClan();
 
