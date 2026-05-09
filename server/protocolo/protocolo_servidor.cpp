@@ -47,6 +47,22 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::VENDER:
             return recibirComandoVender();
+        
+        
+        case Opcode::DEPOSITAR_ITEM:
+            return recibirComandoDepositarItem();
+        case Opcode::DEPOSITAR_ORO:
+            return recibirComandoDepositarOro();
+        case Opcode::RETIRAR_ITEM:
+            return recibirComandoRetirarItem();
+        case Opcode::RETIRAR_ORO:
+            return recibirComandoRetirarOro();
+        case Opcode::LISTAR:
+            return recibirComandoListar();
+        case Opcode::CHAT_GLOBAL:
+            return recibirComandoChatGlobal();
+        case Opcode::CHAT_PRIVADO:
+            return recibirComandoChatPrivado();
 
 
         default:
@@ -186,5 +202,24 @@ ComandoJugador ProtocoloServidor::recibirComandoListar() {
     return ComandoJugador{
       Opcode::LISTAR,
       ComandoListar{idNPC},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoChatGlobal() {
+    std::string mensaje = recibirCadenaConMaximo(MAX_CHAT);
+
+    return ComandoJugador{
+      Opcode::CHAT_GLOBAL,
+      ComandoChatGlobal{mensaje},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoChatPrivado() {
+    std::string nickDestino = recibirCadenaConMaximo(MAX_NICK);
+    std::string mensaje = recibirCadenaConMaximo(MAX_CHAT);
+
+    return ComandoJugador{
+      Opcode::CHAT_PRIVADO,
+      ComandoChatPrivado{nickDestino, mensaje},
     };
 }

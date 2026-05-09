@@ -19,6 +19,10 @@ class ProtocoloServidor : public Protocolo {
     void cerrarConexion();
 
   private:
+
+    static constexpr uint16_t MAX_NICK = 32;
+    static constexpr uint16_t MAX_CHAT = 256;
+    
     ComandoJugador recibirComandoMover();
     ComandoJugador recibirComandoAtacar();
     ComandoJugador recibirComandoMeditar();
@@ -34,6 +38,8 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoRetirarItem();
     ComandoJugador recibirComandoRetirarOro();
     ComandoJugador recibirComandoListar();
+    ComandoJugador recibirComandoChatGlobal();
+    ComandoJugador recibirComandoChatPrivado();
 };
 
 #endif
