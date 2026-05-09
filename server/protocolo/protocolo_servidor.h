@@ -29,6 +29,11 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoEquipar();
     ComandoJugador recibirComandoComprar();
     ComandoJugador recibirComandoVender();
+    ComandoJugador recibirComandoDepositarItem();
+    ComandoJugador recibirComandoDepositarOro();
+    ComandoJugador recibirComandoRetirarItem();
+    ComandoJugador recibirComandoRetirarOro();
+    ComandoJugador recibirComandoListar();
 };
 
 #endif

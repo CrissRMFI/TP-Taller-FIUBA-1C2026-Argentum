@@ -139,3 +139,52 @@ ComandoJugador ProtocoloServidor::recibirComandoVender() {
       ComandoVender{indiceItem, idNPC},
     };
 }
+
+ComandoJugador ProtocoloServidor::recibirComandoDepositarItem() {
+    uint8_t indiceItem = recibirUnByte();
+    uint16_t idBanquero = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::DEPOSITAR_ITEM,
+      ComandoDepositarItem{indiceItem, idBanquero},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoDepositarOro() {
+    uint32_t monto = recibirCuatroBytes();
+    uint16_t idBanquero = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::DEPOSITAR_ORO,
+      ComandoDepositarOro{monto, idBanquero},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoRetirarItem() {
+    uint16_t idItem = recibirDosBytes();
+    uint16_t idBanquero = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::RETIRAR_ITEM,
+      ComandoRetirarItem{idItem, idBanquero},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoRetirarOro() {
+    uint32_t monto = recibirCuatroBytes();
+    uint16_t idBanquero = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::RETIRAR_ORO,
+      ComandoRetirarOro{monto, idBanquero},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoListar() {
+    uint16_t idNPC = recibirDosBytes();
+
+    return ComandoJugador{
+      Opcode::LISTAR,
+      ComandoListar{idNPC},
+    };
+}
