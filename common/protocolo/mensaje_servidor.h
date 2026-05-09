@@ -18,9 +18,13 @@ struct MensajeEstadoPersonaje {
     uint32_t experiencia;
 };
 
+using PayloadMensajeServidor = std::variant<
+        MensajeEstadoPersonaje>;
+
+
 struct MensajeServidor {
     Opcode         opcode;
-    //Acá vamos a poner el payload de cada mensaje, que va a ser distinto dependiendo del opcode. Para eso tambien vamos a usar un std::variant.
+    PayloadMensajeServidor payload;
 };
 
 

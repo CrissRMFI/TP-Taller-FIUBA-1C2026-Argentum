@@ -90,7 +90,7 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::CLAN_KICK:
             return recibirComandoClanKick();
-            
+
         case Opcode::DEJAR_CLAN:
             return recibirComandoDejarClan();
 
@@ -107,7 +107,6 @@ void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
                         CodigoErrorProtocolo::DIRECCION_INVALIDA));
     }
 }
-
 
 ComandoJugador ProtocoloServidor::recibirComandoMover() {
     uint8_t direccion = recibirUnByte();
@@ -331,4 +330,27 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
       Opcode::DEJAR_CLAN,
       ComandoDejarClan{},
     };
+}
+
+void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
+    switch (mensaje.opcode) {
+        case Opcode::ESTADO_PERSONAJE:
+            enviarEstadoPersonaje(std::get<MensajeEstadoPersonaje>(mensaje.payload));
+            break;
+        
+        default:
+            throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
+    }
+}
+
+void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ESTADO_PERSONAJE));
+
+    enviarDosBytes(mensaje.vidaActual);
+    enviarDosBytes(mensaje.vidaMax);
+    enviarDosBytes(mensaje.manaActual);
+    enviarDosBytes(mensaje.manaMax);
+    enviarCuatroBytes(mensaje.oro);
+    enviarUnByte(mensaje.nivel);
+    enviarCuatroBytes(mensaje.experiencia);
 }

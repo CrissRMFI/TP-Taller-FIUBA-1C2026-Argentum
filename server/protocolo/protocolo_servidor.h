@@ -52,6 +52,8 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoClanBan();
     ComandoJugador recibirComandoClanKick();
     ComandoJugador recibirComandoDejarClan();
+
+    void enviarEstadoPersonaje(const MensajeEstadoPersonaje& mensaje);
 };
 
 #endif
