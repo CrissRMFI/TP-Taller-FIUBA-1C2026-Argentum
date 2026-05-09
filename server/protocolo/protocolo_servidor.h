@@ -1,0 +1,23 @@
+#ifndef PROTOCOLO_SERVIDOR_H
+#define PROTOCOLO_SERVIDOR_H
+
+#include <cstdint>
+
+#include "../../common/protocolo/comando_jugador.h"
+#include "../../common/protocolo/protocolo.h"
+#include "../../common/protocolo/mensaje_servidor.h"
+
+class ProtocoloServidor : public Protocolo {
+  public:
+    
+    explicit ProtocoloServidor(Socket&& skt);
+
+    ComandoJugador recibirComando();
+
+     void enviarMensaje(const MensajeServidor& mensaje);
+
+    void cerrarConexion();
+
+};
+
+#endif
