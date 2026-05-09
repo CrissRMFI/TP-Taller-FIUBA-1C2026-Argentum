@@ -128,6 +128,12 @@ void ProtocoloServidor::validarEsquivador(uint8_t esquivador) const {
     }
 }
 
+void ProtocoloServidor::validarCantidad(uint16_t cantidad) const {
+    if (cantidad > MAX_CANTIDAD_UINT8) {
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
+    }
+}
+
 ComandoJugador ProtocoloServidor::recibirComandoMover() {
     uint8_t direccion = recibirUnByte();
 
@@ -383,6 +389,22 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarMuerteEntidad(std::get<MensajeMuerteEntidad>(mensaje.payload));
             break;
         
+         case Opcode::ITEM_EN_SUELO:
+            enviarItemEnSuelo(std::get<MensajeItemEnSuelo>(mensaje.payload));
+            break;
+
+        case Opcode::ITEM_DESAPARECIO_SUELO:
+            enviarItemDesaparecioSuelo(std::get<MensajeItemDesaparecioSuelo>(mensaje.payload));
+            break;
+
+        case Opcode::ACTUALIZAR_INVENTARIO:
+            enviarActualizarInventario(std::get<MensajeActualizarInventario>(mensaje.payload));
+            break;
+
+        case Opcode::ACTUALIZAR_EQUIPAMIENTO:
+            enviarActualizarEquipamiento(std::get<MensajeActualizarEquipamiento>(mensaje.payload));
+            break;
+        
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
@@ -404,7 +426,7 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     validarTipoEntidad(mensaje.tipo);
     validarEstadoEntidad(mensaje.estado);
 
-    enviarUnByte(static_cast<uint8_t>(Opcode::POSICION_ENTIDAD));
+    enviarUnByte((uint8_t)(Opcode::POSICION_ENTIDAD));
 
     enviarDosBytes(mensaje.id);
     enviarDosBytes(mensaje.x);
@@ -419,14 +441,14 @@ void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesapareci
 }
 
 void ProtocoloServidor::enviarDanioRecibido(const MensajeDanoRecibido& mensaje) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::DANIO_RECIBIDO));
+    enviarUnByte((uint8_t)(Opcode::DANIO_RECIBIDO));
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idAtacante);
 }
 
 void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::DANIO_PRODUCIDO));
+    enviarUnByte((uint8_t)(Opcode::DANIO_PRODUCIDO));
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idObjetivo);
@@ -435,15 +457,51 @@ void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje
 void ProtocoloServidor::enviarEsquive(const MensajeEsquive& mensaje) {
     validarEsquivador(mensaje.esquivador);
 
-    enviarUnByte(static_cast<uint8_t>(Opcode::ESQUIVE));
+    enviarUnByte((uint8_t)(Opcode::ESQUIVE));
 
     enviarDosBytes(mensaje.idEntidad);
     enviarUnByte(mensaje.esquivador);
 }
 
 void ProtocoloServidor::enviarMuerteEntidad(const MensajeMuerteEntidad& mensaje) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::MUERTE_ENTIDAD));
+    enviarUnByte((uint8_t)(Opcode::MUERTE_ENTIDAD));
 
     enviarDosBytes(mensaje.id);
 }
 
+void ProtocoloServidor::enviarItemEnSuelo(const MensajeItemEnSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ITEM_EN_SUELO));
+
+    enviarDosBytes(mensaje.idItem);
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarItemDesaparecioSuelo(const MensajeItemDesaparecioSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ITEM_DESAPARECIO_SUELO));
+
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarActualizarInventario(const MensajeActualizarInventario& mensaje) {
+    validarCantidad((uint16_t)(mensaje.slots.size()));
+
+    enviarUnByte((uint8_t)(Opcode::ACTUALIZAR_INVENTARIO));
+
+    enviarUnByte((uint8_t)(mensaje.slots.size()));
+
+    for (uint16_t idItem: mensaje.slots) {
+        enviarDosBytes(idItem);
+    }
+}
+
+void ProtocoloServidor::enviarActualizarEquipamiento(const MensajeActualizarEquipamiento& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ACTUALIZAR_EQUIPAMIENTO));
+
+    enviarDosBytes(mensaje.arma);
+    enviarDosBytes(mensaje.baculo);
+    enviarDosBytes(mensaje.defensa);
+    enviarDosBytes(mensaje.casco);
+    enviarDosBytes(mensaje.escudo);
+}

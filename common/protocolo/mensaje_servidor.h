@@ -49,6 +49,29 @@ struct MensajeMuerteEntidad {
   uint16_t id;
 };
 
+struct MensajeItemEnSuelo {
+  uint16_t idItem;
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeItemDesaparecioSuelo {
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeActualizarInventario {
+  std::vector<uint16_t> slots;
+};
+
+struct MensajeActualizarEquipamiento {
+  uint16_t arma;
+  uint16_t baculo;
+  uint16_t defensa;
+  uint16_t casco;
+  uint16_t escudo;
+};
+
 using PayloadMensajeServidor = std::variant<
         MensajeEstadoPersonaje,
         MensajePosicionEntidad,
@@ -56,7 +79,11 @@ using PayloadMensajeServidor = std::variant<
         MensajeDanoRecibido,
         MensajeDanoProducido,
         MensajeEsquive,
-        MensajeMuerteEntidad>;
+        MensajeMuerteEntidad,
+        MensajeItemEnSuelo,
+        MensajeItemDesaparecioSuelo,
+        MensajeActualizarInventario,
+        MensajeActualizarEquipamiento>;
 
 
 struct MensajeServidor {
