@@ -72,6 +72,25 @@ struct MensajeActualizarEquipamiento {
   uint16_t escudo;
 };
 
+struct MensajeChat {
+  std::string nickOrigen;
+  std::string mensaje;
+};
+
+struct MensajeClan {
+  uint8_t tipo;
+  std::string nick;
+};
+
+struct MensajeResucitado {
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeListaItems {
+  std::vector<uint16_t> ids;
+};
+
 using PayloadMensajeServidor = std::variant<
         MensajeEstadoPersonaje,
         MensajePosicionEntidad,
@@ -83,7 +102,11 @@ using PayloadMensajeServidor = std::variant<
         MensajeItemEnSuelo,
         MensajeItemDesaparecioSuelo,
         MensajeActualizarInventario,
-        MensajeActualizarEquipamiento>;
+        MensajeActualizarEquipamiento,
+        MensajeChat,
+        MensajeClan,
+        MensajeResucitado,
+        MensajeListaItems>;
 
 
 struct MensajeServidor {

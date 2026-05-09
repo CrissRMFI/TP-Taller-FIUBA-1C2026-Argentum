@@ -11,6 +11,13 @@
 
 ProtocoloServidor::ProtocoloServidor(Socket&& skt) : Protocolo(std::move(skt)) {}
 
+void ProtocoloServidor::cerrarConexion() {
+    if (!cerrado) {
+        skt.close();
+        cerrado = true;
+    }
+}
+
 ComandoJugador ProtocoloServidor::recibirComando() {
     
     uint8_t opcode_recibido = recibirUnByte();
@@ -131,6 +138,12 @@ void ProtocoloServidor::validarEsquivador(uint8_t esquivador) const {
 void ProtocoloServidor::validarCantidad(uint16_t cantidad) const {
     if (cantidad > MAX_CANTIDAD_UINT8) {
         throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
+    }
+}
+
+void ProtocoloServidor::validarTipoClan(uint8_t tipo) const {
+    if (tipo > MAX_TIPO_CLAN) {
+      throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }
 
@@ -405,6 +418,22 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarActualizarEquipamiento(std::get<MensajeActualizarEquipamiento>(mensaje.payload));
             break;
         
+            case Opcode::MENSAJE_CHAT:
+            enviarMensajeChat(std::get<MensajeChat>(mensaje.payload));
+            break;
+
+        case Opcode::MENSAJE_CLAN:
+            enviarMensajeClan(std::get<MensajeClan>(mensaje.payload));
+            break;
+
+        case Opcode::RESUCITADO:
+            enviarResucitado(std::get<MensajeResucitado>(mensaje.payload));
+            break;
+
+        case Opcode::LISTA_ITEMS:
+            enviarListaItems(std::get<MensajeListaItems>(mensaje.payload));
+            break;
+        
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
@@ -504,4 +533,39 @@ void ProtocoloServidor::enviarActualizarEquipamiento(const MensajeActualizarEqui
     enviarDosBytes(mensaje.defensa);
     enviarDosBytes(mensaje.casco);
     enviarDosBytes(mensaje.escudo);
+}
+
+void ProtocoloServidor::enviarMensajeChat(const MensajeChat& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::MENSAJE_CHAT));
+
+    enviarCadenaConMaximo(mensaje.nickOrigen, MAX_NICK);
+    enviarCadenaConMaximo(mensaje.mensaje, MAX_CHAT);
+}
+
+void ProtocoloServidor::enviarMensajeClan(const MensajeClan& mensaje) {
+    validarTipoClan(mensaje.tipo);
+
+    enviarUnByte((uint8_t)(Opcode::MENSAJE_CLAN));
+
+    enviarUnByte(mensaje.tipo);
+    enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
+}
+
+void ProtocoloServidor::enviarResucitado(const MensajeResucitado& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::RESUCITADO));
+
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
+    validarCantidad((uint16_t)(mensaje.ids.size()));
+
+    enviarUnByte((uint8_t)(Opcode::LISTA_ITEMS));
+
+    enviarUnByte((uint8_t)(mensaje.ids.size()));
+
+    for (uint16_t idItem: mensaje.ids) {
+        enviarDosBytes(idItem);
+    }
 }
