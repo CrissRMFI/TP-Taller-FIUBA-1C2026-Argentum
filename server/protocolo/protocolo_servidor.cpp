@@ -26,7 +26,16 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::MEDITAR:
             return recibirComandoMeditar();
+        
+        case Opcode::RESUCITAR:
+            return recibirComandoResucitar();
 
+        case Opcode::CURAR:
+            return recibirComandoCurar();
+
+        case Opcode::TOMAR:
+            return recibirComandoTomar();
+            
         default:
             throw std::runtime_error(
                     MensajesErrorProtocolo::mensaje(
@@ -56,5 +65,28 @@ ComandoJugador ProtocoloServidor::recibirComandoMeditar() {
     return ComandoJugador{
             Opcode::MEDITAR,
             ComandoMeditar{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoResucitar() {
+    return ComandoJugador{
+            Opcode::RESUCITAR,
+            ComandoResucitar{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoCurar() {
+    uint16_t idSacerdote = recibirDosBytes();
+
+    return ComandoJugador{
+            Opcode::CURAR,
+            ComandoCurar{idSacerdote},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoTomar() {
+    return ComandoJugador{
+            Opcode::TOMAR,
+            ComandoTomar{},
     };
 }

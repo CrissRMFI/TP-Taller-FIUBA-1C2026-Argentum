@@ -22,8 +22,9 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoMover();
     ComandoJugador recibirComandoAtacar();
     ComandoJugador recibirComandoMeditar();
-    
-
+    ComandoJugador recibirComandoResucitar();
+    ComandoJugador recibirComandoCurar();
+    ComandoJugador recibirComandoTomar();
 };
 
 #endif
