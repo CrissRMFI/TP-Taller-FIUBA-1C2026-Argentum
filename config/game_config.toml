@@ -1,0 +1,216 @@
+# ============================================================
+#  Argentum Online — Archivo de configuración base
+#  Todos los valores numéricos que conforman el juego estan en este archivo
+#  Editar sin recompilar
+# ============================================================
+
+[servidor]
+# a definir
+#puerto          = 7666
+#tick_ms         = 100        # Cada cuántos ms se actualiza el mundo
+#max_jugadores   = 300
+#guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
+
+# ------------------------------------------------------------
+[vida]
+#  [a definir (son valores arbitrrios)]
+f_clase_guerrero  = 3.0
+f_clase_paladin   = 2.5
+f_clase_clerigo   = 2.0
+f_clase_mago      = 1.5
+
+# ------------------------------------------------------------
+[mana]
+#  [a definir (son valores arbitrarios)]
+
+f_clase_guerrero  = 0.0      # El guerrero no tiene mana
+f_clase_paladin   = 0.8
+f_clase_clerigo   = 1.2
+f_clase_mago      = 2.0
+f_clase_meditacion_paladin  = 1.0
+f_clase_meditacion_clerigo  = 2.0
+f_clase_meditacion_mago     = 3.0
+
+# ------------------------------------------------------------
+[razas]
+# Factores de vida y mana por raza [a definir (son valores arbitrarios)]
+[razas.humano]
+f_vida        = 1.0
+f_mana        = 1.0
+f_recuperacion = 1.0
+constitucion  = 18
+fuerza        = 18
+agilidad      = 15
+inteligencia  = 16
+
+[razas.elfo]
+f_vida        = 0.8
+f_mana        = 1.5
+f_recuperacion = 1.2
+constitucion  = 14
+fuerza        = 14
+agilidad      = 20
+inteligencia  = 20
+
+[razas.enano]
+f_vida        = 1.5
+f_mana        = 0.7
+f_recuperacion = 0.8
+constitucion  = 22
+fuerza        = 22
+agilidad      = 10
+inteligencia  = 14
+
+[razas.gnomo]
+f_vida        = 1.2
+f_mana        = 1.3
+f_recuperacion = 1.0
+constitucion  = 20
+fuerza        = 16
+agilidad      = 12
+inteligencia  = 18
+
+# ------------------------------------------------------------
+[experiencia]
+limite_base   = 1000
+limite_exp    = 1.8          # Limite = 1000 * nivel^1.8
+bonus_nivel   = 10           # max(NivelOtro - Nivel + 10, 0)
+exp_kill_max  = 0.1          # rand(0, 0.1) * VidaMaxOtro * factor
+
+# ------------------------------------------------------------
+[oro]
+max_exp       = 1.1          # OroMax = 100 * nivel^1.1
+exceso_pct    = 0.50         # Puede tener hasta 50% extra "en exceso"
+drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
+
+# ------------------------------------------------------------
+[combate]
+
+# Si el ataque no pudo ser esquivado le personaje recibirá
+# un daño pero este podrá ser reducido según la
+# defensa que le provea su armadura, escudo y/o casco
+
+# Esquivar: rand(0,1)^agilidad < umbral
+esquivar_umbral = 0.001
+
+# ------------------------------------------------------------
+[items]
+# se podria definir también la cant total de items que el usuario puede tener
+# Armas cuerpo a cuerpo
+[items.espada]
+danio_min = 2
+danio_max = 5
+
+[items.hacha]
+danio_min = 4
+danio_max = 5
+
+[items.martillo]
+danio_min = 1
+danio_max = 9
+
+# Armas a distancia
+[items.arco_simple]
+danio_min = 1
+danio_max = 4
+
+[items.arco_compuesto]
+danio_min = 4
+danio_max = 16
+
+# Hechizos / báculos
+[items.vara_fresno]
+danio_min  = 2
+danio_max  = 4
+costo_mana = 5
+
+[items.baculo_nudoso]
+danio_min  = 4
+danio_max  = 8
+costo_mana = 15
+
+[items.baculo_engarzado]
+danio_min  = 8
+danio_max  = 20
+costo_mana = 30
+
+[items.flauta_elfica]
+cura_vida  = true
+costo_mana = 100
+
+# Armaduras
+[items.armadura_cuero]
+defensa_min = 2
+defensa_max = 6
+
+[items.armadura_placas]
+defensa_min = 15
+defensa_max = 30
+
+[items.tunica_azul]
+defensa_min = 6
+defensa_max = 10
+
+# Cascos
+[items.capucha]
+defensa_min = 1
+defensa_max = 4
+
+[items.casco_hierro]
+defensa_min = 4
+defensa_max = 8
+
+[items.sombrero_magico]
+defensa_min = 4
+defensa_max = 12
+
+# Escudos
+[items.escudo_tortuga]
+defensa_min = 1
+defensa_max = 2
+
+[items.escudo_hierro]
+defensa_min = 1
+defensa_max = 4
+
+# ------------------------------------------------------------
+[criaturas]
+# Probabilidades de drop al morir un NPC
+prob_nada     = 0.80
+prob_oro      = 0.08
+prob_pocion   = 0.01
+prob_item     = 0.01
+oro_drop_min  = 0.01
+oro_drop_max  = 0.20
+
+# Cada cuántos ticks spawnea una criatura nueva
+#spawn_ticks   = 50
+#poblacion_max = 200          # Tope global de NPCs vivos
+
+# ------------------------------------------------------------
+[fair_play]
+nivel_newbie       = 12      # Nivel <= 12 es newbie
+max_diff_nivel     = 10      # No se pueden atacar si diff > 10
+
+# ------------------------------------------------------------
+[clanes]
+max_miembros  = 16
+nivel_minimo  = 6            # Nivel mínimo para fundar
+
+# ------------------------------------------------------------
+[muerte]
+# Tiempo de inmovilización al usar /resucitar = distancia * factor_seg
+factor_tiempo_resurreccion = 0.5
+
+# ------------------------------------------------------------
+[cheats]
+# Para facilitar corrección y testing
+vida_infinita  = false
+mana_infinito  = false
+invulnerable   = false
+exp_x10        = false
+
+# ------------------------------------------------------------
+[sonido]
+volumen_maximo   = 100
+distancia_maxima = 15        # A más de N tiles, volumen = 0
