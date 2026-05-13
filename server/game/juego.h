@@ -1,15 +1,15 @@
-#ifndef MODELO_JUEGO_H
-#define MODELO_JUEGO_H
+#ifndef JUEGO_H
+#define JUEGO_H
 
 #include <cstdint>
-#include <vector>
+#include <list>
 
 #include "../../common/protocolo/comando_jugador.h"
-#include "../../common/protocolo/mensaje_servidor.h"
+#include "../gameloop/mensaje_salida.h"
 
-class ModeloJuego {
+class Juego {
 public:
-    std::vector<MensajeServidor> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
+    std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
 };
 
 #endif

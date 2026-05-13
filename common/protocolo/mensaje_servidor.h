@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include "../mensajes/codigo_error_accion.h"
 
 #include "./opcode.h"
 
@@ -91,6 +92,10 @@ struct MensajeListaItems {
   std::vector<uint16_t> ids;
 };
 
+struct MensajeErrorAccion {
+    CodigoErrorAccion codigo;
+};
+
 using PayloadMensajeServidor = std::variant<
         MensajeEstadoPersonaje,
         MensajePosicionEntidad,
@@ -106,6 +111,7 @@ using PayloadMensajeServidor = std::variant<
         MensajeChat,
         MensajeClan,
         MensajeResucitado,
+        MensajeErrorAccion,
         MensajeListaItems>;
 
 
