@@ -6,12 +6,17 @@
 
 #include "../../common/protocolo/comando_jugador.h"
 #include "../gameloop/mensaje_salida.h"
+#include "clan.h"
+#include "jugador.h"
 
 class Juego {
   public:
     std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
   
  private:
+    std::list<Clan> clanes;
+    std::list<Jugador> jugadoresConectados;
+    std::list<Jugador> jugadoresDesconectados; // Para manejar desconexiones y reconexiones
     std::list<MensajeSalida> ejecutarMeditar(uint16_t idCliente);
     std::list<MensajeSalida> ejecutarResucitar(uint16_t idCliente);
     std::list<MensajeSalida> ejecutarTomar(uint16_t idCliente);
