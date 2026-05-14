@@ -6,6 +6,40 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
 
+#include "client__.h"
+
+#define EXIT_FAILURE -1
+#define EXIT_SUCCESS 0
+
+int main(const int argc, const char* argv[]) {
+
+
+    try {
+        if (argc != 3) {
+             std::cerr << "Usage: " << argv[0] << " <host> <port> <username>\n";
+            return EXIT_FAILURE;
+        }
+
+
+        const char* hostname = argv[1];
+    	const char* servname = argv[2];
+
+        Client client(hostname, servname);
+        client.run();
+
+        return EXIT_SUCCESS;
+
+
+    } catch (const std::exception& err) {
+        std::cerr << "Something went wrong and an exception was caught: " << err.what() << "\n";
+        return EXIT_FAILURE;
+    } catch (...) {
+        std::cerr << "Something went wrong and an unknown exception was caught.\n";
+        return EXIT_FAILURE;
+    }
+}
+
+/*
 using namespace SDL2pp;
 
 int main() try {
@@ -37,3 +71,4 @@ int main() try {
 	std::cerr << e.what() << std::endl;
 	return 1;
 }
+*/

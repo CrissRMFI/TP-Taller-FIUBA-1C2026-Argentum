@@ -41,6 +41,7 @@ private:
     void enviarComandoAtacar(const ComandoAtacar& comando);
     void enviarComandoMeditar(const ComandoMeditar& comando);
     void enviarComandoResucitar(const ComandoResucitar& comando);
+    
     void enviarComandoCurar(const ComandoCurar& comando);
     void enviarComandoTomar(const ComandoTomar& comando);
     void enviarComandoTirar(const ComandoTirar& comando);
