@@ -6,7 +6,7 @@
 
 #include "inventario.h"
 #include "../gameloop/mensaje_salida.h"
-#include "items.h"
+#include "item.h"
 
 // Pongo aca para que sea mas facil de manejar, luego hay que moverlos
 enum class Estado {
@@ -75,9 +75,11 @@ public:
     Estado getEstado() const;
     std::vector<Item> getItemsBanco() const;
     uint32_t getOroBanco() const;
+    uint16_t getClan() const;
 
 private:
     uint16_t idJugador;
+    uint16_t idClan; // 0 si no tiene clan
     std::string nombre;
     uint8_t nivel;
     uint32_t experiencia;
@@ -100,6 +102,7 @@ private:
     Clase clase;
     Estado estado;
     Raza raza;
+    
     bool fundo_clan;
 
     void subirNivel();

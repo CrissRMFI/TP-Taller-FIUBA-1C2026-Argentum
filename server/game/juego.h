@@ -17,6 +17,10 @@ class Juego {
     std::list<Clan> clanes;
     std::list<Jugador> jugadoresConectados;
     std::list<Jugador> jugadoresDesconectados; // Para manejar desconexiones y reconexiones
+
+    std::list<MensajeSalida> actualizar(); // Para manejar eventos del juego, como regeneración de vida, maná, etc.
+    std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
+
     std::list<MensajeSalida> ejecutarMeditar(uint16_t idCliente);
     std::list<MensajeSalida> ejecutarResucitar(uint16_t idCliente);
     std::list<MensajeSalida> ejecutarTomar(uint16_t idCliente);
