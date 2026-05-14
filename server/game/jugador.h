@@ -6,6 +6,7 @@
 
 #include "inventario.h"
 #include "../gameloop/mensaje_salida.h"
+#include "items.h"
 
 // Pongo aca para que sea mas facil de manejar, luego hay que moverlos
 enum class Estado {
@@ -55,7 +56,6 @@ public:
     void resucitar(uint16_t x, uint16_t y);
     void meditar();
     uint16_t calcular_danio();
-    // Imprimir_estado() const; // Para debuggear, luego se saca
 
     //Objetos e Inventario
     bool agregar_item(const uint16_t idItem);
@@ -73,7 +73,7 @@ public:
     std::string getNombre() const;
     Posicion getPosicion() const;
     Estado getEstado() const;
-    std::vector<uint16_t> getItemsBanco() const;
+    std::vector<Item> getItemsBanco() const;
     uint32_t getOroBanco() const;
 
 private:
@@ -85,8 +85,9 @@ private:
     uint16_t vidaMax;
     uint16_t manaActual;
     uint16_t manaMax;
-    uint32_t oro_mano;
-    uint32_t oro_exceso;
+    uint32_t oroMano;
+    uint32_t oroExceso;
+    uint32_t oroBanco;
     bool esFantasma;
     bool estaMeditando;
     uint8_t fuerza;
@@ -95,6 +96,7 @@ private:
     uint8_t constitucion;
     Posicion posicion;
     Inventario inventario;
+    std::vector<Item> itemsBanco;
     Clase clase;
     Estado estado;
     Raza raza;
