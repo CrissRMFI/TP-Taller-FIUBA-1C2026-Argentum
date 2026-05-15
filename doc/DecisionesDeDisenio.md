@@ -177,3 +177,83 @@ pero agrega complejidad de serialización y rompe el requisito de acceso
 directo por offset del enunciado.
 
 Todo puede ser consultado aca: [Modelo de Dominio - Argentum Online](https://drive.google.com/file/d/1F0uCqrps5EBFfTYDl82vN3m1dYFfohUL/view?usp=sharing)
+
+---
+
+## ConfigJuego como struct de solo datos
+
+`ConfigJuego` concentra todos los parámetros numéricos del juego (factores de
+vida, maná, experiencia, oro, combate, etc.) en un único struct sin
+comportamiento de carga. Ninguna clase del dominio sabe de archivos ni de TOML.
+
+**Por qué:** separa qué datos existen (dominio) de cómo se cargan
+(infraestructura). Si el formato del archivo cambia, solo cambia el lector; el
+resto del código no se toca.
+
+**Alternativa descartada:** que cada clase del dominio lea sus propios valores
+del archivo. Genera acoplamiento entre lógica de negocio e I/O, dificulta el
+testing y obliga a abrir el archivo varias veces.
+
+---
+
+## ILectorConfiguracion como interfaz de carga
+
+La carga de configuración se abstrae detrás de `ILectorConfiguracion` con un
+único método `cargar(ruta) → ConfigJuego`. `LectorConfigToml` es la
+implementación concreta para el formato TOML.
+
+**Por qué:** permite cambiar la fuente de configuración (JSON, binario, base de
+datos) sin modificar el dominio ni el gameloop. También facilita inyectar una
+configuración hardcodeada en tests.
+
+**Alternativa descartada:** llamada directa a `LectorConfigToml` desde `Juego`.
+Acopla el dominio a un formato de archivo concreto.
+
+---
+
+## Parser TOML propio en lugar de librería externa
+
+Se implementó `ParserTOML`, un parser mínimo que soporta secciones `[tabla]`,
+subsecciones `[padre.hijo]` y valores float/int/bool. No se usó ninguna
+librería externa (toml++, toml11, etc.).
+
+**Por qué:** el `game_config.toml` solo usa un subconjunto reducido del estándar
+TOML. Una dependencia externa agrega complejidad al build (FetchContent, versionado)
+para funcionalidad que no se necesita. El parser propio es ~60 líneas y cubre
+exactamente lo que el proyecto usa.
+
+**Alternativa descartada:** `toml++` vía FetchContent. Es la opción más robusta
+y estándar, pero introduce una dependencia externa que debe gestionarse en el
+CMake y puede generar fricciones en el build de corrección.
+
+---
+
+## Posicion como Value Object con métodos de distancia
+
+`Posicion` encapsula `x`, `y` y `mapaId` y expone `distanciaEuclidea`,
+`distanciaManhattan` y `esAdyacente`. Los cálculos de distancia viven en la
+propia posición en lugar de estar dispersos en las entidades que la usan.
+
+**Por qué:** la distancia euclídea aparece en al menos dos reglas del enunciado
+(tiempo de resurrección, bonus de clan por proximidad) y la adyacencia en el
+combate cuerpo a cuerpo. Centralizar los cálculos evita duplicación y errores
+de conversión de tipos al restar `uint16_t`.
+
+**Alternativa descartada:** funciones libres o métodos en cada entidad.
+Duplica la lógica de conversión `int`/`float` y dispersa los invariantes de
+distancia a lo largo del código.
+
+---
+
+## Raza y ClasePersonaje como enums de clase
+
+Las cuatro razas y las cuatro clases se modelan como `enum class` en lugar de
+constantes enteras o strings.
+
+**Por qué:** el compilador verifica exhaustividad en los `switch` de
+`ConfigJuego` (factores de vida, maná, meditación). Si se agrega una nueva
+raza o clase sin actualizar los helpers, el compilador advierte. Con enteros o
+strings ese error solo aparece en runtime.
+
+**Alternativa descartada:** constantes enteras o strings. Más fáciles de
+serializar pero sin verificación estática de exhaustividad.
