@@ -20,6 +20,7 @@ class Clan {
 public:
     Clan(const std::string& nombre, uint16_t idFundador);
     void agregarMiembro(const uint16_t& idJugador);
+    void pedirUnirse(const uint16_t& idJugador);
     void eliminarMiembro(const uint16_t& idJugador);
     void banearMiembro(const uint16_t& idJugador);
     bool esMiembro(const uint16_t& idJugador) const;

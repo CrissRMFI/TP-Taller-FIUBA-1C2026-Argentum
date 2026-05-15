@@ -8,18 +8,19 @@
 #include "../gameloop/mensaje_salida.h"
 #include "clan.h"
 #include "jugador.h"
+#include "criatura.h"
 
 class Juego {
   public:
     std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
   
  private:
-    std::list<Clan> clanes;
-    std::list<Jugador> jugadoresConectados;
-    std::list<Jugador> jugadoresDesconectados; // Para manejar desconexiones y reconexiones
-
+    std::map<uint16_t, Clan> clanes;
+    std::map<uint16_t, Jugador> jugadoresConectados;
+    std::map<uint16_t, Jugador> jugadoresDesconectados; // Para manejar desconexiones y reconexiones
+    std::map<uint16_t, Criatura> criaturasEnMapa; // Para manejar las criaturas que hay en el mapa, su posición, vida, etc.
     std::list<MensajeSalida> actualizar(); // Para manejar eventos del juego, como regeneración de vida, maná, etc.
-    std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
+    std::list<uint16_t> criaturasCerca(Posicion posicionJugador); // Para manejar el aggro de las criaturas, devuelve una lista de IDs de criaturas que están cerca del jugador
 
     std::list<MensajeSalida> ejecutarMeditar(uint16_t idCliente);
     std::list<MensajeSalida> ejecutarResucitar(uint16_t idCliente);
@@ -42,7 +43,7 @@ class Juego {
     std::list<MensajeSalida> ejecutarChatPrivado(uint16_t idCliente,const ComandoChatPrivado& comando);
     std::list<MensajeSalida> ejecutarFundarClan(uint16_t idCliente,const ComandoFundarClan& comando);
     std::list<MensajeSalida> ejecutarUnirseClan(uint16_t idCliente,const ComandoUnirseClan& comando);
-    std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente,const ComandoGestionMiembreClan& comando);
+    std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente,const ComandoGestionMiembreClan& comando, Opcode accion);
 };
 
 #endif

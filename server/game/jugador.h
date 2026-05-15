@@ -39,11 +39,9 @@ struct Posicion {
 class Jugador {
 public:
     Jugador(const std::string& nombre, Clase clase, Raza raza, Posicion posicion);
-    // Modificadores de Vida
-    void recibir_danio(uint16_t cantidad);
+    // Modificadores de Vida y Mana
+    void recibir_danio(uint16_t cantidad); // Anula meditacion
     void curar(uint16_t cantidad);
-
-    // Modificadores de Maná
     void recuperar_mana(uint16_t cantidad);
 
     // Experiencia y Progresión
@@ -52,7 +50,7 @@ public:
     bool gastar_oro(uint32_t cantidad);
 
     // Movimiento y Estado
-    void mover_a(uint16_t x, uint16_t y);
+    void mover_a(uint16_t x, uint16_t y); // Anula meditacion
     void resucitar(uint16_t x, uint16_t y);
     void meditar();
     uint16_t calcular_danio();
@@ -67,6 +65,7 @@ public:
     bool sacar_oro_banco(uint32_t cantidad);
 
     // Getters
+    uint16_t getId() const;
     bool es_newbie() const; // Para el fair play
     uint8_t getNivel() const; // Para el fair play
     bool fundo_clan() const;
