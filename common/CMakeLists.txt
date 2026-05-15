@@ -1,8 +1,27 @@
 target_sources(taller_common
     PRIVATE
-    # .cpp files
     foo.cpp
+    socket/socket.cpp
+    socket/resolver.cpp
+    socket/resolvererror.cpp
+    socket/liberror.cpp
+    protocolo/protocolo.cpp
+    mensajes/mensajes_error_accion.cpp
+    mensajes/mensajes_error_protocolo.cpp
     PUBLIC
-    # .h files
     foo.h
+    socket/socket.h
+    socket/resolver.h
+    socket/resolvererror.h
+    socket/liberror.h
+    thread/thread.h
+    thread/queue.h
+    protocolo/protocolo.h
+    protocolo/opcode.h
+    protocolo/comando_jugador.h
+    protocolo/mensaje_servidor.h
+    mensajes/codigo_error_accion.h
+    mensajes/codigo_error_protocolo.h
+    mensajes/mensajes_error_accion.h
+    mensajes/mensajes_error_protocolo.h
     )
