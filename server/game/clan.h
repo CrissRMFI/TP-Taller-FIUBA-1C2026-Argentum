@@ -30,6 +30,7 @@ public:
     bool estaBaneado(const uint16_t& idJugador)  const;
     bool estaPendiente(const uint16_t& idJugador) const;
 
+    uint16_t getId()                               const;
     size_t cantidadMiembros()                    const;
     std::string getNombre()                      const;
     std::vector<uint16_t> obtenerMiembros()      const;
