@@ -26,6 +26,9 @@ public:
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);
 
+    // Recuperación periódica (llamada por Juego::actualizar cada tick)
+    void recuperar(float segundos);
+
     // Experiencia y progresión
     void ganar_experiencia(uint32_t cantidad);
     void sumar_oro(uint32_t cantidad);
@@ -46,17 +49,36 @@ public:
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
 
+    // Clan
+    void asignarClan(uint16_t idClan);
+    void salirClan();
+    void marcarFundadorClan();
+
+    // Queries de estado — sin instanceof, el comportamiento emerge de los datos
+    bool puedeMediatar()  const;  // manaMax > 0
+    bool puedeUsarMagia() const;  // manaMax > 0
+    bool estaVivo()       const;
+    bool esFantasma()     const;
+    bool enMeditacion()   const;
+    bool tieneClan()      const;
+
     // Getters
-    uint16_t getId() const;
-    bool es_newbie() const;
-    uint8_t getNivel() const;
-    bool fundo_clan() const;
-    std::string getNombre() const;
-    Posicion getPosicion() const;
-    Estado getEstado() const;
+    uint16_t getId()          const;
+    uint8_t  getNivel()       const;
+    uint32_t getExperiencia() const;
+    uint16_t getVidaActual()  const;
+    uint16_t getVidaMax()     const;
+    uint16_t getManaActual()  const;
+    uint16_t getManaMax()     const;
+    uint32_t getOro()         const;
+    uint32_t getOroBanco()    const;
+    uint16_t getClan()        const;
+    bool     fundo_clan()     const;
+    bool     es_newbie()      const;
+    std::string getNombre()   const;
+    Posicion    getPosicion() const;
+    Estado      getEstado()   const;
     std::vector<uint16_t> getIdItemsBanco() const;
-    uint32_t getOroBanco() const;
-    uint16_t getClan() const;
 
 private:
     uint16_t idJugador;
@@ -71,7 +93,7 @@ private:
     uint32_t oroMano;
     uint32_t oroExceso;
     uint32_t oroBanco;
-    bool esFantasma;
+    bool esFantasmaFlag;
     bool estaMeditando;
     uint8_t fuerza;
     uint8_t agilidad;
