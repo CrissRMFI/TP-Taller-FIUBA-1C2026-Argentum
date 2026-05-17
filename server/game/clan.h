@@ -1,24 +1,25 @@
 #ifndef CLAN_H
 #define CLAN_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
-#include "jugador.h"
 
-// Pongo aca para que sea mas facil de manejar, luego hay que moverlo
-struct MiembroClan {
-    uint16_t idJugador;
-    EstadoMiembro estado;
-};
 enum class EstadoMiembro {
     Pendiente,
     Aceptado,
     Baneado
 };
 
+struct MiembroClan {
+    uint16_t idJugador;
+    EstadoMiembro estado;
+};
+
 class Clan {
 public:
     Clan(const std::string& nombre, uint16_t idFundador);
+
     void agregarMiembro(const uint16_t& idJugador);
     void pedirUnirse(const uint16_t& idJugador);
     void eliminarMiembro(const uint16_t& idJugador);
