@@ -9,6 +9,7 @@
 #include "modelo/posicion.h"
 #include "modelo/raza.h"
 #include "modelo/clase_personaje.h"
+#include "config/config_juego.h"
 
 enum class Estado {
     Vivo,
@@ -19,7 +20,8 @@ enum class Estado {
 
 class Jugador {
 public:
-    Jugador(const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
+    Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase,
+            Raza raza, Posicion posicion, const ConfigJuego& cfg);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
@@ -106,6 +108,7 @@ private:
     Estado estado;
     Raza raza;
     bool fundadoClan;
+    ConfigJuego cfg;
 
     void subirNivel();
     void morir();
