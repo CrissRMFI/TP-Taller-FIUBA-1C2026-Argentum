@@ -16,7 +16,7 @@ private:
     std::atomic<bool> running{true};
 
 public:
-    ClientSender(ServerProtocol& protocol,
+    ClientSender(ProtocoloCliente& protocol,
         Queue<ComandoJugador>& incoming_queue);
     ~ClientSender() override = default;
     void run() override;

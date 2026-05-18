@@ -4,7 +4,14 @@
 
 #ifndef TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H
 #define TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H
+
+#include <cstdint>
+
+#include <SDL.h>
+
+#include "client_data.h"
 #include "../common/protocolo/comando_jugador.h"
+#include "../common/thread/queue.h"
 
 
 class ClientBusiness {
@@ -12,18 +19,11 @@ class ClientBusiness {
 private:
     Queue<ComandoJugador>& incoming_data;
 
-
-    // hago uso de command_handler con una función
-    using command_handler = std::function<void(std::istringstream&)>;
-    std::map<std::string, command_handler> commands;
-    void setup_commands();
-    std::string get_remaining_input(std::istringstream& iss) const;
-    uint8_t translate_str(const std::string& direccion);
-
+    ComandoJugador process_action(GameAction action) const;
 
 public:
     explicit ClientBusiness( Queue<ComandoJugador>& incoming_data);
-    void run();
+    void save_command(GameAction action);
 };
 
 #endif //TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H

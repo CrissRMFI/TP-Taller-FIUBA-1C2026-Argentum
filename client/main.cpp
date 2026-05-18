@@ -1,74 +1,52 @@
-#include "common/foo.h"
-
 #include <iostream>
 #include <exception>
-
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "client__.h"
+#include <SDL2pp/Renderer.hh>
 
-#define EXIT_FAILURE -1
-#define EXIT_SUCCESS 0
+#include "client_game_loop.h"
+#include "../common/thread/queue.h"
+#include "SDL2pp/SDL.hh"
+#include "SDL2pp/Window.hh"
 
-int main(const int argc, const char* argv[]) {
-
-
-    try {
-        if (argc != 3) {
-             std::cerr << "Usage: " << argv[0] << " <host> <port> <username>\n";
-            return EXIT_FAILURE;
-        }
-
-
-        const char* hostname = argv[1];
-    	const char* servname = argv[2];
-
-        Client client(hostname, servname);
-        client.run();
-
-        return EXIT_SUCCESS;
-
-
-    } catch (const std::exception& err) {
-        std::cerr << "Something went wrong and an exception was caught: " << err.what() << "\n";
-        return EXIT_FAILURE;
-    } catch (...) {
-        std::cerr << "Something went wrong and an unknown exception was caught.\n";
-        return EXIT_FAILURE;
-    }
-}
-
-/*
 using namespace SDL2pp;
 
 int main() try {
+
+	// if (argc != 3) {
+	// 	std::cerr << "Usage: " << argv[0] << " <host> <port>\n";
+	// 	return EXIT_FAILURE;
+	// }
 	// Initialize SDL library
-	SDL sdl(SDL_INIT_VIDEO);
+		Queue<ComandoJugador> commands;
+		ClientGameLoop game_loop(commands);
+		game_loop.init("Argentum - Parte I",
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			640, 480, false);
 
-	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-	Window window("SDL2pp demo",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			640, 480,
-			SDL_WINDOW_RESIZABLE);
 
-	// Create accelerated video renderer with default driver
-	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-	// Clear screen
-	renderer.Clear();
-
-	// Show rendered frame
-	renderer.Present();
-
-	// 5 second delay
-	SDL_Delay(5000);
-
-	// Here all resources are automatically released and library deinitialized
 	return 0;
-} catch (std::exception& e) {
+
+	}catch (std::exception& e) {
 	// If case of error, print it and exit with error
 	std::cerr << e.what() << std::endl;
 	return 1;
 }
-*/
+
+/*
+ * Game loop ---> que queremos hacer?
+ * manejar inputs cliente/usuario
+ * updatear tdo objeto (posicion, vestimenta, etc)
+ * render cambia display
+ *
+
+// const char* hostname = argv[1];
+	// const char* servname = argv[2];
+	//
+	// Client client(hostname, servname);
+	// client.run();
+	//
+	// Here all resources are automatically released and library deinitialized
+ */

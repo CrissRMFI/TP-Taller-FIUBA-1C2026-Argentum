@@ -24,7 +24,7 @@ bool ClientSender::is_running() const { return running;}
 void ClientSender::stop() {
     running = false;
     try {
-        message_queue.close();
+        command_queue.close();
     } catch (const std::runtime_error&) {
         // la cola ya estaba cerrada
     }

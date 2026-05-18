@@ -4,6 +4,9 @@
 
 #ifndef TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_RECEIVER_H
 #define TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_RECEIVER_H
+
+#include "../common/thread/queue.h"
+#include "../common/thread/thread.h"
 #include "protocolo/protocolo_cliente.h"
 
 
@@ -19,7 +22,7 @@ private:
     void run() override;
     void stop() override;
     bool is_running() const;
-    ~ServerReceiver() override = default;
+    ~ClientReceiver() override = default;
 
 };
 

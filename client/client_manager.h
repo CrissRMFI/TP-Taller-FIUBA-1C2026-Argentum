@@ -5,19 +5,16 @@
 #ifndef TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_MANAGER_H
 #define TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_MANAGER_H
 
-#include "client_business.h"
 #include "../common/thread/thread.h"
 #include "../common/thread/queue.h"
 #include "protocolo/protocolo_cliente.h"
 
 class ClientManager : public Thread {
 private:
-    Socket skt;
     ProtocoloCliente protocol;
-    ClientBusiness business;
-    Queue<QueuedRequest>& incoming_data;
-    Queue<MensajeServidor>& outgoing_data;
-     std::atomic<bool> running{true};
+    Queue<ComandoJugador>& incoming_data;
+    Queue<MensajeServidor> outgoing_data;
+    std::atomic<bool> running{true};
 
 public:
     ClientManager(Socket&& skt,
@@ -30,7 +27,6 @@ public:
     void run() override;
     void stop() override;
     ~ClientManager() override = default;
-};
 };
 
 
