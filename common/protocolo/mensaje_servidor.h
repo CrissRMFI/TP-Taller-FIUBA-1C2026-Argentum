@@ -78,9 +78,19 @@ struct MensajeChat {
   std::string mensaje;
 };
 
+enum class TipoMensajeClan : uint8_t {
+    MiembroActivo    = 0,
+    MiembroPendiente = 1,
+    Fundado          = 2,
+    Aceptado         = 3,
+    Rechazado        = 4,
+    Baneado          = 5,
+    Kickeado         = 6,
+};
+
 struct MensajeClan {
-  uint8_t tipo;
-  std::string nick;
+    TipoMensajeClan tipo;
+    std::string nick;
 };
 
 struct MensajeResucitado {
