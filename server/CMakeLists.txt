@@ -46,6 +46,9 @@ target_sources(taller_server
     game/jugador.h
     game/juego.h
 
+    # Reglas
+    game/reglas/reglas_juego.cpp
+
     # Gameloop
     gameloop/comando_cliente.h
     gameloop/evento_sesion.h
