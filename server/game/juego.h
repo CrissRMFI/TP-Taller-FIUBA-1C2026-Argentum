@@ -40,7 +40,6 @@ class Juego {
     Jugador*    buscarJugador(uint16_t id);
     Jugador*    buscarJugadorPorNick(const std::string& nick);
     Clan*       buscarClanPorNombre(const std::string& nombre);
-    std::string nickDe(uint16_t idJugador);
 
     // Construcción de mensajes comunes
     MensajeSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);

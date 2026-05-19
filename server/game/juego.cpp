@@ -131,14 +131,6 @@ Clan* Juego::buscarClanPorNombre(const std::string& nombre) {
     return nullptr;
 }
 
-std::string Juego::nickDe(uint16_t idJugador) {
-    if (auto it = jugadoresConectados.find(idJugador); it != jugadoresConectados.end())
-        return it->second.getNombre();
-    if (auto it = jugadoresDesconectados.find(idJugador); it != jugadoresDesconectados.end())
-        return it->second.getNombre();
-    return "";
-}
-
 MensajeSalida Juego::armarError(uint16_t idCliente, CodigoErrorAccion cod) {
     return { TipoDestino::UNO, idCliente,
              { Opcode::ERROR_ACCION, MensajeErrorAccion{ cod } } };
