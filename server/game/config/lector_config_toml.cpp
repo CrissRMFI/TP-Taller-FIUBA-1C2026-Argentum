@@ -127,6 +127,10 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.invulnerable = tbl["cheats"]["invulnerable"].value_or(false);
     cfg.expX10       = tbl["cheats"]["exp_x10"].value_or(false);
 
+    cfg.inventarioMaxItems = static_cast<uint8_t>(
+    tbl["inventario"]["max_items"].value_or(20)
+);
+
     ConfigCompleta resultado;
     resultado.juego = cfg;
     poblarCatalogo(resultado.items, tbl);

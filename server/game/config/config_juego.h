@@ -3,6 +3,7 @@
 
 #include "../modelo/clase_personaje.h"
 #include "../modelo/raza.h"
+#include <cstdint>
 
 // Stats base de una raza: valores absolutos y factores multiplicadores
 // que se usan en las ecuaciones de vida, mana y recuperación.
@@ -57,6 +58,9 @@ struct ConfigJuego {
     // ---- Fair play ----
     int nivelNewbie;      // nivel <= nivelNewbie: no puede atacar ni ser atacado
     int maxDiffNivel;     // |nivelA - nivelB| > maxDiffNivel: no pueden atacarse
+
+    // ---- Inventario ----
+    uint8_t inventarioMaxItems;
 
     // ---- Clanes ----
     int clanMaxMiembros;

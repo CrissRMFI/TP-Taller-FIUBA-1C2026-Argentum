@@ -4,7 +4,8 @@
 #include <cstdint>
 
 #include "../config/config_juego.h"
-#include "../jugador.h"
+#include "../modelo/raza.h"
+#include "../modelo/clase_personaje.h"
 
 class ReglasJuego {
 public:

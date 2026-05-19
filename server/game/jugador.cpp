@@ -1,48 +1,66 @@
 #include "jugador.h"
 
 #include <algorithm>
+#include <cmath>
 #include <random>
 
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
 
-
 static std::mt19937 rng(std::random_device{}());
 
-Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config)
-    : idJugador(id), idClan(0), nombre(nombre),
-      nivel(1), experiencia(0),
-      oroMano(0), oroExceso(0), oroBanco(0),
-      posicion(posicion),
-      clase(clase), estado(Estado::Vivo),
-      raza(raza), fundadoClan(false), cfg(config)
-{
+Jugador::Jugador(uint16_t id,
+                 const std::string& nombre,
+                 ClasePersonaje clase,
+                 Raza raza,
+                 Posicion posicion,
+                 const ConfigJuego& config) :
+        idJugador(id),
+        idClan(0),
+        nombre(nombre),
+        nivel(1),
+        experiencia(0),
+        vidaActual(0),
+        vidaMax(0),
+        manaActual(0),
+        manaMax(0),
+        oroMano(0),
+        oroExceso(0),
+        oroBanco(0),
+        fuerza(0),
+        agilidad(0),
+        inteligencia(0),
+        constitucion(0),
+        posicion(posicion),
+        cfg(config),
+        inventario(config.inventarioMaxItems),
+        idItemsBanco(),
+        clase(clase),
+        estado(Estado::Vivo),
+        raza(raza),
+        fundadoClan(false) {
     const StatsRaza& sr = cfg.statsRaza(raza);
-    fuerza       = (uint8_t)(sr.fuerza);
-    agilidad     = (uint8_t)(sr.agilidad);
-    inteligencia = (uint8_t)(sr.inteligencia);
-    constitucion = (uint8_t)(sr.constitucion);
 
-    vidaMax    = vidaMax = ReglasJuego::calcularVidaMaxima(
-    cfg,
-    raza,
-    clase,
-    nivel,
-    constitucion
-    );
+    fuerza = static_cast<uint8_t>(sr.fuerza);
+    agilidad = static_cast<uint8_t>(sr.agilidad);
+    inteligencia = static_cast<uint8_t>(sr.inteligencia);
+    constitucion = static_cast<uint8_t>(sr.constitucion);
+
+    vidaMax = ReglasJuego::calcularVidaMaxima(
+            cfg, raza, clase, nivel, constitucion);
+
     manaMax = ReglasJuego::calcularManaMaximo(
-    cfg,
-    raza,
-    clase,
-    nivel,
-    inteligencia
-    );
+            cfg, raza, clase, nivel, inteligencia);
+
     vidaActual = vidaMax;
     manaActual = manaMax;
 }
 
 void Jugador::recibir_danio(uint16_t cantidad) {
-    if (cfg.invulnerable || !estaVivo()) return;
+    if (cfg.invulnerable || !estaVivo()) {
+        return;
+    }
+
     if (vidaActual <= cantidad) {
         vidaActual = 0;
         morir();
@@ -52,49 +70,71 @@ void Jugador::recibir_danio(uint16_t cantidad) {
 }
 
 void Jugador::curar(uint16_t cantidad) {
-    if (!estaVivo()) return;
-    vidaActual = (uint16_t)(std::min<uint32_t>(vidaActual + cantidad, vidaMax));
+    if (!estaVivo()) {
+        return;
+    }
+
+    vidaActual = static_cast<uint16_t>(
+            std::min<uint32_t>(vidaActual + cantidad, vidaMax));
 }
 
 void Jugador::recuperar_mana(uint16_t cantidad) {
-    manaActual = (uint16_t)(std::min<uint32_t>(manaActual + cantidad, manaMax));
+    manaActual = static_cast<uint16_t>(
+            std::min<uint32_t>(manaActual + cantidad, manaMax));
 }
 
 void Jugador::recuperar(float segundos) {
-    
-    if (!estaVivo()) return;
+    if (!estaVivo()) {
+        return;
+    }
 
-    // Recuperación natural de vida: FRazaRecuperacion * segundos
     if (vidaActual < vidaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos);
-        vidaActual = (uint16_t)(std::min<uint32_t>(vidaActual + delta, vidaMax));
+        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(
+                cfg, raza, segundos);
+
+        vidaActual = static_cast<uint16_t>(
+                std::min<uint32_t>(vidaActual + delta, vidaMax));
     }
 
-    // Recuperación natural de maná (siempre activa)
     if (manaActual < manaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos);
-        manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
+        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(
+                cfg, raza, segundos);
+
+        manaActual = static_cast<uint16_t>(
+                std::min<uint32_t>(manaActual + delta, manaMax));
     }
 
-    // Meditación: recuperación adicional más rápida de maná
     if (estado == Estado::Meditando && manaActual < manaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionMeditacion(cfg, clase, inteligencia, segundos);
-        manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
+        uint16_t delta = ReglasJuego::calcularRecuperacionMeditacion(
+                cfg, clase, inteligencia, segundos);
+
+        manaActual = static_cast<uint16_t>(
+                std::min<uint32_t>(manaActual + delta, manaMax));
+
         if (manaActual >= manaMax) {
             manaActual = manaMax;
-            estado     = Estado::Vivo;
+            estado = Estado::Vivo;
         }
     }
 
-    if (cfg.vidaInfinita) vidaActual = vidaMax;
-    if (cfg.manaInfinito) manaActual = manaMax;
+    if (cfg.vidaInfinita) {
+        vidaActual = vidaMax;
+    }
+
+    if (cfg.manaInfinito) {
+        manaActual = manaMax;
+    }
 }
 
-
 void Jugador::ganar_experiencia(uint32_t cantidad) {
-    if (cfg.expX10) cantidad *= 10;
+    if (cfg.expX10) {
+        cantidad *= 10;
+    }
+
     experiencia += cantidad;
+
     uint32_t limite = ReglasJuego::calcularLimiteExperiencia(cfg, nivel);
+
     if (experiencia >= limite) {
         experiencia -= limite;
         subirNivel();
@@ -102,32 +142,34 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
 }
 
 void Jugador::sumar_oro(uint32_t cantidad) {
-    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(cfg, nivel);
-    uint32_t limiteExceso = (uint32_t)(oroSeguro * cfg.oroExcesoPct);
+    uint32_t totalActual = oroMano + oroExceso;
+    uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
 
-    if (oroMano < oroSeguro) {
-        uint32_t espacio = oroSeguro - oroMano;
-        uint32_t aMano   = std::min(cantidad, espacio);
-        oroMano  += aMano;
-        cantidad -= aMano;
+    uint32_t espacioTotal = 0;
+    if (totalActual < maximoTotal) {
+        espacioTotal = maximoTotal - totalActual;
     }
 
-    if (cantidad > 0 && oroExceso < limiteExceso) {
-        uint32_t espacio = limiteExceso - oroExceso;
-        oroExceso += std::min(cantidad, espacio);
-        // el oro que no cabe se pierde al piso (requiere Mapa para dropearlo)
-    }
+    uint32_t cantidadAceptada = std::min(cantidad, espacioTotal);
+
+    oroMano += cantidadAceptada;
+    normalizarOro();
+
+    // Si cantidad > cantidadAceptada, ese oro no entra en el máximo permitido.
+    // Cuando exista mapa, Juego debería decidir si se dropea al suelo.
 }
 
 bool Jugador::gastar_oro(uint32_t cantidad) {
-    if (oroMano + oroExceso < cantidad) return false;
-    if (oroMano >= cantidad) {
-        oroMano -= cantidad;
-    } else {
-        uint32_t restante = cantidad - oroMano;
-        oroMano   = 0;
-        oroExceso -= restante;
+    if (oroMano + oroExceso < cantidad) {
+        return false;
     }
+
+    uint32_t total = oroMano + oroExceso - cantidad;
+
+    oroMano = total;
+    oroExceso = 0;
+    normalizarOro();
+
     return true;
 }
 
@@ -137,13 +179,8 @@ void Jugador::mover_a(uint16_t x, uint16_t y) {
     cancelarMeditacion();
 }
 
-void Jugador::cancelarMeditacion() {
-    if (estado == Estado::Meditando)
-        estado = Estado::Vivo;
-}
-
 void Jugador::resucitar(uint16_t x, uint16_t y) {
-    estado     = Estado::Vivo;
+    estado = Estado::Vivo;
     posicion.x = x;
     posicion.y = y;
     vidaActual = vidaMax / 2;
@@ -154,10 +191,17 @@ void Jugador::meditar() {
     estado = Estado::Meditando;
 }
 
-uint16_t Jugador::calcular_danio(const CatalogoItems& catalogo) {
-    uint8_t danioMin = 1, danioMax = 1;
+void Jugador::cancelarMeditacion() {
+    if (estado == Estado::Meditando) {
+        estado = Estado::Vivo;
+    }
+}
 
-    uint16_t idArma   = inventario.getArmaEquipada();
+uint16_t Jugador::calcular_danio(const CatalogoItems& catalogo) {
+    uint8_t danioMin = 1;
+    uint8_t danioMax = 1;
+
+    uint16_t idArma = inventario.getArmaEquipada();
     uint16_t idBaculo = inventario.getBaculoEquipado();
 
     if (idArma != 0) {
@@ -172,13 +216,21 @@ uint16_t Jugador::calcular_danio(const CatalogoItems& catalogo) {
         }
     }
 
-    if (danioMax < danioMin) danioMax = danioMin;
-    uint16_t base = static_cast<uint16_t>(fuerza) *
-                    std::uniform_int_distribution<uint16_t>(danioMin, danioMax)(rng);
-    if (es_golpe_critico()) base = static_cast<uint16_t>(base * 2);
-    return base;
-}
+    if (danioMax < danioMin) {
+        danioMax = danioMin;
+    }
 
+    uint16_t danioBase = std::uniform_int_distribution<uint16_t>(
+            danioMin, danioMax)(rng);
+
+    uint16_t danio = static_cast<uint16_t>(fuerza) * danioBase;
+
+    if (es_golpe_critico()) {
+        danio = static_cast<uint16_t>(danio * 2);
+    }
+
+    return danio;
+}
 
 bool Jugador::agregar_item(uint16_t idItem) {
     return inventario.agregarItem(idItem);
@@ -190,153 +242,208 @@ bool Jugador::eliminar_item(uint16_t idItem) {
 
 bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     uint16_t idItem = inventario.getIdEnSlot(indice);
-    if (idItem == 0) return false;
+
+    if (idItem == 0) {
+        return false;
+    }
 
     const Item* item = catalogo.buscar(idItem);
-    if (!item) return false;
+    if (item == nullptr) {
+        return false;
+    }
 
     if (item->getTipo() == TipoItem::Pocion) {
-        if (!estaVivo()) return false;
-        const Pocion* pocion = static_cast<const Pocion*>(item);
-        if (pocion->getTipoPocion() == TipoPocion::Vida)
+        if (!estaVivo()) {
+            return false;
+        }
+
+        const Pocion* pocion = catalogo.comoPocion(idItem);
+        if (pocion == nullptr) {
+            return false;
+        }
+
+        if (pocion->getTipoPocion() == TipoPocion::Vida) {
             curar(pocion->getCantidad());
-        else
+        } else {
             recuperar_mana(pocion->getCantidad());
-        inventario.eliminarItem(idItem);
+        }
+
+        inventario.eliminarSlot(indice);
         return true;
     }
 
     if (item->getTipo() == TipoItem::Defensa) {
-        const Defensa* def = static_cast<const Defensa*>(item);
-        return inventario.equiparPieza(idItem, def->getSlot());
+        const Defensa* defensa = catalogo.comoDefensa(idItem);
+        if (defensa == nullptr) {
+            return false;
+        }
+
+        return inventario.equiparPieza(idItem, defensa->getSlot());
     }
+
     return inventario.equiparItem(idItem, item->getTipo());
 }
 
 void Jugador::agregar_item_banco(uint16_t idItem) {
-    if (!inventario.eliminarItem(idItem)) return;
+    if (!inventario.eliminarItem(idItem)) {
+        return;
+    }
+
     idItemsBanco.push_back(idItem);
 }
 
 void Jugador::agregar_oro_banco(uint32_t cantidad) {
-    if (gastar_oro(cantidad))
+    if (gastar_oro(cantidad)) {
         oroBanco += cantidad;
+    }
 }
 
 bool Jugador::sacar_item_banco(uint16_t idItem) {
     auto it = std::find(idItemsBanco.begin(), idItemsBanco.end(), idItem);
-    if (it == idItemsBanco.end()) return false;
-    if (!inventario.agregarItem(idItem)) return false;  // inventario lleno
+
+    if (it == idItemsBanco.end()) {
+        return false;
+    }
+
+    if (!inventario.agregarItem(idItem)) {
+        return false;
+    }
+
     idItemsBanco.erase(it);
     return true;
 }
 
 bool Jugador::sacar_oro_banco(uint32_t cantidad) {
-    if (oroBanco < cantidad) return false;
+    if (oroBanco < cantidad) {
+        return false;
+    }
+
     oroBanco -= cantidad;
     sumar_oro(cantidad);
     return true;
 }
 
-
-void Jugador::asignarClan(uint16_t id) { idClan = id; }
+void Jugador::asignarClan(uint16_t id) {
+    idClan = id;
+}
 
 void Jugador::salirClan() {
-    idClan       = 0;
-    fundadoClan  = false;
+    idClan = 0;
+    fundadoClan = false;
 }
 
-void Jugador::marcarFundadorClan() { fundadoClan = true; }
-
-
-bool Jugador::puedeMediatar()  const { 
-  return manaMax > 0; 
-}
-bool Jugador::puedeUsarMagia() const { 
-  return manaMax > 0; 
-}
-bool Jugador::estaVivo() const { 
-  return estado == Estado::Vivo || estado == Estado::Meditando; 
+void Jugador::marcarFundadorClan() {
+    fundadoClan = true;
 }
 
-bool Jugador::esFantasma() const { 
-  return estado == Estado::Fantasma || estado == Estado::Resucitando; 
+bool Jugador::puedeMediatar() const {
+    return manaMax > 0;
 }
 
-bool Jugador::enMeditacion() const { 
-  return estado == Estado::Meditando; 
+bool Jugador::puedeUsarMagia() const {
+    return manaMax > 0;
 }
 
-bool Jugador::tieneClan() const { 
-  return idClan != 0; 
+bool Jugador::estaVivo() const {
+    return estado == Estado::Vivo || estado == Estado::Meditando;
 }
 
-// Getters
-
-uint16_t Jugador::getId() const { 
-  return idJugador; 
-}
-uint8_t Jugador::getNivel() const { 
-  return nivel; 
-}
-uint32_t Jugador::getExperiencia() const { 
-  return experiencia; 
-}
-uint16_t Jugador::getVidaActual() const { 
-  return vidaActual; }
-uint16_t    Jugador::getVidaMax() const { 
-  return vidaMax; 
-}
-uint16_t Jugador::getManaActual() const { 
-  return manaActual; 
-}
-uint16_t Jugador::getManaMax() const { 
-  return manaMax; 
-}
-uint32_t Jugador::getOro() const { 
-  return oroMano + oroExceso; 
-}
-uint32_t Jugador::getOroBanco() const { 
-  return oroBanco; 
-}
-uint16_t Jugador::getClan() const { 
-  return idClan; 
-}
-bool Jugador::fundo_clan() const { 
-  return fundadoClan; 
-}
-bool Jugador::es_newbie() const { 
-  return nivel <= (uint8_t)(cfg.nivelNewbie); 
-}
-std::string Jugador::getNombre() const { 
-  return nombre; 
-}
-Posicion Jugador::getPosicion() const { 
-  return posicion; 
-}
-Estado  Jugador::getEstado() const { 
-  return estado; 
+bool Jugador::esFantasma() const {
+    return estado == Estado::Fantasma || estado == Estado::Resucitando;
 }
 
-std::vector<uint16_t> Jugador::getIdItemsBanco() const { 
-  return idItemsBanco; 
+bool Jugador::enMeditacion() const {
+    return estado == Estado::Meditando;
 }
 
-// Privados 
+bool Jugador::tieneClan() const {
+    return idClan != 0;
+}
+
+uint16_t Jugador::getId() const {
+    return idJugador;
+}
+
+uint8_t Jugador::getNivel() const {
+    return nivel;
+}
+
+uint32_t Jugador::getExperiencia() const {
+    return experiencia;
+}
+
+uint16_t Jugador::getVidaActual() const {
+    return vidaActual;
+}
+
+uint16_t Jugador::getVidaMax() const {
+    return vidaMax;
+}
+
+uint16_t Jugador::getManaActual() const {
+    return manaActual;
+}
+
+uint16_t Jugador::getManaMax() const {
+    return manaMax;
+}
+
+uint32_t Jugador::getOro() const {
+    return oroMano + oroExceso;
+}
+
+uint32_t Jugador::getOroBanco() const {
+    return oroBanco;
+}
+
+uint16_t Jugador::getClan() const {
+    return idClan;
+}
+
+bool Jugador::fundo_clan() const {
+    return fundadoClan;
+}
+
+bool Jugador::es_newbie() const {
+    return nivel <= static_cast<uint8_t>(cfg.nivelNewbie);
+}
+
+std::string Jugador::getNombre() const {
+    return nombre;
+}
+
+Posicion Jugador::getPosicion() const {
+    return posicion;
+}
+
+Estado Jugador::getEstado() const {
+    return estado;
+}
+
+std::vector<uint16_t> Jugador::getIdItemsBanco() const {
+    return idItemsBanco;
+}
 
 void Jugador::subirNivel() {
     nivel++;
-    const StatsRaza& sr = cfg.statsRaza(raza);
-    vidaMax    = (uint16_t)(constitucion * cfg.factorVidaClase(clase) * sr.fVida * nivel);
-    manaMax    = (uint16_t)(inteligencia * cfg.factorManaClase(clase) * sr.fMana * nivel);
+
+    vidaMax = ReglasJuego::calcularVidaMaxima(
+            cfg, raza, clase, nivel, constitucion);
+
+    manaMax = ReglasJuego::calcularManaMaximo(
+            cfg, raza, clase, nivel, inteligencia);
+
     vidaActual = vidaMax;
     manaActual = manaMax;
 }
 
 void Jugador::morir() {
     estado = Estado::Fantasma;
-    if (!es_newbie())
+
+    if (!es_newbie()) {
         perder_experiencia(experiencia / 10);
+    }
+
     oroExceso = 0;
 }
 
@@ -345,7 +452,10 @@ void Jugador::perder_experiencia(uint32_t cantidad) {
 }
 
 bool Jugador::consumir_mana(uint16_t cantidad) {
-    if (manaActual < cantidad) return false;
+    if (manaActual < cantidad) {
+        return false;
+    }
+
     manaActual -= cantidad;
     return true;
 }
@@ -354,9 +464,17 @@ void Jugador::consumir_item(uint16_t idItem) {
     inventario.eliminarItem(idItem);
 }
 
+void Jugador::normalizarOro() {
+    uint32_t total = oroMano + oroExceso;
+    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(cfg, nivel);
+
+    oroMano = std::min(total, oroSeguro);
+    oroExceso = total - oroMano;
+}
+
 bool Jugador::esquiva_ataque() {
     float r = std::uniform_real_distribution<float>(0.f, 1.f)(rng);
-    return std::pow(r, (float)(agilidad)) < cfg.esquivarUmbral;
+    return std::pow(r, static_cast<float>(agilidad)) < cfg.esquivarUmbral;
 }
 
 bool Jugador::es_golpe_critico() {
