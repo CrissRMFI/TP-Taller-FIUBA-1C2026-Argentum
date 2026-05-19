@@ -4,10 +4,11 @@
 #include <string>
 
 #include "config_completa.h"
+#include "./ilector_configuracion.h"
 
-class LectorConfigToml {
+class LectorConfigToml : public ILectorConfiguracion {
 public:
-    ConfigCompleta cargar(const std::string& ruta);
+    ConfigCompleta cargar(const std::string& ruta) override;
 };
 
 #endif

@@ -32,7 +32,7 @@ target_sources(taller_server
     game/config/config_juego.h
     game/config/config_completa.h
     game/config/lector_config_toml.h
-    game/config/i_lector_configuracion.h
+    game/config/ilector_configuracion.h
 
     # Objetos
     game/objeto/item.h
