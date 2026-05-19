@@ -323,12 +323,14 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     return inventario.equiparSlot(indice, item->getTipo());
 }
 
-void Jugador::agregar_item_banco(uint16_t idItem) {
-    if (!inventario.eliminarItem(idItem)) {
-        return;
+bool Jugador::agregar_item_banco(uint8_t indice) {
+    uint16_t idItem = inventario.quitarDeSlot(indice);
+    if (idItem == 0) {
+        return false;
     }
 
     idItemsBanco.push_back(idItem);
+    return true;
 }
 
 bool Jugador::agregar_oro_banco(uint32_t cantidad) {
