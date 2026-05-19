@@ -79,6 +79,7 @@ class ProtocoloServidor : public Protocolo {
     void enviarMensajeClan(const MensajeClan& mensaje);
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
+    void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 
 #endif

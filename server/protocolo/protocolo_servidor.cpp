@@ -433,6 +433,10 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         case Opcode::LISTA_ITEMS:
             enviarListaItems(std::get<MensajeListaItems>(mensaje.payload));
             break;
+
+        case Opcode::ERROR_ACCION:
+            enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
+            break;
         
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
@@ -568,4 +572,9 @@ void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
     for (uint16_t idItem: mensaje.ids) {
         enviarDosBytes(idItem);
     }
+}
+
+void ProtocoloServidor::enviarErrorAccion(const MensajeErrorAccion& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::ERROR_ACCION));
+    enviarUnByte(static_cast<uint8_t>(mensaje.codigo));
 }
