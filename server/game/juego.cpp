@@ -318,7 +318,9 @@ std::list<MensajeSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
 
 std::list<MensajeSalida> Juego::ejecutarChatGlobal(uint16_t idCliente, const ComandoChatGlobal& comando) {
     Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador) return {};
+    if (!jugador || !jugador->estaVivo()) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
 
     return {{ TipoDestino::TODOS, 0,
               { Opcode::MENSAJE_CHAT, MensajeChat{ jugador->getNombre(), comando.mensaje } } }};
@@ -326,7 +328,9 @@ std::list<MensajeSalida> Juego::ejecutarChatGlobal(uint16_t idCliente, const Com
 
 std::list<MensajeSalida> Juego::ejecutarChatPrivado(uint16_t idCliente, const ComandoChatPrivado& comando) {
     Jugador* emisor = buscarJugador(idCliente);
-    if (!emisor) return {};
+    if (!emisor || !emisor->estaVivo()) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
 
     Jugador* destino = buscarJugadorPorNick(comando.nickDestino);
     if (!destino)
@@ -346,12 +350,18 @@ std::list<MensajeSalida> Juego::ejecutarFundarClan(uint16_t idCliente, const Com
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador) return {};
 
-    if (jugador->tieneClan())
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    if (jugador->getNivel() < cfg.clanNivelMinimo)
-        return { armarError(idCliente, CodigoErrorAccion::NIVEL_INSUFICIENTE) };
-    if (buscarClanPorNombre(comando.nombreClan))
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    if (!jugador->estaVivo() || jugador->tieneClan()) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+    
+    if (jugador->getNivel() < cfg.clanNivelMinimo) {
+      return { armarError(idCliente, CodigoErrorAccion::NIVEL_INSUFICIENTE) };
+    }
+        
+    if (buscarClanPorNombre(comando.nombreClan)) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+        
 
     uint16_t idClan = proximoIdClan++;
     clanes.emplace(idClan, Clan(idClan, comando.nombreClan, idCliente));
@@ -366,16 +376,23 @@ std::list<MensajeSalida> Juego::ejecutarUnirseClan(uint16_t idCliente, const Com
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador) return {};
 
-    if (jugador->tieneClan())
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-
+    if (!jugador->estaVivo() || jugador->tieneClan()) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+    
     Clan* clan = buscarClanPorNombre(comando.nombreClan);
-    if (!clan)
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    if (clan->estaBaneado(idCliente))
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    if ((int)(clan->cantidadMiembros()) >= cfg.clanMaxMiembros)
-        return { armarError(idCliente, CodigoErrorAccion::CLAN_LLENO) };
+    if (!clan) {
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+        
+    if (clan->estaBaneado(idCliente)) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+        
+    if ((int)(clan->cantidadMiembros()) >= cfg.clanMaxMiembros) {
+      return { armarError(idCliente, CodigoErrorAccion::CLAN_LLENO) };
+    }
+        
 
     clan->pedirUnirse(idCliente);
 
@@ -394,7 +411,8 @@ std::list<MensajeSalida> Juego::ejecutarUnirseClan(uint16_t idCliente, const Com
 
 std::list<MensajeSalida> Juego::ejecutarDejarClan(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->tieneClan())
+
+    if (!jugador || !jugador->estaVivo() || !jugador->tieneClan())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     if (jugador->fundo_clan())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
@@ -406,7 +424,8 @@ std::list<MensajeSalida> Juego::ejecutarDejarClan(uint16_t idCliente) {
 
 std::list<MensajeSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->tieneClan() || !jugador->fundo_clan())
+
+    if (!jugador || !jugador->estaVivo() || !jugador->tieneClan() || !jugador->fundo_clan())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     Clan& clan = clanes.at(jugador->getClan());
@@ -425,7 +444,7 @@ std::list<MensajeSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
 
 std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion) {
     Jugador* lider = buscarJugador(idCliente);
-    if (!lider || !lider->fundo_clan())
+    if (!lider || !lider->estaVivo() || !lider->fundo_clan())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     Clan& clan = clanes.at(lider->getClan());
