@@ -119,65 +119,112 @@ MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
 
 
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
+    bool canceloMeditacion = false;
+
     if (comando.opcode != Opcode::MEDITAR) {
         Jugador* jugador = buscarJugador(idCliente);
-        if (jugador) jugador->cancelarMeditacion();
+        if (jugador && jugador->enMeditacion()) {
+            jugador->cancelarMeditacion();
+            canceloMeditacion = true;
+        }
     }
 
     try {
+        std::list<MensajeSalida> mensajes;
+
         switch (comando.opcode) {
           case Opcode::MEDITAR:
-            return ejecutarMeditar(idCliente);
+            mensajes = ejecutarMeditar(idCliente);
+            break;
           case Opcode::RESUCITAR:
-            return ejecutarResucitar(idCliente);
+            mensajes = ejecutarResucitar(idCliente);
+            break;
           case Opcode::TOMAR:
-            return ejecutarTomar(idCliente);
+            mensajes = ejecutarTomar(idCliente);
+            break;
           case Opcode::REVISAR_CLAN:
-            return ejecutarRevisarClan(idCliente);
+            mensajes = ejecutarRevisarClan(idCliente);
+            break;
           case Opcode::DEJAR_CLAN:
-            return ejecutarDejarClan(idCliente);
+            mensajes = ejecutarDejarClan(idCliente);
+            break;
           case Opcode::MOVER:
-            return ejecutarMover(idCliente, std::get<ComandoMover>(comando.payload));
+            mensajes = ejecutarMover(idCliente, std::get<ComandoMover>(comando.payload));
+            break;
           case Opcode::ATACAR:
-            return ejecutarAtacar(idCliente, std::get<ComandoAtacar>(comando.payload));
+            mensajes = ejecutarAtacar(idCliente, std::get<ComandoAtacar>(comando.payload));
+            break;
           case Opcode::TIRAR:
-            return ejecutarTirar(idCliente, std::get<ComandoTirar>(comando.payload));
+            mensajes = ejecutarTirar(idCliente, std::get<ComandoTirar>(comando.payload));
+            break;
           case Opcode::EQUIPAR:
-            return ejecutarEquipar(idCliente, std::get<ComandoEquipar>(comando.payload));
+            mensajes = ejecutarEquipar(idCliente, std::get<ComandoEquipar>(comando.payload));
+            break;
           case Opcode::COMPRAR:
-            return ejecutarComprar(idCliente, std::get<ComandoComprar>(comando.payload));
+            mensajes = ejecutarComprar(idCliente, std::get<ComandoComprar>(comando.payload));
+            break;
           case Opcode::VENDER:
-            return ejecutarVender(idCliente, std::get<ComandoVender>(comando.payload));
+            mensajes = ejecutarVender(idCliente, std::get<ComandoVender>(comando.payload));
+            break;
           case Opcode::DEPOSITAR_ITEM:
-            return ejecutarDepositarItem(idCliente, std::get<ComandoDepositarItem>(comando.payload));
+            mensajes = ejecutarDepositarItem(idCliente, std::get<ComandoDepositarItem>(comando.payload));
+            break;
           case Opcode::DEPOSITAR_ORO:
-            return ejecutarDepositarOro(idCliente, std::get<ComandoDepositarOro>(comando.payload));
+            mensajes = ejecutarDepositarOro(idCliente, std::get<ComandoDepositarOro>(comando.payload));
+            break;
           case Opcode::RETIRAR_ITEM:
-            return ejecutarRetirarItem(idCliente, std::get<ComandoRetirarItem>(comando.payload));
+            mensajes = ejecutarRetirarItem(idCliente, std::get<ComandoRetirarItem>(comando.payload));
+            break;
           case Opcode::RETIRAR_ORO:
-            return ejecutarRetirarOro(idCliente, std::get<ComandoRetirarOro>(comando.payload));
+            mensajes = ejecutarRetirarOro(idCliente, std::get<ComandoRetirarOro>(comando.payload));
+            break;
           case Opcode::LISTAR:
-            return ejecutarListar(idCliente, std::get<ComandoListar>(comando.payload));
+            mensajes = ejecutarListar(idCliente, std::get<ComandoListar>(comando.payload));
+            break;
           case Opcode::CURAR:
-            return ejecutarCurar(idCliente, std::get<ComandoCurar>(comando.payload));
+            mensajes = ejecutarCurar(idCliente, std::get<ComandoCurar>(comando.payload));
+            break;
           case Opcode::CHAT_GLOBAL:
-            return ejecutarChatGlobal(idCliente, std::get<ComandoChatGlobal>(comando.payload));
+            mensajes = ejecutarChatGlobal(idCliente, std::get<ComandoChatGlobal>(comando.payload));
+            break;
           case Opcode::CHAT_PRIVADO:
-            return ejecutarChatPrivado(idCliente, std::get<ComandoChatPrivado>(comando.payload));
+            mensajes = ejecutarChatPrivado(idCliente, std::get<ComandoChatPrivado>(comando.payload));
+            break;
           case Opcode::FUNDAR_CLAN:
-            return ejecutarFundarClan(idCliente, std::get<ComandoFundarClan>(comando.payload));
+            mensajes = ejecutarFundarClan(idCliente, std::get<ComandoFundarClan>(comando.payload));
+            break;
           case Opcode::UNIRSE_CLAN:
-            return ejecutarUnirseClan(idCliente, std::get<ComandoUnirseClan>(comando.payload));
+            mensajes = ejecutarUnirseClan(idCliente, std::get<ComandoUnirseClan>(comando.payload));
+            break;
           case Opcode::CLAN_ACEPTAR:
           case Opcode::CLAN_RECHAZAR:
           case Opcode::CLAN_BAN:
           case Opcode::CLAN_KICK:
-            return ejecutarGestionMiembroClan(idCliente, std::get<ComandoGestionMiembreClan>(comando.payload), comando.opcode);
+            mensajes = ejecutarGestionMiembroClan(idCliente, std::get<ComandoGestionMiembreClan>(comando.payload), comando.opcode);
+            break;
           default:
-            return {};
+            break;
         }
+
+        if (canceloMeditacion && comando.opcode != Opcode::MOVER) {
+            if (Jugador* jugador = buscarJugador(idCliente)) {
+                mensajes.push_back(armarPosicion(*jugador));
+            }
+        }
+
+        return mensajes;
     } catch (const std::bad_variant_access&) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        std::list<MensajeSalida> mensajes = {
+            armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)
+        };
+
+        if (canceloMeditacion) {
+            if (Jugador* jugador = buscarJugador(idCliente)) {
+                mensajes.push_back(armarPosicion(*jugador));
+            }
+        }
+
+        return mensajes;
     }
 }
 
