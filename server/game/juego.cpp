@@ -522,14 +522,14 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
 
 // ─── Mapa/Mundo ──────────────────────────────────────────
 
-std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t /*idCliente*/) {
+std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     // TODO: verificar que es fantasma, buscar sacerdote cercano o ciudad más cercana
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t /*idCliente*/) {
+std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     // TODO: verificar vivo, ítem en posición, espacio en inventario; mover del mapa al inventario
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
@@ -567,14 +567,14 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
     return { armarPosicion(*jugador) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t /*idCliente*/, const ComandoAtacar& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& /*cmd*/) {
     // TODO: verificar vivo, rango, fair-play, zona segura; aplicar daño; manejar muerte
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t /*idCliente*/, const ComandoTirar& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTirar& /*cmd*/) {
     // TODO: verificar vivo, ítem en inventario, celda libre; mover del inventario al mapa
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& cmd) {
@@ -594,14 +594,14 @@ std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comand
     };
 }
 
-std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t /*idCliente*/, const ComandoComprar& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& /*cmd*/) {
     // TODO: verificar vivo, comerciante cercano, ítem disponible, oro suficiente, espacio
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarVender(uint16_t /*idCliente*/, const ComandoVender& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoVender& /*cmd*/) {
     // TODO: verificar vivo, comerciante cercano, ítem en inventario
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& cmd) {
@@ -666,7 +666,7 @@ std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente, const Comando
               { Opcode::LISTA_ITEMS, MensajeListaItems{ catalogo.idsDisponibles() } } }};
 }
 
-std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t /*idCliente*/, const ComandoCurar& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& /*cmd*/) {
     // TODO: verificar vivo, sacerdote cercano; aplicar curación
-    return {};
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
