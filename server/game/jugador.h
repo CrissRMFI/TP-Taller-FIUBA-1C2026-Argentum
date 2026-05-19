@@ -43,7 +43,7 @@ public:
     void resucitar(uint16_t x, uint16_t y);
     void meditar();
     void cancelarMeditacion();
-    uint16_t calcular_danio();
+    uint16_t calcular_danio(const CatalogoItems& catalogo);
 
     // Inventario
     bool agregar_item(uint16_t idItem);

@@ -144,10 +144,28 @@ void Jugador::meditar() {
     estado = Estado::Meditando;
 }
 
-uint16_t Jugador::calcular_danio() {
-    // TODO: sumar daño del arma equipada
-    uint16_t base = std::uniform_int_distribution<uint16_t>(1, fuerza)(rng);
-    if (es_golpe_critico()) base = (uint16_t)(base * 2);
+uint16_t Jugador::calcular_danio(const CatalogoItems& catalogo) {
+    uint8_t danioMin = 1, danioMax = 1;
+
+    uint16_t idArma   = inventario.getArmaEquipada();
+    uint16_t idBaculo = inventario.getBaculoEquipado();
+
+    if (idArma != 0) {
+        if (const Arma* arma = catalogo.comoArma(idArma)) {
+            danioMin = arma->getDanioMin();
+            danioMax = arma->getDanioMax();
+        }
+    } else if (idBaculo != 0) {
+        if (const Baculo* baculo = catalogo.comoBaculo(idBaculo)) {
+            danioMin = baculo->getDanioMin();
+            danioMax = baculo->getDanioMax();
+        }
+    }
+
+    if (danioMax < danioMin) danioMax = danioMin;
+    uint16_t base = static_cast<uint16_t>(fuerza) *
+                    std::uniform_int_distribution<uint16_t>(danioMin, danioMax)(rng);
+    if (es_golpe_critico()) base = static_cast<uint16_t>(base * 2);
     return base;
 }
 
