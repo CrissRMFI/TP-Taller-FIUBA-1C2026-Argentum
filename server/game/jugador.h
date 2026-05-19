@@ -11,6 +11,8 @@
 #include "modelo/clase_personaje.h"
 #include "config/config_juego.h"
 
+class CatalogoItems;
+
 enum class Estado {
     Vivo,
     Fantasma,
@@ -40,12 +42,13 @@ public:
     void mover_a(uint16_t x, uint16_t y);
     void resucitar(uint16_t x, uint16_t y);
     void meditar();
+    void cancelarMeditacion();
     uint16_t calcular_danio();
 
     // Inventario
     bool agregar_item(uint16_t idItem);
     bool eliminar_item(uint16_t idItem);
-    bool equipar_item(uint16_t idItem);
+    bool equipar_item(uint8_t indice, const CatalogoItems& catalogo);
     void agregar_item_banco(uint16_t idItem);
     void agregar_oro_banco(uint32_t cantidad);
     bool sacar_item_banco(uint16_t idItem);
@@ -95,8 +98,6 @@ private:
     uint32_t oroMano;
     uint32_t oroExceso;
     uint32_t oroBanco;
-    bool esFantasmaFlag;
-    bool estaMeditando;
     uint8_t fuerza;
     uint8_t agilidad;
     uint8_t inteligencia;

@@ -4,13 +4,14 @@
 #include <cmath>
 #include <random>
 
+#include "objeto/catalogo_items.h"
+
 static std::mt19937 rng(std::random_device{}());
 
 Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config)
     : idJugador(id), idClan(0), nombre(nombre),
       nivel(1), experiencia(0),
       oroMano(0), oroExceso(0), oroBanco(0),
-      esFantasmaFlag(false), estaMeditando(false),
       posicion(posicion),
       clase(clase), estado(Estado::Vivo),
       raza(raza), fundadoClan(false), cfg(config)
@@ -58,14 +59,13 @@ void Jugador::recuperar(float segundos) {
     }
 
     // Recuperación de maná al meditar
-    if (estaMeditando && manaActual < manaMax) {
+    if (estado == Estado::Meditando && manaActual < manaMax) {
         float tasa = cfg.factorMeditacionClase(clase) * inteligencia;
         uint16_t delta = (uint16_t)(tasa * segundos);
         manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
         if (manaActual >= manaMax) {
-            manaActual  = manaMax;
-            estaMeditando = false;
-            estado        = Estado::Vivo;
+            manaActual = manaMax;
+            estado     = Estado::Vivo;
         }
     }
 
@@ -111,24 +111,24 @@ bool Jugador::gastar_oro(uint32_t cantidad) {
 void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.x = x;
     posicion.y = y;
-    if (estaMeditando) {
-        estaMeditando = false;
-        estado        = Estado::Vivo;
-    }
+    cancelarMeditacion();
+}
+
+void Jugador::cancelarMeditacion() {
+    if (estado == Estado::Meditando)
+        estado = Estado::Vivo;
 }
 
 void Jugador::resucitar(uint16_t x, uint16_t y) {
-    estado        = Estado::Vivo;
-    esFantasmaFlag = false;
-    posicion.x    = x;
-    posicion.y    = y;
-    vidaActual    = vidaMax / 2;
-    manaActual    = 0;
+    estado     = Estado::Vivo;
+    posicion.x = x;
+    posicion.y = y;
+    vidaActual = vidaMax / 2;
+    manaActual = 0;
 }
 
 void Jugador::meditar() {
-    estaMeditando = true;
-    estado        = Estado::Meditando;
+    estado = Estado::Meditando;
 }
 
 uint16_t Jugador::calcular_danio() {
@@ -147,10 +147,18 @@ bool Jugador::eliminar_item(uint16_t idItem) {
     return inventario.eliminarItem(idItem);
 }
 
-bool Jugador::equipar_item(uint16_t idItem) {
-    // TODO: cuando implemente el catálogo
-    (void)idItem;
-    return false;
+bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
+    uint16_t idItem = inventario.getIdEnSlot(indice);
+    if (idItem == 0) return false;
+
+    const Item* item = catalogo.buscar(idItem);
+    if (!item) return false;
+
+    if (item->getTipo() == TipoItem::Defensa) {
+        const Defensa* def = static_cast<const Defensa*>(item);
+        return inventario.equiparPieza(idItem, def->getSlot());
+    }
+    return inventario.equiparItem(idItem, item->getTipo());
 }
 
 void Jugador::agregar_item_banco(uint16_t idItem) {
@@ -275,8 +283,6 @@ void Jugador::subirNivel() {
 
 void Jugador::morir() {
     estado = Estado::Fantasma;
-    esFantasmaFlag = true;
-    estaMeditando  = false;
     if (!es_newbie())
         perder_experiencia(experiencia / 10);
     oroExceso = 0;

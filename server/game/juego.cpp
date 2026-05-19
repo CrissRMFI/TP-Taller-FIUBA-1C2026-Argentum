@@ -70,6 +70,11 @@ MensajeSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
 
 
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
+    if (comando.opcode != Opcode::MEDITAR) {
+        Jugador* jugador = buscarJugador(idCliente);
+        if (jugador) jugador->cancelarMeditacion();
+    }
+
     switch (comando.opcode) {
       case Opcode::MEDITAR:
         return ejecutarMeditar(idCliente);
