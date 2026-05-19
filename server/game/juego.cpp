@@ -25,7 +25,7 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 }
 
 bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
-    return primera.x == segunda.x && primera.y == segunda.y;
+  return primera.mapaId == segunda.mapaId && primera.x == segunda.x && primera.y == segunda.y;
 }
 }
 
