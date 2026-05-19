@@ -8,7 +8,11 @@
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
       juego(config.juego, std::move(config.items)),
-      tickMs(config.juego.tickMs) {}
+      tickMs(config.juego.tickMs) {
+    if (tickMs <= 0) {
+        throw std::invalid_argument("El tick del gameloop debe ser mayor a cero");
+    }
+}
 
 void Gameloop::run() {
     using Clock = std::chrono::steady_clock;
