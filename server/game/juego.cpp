@@ -78,6 +78,10 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
         }
     }
 
+    for (const ItemEnSuelo& item: mapa.obtenerItemsEnSuelo()) {
+        mensajes.push_back(armarItemEnSuelo(item.posicion, item.idItem));
+    }
+
     return mensajes;
 }
 

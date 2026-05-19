@@ -34,6 +34,7 @@ public:
     bool hayItemEn(const Posicion& posicion) const;
     bool agregarItem(const Posicion& posicion, uint16_t idItem);
     std::optional<uint16_t> tomarItem(const Posicion& posicion);
+    std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
 };
 
 #endif

@@ -82,3 +82,7 @@ std::optional<uint16_t> Mapa::tomarItem(const Posicion& posicion) {
   
   return std::nullopt;
 }
+
+std::vector<ItemEnSuelo> Mapa::obtenerItemsEnSuelo() const {
+    return itemsEnSuelo;
+}
