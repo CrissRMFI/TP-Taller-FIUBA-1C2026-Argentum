@@ -213,6 +213,13 @@ MensajeSalida Juego::armarDesaparicion(uint16_t idEntidad) {
                MensajeEntidadDesaparecio{ idEntidad } } };
 }
 
+MensajeSalida Juego::armarItemEnSuelo(const Posicion& posicion, uint16_t idItem) {
+    return { TipoDestino::TODOS, 0, { Opcode::ITEM_EN_SUELO, MensajeItemEnSuelo{ idItem, posicion.x, posicion.y } } };
+}
+
+MensajeSalida Juego::armarItemDesaparecioSuelo(const Posicion& posicion) {
+    return { TipoDestino::TODOS, 0, { Opcode::ITEM_DESAPARECIO_SUELO, MensajeItemDesaparecioSuelo{ posicion.x, posicion.y } } };
+}
 
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
     bool canceloMeditacion = false;
@@ -643,9 +650,11 @@ std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     mapa.agregarItem(posicion, *idItem);
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
   }
-
-    // TODO: emitir mensaje de desaparición de ítem en suelo cuando el protocolo/vista lo consuma.
-    return { armarInventario(idCliente, *jugador) };
+  
+  return {
+    armarInventario(idCliente, *jugador),
+    armarItemDesaparecioSuelo(posicion)
+  };
 }
 
 std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
@@ -726,6 +735,7 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
 
 std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTirar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
+    
     if (!jugador || !jugador->estaVivo()) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
@@ -751,10 +761,13 @@ std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoT
       jugador->agregar_item(idItem);
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
-
-    // TODO: emitir mensaje de ítem en suelo cuando el protocolo/vista lo consuma.
-    return { armarInventario(idCliente, *jugador) };
-}
+    
+    return {
+      armarInventario(idCliente, *jugador),
+      armarItemEnSuelo(posicion, idItem)
+    };
+  
+  }
 
 std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);

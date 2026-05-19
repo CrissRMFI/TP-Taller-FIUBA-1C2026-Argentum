@@ -51,6 +51,8 @@ class Juego {
     MensajeSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     MensajeSalida armarPosicionExcepto(uint16_t idClienteExcluido, const Jugador& jugador);
     MensajeSalida armarDesaparicion(uint16_t idEntidad);
+    MensajeSalida armarItemEnSuelo(const Posicion& posicion, uint16_t idItem);
+    MensajeSalida armarItemDesaparecioSuelo(const Posicion& posicion);
 
     std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
 
