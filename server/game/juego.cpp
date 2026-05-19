@@ -3,6 +3,7 @@
 #include <list>
 #include <utility>
 #include <variant>
+#include <optional>
 
 #include "objeto/catalogo_items.h"
 
@@ -619,8 +620,25 @@ std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
 }
 
 std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
-    // TODO: verificar vivo, ítem en posición, espacio en inventario; mover del mapa al inventario
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    Posicion posicion = jugador->getPosicion();
+    std::optional<uint16_t> idItem = mapa.tomarItem(posicion);
+
+    if (!idItem.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    if (!jugador->agregar_item(*idItem)) {
+        mapa.agregarItem(posicion, *idItem);
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: emitir mensaje de desaparición de ítem en suelo cuando el protocolo/vista lo consuma.
+    return { armarInventario(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
@@ -699,9 +717,30 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTirar& /*cmd*/) {
-    // TODO: verificar vivo, ítem en inventario, celda libre; mover del inventario al mapa
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTirar& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    Posicion posicion = jugador->getPosicion();
+
+    if (mapa.hayItemEn(posicion)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    uint16_t idItem = jugador->quitar_item_de_slot(cmd.indiceItem);
+    if (idItem == 0) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    if (!mapa.agregarItem(posicion, idItem)) {
+        jugador->agregar_item(idItem);
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    // TODO: emitir mensaje de ítem en suelo cuando el protocolo/vista lo consuma.
+    return { armarInventario(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& cmd) {

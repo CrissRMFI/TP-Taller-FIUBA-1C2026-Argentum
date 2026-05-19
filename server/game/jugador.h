@@ -56,6 +56,7 @@ public:
     bool agregar_oro_banco(uint32_t cantidad);
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
+    uint16_t quitar_item_de_slot(uint8_t indice);
 
     // Clan
     void asignarClan(uint16_t idClan);

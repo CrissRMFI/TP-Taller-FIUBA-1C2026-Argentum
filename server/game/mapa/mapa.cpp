@@ -51,3 +51,34 @@ bool Mapa::hayNpcEn(const Posicion& posicion) const {
   }
   return false;
 }
+
+bool Mapa::hayItemEn(const Posicion& posicion) const {
+  for (const ItemEnSuelo& item: itemsEnSuelo) {
+    if (mismaPosicion(item.posicion, posicion)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
+  if (hayItemEn(posicion)) {
+    return false;
+  }
+  
+  itemsEnSuelo.push_back({ posicion, idItem });
+  return true;
+}
+
+std::optional<uint16_t> Mapa::tomarItem(const Posicion& posicion) {
+  for (auto it = itemsEnSuelo.begin(); it != itemsEnSuelo.end(); ++it) {
+    if (mismaPosicion(it->posicion, posicion)) {
+      uint16_t idItem = it->idItem;
+      itemsEnSuelo.erase(it);
+      return idItem;
+    }
+  }
+  
+  return std::nullopt;
+}

@@ -271,6 +271,10 @@ bool Jugador::eliminar_item(uint16_t idItem) {
     return inventario.eliminarItem(idItem);
 }
 
+uint16_t Jugador::quitar_item_de_slot(uint8_t indice) {
+    return inventario.quitarDeSlot(indice);
+}
+
 bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     uint16_t idItem = inventario.getIdEnSlot(indice);
 

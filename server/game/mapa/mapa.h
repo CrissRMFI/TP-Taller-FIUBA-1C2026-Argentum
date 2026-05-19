@@ -7,10 +7,17 @@
 
 #include "../modelo/posicion.h"
 #include "../npc/npc.h"
+#include <vector>
+
+struct ItemEnSuelo {
+    Posicion posicion;
+    uint16_t idItem;
+};
 
 class Mapa {
 private:
     std::map<uint16_t, Npc> npcs;
+    std::vector<ItemEnSuelo> itemsEnSuelo;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
@@ -23,6 +30,10 @@ public:
     std::optional<Npc> buscarNpcCercano(Posicion posicion, TipoNpc tipo) const;
     bool hayNpcCercano(Posicion posicion, TipoNpc tipo) const;
     bool hayNpcEn(const Posicion& posicion) const;
+    
+    bool hayItemEn(const Posicion& posicion) const;
+    bool agregarItem(const Posicion& posicion, uint16_t idItem);
+    std::optional<uint16_t> tomarItem(const Posicion& posicion);
 };
 
 #endif
