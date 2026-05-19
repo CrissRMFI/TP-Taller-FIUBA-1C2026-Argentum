@@ -18,7 +18,6 @@ target_sources(taller_server
 
     # Gameloop
     gameloop/gameloop.cpp
-    gameloop/monitor_clientes.cpp
 
     # Protocolo servidor
     protocolo/protocolo_servidor.cpp
