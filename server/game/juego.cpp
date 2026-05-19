@@ -678,7 +678,22 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
 }
 
 std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& /*cmd*/) {
-    // TODO: verificar vivo, rango, fair-play, zona segura; aplicar daño; manejar muerte
+    // TODO: implementar combate cuando exista Mapa/NPC/objetivos.
+    //
+    // Reglas pendientes del enunciado:
+    // - Validar que el atacante exista y esté vivo.
+    // - Buscar objetivo jugador o criatura por id.
+    // - Validar rango cuerpo a cuerpo o distancia según arma/hechizo.
+    // - Bloquear ataques en zonas seguras.
+    // - Aplicar protección newbie: nivel <= cfg.nivelNewbie.
+    // - Aplicar regla PVP: |nivelAtacante - nivelDefensor| <= cfg.maxDiffNivel.
+    // - Bloquear fuego amigo entre miembros del mismo clan.
+    // - Calcular crítico con cfg.probabilidadCritico.
+    // - Si es crítico, duplicar daño y omitir evasión.
+    // - Si no es crítico, aplicar evasión con cfg.esquivarUmbral.
+    // - Aplicar absorción por armadura/casco/escudo.
+    // - Otorgar XP por impacto y por kill.
+    // - Manejar muerte, drops de oro/items y estado fantasma.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
