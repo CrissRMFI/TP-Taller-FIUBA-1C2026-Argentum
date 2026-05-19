@@ -185,6 +185,17 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     const Item* item = catalogo.buscar(idItem);
     if (!item) return false;
 
+    if (item->getTipo() == TipoItem::Pocion) {
+        if (!estaVivo()) return false;
+        const Pocion* pocion = static_cast<const Pocion*>(item);
+        if (pocion->getTipoPocion() == TipoPocion::Vida)
+            curar(pocion->getCantidad());
+        else
+            recuperar_mana(pocion->getCantidad());
+        inventario.eliminarItem(idItem);
+        return true;
+    }
+
     if (item->getTipo() == TipoItem::Defensa) {
         const Defensa* def = static_cast<const Defensa*>(item);
         return inventario.equiparPieza(idItem, def->getSlot());
