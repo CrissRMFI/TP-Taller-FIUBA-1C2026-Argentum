@@ -480,7 +480,7 @@ std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t /*idCliente*/) {
 
 std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo()) {
+    if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma())) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
