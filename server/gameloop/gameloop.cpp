@@ -86,8 +86,8 @@ void Gameloop::procesarComandos() {
 }
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
-    std::list<MensajeSalida> mensajes = juego.ejecutarComando(comandoCliente.idCliente,comandoCliente.comando
-    );
+    std::list<MensajeSalida> mensajes =
+        juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
     
     despachar(mensajes);
 }
