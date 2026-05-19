@@ -72,15 +72,19 @@ bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
 }
 
 std::optional<uint16_t> Mapa::tomarItem(const Posicion& posicion) {
-  for (auto it = itemsEnSuelo.begin(); it != itemsEnSuelo.end(); ++it) {
-    if (mismaPosicion(it->posicion, posicion)) {
-      uint16_t idItem = it->idItem;
-      itemsEnSuelo.erase(it);
-      return idItem;
+    if (!posicionValida(posicion) || hayParedEn(posicion)) {
+        return std::nullopt;
     }
-  }
-  
-  return std::nullopt;
+
+    for (auto it = itemsEnSuelo.begin(); it != itemsEnSuelo.end(); ++it) {
+        if (mismaPosicion(it->posicion, posicion)) {
+            uint16_t idItem = it->idItem;
+            itemsEnSuelo.erase(it);
+            return idItem;
+        }
+    }
+
+    return std::nullopt;
 }
 
 std::vector<ItemEnSuelo> Mapa::obtenerItemsEnSuelo() const {
