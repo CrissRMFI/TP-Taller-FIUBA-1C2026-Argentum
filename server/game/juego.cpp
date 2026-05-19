@@ -208,7 +208,10 @@ std::list<MensajeSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     jugador->meditar();
-    return { armarEstado(idCliente, *jugador) };
+    return {
+        armarEstado(idCliente, *jugador),
+        armarPosicion(*jugador)
+    };
 }
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
