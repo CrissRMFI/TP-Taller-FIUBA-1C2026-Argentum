@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <vector>
 
 #include "item.h"
 
@@ -18,6 +19,7 @@ public:
     const Pocion*  comoPocion (uint16_t id) const;
 
     bool existe(uint16_t id) const;
+    std::vector<uint16_t> idsDisponibles() const;
 
 private:
     std::map<uint16_t, std::unique_ptr<Item>> items;

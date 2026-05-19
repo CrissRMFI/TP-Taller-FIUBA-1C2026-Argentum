@@ -13,6 +13,17 @@ bool CatalogoItems::existe(uint16_t id) const {
     return items.count(id) > 0;
 }
 
+std::vector<uint16_t> CatalogoItems::idsDisponibles() const {
+    std::vector<uint16_t> ids;
+    ids.reserve(items.size());
+
+    for (const auto& [id, item] : items) {
+        ids.push_back(id);
+    }
+
+    return ids;
+}
+
 const Arma* CatalogoItems::comoArma(uint16_t id) const {
     const Item* item = buscar(id);
     if (!item || item->getTipo() != TipoItem::Arma) return nullptr;

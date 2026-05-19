@@ -656,9 +656,14 @@ std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente, const Com
     return { armarEstado(idCliente, *jugador) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarListar(uint16_t /*idCliente*/, const ComandoListar& /*cmd*/) {
-    // TODO: verificar vivo, NPC cercano; devolver lista de ítems/precios
-    return {};
+std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoListar& /*cmd*/) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    return {{ TipoDestino::UNO, idCliente,
+              { Opcode::LISTA_ITEMS, MensajeListaItems{ catalogo.idsDisponibles() } } }};
 }
 
 std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t /*idCliente*/, const ComandoCurar& /*cmd*/) {
