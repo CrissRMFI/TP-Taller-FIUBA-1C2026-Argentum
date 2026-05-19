@@ -80,9 +80,11 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
 
     for (const ItemEnSuelo& item: mapa.obtenerItemsEnSuelo()) {
       if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
-        mensajes.push_back(armarItemEnSuelo(item.posicion, item.idItem));
-      }
+        mensajes.push_back({ TipoDestino::UNO, id, { Opcode::ITEM_EN_SUELO, 
+          MensajeItemEnSuelo{ 
+            item.idItem, item.posicion.x, item.posicion.y } } });
     }
+}
 
 
     return mensajes;
@@ -220,12 +222,31 @@ MensajeSalida Juego::armarDesaparicion(uint16_t idEntidad) {
                MensajeEntidadDesaparecio{ idEntidad } } };
 }
 
-MensajeSalida Juego::armarItemEnSuelo(const Posicion& posicion, uint16_t idItem) {
-    return { TipoDestino::TODOS, 0, { Opcode::ITEM_EN_SUELO, MensajeItemEnSuelo{ idItem, posicion.x, posicion.y } } };
+std::list<MensajeSalida> Juego::armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem) {
+    std::list<MensajeSalida> mensajes;
+    
+    for (const auto& [idCliente, jugador]: jugadoresConectados) {
+      if (jugador.getPosicion().mapaId == posicion.mapaId) {
+        mensajes.push_back({ TipoDestino::UNO, idCliente, { 
+          Opcode::ITEM_EN_SUELO, MensajeItemEnSuelo{ idItem,
+            posicion.x, posicion.y } } });
+        }
+    }
+
+    return mensajes;
 }
 
-MensajeSalida Juego::armarItemDesaparecioSuelo(const Posicion& posicion) {
-    return { TipoDestino::TODOS, 0, { Opcode::ITEM_DESAPARECIO_SUELO, MensajeItemDesaparecioSuelo{ posicion.x, posicion.y } } };
+std::list<MensajeSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion& posicion) {
+    std::list<MensajeSalida> mensajes;
+
+    for (const auto& [idCliente, jugador]: jugadoresConectados) {
+      if (jugador.getPosicion().mapaId == posicion.mapaId) {
+        mensajes.push_back({ TipoDestino::UNO, idCliente, { 
+          Opcode::ITEM_DESAPARECIO_SUELO, MensajeItemDesaparecioSuelo{ posicion.x, posicion.y } } });
+        }
+    }
+
+    return mensajes;
 }
 
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
@@ -658,10 +679,13 @@ std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
   }
   
-  return {
-    armarInventario(idCliente, *jugador),
-    armarItemDesaparecioSuelo(posicion)
+  std::list<MensajeSalida> mensajes = {
+    armarInventario(idCliente, *jugador)
   };
+  
+  mensajes.splice(mensajes.end(), armarItemDesaparecioSueloParaMapa(posicion));
+  
+  return mensajes;
 }
 
 std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
@@ -769,10 +793,12 @@ std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoT
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
     
-    return {
-      armarInventario(idCliente, *jugador),
-      armarItemEnSuelo(posicion, idItem)
+    std::list<MensajeSalida> mensajes = { 
+      armarInventario(idCliente, *jugador)
     };
+    
+    mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicion, idItem));
+    return mensajes;
   
   }
 
