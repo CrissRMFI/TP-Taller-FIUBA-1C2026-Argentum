@@ -96,22 +96,20 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
 }
 
 std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
-  auto it = jugadoresConectados.find(id);
-  if (it == jugadoresConectados.end()) {
-    return {};
-  }
+    auto it = jugadoresConectados.find(id);
+    if (it == jugadoresConectados.end()) {
+        return {};
+    }
 
-  std::list<MensajeSalida> mensajes = {
-    armarDesaparicion(id)
-  };
-  
-  const std::string nombre = it->second.getNombre();
-  indiceNicksConectados.erase(nombre);
-  
-  jugadoresDesconectados.emplace(id, std::move(it->second));
-  jugadoresConectados.erase(it);
-  
-  return mensajes;
+    std::list<MensajeSalida> mensajes = armarDesaparicionParaMapa(it->second);
+
+    const std::string nombre = it->second.getNombre();
+    indiceNicksConectados.erase(nombre);
+
+    jugadoresDesconectados.emplace(id, std::move(it->second));
+    jugadoresConectados.erase(it);
+
+    return mensajes;
 }
 
 Jugador* Juego::buscarJugador(uint16_t id) {
@@ -221,10 +219,22 @@ std::list<MensajeSalida> Juego::armarPosicionParaMapa(const Jugador& jugador) {
     return mensajes;
 }
 
-MensajeSalida Juego::armarDesaparicion(uint16_t idEntidad) {
-    return { TipoDestino::TODOS, 0,
-             { Opcode::ENTIDAD_DESAPARECIO,
-               MensajeEntidadDesaparecio{ idEntidad } } };
+std::list<MensajeSalida> Juego::armarDesaparicionParaMapa(const Jugador& jugador) {
+    std::list<MensajeSalida> mensajes;
+    Posicion posicion = jugador.getPosicion();
+
+    for (const auto& [idCliente, otro]: jugadoresConectados) {
+        if (idCliente != jugador.getId() &&
+            otro.getPosicion().mapaId == posicion.mapaId) {
+            mensajes.push_back({ TipoDestino::UNO, idCliente,
+                                 { Opcode::ENTIDAD_DESAPARECIO,
+                                   MensajeEntidadDesaparecio{
+                                           jugador.getId()
+                                   } } });
+        }
+    }
+
+    return mensajes;
 }
 
 std::list<MensajeSalida> Juego::armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem) {

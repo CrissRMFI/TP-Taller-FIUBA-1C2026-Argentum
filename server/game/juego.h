@@ -49,7 +49,7 @@ class Juego {
     MensajeSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     MensajeSalida armarPosicion(const Jugador& jugador);
     MensajeSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
-    MensajeSalida armarDesaparicion(uint16_t idEntidad);
+    std::list<MensajeSalida> armarDesaparicionParaMapa(const Jugador& jugador);
     std::list<MensajeSalida> armarPosicionParaMapa(const Jugador& jugador);
     std::list<MensajeSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
     std::list<MensajeSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
