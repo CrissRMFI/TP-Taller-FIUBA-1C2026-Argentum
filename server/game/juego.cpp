@@ -654,9 +654,19 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (posicionOcupadaPorJugador(idCliente, destino)) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino)) {
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
+    
+    if (posicionOcupadaPorJugador(idCliente, destino)) {
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+    
+    jugador->mover_a(destino.x, destino.y);
+    
+    return { 
+      armarPosicion(*jugador) 
+    };
 
     // TODO: validar destino contra Mapa cuando existan límites, paredes,
     // NPCs, criaturas, ciudades y zonas seguras.
@@ -724,10 +734,18 @@ std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
-                                                     const ComandoDepositarOro& /*cmd*/) {
-    // TODO: validar jugador vivo, cercanía a banquero, monto positivo y oro suficiente.
-    // El enunciado define estas operaciones como interacción con NPC Banquero.
+std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& /*cmd*/) {
+    
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar depósito cuando esté definido el flujo de banco.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 

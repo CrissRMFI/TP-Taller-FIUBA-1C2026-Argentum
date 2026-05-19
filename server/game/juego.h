@@ -13,6 +13,7 @@
 #include "config/config_juego.h"
 #include "jugador.h"
 #include "criatura.h"
+#include "mapa/mapa.h"
 #include "objeto/catalogo_items.h"
 #include <unordered_map>
 
@@ -34,7 +35,7 @@ class Juego {
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
-    std::map<uint16_t, Criatura> criaturasEnMapa;
+    Mapa mapa;
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);
