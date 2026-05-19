@@ -22,6 +22,7 @@ public:
 
     std::optional<Npc> buscarNpcCercano(Posicion posicion, TipoNpc tipo) const;
     bool hayNpcCercano(Posicion posicion, TipoNpc tipo) const;
+    bool hayNpcEn(const Posicion& posicion) const;
 };
 
 #endif

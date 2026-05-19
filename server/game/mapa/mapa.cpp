@@ -33,3 +33,12 @@ std::optional<Npc> Mapa::buscarNpcCercano(Posicion posicion, TipoNpc tipo) const
 bool Mapa::hayNpcCercano(Posicion posicion, TipoNpc tipo) const {
     return buscarNpcCercano(posicion, tipo).has_value();
 }
+
+bool Mapa::hayNpcEn(const Posicion& posicion) const {
+  for (const auto& [id, npc]: npcs) {
+    if (mismaPosicion(npc.getPosicion(), posicion)) {
+      return true;
+    }
+  }
+  return false;
+}

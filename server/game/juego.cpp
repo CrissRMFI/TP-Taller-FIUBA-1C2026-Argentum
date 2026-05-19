@@ -654,7 +654,7 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino)) {
+    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayNpcEn(destino)) {
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
     
