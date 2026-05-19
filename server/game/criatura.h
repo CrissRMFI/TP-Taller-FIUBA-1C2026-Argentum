@@ -17,7 +17,6 @@ enum class TipoCriatura {
 
 class Criatura {
 public:
-    friend class Juego;
 
     uint16_t getId() const;
     Posicion getPos() const;
