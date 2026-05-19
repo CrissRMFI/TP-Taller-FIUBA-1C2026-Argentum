@@ -620,22 +620,29 @@ std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
 }
 
 std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    Posicion posicion = jugador->getPosicion();
-    std::optional<uint16_t> idItem = mapa.tomarItem(posicion);
-
-    if (!idItem.has_value()) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    }
-
-    if (!jugador->agregar_item(*idItem)) {
-        mapa.agregarItem(posicion, *idItem);
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
+  
+  Jugador* jugador = buscarJugador(idCliente);
+  
+  if (!jugador || !jugador->estaVivo()) {
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+  }
+  
+  Posicion posicion = jugador->getPosicion();
+  std::optional<uint16_t> idItem = mapa.tomarItem(posicion);
+  
+  if (!idItem.has_value()) {
+    return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+  }
+  
+  if (!catalogo.existe(*idItem)) {
+    mapa.agregarItem(posicion, *idItem);
+    return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+  }
+  
+  if (!jugador->agregar_item(*idItem)) {
+    mapa.agregarItem(posicion, *idItem);
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+  }
 
     // TODO: emitir mensaje de desaparición de ítem en suelo cuando el protocolo/vista lo consuma.
     return { armarInventario(idCliente, *jugador) };
