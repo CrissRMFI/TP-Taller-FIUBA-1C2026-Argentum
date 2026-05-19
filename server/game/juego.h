@@ -46,6 +46,7 @@ class Juego {
     MensajeSalida armarEstado(uint16_t idCliente, const Jugador& j);
     MensajeSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     MensajeSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
+    MensajeSalida armarPosicion(const Jugador& jugador);
 
     std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
 

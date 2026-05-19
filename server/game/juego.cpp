@@ -6,6 +6,25 @@
 
 #include "objeto/catalogo_items.h"
 
+namespace {
+constexpr uint8_t TIPO_ENTIDAD_PERSONAJE = 0;
+constexpr uint8_t ESTADO_ENTIDAD_VIVO = 0;
+constexpr uint8_t ESTADO_ENTIDAD_FANTASMA = 1;
+constexpr uint8_t ESTADO_ENTIDAD_MEDITANDO = 2;
+
+uint8_t estadoEntidadDe(const Jugador& jugador) {
+    if (jugador.enMeditacion()) {
+        return ESTADO_ENTIDAD_MEDITANDO;
+    }
+
+    if (jugador.esFantasma()) {
+        return ESTADO_ENTIDAD_FANTASMA;
+    }
+
+    return ESTADO_ENTIDAD_VIVO;
+}
+}
+
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
@@ -82,6 +101,19 @@ MensajeSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugado
                    jugador.getDefensaEquipada(),
                    jugador.getCascoEquipado(),
                    jugador.getEscudoEquipado()
+               } } };
+}
+
+MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
+    Posicion posicion = jugador.getPosicion();
+    return { TipoDestino::TODOS, 0,
+             { Opcode::POSICION_ENTIDAD,
+               MensajePosicionEntidad{
+                   jugador.getId(),
+                   posicion.x,
+                   posicion.y,
+                   TIPO_ENTIDAD_PERSONAJE,
+                   estadoEntidadDe(jugador)
                } } };
 }
 
@@ -391,9 +423,39 @@ std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t /*idCliente*/) {
     return {};
 }
 
-std::list<MensajeSalida> Juego::ejecutarMover(uint16_t /*idCliente*/, const ComandoMover& /*cmd*/) {
-    // TODO: validar límites, celda transitable y libre; actualizar posición en el mapa
-    return {};
+std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    Posicion destino = jugador->getPosicion();
+
+    switch (cmd.direccion) {
+        case 0:
+            if (destino.y == 0) {
+                return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+            }
+            destino.y--;
+            break;
+        case 1:
+            destino.y++;
+            break;
+        case 2:
+            if (destino.x == 0) {
+                return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+            }
+            destino.x--;
+            break;
+        case 3:
+            destino.x++;
+            break;
+        default:
+            return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    jugador->mover_a(destino.x, destino.y);
+    return { armarPosicion(*jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t /*idCliente*/, const ComandoAtacar& /*cmd*/) {
