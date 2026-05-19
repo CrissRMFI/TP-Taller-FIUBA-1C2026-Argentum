@@ -19,12 +19,11 @@ class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
 
-    std::list<MensajeSalida> conectarJugador(uint16_t id, const std::string& nombre,
-                                             ClasePersonaje clase, Raza raza, Posicion posicion);
+    std::list<MensajeSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
     std::list<MensajeSalida> desconectarJugador(uint16_t id);
 
     std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
-    std::list<MensajeSalida> actualizar();
+    std::list<MensajeSalida> actualizar(float deltaSegundos);
 
   private:
     ConfigJuego   cfg;

@@ -11,13 +11,29 @@ Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
       tickMs(config.juego.tickMs) {}
 
 void Gameloop::run() {
+    using Clock = std::chrono::steady_clock;
+
+    const auto duracionTick = std::chrono::milliseconds(tickMs);
+    auto instanteAnterior = Clock::now();
+    auto siguienteTick = instanteAnterior + duracionTick;
+
     while (should_keep_running()) {
+        auto ahora = Clock::now();
+        float deltaSegundos = std::chrono::duration<float>(ahora - instanteAnterior).count();
+        instanteAnterior = ahora;
+
         procesarEventosSesion();
         procesarComandos();
-        auto mensajes = juego.actualizar();
+
+        auto mensajes = juego.actualizar(deltaSegundos);
         despachar(mensajes);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(tickMs));
+        std::this_thread::sleep_until(siguienteTick);
+        siguienteTick += duracionTick;
+
+        if (Clock::now() > siguienteTick + duracionTick) {
+            siguienteTick = Clock::now() + duracionTick;
+        }
     }
 }
 
