@@ -33,12 +33,10 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
     
-std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
-                                                ClasePersonaje clase, Raza raza, Posicion posicion) {
-    for (const auto& [idConectado, jugador] : jugadoresConectados) {
-        if (idConectado != id && jugador.getNombre() == nombre) {
-            return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
+std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
+    auto itNickConectado = indiceNicksConectados.find(nombre);
+    if (itNickConectado != indiceNicksConectados.end() && itNickConectado->second != id) {
+        return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
     auto itDesconectado = jugadoresDesconectados.end();
@@ -58,6 +56,8 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
         jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
     }
 
+    indiceNicksConectados[nombre] = id;
+
     Jugador& jugador = jugadoresConectados.at(id);
     std::list<MensajeSalida> mensajes = {
         armarEstado(id, jugador),
@@ -75,16 +75,23 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
     return mensajes;
 }
 
-std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
+
+    std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
     auto it = jugadoresConectados.find(id);
-    if (it == jugadoresConectados.end()) return {};
+    if (it == jugadoresConectados.end()) {
+        return {};
+    }
 
     std::list<MensajeSalida> mensajes = {
         armarDesaparicion(id)
     };
 
+    const std::string nombre = it->second.getNombre();
+    indiceNicksConectados.erase(nombre);
+
     jugadoresDesconectados.emplace(id, std::move(it->second));
     jugadoresConectados.erase(it);
+
     return mensajes;
 }
 
@@ -104,10 +111,19 @@ bool Juego::posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posici
 }
 
 Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
-    for (auto& [id, j] : jugadoresConectados)
-        if (j.getNombre() == nick) return &j;
-    return nullptr;
+    auto itIndice = indiceNicksConectados.find(nick);
+    if (itIndice == indiceNicksConectados.end()) {
+        return nullptr;
+    }
+
+    auto itJugador = jugadoresConectados.find(itIndice->second);
+    if (itJugador == jugadoresConectados.end()) {
+        return nullptr;
+    }
+
+    return &itJugador->second;
 }
+
 
 Clan* Juego::buscarClanPorNombre(const std::string& nombre) {
     for (auto& [id, c] : clanes)
@@ -496,6 +512,7 @@ std::list<MensajeSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
 }
 
 std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion) {
+    
     Jugador* lider = buscarJugador(idCliente);
     if (!lider || !lider->estaVivo() || !lider->fundo_clan())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
@@ -506,12 +523,21 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
     // Para operaciones sobre miembros activos/pendientes el objetivo puede estar desconectado.
     // Buscamos su id iterando ambos mapas.
     uint16_t idObjetivo = 0;
-    for (auto& [id, j] : jugadoresConectados)
-        if (j.getNombre() == comando.nick) { idObjetivo = id; break; }
-    if (!idObjetivo)
-        for (auto& [id, j] : jugadoresDesconectados)
-            if (j.getNombre() == comando.nick) { idObjetivo = id; break; }
-
+    
+    auto itNickConectado = indiceNicksConectados.find(comando.nick);
+    
+    if (itNickConectado != indiceNicksConectados.end()) {
+      idObjetivo = itNickConectado->second;
+    }
+    
+    if (!idObjetivo) {
+    for (auto& [id, j] : jugadoresDesconectados) {
+        if (j.getNombre() == comando.nick) {
+            idObjetivo = id;
+            break;
+        }
+    }
+}
     if (!idObjetivo)
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
 
