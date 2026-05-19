@@ -32,22 +32,37 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
                                                 ClasePersonaje clase, Raza raza, Posicion posicion) {
     auto itDesconectado = jugadoresDesconectados.end();
-    
+
     for (auto it = jugadoresDesconectados.begin(); it != jugadoresDesconectados.end(); ++it) {
-      if (it->second.getNombre() == nombre) {
-        itDesconectado = it;
-        break;
-      }
+        if (it->second.getNombre() == nombre) {
+            itDesconectado = it;
+            break;
+        }
     }
 
     if (itDesconectado != jugadoresDesconectados.end()) {
-      jugadoresConectados.emplace(id, std::move(itDesconectado->second));
-      jugadoresConectados.at(id).actualizarId(id);
-      jugadoresDesconectados.erase(itDesconectado);
+        jugadoresConectados.emplace(id, std::move(itDesconectado->second));
+        jugadoresConectados.at(id).actualizarId(id);
+        jugadoresDesconectados.erase(itDesconectado);
     } else {
-      jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
     }
 
+    Jugador& jugador = jugadoresConectados.at(id);
+    std::list<MensajeSalida> mensajes = {
+        armarEstado(id, jugador),
+        armarInventario(id, jugador),
+        armarEquipamiento(id, jugador),
+        armarPosicionExcepto(id, jugador)
+    };
+
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (idOtro != id) {
+            mensajes.push_back(armarPosicionPara(id, otro));
+        }
+    }
+
+    return mensajes;
 }
 
 std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
@@ -251,6 +266,7 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
             mensajes = ejecutarGestionMiembroClan(idCliente, std::get<ComandoGestionMiembreClan>(comando.payload), comando.opcode);
             break;
           default:
+            mensajes = { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
             break;
         }
 
