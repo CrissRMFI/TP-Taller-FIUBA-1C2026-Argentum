@@ -746,14 +746,11 @@ std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoListar& /*cmd*/) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    return {{ TipoDestino::UNO, idCliente,
-              { Opcode::LISTA_ITEMS, MensajeListaItems{ catalogo.idsDisponibles() } } }};
+std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente,
+                                               const ComandoListar& /*cmd*/) {
+    // TODO: validar jugador vivo y cercanía a comerciante o sacerdote.
+    // El listado de ítems disponibles debe depender del NPC con el que se interactúa.
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& /*cmd*/) {
