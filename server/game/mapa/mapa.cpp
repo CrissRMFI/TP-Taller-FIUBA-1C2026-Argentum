@@ -63,12 +63,12 @@ bool Mapa::hayItemEn(const Posicion& posicion) const {
 }
 
 bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
-  if (hayItemEn(posicion)) {
-    return false;
-  }
-  
-  itemsEnSuelo.push_back({ posicion, idItem });
-  return true;
+    if (!posicionValida(posicion) || hayParedEn(posicion) || hayNpcEn(posicion) || hayItemEn(posicion)) {
+        return false;
+    }
+    
+    itemsEnSuelo.push_back({ posicion, idItem });
+    return true;
 }
 
 std::optional<uint16_t> Mapa::tomarItem(const Posicion& posicion) {
