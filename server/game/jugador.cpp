@@ -553,3 +553,7 @@ bool Jugador::esquiva_ataque() {
 bool Jugador::es_golpe_critico() {
     return std::uniform_int_distribution<int>(0, 99)(rng) < 10;
 }
+
+void Jugador::actualizarId(uint16_t nuevoId) {
+    idJugador = nuevoId;
+}
