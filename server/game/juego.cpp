@@ -221,10 +221,11 @@ std::list<MensajeSalida> Juego::ejecutarUnirseClan(uint16_t idCliente, const Com
     // Notificar al fundador si está conectado
     std::list<MensajeSalida> mensajes;
     uint16_t idClan = clan->getId();
+    const std::string nickSolicitante = nickDe(idCliente);
     for (auto& [id, jugador] : jugadoresConectados) {
         if (jugador.fundo_clan() && jugador.getClan() == idClan) {
             mensajes.push_back({ TipoDestino::UNO, id,
-                { Opcode::MENSAJE_CLAN, MensajeClan{ TipoMensajeClan::MiembroPendiente, jugador.getNombre() } } });
+                { Opcode::MENSAJE_CLAN, MensajeClan{ TipoMensajeClan::MiembroPendiente, nickSolicitante } } });
         }
     }
     return mensajes;
@@ -284,16 +285,22 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
     std::list<MensajeSalida> msgs;
 
     switch (accion) {
-      case Opcode::CLAN_ACEPTAR:
+      case Opcode::CLAN_ACEPTAR: {
         if (!clan.estaPendiente(idObjetivo))
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
         clan.agregarMiembro(idObjetivo);
+        // Actualizar el jugador conectado o desconectado
         if (objetivo) {
             objetivo->asignarClan(lider->getClan());
             msgs.push_back({ TipoDestino::UNO, idObjetivo,
                 { Opcode::MENSAJE_CLAN, MensajeClan{ TipoMensajeClan::Aceptado, clan.getNombre() } } });
+        } else {
+            auto itDesc = jugadoresDesconectados.find(idObjetivo);
+            if (itDesc != jugadoresDesconectados.end())
+                itDesc->second.asignarClan(lider->getClan());
         }
         break;
+      }
 
       case Opcode::CLAN_RECHAZAR:
         if (!clan.estaPendiente(idObjetivo))
@@ -305,13 +312,17 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
         break;
 
       case Opcode::CLAN_BAN:
-        if (!clan.esMiembro(idObjetivo))
+        if (!clan.esMiembro(idObjetivo) && !clan.estaPendiente(idObjetivo))
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
         clan.banearMiembro(idObjetivo);
         if (objetivo) {
             objetivo->salirClan();
             msgs.push_back({ TipoDestino::UNO, idObjetivo,
                 { Opcode::MENSAJE_CLAN, MensajeClan{ TipoMensajeClan::Baneado, clan.getNombre() } } });
+        } else {
+            auto itDesc = jugadoresDesconectados.find(idObjetivo);
+            if (itDesc != jugadoresDesconectados.end())
+                itDesc->second.salirClan();
         }
         break;
 
@@ -323,6 +334,10 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
             objetivo->salirClan();
             msgs.push_back({ TipoDestino::UNO, idObjetivo,
                 { Opcode::MENSAJE_CLAN, MensajeClan{ TipoMensajeClan::Kickeado, clan.getNombre() } } });
+        } else {
+            auto itDesc = jugadoresDesconectados.find(idObjetivo);
+            if (itDesc != jugadoresDesconectados.end())
+                itDesc->second.salirClan();
         }
         break;
 
