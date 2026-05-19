@@ -299,18 +299,32 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 }
 
 // ─── Tick del mundo ───────────────────────────────────────────────────────────
-
 std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
     std::list<MensajeSalida> mensajes;
 
     for (auto& [id, jugador] : jugadoresConectados) {
-        bool estabaMeditando = jugador.enMeditacion();
+        const bool estabaMeditando = jugador.enMeditacion();
+
+        const uint16_t vidaAntes = jugador.getVidaActual();
+        const uint16_t manaAntes = jugador.getManaActual();
+        const uint32_t oroAntes = jugador.getOro();
+        const uint16_t nivelAntes = jugador.getNivel();
+        const uint32_t experienciaAntes = jugador.getExperiencia();
 
         jugador.recuperar(deltaSegundos);
-        mensajes.push_back(armarEstado(id, jugador));
+
+        const bool cambioEstado = vidaAntes != jugador.getVidaActual() || manaAntes != jugador.getManaActual() || oroAntes != jugador.getOro() || nivelAntes != jugador.getNivel() || experienciaAntes != jugador.getExperiencia();
+
+        if (cambioEstado) {
+            mensajes.push_back(armarEstado(id, jugador));
+        }
 
         if (estabaMeditando && !jugador.enMeditacion()) {
             mensajes.push_back(armarPosicion(jugador));
+
+            if (!cambioEstado) {
+                mensajes.push_back(armarEstado(id, jugador));
+            }
         }
     }
 
