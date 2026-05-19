@@ -2,16 +2,17 @@
 
 #include <chrono>
 #include <thread>
+#include <utility>
 
-Gameloop::Gameloop(MonitorClientes& monitor): colaComandos(), monitor(monitor), juego() {}
+Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
+    : colaComandos(), monitor(monitor), juego(config.juego, std::move(config.items)) {}
 
 void Gameloop::run() {
     while (should_keep_running()) {
         
         procesarComandos();
-        // TODO:
-        // auto mensajes = juego.actualizar();
-        // despachar(mensajes);
+        auto mensajes = juego.actualizar();
+        despachar(mensajes);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
