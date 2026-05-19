@@ -233,8 +233,13 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 std::list<MensajeSalida> Juego::actualizar() {
     std::list<MensajeSalida> mensajes;
     for (auto& [id, jugador] : jugadoresConectados) {
+        bool estabaMeditando = jugador.enMeditacion();
         jugador.recuperar(cfg.tickMs / 1000.0f);
         mensajes.push_back(armarEstado(id, jugador));
+
+        if (estabaMeditando && !jugador.enMeditacion()) {
+            mensajes.push_back(armarPosicion(jugador));
+        }
     }
     // TODO: mover criaturas, aplicar aggro, respawn, expirar ítems del suelo
     return mensajes;
