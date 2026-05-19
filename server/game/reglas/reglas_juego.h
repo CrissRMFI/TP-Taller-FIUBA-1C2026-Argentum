@@ -9,35 +9,23 @@
 
 class ReglasJuego {
 public:
-    static uint16_t calcularVidaMaxima(const ConfigJuego& cfg,
-                                       Raza raza,
-                                       ClasePersonaje clase,
-                                       uint16_t nivel,
-                                       uint16_t constitucion);
+    static uint16_t calcularVidaMaxima(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t constitucion);
 
-    static uint16_t calcularManaMaximo(const ConfigJuego& cfg,
-                                       Raza raza,
-                                       ClasePersonaje clase,
-                                       uint16_t nivel,
-                                       uint16_t inteligencia);
+    static uint16_t calcularManaMaximo(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t inteligencia);
 
-    static uint32_t calcularLimiteExperiencia(const ConfigJuego& cfg,
-                                              uint16_t nivel);
+    static uint32_t calcularLimiteExperiencia(const ConfigJuego& cfg, uint16_t nivel);
 
-    static uint32_t calcularOroSeguro(const ConfigJuego& cfg,
-                                      uint16_t nivel);
+    static uint32_t calcularOroSeguro(const ConfigJuego& cfg, uint16_t nivel);
 
-    static uint32_t calcularOroMaximoTotal(const ConfigJuego& cfg,
-                                           uint16_t nivel);
+    static uint32_t calcularOroMaximoTotal(const ConfigJuego& cfg, uint16_t nivel);
 
-    static float calcularRecuperacionNatural(const ConfigJuego& cfg,
-                                             Raza raza,
-                                             float segundos);
+    static float calcularRecuperacionNatural(const ConfigJuego& cfg, Raza raza, float segundos);
 
-    static float calcularRecuperacionMeditacion(const ConfigJuego& cfg,
-                                                ClasePersonaje clase,
-                                                uint16_t inteligencia,
-                                                float segundos);
+    static float calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos);
+
+    static bool esGolpeCritico(const ConfigJuego& cfg, float valorAleatorio);
+    
+    static uint32_t calcularPerdidaExperienciaMuerte(const ConfigJuego& cfg, uint32_t experienciaActual);
 };
 
 #endif

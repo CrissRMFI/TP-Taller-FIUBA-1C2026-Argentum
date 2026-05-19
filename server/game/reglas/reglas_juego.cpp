@@ -4,83 +4,65 @@
 #include <cmath>
 #include "../modelo/clase_personaje.h"
 
-uint16_t ReglasJuego::calcularVidaMaxima(const ConfigJuego& cfg,
-                                         Raza raza,
-                                         ClasePersonaje clase,
-                                         uint16_t nivel,
-                                         uint16_t constitucion) {
-    float valor = constitucion *
-                  cfg.factorVidaClase(clase) *
-                  cfg.statsRaza(raza).fVida *
-                  nivel;
+uint16_t ReglasJuego::calcularVidaMaxima(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t constitucion) {
+    float valor = constitucion * cfg.factorVidaClase(clase) * cfg.statsRaza(raza).fVida * nivel;
 
     return static_cast<uint16_t>(std::max(1.0f, valor));
 }
 
-uint16_t ReglasJuego::calcularManaMaximo(const ConfigJuego& cfg,
-                                         Raza raza,
-                                         ClasePersonaje clase,
-                                         uint16_t nivel,
-                                         uint16_t inteligencia) {
-    if (clase == ClasePersonaje::GUERRERO) {
-        return 0;
-    }
-
-    float valor = inteligencia *
-                  cfg.factorManaClase(clase) *
-                  cfg.statsRaza(raza).fMana *
-                  nivel;
-
-    return static_cast<uint16_t>(std::max(0.0f, valor));
+uint16_t ReglasJuego::calcularManaMaximo(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t inteligencia) {
+  if (clase == ClasePersonaje::GUERRERO) {
+    return 0;
+  }
+  
+  float valor = inteligencia * cfg.factorManaClase(clase) * cfg.statsRaza(raza).fMana * nivel;
+  
+  return static_cast<uint16_t>(std::max(0.0f, valor));
 }
 
-uint32_t ReglasJuego::calcularLimiteExperiencia(const ConfigJuego& cfg,
-                                                uint16_t nivel) {
-    float valor = cfg.expLimiteBase * std::pow(static_cast<float>(nivel),
-                                               cfg.expLimiteExp);
+uint32_t ReglasJuego::calcularLimiteExperiencia(const ConfigJuego& cfg, uint16_t nivel) {
+    float valor = cfg.expLimiteBase * std::pow(static_cast<float>(nivel), cfg.expLimiteExp);
 
     return static_cast<uint32_t>(std::max(1.0f, valor));
 }
 
-uint32_t ReglasJuego::calcularOroSeguro(const ConfigJuego& cfg,
-                                        uint16_t nivel) {
-    float valor = 100.0f * std::pow(static_cast<float>(nivel),
-                                    cfg.oroMaxExp);
+uint32_t ReglasJuego::calcularOroSeguro(const ConfigJuego& cfg, uint16_t nivel) {
+    float valor = cfg.oroMaxBase * std::pow(static_cast<float>(nivel), cfg.oroMaxExp);
 
     return static_cast<uint32_t>(std::max(0.0f, valor));
-}                                                                                                                  
+}       
 
-uint32_t ReglasJuego::calcularOroMaximoTotal(const ConfigJuego& cfg,
-                                             uint16_t nivel) {
+uint32_t ReglasJuego::calcularOroMaximoTotal(const ConfigJuego& cfg, uint16_t nivel) {
     uint32_t oroSeguro = calcularOroSeguro(cfg, nivel);
-    float valor = static_cast<float>(oroSeguro) *
-                  (1.0f + cfg.oroExcesoPct);
+    float valor = static_cast<float>(oroSeguro) * (1.0f + cfg.oroExcesoPct);
 
-    return static_cast<uint32_t>(std::max<float>(
-        static_cast<float>(oroSeguro),
-        valor
-    ));
+    return static_cast<uint32_t>(std::max<float>( static_cast<float>(oroSeguro), valor));
 }
 
-float ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg,
-                                               Raza raza,
-                                               float segundos) {
+bool ReglasJuego::esGolpeCritico(const ConfigJuego& cfg, float valorAleatorio) {
+    float probabilidad = std::clamp(cfg.probabilidadCritico, 0.0f, 1.0f);
+    return valorAleatorio < probabilidad;
+}
+
+uint32_t ReglasJuego::calcularPerdidaExperienciaMuerte( const ConfigJuego& cfg, uint32_t experienciaActual) {
+    float porcentaje = std::clamp(cfg.expPerdidaMuertePct, 0.0f, 1.0f);
+    float perdida = static_cast<float>(experienciaActual) * porcentaje;
+
+    return static_cast<uint32_t>(std::max(0.0f, perdida));
+}
+
+float ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg, Raza raza, float segundos) {
     float valor = cfg.statsRaza(raza).fRecuperacion * segundos;
 
     return std::max(0.0f, valor);
 }
 
-float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg,
-                                                  ClasePersonaje clase,
-                                                  uint16_t inteligencia,
-                                                  float segundos) {
+float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos) {
     if (clase == ClasePersonaje::GUERRERO) {
         return 0.0f;
     }
 
-    float valor = cfg.factorMeditacionClase(clase) *
-                  inteligencia *
-                  segundos;
+    float valor = cfg.factorMeditacionClase(clase) * inteligencia * segundos;
 
     return std::max(0.0f, valor);
 }

@@ -9,10 +9,7 @@
 
 static std::mt19937 rng(std::random_device{}());
 
-static void aplicarRecuperacion(float& pendiente,
-                                uint16_t& actual,
-                                uint16_t maximo,
-                                float delta) {
+static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t maximo, float delta) {
     if (actual >= maximo) {
         pendiente = 0.0f;
         return;
@@ -32,12 +29,7 @@ static void aplicarRecuperacion(float& pendiente,
     }
 }
 
-Jugador::Jugador(uint16_t id,
-                 const std::string& nombre,
-                 ClasePersonaje clase,
-                 Raza raza,
-                 Posicion posicion,
-                 const ConfigJuego& config) :
+Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config) :
         idJugador(id),
         idClan(0),
         nombre(nombre),
@@ -514,7 +506,10 @@ void Jugador::morir() {
     estado = Estado::Fantasma;
 
     if (!es_newbie()) {
-        perder_experiencia(experiencia / 10);
+        uint32_t experienciaAPerder =
+                ReglasJuego::calcularPerdidaExperienciaMuerte(cfg, experiencia);
+
+        perder_experiencia(experienciaAPerder);
     }
 
     oroExceso = 0;
@@ -551,7 +546,8 @@ bool Jugador::esquiva_ataque() {
 }
 
 bool Jugador::es_golpe_critico() {
-    return std::uniform_int_distribution<int>(0, 99)(rng) < 10;
+    float valorAleatorio = std::uniform_real_distribution<float>(0.0f, 1.0f)(rng);
+    return ReglasJuego::esGolpeCritico(cfg, valorAleatorio);
 }
 
 void Jugador::actualizarId(uint16_t nuevoId) {
