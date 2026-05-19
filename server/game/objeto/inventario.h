@@ -26,6 +26,8 @@ public:
     bool equiparItem(uint16_t idItem, TipoItem tipo);
     bool equiparPieza(uint16_t idItem, TipoDefensa slot);
 
+    uint16_t getIdEnSlot(uint8_t indice) const;
+
     uint16_t getArmaEquipada()    const;
     uint16_t getBaculoEquipado()  const;
     uint16_t getDefensaEquipada() const;
