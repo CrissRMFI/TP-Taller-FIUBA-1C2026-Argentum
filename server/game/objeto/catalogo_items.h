@@ -10,6 +10,15 @@
 
 class CatalogoItems {
 public:
+     CatalogoItems() = default;
+    ~CatalogoItems() = default;
+    
+    CatalogoItems(const CatalogoItems&) = delete;
+    CatalogoItems& operator=(const CatalogoItems&) = delete;
+
+    CatalogoItems(CatalogoItems&&) noexcept = default;
+    CatalogoItems& operator=(CatalogoItems&&) noexcept = default;
+
     void registrar(uint16_t id, std::unique_ptr<Item> item);
 
     const Item*    buscar   (uint16_t id) const;

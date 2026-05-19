@@ -26,9 +26,9 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 }
 
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems cat)
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
-
+    
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
                                                 ClasePersonaje clase, Raza raza, Posicion posicion) {
     auto it = jugadoresDesconectados.find(id);

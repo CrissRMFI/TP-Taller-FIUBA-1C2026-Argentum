@@ -17,7 +17,7 @@
 
 class Juego {
   public:
-    Juego(const ConfigJuego& cfg, CatalogoItems catalogo);
+    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
 
     std::list<MensajeSalida> conectarJugador(uint16_t id, const std::string& nombre,
                                              ClasePersonaje clase, Raza raza, Posicion posicion);
