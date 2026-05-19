@@ -106,6 +106,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.expKillMax    = tbl["experiencia"]["exp_kill_max"].value_or(0.1f);
 
     cfg.oroMaxExp     = tbl["oro"]["max_exp"].value_or(1.1f);
+    cfg.oroMaxBase = juego["oro_max_base"].value_or(100.0f);
     cfg.oroExcesoPct  = tbl["oro"]["exceso_pct"].value_or(0.5f);
     cfg.oroDropNpcMax = tbl["oro"]["drop_npc_max"].value_or(0.2f);
 
@@ -129,6 +130,9 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.inventarioMaxItems = static_cast<uint8_t>(
     tbl["inventario"]["max_items"].value_or(20)
+
+    cfg.probabilidadCritico = juego["probabilidad_critico"].value_or(0.10f);
+    cfg.expPerdidaMuertePct = juego["exp_perdida_muerte_pct"].value_or(0.10f);
 );
 
     ConfigCompleta resultado;

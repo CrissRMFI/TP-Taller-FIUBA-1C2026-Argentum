@@ -48,12 +48,14 @@ struct ConfigJuego {
     float expKillMax;     // rand(0, expKillMax) * VidaMaxOtro * factorNivel
 
     // ---- Oro ----
-    float oroMaxExp;      // OroMax = 100 * Nivel^oroMaxExp
+    float oroMaxBase;     // OroMax = oroMaxBase * Nivel^oroMaxExp
+    float oroMaxExp;
     float oroExcesoPct;   // fracción adicional permitida antes de ser "exceso"
     float oroDropNpcMax;  // rand(0, oroDropNpcMax) * VidaMaxNPC
 
     // ---- Combate ----
-    float esquivarUmbral; // esquiva si rand(0,1)^Agilidad < esquivarUmbral
+    float probabilidadCritico; // probabilidad entre 0.0 y 1.0
+    float esquivarUmbral;     // esquiva si rand(0,1)^Agilidad < esquivarUmbral
 
     // ---- Fair play ----
     int nivelNewbie;      // nivel <= nivelNewbie: no puede atacar ni ser atacado
@@ -67,6 +69,7 @@ struct ConfigJuego {
     int clanNivelMinimo;
 
     // ---- Muerte / resurrección ----
+    float expPerdidaMuertePct;      // fracción de experiencia perdida al morir
     float factorTiempoResurreccion; // segundos_inmovilizado = distancia * factor
 
     // ---- Servidor ----
