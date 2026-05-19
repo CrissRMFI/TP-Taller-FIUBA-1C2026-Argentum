@@ -21,7 +21,7 @@ void MonitorClientes::enviarA(uint16_t idCliente, const MensajeServidor& mensaje
     }
 
     try {
-        it->second->push(mensaje);
+        it->second->try_push(mensaje);
     } catch (const ClosedQueue&) {
         colasSalida.erase(it);
     }
@@ -38,7 +38,7 @@ void MonitorClientes::broadcast(const MensajeServidor& mensaje) {
         }
 
         try {
-            colaSalida->push(mensaje);
+            colaSalida->try_push(mensaje);
         } catch (const ClosedQueue&) {
             clientesDesconectados.push_back(idCliente);
         }
