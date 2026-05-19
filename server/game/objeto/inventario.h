@@ -1,6 +1,7 @@
 #ifndef INVENTARIO_H
 #define INVENTARIO_H
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -40,6 +41,8 @@ public:
 private:
     std::vector<uint16_t> slots;
     Equipamiento equipamiento;
+
+    size_t cantidadSlotsLibres() const;
 };
 
 #endif
