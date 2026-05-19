@@ -385,7 +385,7 @@ void Jugador::marcarFundadorClan() {
     fundadoClan = true;
 }
 
-bool Jugador::puedeMediatar() const {
+bool Jugador::puedeMeditar() const {
     return manaMax > 0;
 }
 

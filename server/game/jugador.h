@@ -64,7 +64,7 @@ public:
     void marcarFundadorClan();
 
     // Queries de estado
-    bool puedeMediatar() const;   // TODO: renombrar a puedeMeditar
+    bool puedeMeditar() const;   // TODO: renombrar a puedeMeditar
     bool puedeUsarMagia() const;
     bool estaVivo() const;
     bool esFantasma() const;

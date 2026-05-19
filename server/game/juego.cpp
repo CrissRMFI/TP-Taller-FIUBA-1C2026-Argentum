@@ -310,7 +310,7 @@ std::list<MensajeSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador) return {};
 
-    if (!jugador->estaVivo() || !jugador->puedeMediatar())
+    if (!jugador->estaVivo() || !jugador->puedeMeditar())
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     jugador->meditar();
