@@ -543,12 +543,12 @@ void ProtocoloServidor::enviarMensajeChat(const MensajeChat& mensaje) {
 }
 
 void ProtocoloServidor::enviarMensajeClan(const MensajeClan& mensaje) {
-    validarTipoClan(mensaje.tipo);
+    validarTipoClan(static_cast<uint8_t>(mensaje.tipo));
 
-    enviarUnByte((uint8_t)(Opcode::MENSAJE_CLAN));
+    enviarUnByte(static_cast<uint8_t>(Opcode::MENSAJE_CLAN));
 
-    enviarUnByte(mensaje.tipo);
-    enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
+    enviarUnByte(static_cast<uint8_t>(mensaje.tipo));
+    enviarCadenaConMaximo(mensaje.texto, MAX_NICK);
 }
 
 void ProtocoloServidor::enviarResucitado(const MensajeResucitado& mensaje) {
