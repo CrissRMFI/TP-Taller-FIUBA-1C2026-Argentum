@@ -1,10 +1,11 @@
 #include "jugador.h"
 
 #include <algorithm>
-#include <cmath>
 #include <random>
 
 #include "objeto/catalogo_items.h"
+#include "reglas/reglas_juego.h"
+
 
 static std::mt19937 rng(std::random_device{}());
 
@@ -22,8 +23,20 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
     inteligencia = (uint8_t)(sr.inteligencia);
     constitucion = (uint8_t)(sr.constitucion);
 
-    vidaMax    = (uint16_t)(constitucion * cfg.factorVidaClase(clase) * sr.fVida  * nivel);
-    manaMax    = (uint16_t)(inteligencia * cfg.factorManaClase(clase) * sr.fMana  * nivel);
+    vidaMax    = vidaMax = ReglasJuego::calcularVidaMaxima(
+    cfg,
+    raza,
+    clase,
+    nivel,
+    constitucion
+    );
+    manaMax = ReglasJuego::calcularManaMaximo(
+    cfg,
+    raza,
+    clase,
+    nivel,
+    inteligencia
+    );
     vidaActual = vidaMax;
     manaActual = manaMax;
 }
@@ -53,22 +66,19 @@ void Jugador::recuperar(float segundos) {
 
     // Recuperación natural de vida: FRazaRecuperacion * segundos
     if (vidaActual < vidaMax) {
-        float tasa = cfg.statsRaza(raza).fRecuperacion;
-        uint16_t delta = (uint16_t)(tasa * segundos);
+        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos);
         vidaActual = (uint16_t)(std::min<uint32_t>(vidaActual + delta, vidaMax));
     }
 
     // Recuperación natural de maná (siempre activa)
     if (manaActual < manaMax) {
-        float tasa = cfg.statsRaza(raza).fRecuperacion;
-        uint16_t delta = (uint16_t)(tasa * segundos);
+        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos);
         manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
     }
 
     // Meditación: recuperación adicional más rápida de maná
     if (estado == Estado::Meditando && manaActual < manaMax) {
-        float tasa = cfg.factorMeditacionClase(clase) * inteligencia;
-        uint16_t delta = (uint16_t)(tasa * segundos);
+        uint16_t delta = ReglasJuego::calcularRecuperacionMeditacion(cfg, clase, inteligencia, segundos);
         manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
         if (manaActual >= manaMax) {
             manaActual = manaMax;
@@ -84,7 +94,7 @@ void Jugador::recuperar(float segundos) {
 void Jugador::ganar_experiencia(uint32_t cantidad) {
     if (cfg.expX10) cantidad *= 10;
     experiencia += cantidad;
-    uint32_t limite = (uint32_t)(cfg.expLimiteBase * std::pow((float)(nivel), cfg.expLimiteExp));
+    uint32_t limite = ReglasJuego::calcularLimiteExperiencia(cfg, nivel);
     if (experiencia >= limite) {
         experiencia -= limite;
         subirNivel();
@@ -92,7 +102,7 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
 }
 
 void Jugador::sumar_oro(uint32_t cantidad) {
-    uint32_t oroSeguro   = (uint32_t)(100.0f * std::pow((float)(nivel), cfg.oroMaxExp));
+    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(cfg, nivel);
     uint32_t limiteExceso = (uint32_t)(oroSeguro * cfg.oroExcesoPct);
 
     if (oroMano < oroSeguro) {
