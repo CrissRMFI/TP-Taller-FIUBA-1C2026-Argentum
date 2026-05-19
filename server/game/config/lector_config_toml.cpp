@@ -134,7 +134,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.expBonusNivel = tbl["experiencia"]["bonus_nivel"].value_or(10);
     cfg.expKillMax = tbl["experiencia"]["exp_kill_max"].value_or(0.1f);
 
-    cfg.oroMaxBase = tbl["oro"]["max_base"].value_or(100.0f);
+    cfg.oroMaxBase = tbl["oro"]["oro_max_base"].value_or(100.0f);
     cfg.oroMaxExp = tbl["oro"]["max_exp"].value_or(1.1f);
     cfg.oroExcesoPct = tbl["oro"]["exceso_pct"].value_or(0.5f);
     cfg.oroDropNpcMax = tbl["oro"]["drop_npc_max"].value_or(0.2f);
@@ -149,7 +149,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.clanNivelMinimo = tbl["clanes"]["nivel_minimo"].value_or(6);
 
     cfg.factorTiempoResurreccion = tbl["muerte"]["factor_tiempo_resurreccion"].value_or(0.5f);
-    cfg.expPerdidaMuertePct = tbl["muerte"]["exp_perdida_muerte_pct"].value_or(0.10f);
+    cfg.expPerdidaMuertePct = tbl["experiencia"]["exp_perdida_muerte_pct"].value_or(0.10f);
 
     cfg.tickMs = tbl["servidor"]["tick_ms"].value_or(200);
 
