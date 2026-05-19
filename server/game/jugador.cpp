@@ -390,7 +390,7 @@ bool Jugador::estaVivo() const {
 }
 
 bool Jugador::esFantasma() const {
-    return estado == Estado::Fantasma || estado == Estado::Resucitando;
+  return estado == Estado::Fantasma;
 }
 
 bool Jugador::enMeditacion() const {
