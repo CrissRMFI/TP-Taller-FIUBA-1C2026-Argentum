@@ -51,14 +51,21 @@ void Jugador::recuperar(float segundos) {
     
     if (!estaVivo()) return;
 
-    // Recuperación natural de vida
+    // Recuperación natural de vida: FRazaRecuperacion * segundos
     if (vidaActual < vidaMax) {
-        float tasa = cfg.statsRaza(raza).fRecuperacion * constitucion;
+        float tasa = cfg.statsRaza(raza).fRecuperacion;
         uint16_t delta = (uint16_t)(tasa * segundos);
         vidaActual = (uint16_t)(std::min<uint32_t>(vidaActual + delta, vidaMax));
     }
 
-    // Recuperación de maná al meditar
+    // Recuperación natural de maná (siempre activa)
+    if (manaActual < manaMax) {
+        float tasa = cfg.statsRaza(raza).fRecuperacion;
+        uint16_t delta = (uint16_t)(tasa * segundos);
+        manaActual = (uint16_t)(std::min<uint32_t>(manaActual + delta, manaMax));
+    }
+
+    // Meditación: recuperación adicional más rápida de maná
     if (estado == Estado::Meditando && manaActual < manaMax) {
         float tasa = cfg.factorMeditacionClase(clase) * inteligencia;
         uint16_t delta = (uint16_t)(tasa * segundos);
@@ -85,14 +92,20 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
 }
 
 void Jugador::sumar_oro(uint32_t cantidad) {
-    uint32_t oroMax = (uint32_t)(100.0f * std::pow((float)(nivel), cfg.oroMaxExp));
-    if (oroMano < oroMax) {
-        uint32_t espacio = oroMax - oroMano;
+    uint32_t oroSeguro   = (uint32_t)(100.0f * std::pow((float)(nivel), cfg.oroMaxExp));
+    uint32_t limiteExceso = (uint32_t)(oroSeguro * cfg.oroExcesoPct);
+
+    if (oroMano < oroSeguro) {
+        uint32_t espacio = oroSeguro - oroMano;
         uint32_t aMano   = std::min(cantidad, espacio);
         oroMano  += aMano;
-        oroExceso += cantidad - aMano;
-    } else {
-        oroExceso += cantidad;
+        cantidad -= aMano;
+    }
+
+    if (cantidad > 0 && oroExceso < limiteExceso) {
+        uint32_t espacio = limiteExceso - oroExceso;
+        oroExceso += std::min(cantidad, espacio);
+        // el oro que no cabe se pierde al piso (requiere Mapa para dropearlo)
     }
 }
 
