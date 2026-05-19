@@ -609,9 +609,17 @@ std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t /*idCliente*/, co
     return {};
 }
 
-std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t /*idCliente*/, const ComandoDepositarOro& /*cmd*/) {
-    // TODO: verificar vivo, banquero cercano, oro suficiente
-    return {};
+std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo() || cmd.monto == 0) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!jugador->agregar_oro_banco(cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+    }
+
+    return { armarEstado(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t /*idCliente*/, const ComandoRetirarItem& /*cmd*/) {
@@ -619,9 +627,17 @@ std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t /*idCliente*/, cons
     return {};
 }
 
-std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t /*idCliente*/, const ComandoRetirarOro& /*cmd*/) {
-    // TODO: verificar vivo, banquero cercano, oro en banco
-    return {};
+std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente, const ComandoRetirarOro& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo() || cmd.monto == 0) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!jugador->sacar_oro_banco(cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+    }
+
+    return { armarEstado(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarListar(uint16_t /*idCliente*/, const ComandoListar& /*cmd*/) {

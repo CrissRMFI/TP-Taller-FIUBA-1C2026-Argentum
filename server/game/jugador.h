@@ -54,7 +54,7 @@ public:
     bool eliminar_item(uint16_t idItem);
     bool equipar_item(uint8_t indice, const CatalogoItems& catalogo);
     void agregar_item_banco(uint16_t idItem);
-    void agregar_oro_banco(uint32_t cantidad);
+    bool agregar_oro_banco(uint32_t cantidad);
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
 

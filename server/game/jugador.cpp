@@ -331,10 +331,13 @@ void Jugador::agregar_item_banco(uint16_t idItem) {
     idItemsBanco.push_back(idItem);
 }
 
-void Jugador::agregar_oro_banco(uint32_t cantidad) {
-    if (gastar_oro(cantidad)) {
-        oroBanco += cantidad;
+bool Jugador::agregar_oro_banco(uint32_t cantidad) {
+    if (!gastar_oro(cantidad)) {
+        return false;
     }
+
+    oroBanco += cantidad;
+    return true;
 }
 
 bool Jugador::sacar_item_banco(uint16_t idItem) {
@@ -354,6 +357,11 @@ bool Jugador::sacar_item_banco(uint16_t idItem) {
 
 bool Jugador::sacar_oro_banco(uint32_t cantidad) {
     if (oroBanco < cantidad) {
+        return false;
+    }
+
+    uint32_t maximoEnMano = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
+    if (getOro() + cantidad > maximoEnMano) {
         return false;
     }
 
