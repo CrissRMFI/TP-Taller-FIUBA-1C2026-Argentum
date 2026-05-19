@@ -718,56 +718,32 @@ std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const Comando
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& cmd) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    if (!jugador->agregar_item_banco(cmd.indiceItem)) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    }
-
-    return { armarInventario(idCliente, *jugador) };
+std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
+                                                      const ComandoDepositarItem& /*cmd*/) {
+    // TODO: validar jugador vivo, cercanía a banquero e ítem disponible.
+    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& cmd) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo() || cmd.monto == 0) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    if (!jugador->agregar_oro_banco(cmd.monto)) {
-        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
-    }
-
-    return { armarEstado(idCliente, *jugador) };
+std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
+                                                     const ComandoDepositarOro& /*cmd*/) {
+    // TODO: validar jugador vivo, cercanía a banquero, monto positivo y oro suficiente.
+    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t idCliente, const ComandoRetirarItem& cmd) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    if (!jugador->sacar_item_banco(cmd.idItem)) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    }
-
-    return { armarInventario(idCliente, *jugador) };
+std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
+                                                    const ComandoRetirarItem& /*cmd*/) {
+    // TODO: validar jugador vivo, cercanía a banquero, ítem depositado y espacio en inventario.
+    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente, const ComandoRetirarOro& cmd) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || !jugador->estaVivo() || cmd.monto == 0) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    if (!jugador->sacar_oro_banco(cmd.monto)) {
-        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
-    }
-
-    return { armarEstado(idCliente, *jugador) };
+std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
+                                                   const ComandoRetirarOro& /*cmd*/) {
+    // TODO: validar jugador vivo, cercanía a banquero, monto positivo y oro depositado.
+    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoListar& /*cmd*/) {
