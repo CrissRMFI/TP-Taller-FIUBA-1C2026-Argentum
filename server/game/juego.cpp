@@ -67,6 +67,24 @@ MensajeSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
              }}};
 }
 
+MensajeSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) {
+    return { TipoDestino::UNO, idCliente,
+             { Opcode::ACTUALIZAR_INVENTARIO,
+               MensajeActualizarInventario{ jugador.getSlotsInventario() } } };
+}
+
+MensajeSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugador) {
+    return { TipoDestino::UNO, idCliente,
+             { Opcode::ACTUALIZAR_EQUIPAMIENTO,
+               MensajeActualizarEquipamiento{
+                   jugador.getArmaEquipada(),
+                   jugador.getBaculoEquipado(),
+                   jugador.getDefensaEquipada(),
+                   jugador.getCascoEquipado(),
+                   jugador.getEscudoEquipado()
+               } } };
+}
+
 
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
     if (comando.opcode != Opcode::MEDITAR) {
@@ -388,9 +406,21 @@ std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t /*idCliente*/, const Coma
     return {};
 }
 
-std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t /*idCliente*/, const ComandoEquipar& /*cmd*/) {
-    // TODO: verificar vivo, ítem en inventario, restricciones de raza/clase
-    return {};
+std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!jugador->equipar_item(cmd.indiceItem, catalogo)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    return {
+        armarInventario(idCliente, *jugador),
+        armarEquipamiento(idCliente, *jugador),
+        armarEstado(idCliente, *jugador)
+    };
 }
 
 std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t /*idCliente*/, const ComandoComprar& /*cmd*/) {

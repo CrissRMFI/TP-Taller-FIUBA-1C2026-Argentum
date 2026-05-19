@@ -317,10 +317,10 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
             return false;
         }
 
-        return inventario.equiparPieza(idItem, defensa->getSlot());
+        return inventario.equiparPiezaSlot(indice, defensa->getSlot());
     }
 
-    return inventario.equiparItem(idItem, item->getTipo());
+    return inventario.equiparSlot(indice, item->getTipo());
 }
 
 void Jugador::agregar_item_banco(uint16_t idItem) {
@@ -457,6 +457,30 @@ Posicion Jugador::getPosicion() const {
 
 Estado Jugador::getEstado() const {
     return estado;
+}
+
+std::vector<uint16_t> Jugador::getSlotsInventario() const {
+    return inventario.getSlots();
+}
+
+uint16_t Jugador::getArmaEquipada() const {
+    return inventario.getArmaEquipada();
+}
+
+uint16_t Jugador::getBaculoEquipado() const {
+    return inventario.getBaculoEquipado();
+}
+
+uint16_t Jugador::getDefensaEquipada() const {
+    return inventario.getDefensaEquipada();
+}
+
+uint16_t Jugador::getCascoEquipado() const {
+    return inventario.getCascoEquipado();
+}
+
+uint16_t Jugador::getEscudoEquipado() const {
+    return inventario.getEscudoEquipado();
 }
 
 std::vector<uint16_t> Jugador::getIdItemsBanco() const {

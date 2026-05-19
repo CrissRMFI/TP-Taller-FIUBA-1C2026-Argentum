@@ -44,6 +44,8 @@ class Juego {
     // Construcción de mensajes comunes
     MensajeSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
     MensajeSalida armarEstado(uint16_t idCliente, const Jugador& j);
+    MensajeSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
+    MensajeSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
 
     std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
 

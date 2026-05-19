@@ -82,6 +82,10 @@ uint16_t Inventario::getIdEnSlot(uint8_t indice) const {
     return slots[indice];
 }
 
+std::vector<uint16_t> Inventario::getSlots() const {
+    return slots;
+}
+
 std::vector<uint16_t> Inventario::vaciar() {
     std::vector<uint16_t> items;
 
@@ -139,6 +143,61 @@ bool Inventario::equiparPieza(uint16_t idItem, TipoDefensa slot) {
     }
 
     eliminarItem(idItem);
+
+    uint16_t anterior = ITEM_VACIO;
+
+    switch (slot) {
+        case TipoDefensa::Armadura:
+            anterior = equipamiento.equiparDefensa(idItem);
+            break;
+
+        case TipoDefensa::Casco:
+            anterior = equipamiento.equiparCasco(idItem);
+            break;
+
+        case TipoDefensa::Escudo:
+            anterior = equipamiento.equiparEscudo(idItem);
+            break;
+    }
+
+    if (anterior != ITEM_VACIO) {
+        agregarItem(anterior);
+    }
+
+    return true;
+}
+
+bool Inventario::equiparSlot(uint8_t indice, TipoItem tipo) {
+    uint16_t idItem = quitarDeSlot(indice);
+    if (idItem == ITEM_VACIO) {
+        return false;
+    }
+
+    std::vector<uint16_t> desplazados;
+
+    if (tipo == TipoItem::Arma) {
+        desplazados = equipamiento.equiparArma(idItem);
+    } else if (tipo == TipoItem::Baculo) {
+        desplazados = equipamiento.equiparBaculo(idItem);
+    } else {
+        agregarItem(idItem);
+        return false;
+    }
+
+    for (uint16_t desplazado : desplazados) {
+        if (desplazado != ITEM_VACIO) {
+            agregarItem(desplazado);
+        }
+    }
+
+    return true;
+}
+
+bool Inventario::equiparPiezaSlot(uint8_t indice, TipoDefensa slot) {
+    uint16_t idItem = quitarDeSlot(indice);
+    if (idItem == ITEM_VACIO) {
+        return false;
+    }
 
     uint16_t anterior = ITEM_VACIO;
 

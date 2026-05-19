@@ -87,6 +87,12 @@ public:
     std::string getNombre() const;
     Posicion getPosicion() const;
     Estado getEstado() const;
+    std::vector<uint16_t> getSlotsInventario() const;
+    uint16_t getArmaEquipada() const;
+    uint16_t getBaculoEquipado() const;
+    uint16_t getDefensaEquipada() const;
+    uint16_t getCascoEquipado() const;
+    uint16_t getEscudoEquipado() const;
     std::vector<uint16_t> getIdItemsBanco() const;
 
 private:
