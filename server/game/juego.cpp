@@ -40,12 +40,20 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
     }
 
     Jugador& jugador = jugadoresConectados.at(id);
-    return {
+    std::list<MensajeSalida> mensajes = {
         armarEstado(id, jugador),
         armarInventario(id, jugador),
         armarEquipamiento(id, jugador),
         armarPosicion(jugador)
     };
+
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (idOtro != id) {
+            mensajes.push_back(armarPosicionPara(id, otro));
+        }
+    }
+
+    return mensajes;
 }
 
 std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
@@ -121,6 +129,19 @@ MensajeSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugado
 MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
     Posicion posicion = jugador.getPosicion();
     return { TipoDestino::TODOS, 0,
+             { Opcode::POSICION_ENTIDAD,
+               MensajePosicionEntidad{
+                   jugador.getId(),
+                   posicion.x,
+                   posicion.y,
+                   TIPO_ENTIDAD_PERSONAJE,
+                   estadoEntidadDe(jugador)
+               } } };
+}
+
+MensajeSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador) {
+    Posicion posicion = jugador.getPosicion();
+    return { TipoDestino::UNO, idCliente,
              { Opcode::POSICION_ENTIDAD,
                MensajePosicionEntidad{
                    jugador.getId(),
