@@ -287,6 +287,12 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
     if (!idObjetivo)
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
 
+    if (idObjetivo == idCliente)
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+
+    if ((accion == Opcode::CLAN_KICK || accion == Opcode::CLAN_BAN) && clan.esFundador(idObjetivo))
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+
     std::list<MensajeSalida> msgs;
 
     switch (accion) {
