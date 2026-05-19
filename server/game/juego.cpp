@@ -398,19 +398,15 @@ std::list<MensajeSalida> Juego::ejecutarChatGlobal(uint16_t idCliente, const Com
 std::list<MensajeSalida> Juego::ejecutarChatPrivado(uint16_t idCliente, const ComandoChatPrivado& comando) {
     Jugador* emisor = buscarJugador(idCliente);
     if (!emisor || !emisor->estaVivo()) {
-      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    Jugador* destino = buscarJugadorPorNick(comando.nickDestino);
-    if (!destino)
+    auto itDestino = indiceNicksConectados.find(comando.nickDestino);
+    if (itDestino == indiceNicksConectados.end()) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
 
-    uint16_t idDestino = 0;
-    for (auto& [id, jugador] : jugadoresConectados)
-        if (&jugador == destino) { idDestino = id; break; }
-
-    return {{ TipoDestino::UNO, idDestino,
-              { Opcode::MENSAJE_CHAT, MensajeChat{ emisor->getNombre(), comando.mensaje } } }};
+    return {{ TipoDestino::UNO, itDestino->second, { Opcode::MENSAJE_CHAT, MensajeChat{ emisor->getNombre(), comando.mensaje } } }};
 }
 
 // ─── Clan ─────────────────────────────────────────────────────────────────────
