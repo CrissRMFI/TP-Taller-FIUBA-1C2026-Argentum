@@ -3,13 +3,7 @@
 
 #include <string>
 
-#include "config_juego.h"
-#include "../objeto/catalogo_items.h"
-
-struct ConfigCompleta {
-    ConfigJuego   juego;
-    CatalogoItems items;
-};
+#include "config_completa.h"
 
 class LectorConfigToml {
 public:
