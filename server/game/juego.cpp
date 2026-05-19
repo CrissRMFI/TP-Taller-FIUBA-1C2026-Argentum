@@ -33,9 +33,10 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
-    
-std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
 
+    
+std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
+                                                ClasePersonaje clase, Raza raza, Posicion posicion) {
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
@@ -68,24 +69,28 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
     std::list<MensajeSalida> mensajes = {
         armarEstado(id, jugador),
         armarInventario(id, jugador),
-        armarEquipamiento(id, jugador),
-        armarPosicionExcepto(id, jugador)
+        armarEquipamiento(id, jugador)
     };
 
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
+
     for (const auto& [idOtro, otro] : jugadoresConectados) {
-        if (idOtro != id) {
+        if (idOtro != id && otro.getPosicion().mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back(armarPosicionPara(id, otro));
         }
     }
 
     for (const ItemEnSuelo& item: mapa.obtenerItemsEnSuelo()) {
-      if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
-        mensajes.push_back({ TipoDestino::UNO, id, { Opcode::ITEM_EN_SUELO, 
-          MensajeItemEnSuelo{ 
-            item.idItem, item.posicion.x, item.posicion.y } } });
+        if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
+            mensajes.push_back({ TipoDestino::UNO, id,
+                                 { Opcode::ITEM_EN_SUELO,
+                                   MensajeItemEnSuelo{
+                                           item.idItem,
+                                           item.posicion.x,
+                                           item.posicion.y
+                                   } } });
+        }
     }
-}
-
 
     return mensajes;
 }
@@ -203,17 +208,17 @@ MensajeSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugado
                } } };
 }
 
-MensajeSalida Juego::armarPosicionExcepto(uint16_t idClienteExcluido, const Jugador& jugador) {
+std::list<MensajeSalida> Juego::armarPosicionParaMapa(const Jugador& jugador) {
+    std::list<MensajeSalida> mensajes;
     Posicion posicion = jugador.getPosicion();
-    return { TipoDestino::TODOS_EXCEPTO_UNO, idClienteExcluido,
-             { Opcode::POSICION_ENTIDAD,
-               MensajePosicionEntidad{
-                   jugador.getId(),
-                   posicion.x,
-                   posicion.y,
-                   TIPO_ENTIDAD_PERSONAJE,
-                   estadoEntidadDe(jugador)
-               } } };
+
+    for (const auto& [idCliente, otro]: jugadoresConectados) {
+        if (otro.getPosicion().mapaId == posicion.mapaId) {
+            mensajes.push_back(armarPosicionPara(idCliente, jugador));
+        }
+    }
+
+    return mensajes;
 }
 
 MensajeSalida Juego::armarDesaparicion(uint16_t idEntidad) {
@@ -740,8 +745,7 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
     // TODO: validar destino contra Mapa cuando existan límites, paredes,
     // NPCs, criaturas, ciudades y zonas seguras.
     jugador->mover_a(destino.x, destino.y);
-
-    return { armarPosicion(*jugador) };
+    return armarPosicionParaMapa(*jugador);
 }
 
 std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& /*cmd*/) {
