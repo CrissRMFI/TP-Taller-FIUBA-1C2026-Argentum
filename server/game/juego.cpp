@@ -34,6 +34,11 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
     
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
+
+    if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
+        return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
     auto itNickConectado = indiceNicksConectados.find(nombre);
     if (itNickConectado != indiceNicksConectados.end() && itNickConectado->second != id) {
         return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
@@ -75,24 +80,23 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
     return mensajes;
 }
 
+std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
+  auto it = jugadoresConectados.find(id);
+  if (it == jugadoresConectados.end()) {
+    return {};
+  }
 
-    std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
-    auto it = jugadoresConectados.find(id);
-    if (it == jugadoresConectados.end()) {
-        return {};
-    }
-
-    std::list<MensajeSalida> mensajes = {
-        armarDesaparicion(id)
-    };
-
-    const std::string nombre = it->second.getNombre();
-    indiceNicksConectados.erase(nombre);
-
-    jugadoresDesconectados.emplace(id, std::move(it->second));
-    jugadoresConectados.erase(it);
-
-    return mensajes;
+  std::list<MensajeSalida> mensajes = {
+    armarDesaparicion(id)
+  };
+  
+  const std::string nombre = it->second.getNombre();
+  indiceNicksConectados.erase(nombre);
+  
+  jugadoresDesconectados.emplace(id, std::move(it->second));
+  jugadoresConectados.erase(it);
+  
+  return mensajes;
 }
 
 Jugador* Juego::buscarJugador(uint16_t id) {
