@@ -19,9 +19,9 @@ class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems catalogo);
 
-    void conectarJugador(uint16_t id, const std::string& nombre,
-                         ClasePersonaje clase, Raza raza, Posicion posicion);
-    void desconectarJugador(uint16_t id);
+    std::list<MensajeSalida> conectarJugador(uint16_t id, const std::string& nombre,
+                                             ClasePersonaje clase, Raza raza, Posicion posicion);
+    std::list<MensajeSalida> desconectarJugador(uint16_t id);
 
     std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
     std::list<MensajeSalida> actualizar();
@@ -47,6 +47,7 @@ class Juego {
     MensajeSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     MensajeSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     MensajeSalida armarPosicion(const Jugador& jugador);
+    MensajeSalida armarDesaparicion(uint16_t idEntidad);
 
     std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
 

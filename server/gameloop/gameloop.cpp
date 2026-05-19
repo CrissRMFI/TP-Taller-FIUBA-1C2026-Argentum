@@ -47,13 +47,13 @@ void Gameloop::procesarEventosSesion() {
     try {
         while (colaEventosSesion.try_pop(evento)) {
             if (evento.tipo == TipoEventoSesion::Conectar) {
-                juego.conectarJugador(evento.idCliente,
-                                      evento.datos.nombre,
-                                      evento.datos.clase,
-                                      evento.datos.raza,
-                                      evento.datos.posicion);
+                despachar(juego.conectarJugador(evento.idCliente,
+                                                evento.datos.nombre,
+                                                evento.datos.clase,
+                                                evento.datos.raza,
+                                                evento.datos.posicion));
             } else {
-                juego.desconectarJugador(evento.idCliente);
+                despachar(juego.desconectarJugador(evento.idCliente));
             }
         }
     } catch (const ClosedQueue&) {}

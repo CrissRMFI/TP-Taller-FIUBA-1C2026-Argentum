@@ -29,8 +29,8 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
 
-void Juego::conectarJugador(uint16_t id, const std::string& nombre,
-                             ClasePersonaje clase, Raza raza, Posicion posicion) {
+std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
+                                                ClasePersonaje clase, Raza raza, Posicion posicion) {
     auto it = jugadoresDesconectados.find(id);
     if (it != jugadoresDesconectados.end()) {
         jugadoresConectados.emplace(id, std::move(it->second));
@@ -38,13 +38,27 @@ void Juego::conectarJugador(uint16_t id, const std::string& nombre,
     } else {
         jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
     }
+
+    Jugador& jugador = jugadoresConectados.at(id);
+    return {
+        armarEstado(id, jugador),
+        armarInventario(id, jugador),
+        armarEquipamiento(id, jugador),
+        armarPosicion(jugador)
+    };
 }
 
-void Juego::desconectarJugador(uint16_t id) {
+std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
     auto it = jugadoresConectados.find(id);
-    if (it == jugadoresConectados.end()) return;
+    if (it == jugadoresConectados.end()) return {};
+
+    std::list<MensajeSalida> mensajes = {
+        armarDesaparicion(id)
+    };
+
     jugadoresDesconectados.emplace(id, std::move(it->second));
     jugadoresConectados.erase(it);
+    return mensajes;
 }
 
 Jugador* Juego::buscarJugador(uint16_t id) {
@@ -115,6 +129,12 @@ MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
                    TIPO_ENTIDAD_PERSONAJE,
                    estadoEntidadDe(jugador)
                } } };
+}
+
+MensajeSalida Juego::armarDesaparicion(uint16_t idEntidad) {
+    return { TipoDestino::TODOS, 0,
+             { Opcode::ENTIDAD_DESAPARECIO,
+               MensajeEntidadDesaparecio{ idEntidad } } };
 }
 
 
