@@ -730,13 +730,19 @@ std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoT
     }
 
     uint16_t idItem = jugador->quitar_item_de_slot(cmd.indiceItem);
+    
     if (idItem == 0) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
-
+    
+    if (!catalogo.existe(idItem)) {
+      jugador->agregar_item(idItem);
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+    
     if (!mapa.agregarItem(posicion, idItem)) {
-        jugador->agregar_item(idItem);
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+      jugador->agregar_item(idItem);
+      return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
     // TODO: emitir mensaje de ítem en suelo cuando el protocolo/vista lo consuma.
