@@ -62,25 +62,25 @@ uint32_t ReglasJuego::calcularOroMaximoTotal(const ConfigJuego& cfg,
     ));
 }
 
-uint16_t ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg,
-                                                  Raza raza,
-                                                  float segundos) {
+float ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg,
+                                               Raza raza,
+                                               float segundos) {
     float valor = cfg.statsRaza(raza).fRecuperacion * segundos;
 
-    return static_cast<uint16_t>(std::max(0.0f, valor));
+    return std::max(0.0f, valor);
 }
 
-uint16_t ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg,
-                                                     ClasePersonaje clase,
-                                                     uint16_t inteligencia,
-                                                     float segundos) {
+float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg,
+                                                  ClasePersonaje clase,
+                                                  uint16_t inteligencia,
+                                                  float segundos) {
     if (clase == ClasePersonaje::GUERRERO) {
-        return 0;
+        return 0.0f;
     }
 
     float valor = cfg.factorMeditacionClase(clase) *
                   inteligencia *
                   segundos;
 
-    return static_cast<uint16_t>(std::max(0.0f, valor));
+    return std::max(0.0f, valor);
 }

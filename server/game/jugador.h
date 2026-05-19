@@ -101,6 +101,9 @@ private:
     uint16_t vidaMax;
     uint16_t manaActual;
     uint16_t manaMax;
+    float recuperacionVidaPendiente;
+    float recuperacionManaPendiente;
+    float meditacionManaPendiente;
 
     uint32_t oroMano;
     uint32_t oroExceso;

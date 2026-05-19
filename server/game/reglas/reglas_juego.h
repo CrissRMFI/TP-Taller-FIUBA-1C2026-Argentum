@@ -30,14 +30,14 @@ public:
     static uint32_t calcularOroMaximoTotal(const ConfigJuego& cfg,
                                            uint16_t nivel);
 
-    static uint16_t calcularRecuperacionNatural(const ConfigJuego& cfg,
-                                                Raza raza,
-                                                float segundos);
+    static float calcularRecuperacionNatural(const ConfigJuego& cfg,
+                                             Raza raza,
+                                             float segundos);
 
-    static uint16_t calcularRecuperacionMeditacion(const ConfigJuego& cfg,
-                                                   ClasePersonaje clase,
-                                                   uint16_t inteligencia,
-                                                   float segundos);
+    static float calcularRecuperacionMeditacion(const ConfigJuego& cfg,
+                                                ClasePersonaje clase,
+                                                uint16_t inteligencia,
+                                                float segundos);
 };
 
 #endif

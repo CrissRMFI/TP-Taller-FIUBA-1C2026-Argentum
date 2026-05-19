@@ -9,6 +9,29 @@
 
 static std::mt19937 rng(std::random_device{}());
 
+static void aplicarRecuperacion(float& pendiente,
+                                uint16_t& actual,
+                                uint16_t maximo,
+                                float delta) {
+    if (actual >= maximo) {
+        pendiente = 0.0f;
+        return;
+    }
+
+    pendiente += delta;
+    uint32_t puntos = static_cast<uint32_t>(std::floor(pendiente));
+    if (puntos == 0) {
+        return;
+    }
+
+    pendiente -= static_cast<float>(puntos);
+    actual = static_cast<uint16_t>(std::min<uint32_t>(actual + puntos, maximo));
+
+    if (actual >= maximo) {
+        pendiente = 0.0f;
+    }
+}
+
 Jugador::Jugador(uint16_t id,
                  const std::string& nombre,
                  ClasePersonaje clase,
@@ -24,6 +47,9 @@ Jugador::Jugador(uint16_t id,
         vidaMax(0),
         manaActual(0),
         manaMax(0),
+        recuperacionVidaPendiente(0.0f),
+        recuperacionManaPendiente(0.0f),
+        meditacionManaPendiente(0.0f),
         oroMano(0),
         oroExceso(0),
         oroBanco(0),
@@ -89,32 +115,45 @@ void Jugador::recuperar(float segundos) {
     }
 
     if (vidaActual < vidaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(
-                cfg, raza, segundos);
-
-        vidaActual = static_cast<uint16_t>(
-                std::min<uint32_t>(vidaActual + delta, vidaMax));
+        aplicarRecuperacion(
+                recuperacionVidaPendiente,
+                vidaActual,
+                vidaMax,
+                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+    } else {
+        recuperacionVidaPendiente = 0.0f;
     }
 
     if (manaActual < manaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionNatural(
-                cfg, raza, segundos);
-
-        manaActual = static_cast<uint16_t>(
-                std::min<uint32_t>(manaActual + delta, manaMax));
+        aplicarRecuperacion(
+                recuperacionManaPendiente,
+                manaActual,
+                manaMax,
+                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+    } else {
+        recuperacionManaPendiente = 0.0f;
     }
 
     if (estado == Estado::Meditando && manaActual < manaMax) {
-        uint16_t delta = ReglasJuego::calcularRecuperacionMeditacion(
-                cfg, clase, inteligencia, segundos);
-
-        manaActual = static_cast<uint16_t>(
-                std::min<uint32_t>(manaActual + delta, manaMax));
+        aplicarRecuperacion(
+                meditacionManaPendiente,
+                manaActual,
+                manaMax,
+                ReglasJuego::calcularRecuperacionMeditacion(
+                        cfg, clase, inteligencia, segundos));
 
         if (manaActual >= manaMax) {
             manaActual = manaMax;
             estado = Estado::Vivo;
         }
+    } else if (estado != Estado::Meditando) {
+        meditacionManaPendiente = 0.0f;
+    }
+
+    if (estado == Estado::Meditando && manaActual >= manaMax) {
+        manaActual = manaMax;
+        estado = Estado::Vivo;
+        meditacionManaPendiente = 0.0f;
     }
 
     if (cfg.vidaInfinita) {
