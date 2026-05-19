@@ -5,11 +5,12 @@
 #include <utility>
 
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
-    : colaComandos(), monitor(monitor), juego(config.juego, std::move(config.items)) {}
+    : colaComandos(), colaEventosSesion(), monitor(monitor),
+      juego(config.juego, std::move(config.items)) {}
 
 void Gameloop::run() {
     while (should_keep_running()) {
-        
+        procesarEventosSesion();
         procesarComandos();
         auto mensajes = juego.actualizar();
         despachar(mensajes);
@@ -21,10 +22,30 @@ void Gameloop::run() {
 void Gameloop::detener() {
     stop();
     colaComandos.close();
+    colaEventosSesion.close();
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {
     return colaComandos;
+}
+
+Queue<EventoSesion>& Gameloop::getColaEventosSesion() {
+    return colaEventosSesion;
+}
+
+void Gameloop::procesarEventosSesion() {
+    EventoSesion evento;
+    while (colaEventosSesion.try_pop(evento)) {
+        if (evento.tipo == TipoEventoSesion::Conectar) {
+            juego.conectarJugador(evento.idCliente,
+                                  evento.datos.nombre,
+                                  evento.datos.clase,
+                                  evento.datos.raza,
+                                  evento.datos.posicion);
+        } else {
+            juego.desconectarJugador(evento.idCliente);
+        }
+    }
 }
 
 void Gameloop::procesarComandos() {

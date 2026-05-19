@@ -1,12 +1,33 @@
 #include "juego.h"
 
-#include <variant>
 #include <list>
+#include <utility>
+#include <variant>
+
+#include "objeto/catalogo_items.h"
 
 static constexpr float TICK_SEGUNDOS = 0.2f;
 
-Juego::Juego(const ConfigJuego& cfg) : cfg(cfg), proximoIdClan(1) {}
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems cat)
+    : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
 
+void Juego::conectarJugador(uint16_t id, const std::string& nombre,
+                             ClasePersonaje clase, Raza raza, Posicion posicion) {
+    auto it = jugadoresDesconectados.find(id);
+    if (it != jugadoresDesconectados.end()) {
+        jugadoresConectados.emplace(id, std::move(it->second));
+        jugadoresDesconectados.erase(it);
+    } else {
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
+    }
+}
+
+void Juego::desconectarJugador(uint16_t id) {
+    auto it = jugadoresConectados.find(id);
+    if (it == jugadoresConectados.end()) return;
+    jugadoresDesconectados.emplace(id, std::move(it->second));
+    jugadoresConectados.erase(it);
+}
 
 Jugador* Juego::buscarJugador(uint16_t id) {
     auto it = jugadoresConectados.find(id);

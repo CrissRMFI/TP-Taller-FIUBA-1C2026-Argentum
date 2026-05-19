@@ -49,6 +49,7 @@ target_sources(taller_server
 
     # Gameloop
     gameloop/comando_cliente.h
+    gameloop/evento_sesion.h
     gameloop/gameloop.h
     gameloop/mensaje_salida.h
     gameloop/monitor_clientes.h

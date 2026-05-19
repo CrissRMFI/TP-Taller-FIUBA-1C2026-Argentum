@@ -13,17 +13,23 @@
 #include "config/config_juego.h"
 #include "jugador.h"
 #include "criatura.h"
+#include "objeto/catalogo_items.h"
 
 class Juego {
   public:
-    explicit Juego(const ConfigJuego& cfg);
+    Juego(const ConfigJuego& cfg, CatalogoItems catalogo);
+
+    void conectarJugador(uint16_t id, const std::string& nombre,
+                         ClasePersonaje clase, Raza raza, Posicion posicion);
+    void desconectarJugador(uint16_t id);
 
     std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
     std::list<MensajeSalida> actualizar();
 
   private:
-    ConfigJuego  cfg;
-    uint16_t     proximoIdClan;
+    ConfigJuego   cfg;
+    CatalogoItems catalogo;
+    uint16_t      proximoIdClan;
     std::map<uint16_t, Clan>     clanes;
     std::map<uint16_t, Jugador>  jugadoresConectados;
     std::map<uint16_t, Jugador>  jugadoresDesconectados;
