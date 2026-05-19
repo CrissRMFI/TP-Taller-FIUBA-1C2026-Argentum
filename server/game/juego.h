@@ -74,6 +74,8 @@ class Juego {
     std::list<MensajeSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
     std::list<MensajeSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
     std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
+
+    bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
 };
 
 #endif

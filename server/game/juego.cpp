@@ -23,6 +23,10 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 
     return ESTADO_ENTIDAD_VIVO;
 }
+
+bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
+    return primera.x == segunda.x && primera.y == segunda.y;
+}
 }
 
 
@@ -87,6 +91,16 @@ std::list<MensajeSalida> Juego::desconectarJugador(uint16_t id) {
 Jugador* Juego::buscarJugador(uint16_t id) {
     auto it = jugadoresConectados.find(id);
     return (it != jugadoresConectados.end()) ? &it->second : nullptr;
+}
+
+bool Juego::posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const {
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (idOtro != idCliente && mismaCelda(otro.getPosicion(), posicion)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
@@ -599,23 +613,34 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
             }
             destino.y--;
             break;
+
         case 1:
             destino.y++;
             break;
+
         case 2:
             if (destino.x == 0) {
                 return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
             }
             destino.x--;
             break;
+
         case 3:
             destino.x++;
             break;
+
         default:
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
+    if (posicionOcupadaPorJugador(idCliente, destino)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    // TODO: validar destino contra Mapa cuando existan límites, paredes,
+    // NPCs, criaturas, ciudades y zonas seguras.
     jugador->mover_a(destino.x, destino.y);
+
     return { armarPosicion(*jugador) };
 }
 
