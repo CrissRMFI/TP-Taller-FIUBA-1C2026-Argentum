@@ -5,9 +5,8 @@
 # ============================================================
 
 [servidor]
-# a definir
 #puerto          = 7666
-#tick_ms         = 100        # Cada cuántos ms se actualiza el mundo
+tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
 #max_jugadores   = 300
 #guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
 

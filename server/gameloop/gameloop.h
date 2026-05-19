@@ -18,6 +18,7 @@ private:
     Queue<EventoSesion>   colaEventosSesion;
     MonitorClientes& monitor;
     Juego juego;
+    int tickMs;
 
     void procesarEventosSesion();
     void procesarComandos();

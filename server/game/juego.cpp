@@ -6,7 +6,6 @@
 
 #include "objeto/catalogo_items.h"
 
-static constexpr float TICK_SEGUNDOS = 0.2f;
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems cat)
     : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
@@ -133,7 +132,7 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 std::list<MensajeSalida> Juego::actualizar() {
     std::list<MensajeSalida> mensajes;
     for (auto& [id, jugador] : jugadoresConectados) {
-        jugador.recuperar(TICK_SEGUNDOS);
+        jugador.recuperar(cfg.tickMs / 1000.0f);
         mensajes.push_back(armarEstado(id, jugador));
     }
     // TODO: mover criaturas, aplicar aggro, respawn, expirar ítems del suelo

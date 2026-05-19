@@ -65,6 +65,9 @@ struct ConfigJuego {
     // ---- Muerte / resurrección ----
     float factorTiempoResurreccion; // segundos_inmovilizado = distancia * factor
 
+    // ---- Servidor ----
+    int tickMs;         // duración de cada tick en ms (también define TICK_SEGUNDOS)
+
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;
     bool manaInfinito;

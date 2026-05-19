@@ -120,6 +120,8 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.factorTiempoResurreccion =
         tbl["muerte"]["factor_tiempo_resurreccion"].value_or(0.5f);
 
+    cfg.tickMs = tbl["servidor"]["tick_ms"].value_or(200);
+
     cfg.vidaInfinita = tbl["cheats"]["vida_infinita"].value_or(false);
     cfg.manaInfinito = tbl["cheats"]["mana_infinito"].value_or(false);
     cfg.invulnerable = tbl["cheats"]["invulnerable"].value_or(false);

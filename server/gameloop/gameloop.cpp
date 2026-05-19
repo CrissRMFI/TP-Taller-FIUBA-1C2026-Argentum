@@ -6,7 +6,8 @@
 
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
-      juego(config.juego, std::move(config.items)) {}
+      juego(config.juego, std::move(config.items)),
+      tickMs(config.juego.tickMs) {}
 
 void Gameloop::run() {
     while (should_keep_running()) {
@@ -15,7 +16,7 @@ void Gameloop::run() {
         auto mensajes = juego.actualizar();
         despachar(mensajes);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(tickMs));
     }
 }
 
