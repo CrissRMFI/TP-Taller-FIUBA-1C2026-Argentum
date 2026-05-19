@@ -31,6 +31,12 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
     
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
                                                 ClasePersonaje clase, Raza raza, Posicion posicion) {
+    for (const auto& [idConectado, jugador] : jugadoresConectados) {
+        if (idConectado != id && jugador.getNombre() == nombre) {
+            return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+    }
+
     auto itDesconectado = jugadoresDesconectados.end();
 
     for (auto it = jugadoresDesconectados.begin(); it != jugadoresDesconectados.end(); ++it) {
