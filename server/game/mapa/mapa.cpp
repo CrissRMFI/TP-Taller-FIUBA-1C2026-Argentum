@@ -8,6 +8,10 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
 }
 
 void Mapa::agregarNpc(const Npc& npc) {
+    if (hayNpcEn(npc.getPosicion())) {
+        throw std::invalid_argument("Ya existe un NPC en la misma posicion");
+    }
+
     auto resultado = npcs.emplace(npc.getId(), npc);
 
     if (!resultado.second) {
