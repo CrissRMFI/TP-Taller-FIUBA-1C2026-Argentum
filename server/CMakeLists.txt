@@ -60,4 +60,8 @@ target_sources(taller_server
 
     # Protocolo servidor
     protocolo/protocolo_servidor.h
+
+    # Mapa
+    game/mapa/mapa.cpp
+    game/npc/npc.cpp
 )
