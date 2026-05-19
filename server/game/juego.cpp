@@ -44,7 +44,7 @@ std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& 
         armarEstado(id, jugador),
         armarInventario(id, jugador),
         armarEquipamiento(id, jugador),
-        armarPosicion(jugador)
+        armarPosicionExcepto(id, jugador)
     };
 
     for (const auto& [idOtro, otro] : jugadoresConectados) {
@@ -142,6 +142,19 @@ MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
 MensajeSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador) {
     Posicion posicion = jugador.getPosicion();
     return { TipoDestino::UNO, idCliente,
+             { Opcode::POSICION_ENTIDAD,
+               MensajePosicionEntidad{
+                   jugador.getId(),
+                   posicion.x,
+                   posicion.y,
+                   TIPO_ENTIDAD_PERSONAJE,
+                   estadoEntidadDe(jugador)
+               } } };
+}
+
+MensajeSalida Juego::armarPosicionExcepto(uint16_t idClienteExcluido, const Jugador& jugador) {
+    Posicion posicion = jugador.getPosicion();
+    return { TipoDestino::TODOS_EXCEPTO_UNO, idClienteExcluido,
              { Opcode::POSICION_ENTIDAD,
                MensajePosicionEntidad{
                    jugador.getId(),

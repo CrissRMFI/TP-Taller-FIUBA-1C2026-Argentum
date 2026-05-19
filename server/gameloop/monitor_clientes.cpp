@@ -49,9 +49,37 @@ void MonitorClientes::broadcast(const MensajeServidor& mensaje) {
     }
 }
 
+void MonitorClientes::broadcastExcepto(uint16_t idClienteExcluido, const MensajeServidor& mensaje) {
+    std::lock_guard<std::mutex> lock(mtx);
+    std::vector<uint16_t> clientesDesconectados;
+
+    for (auto& [idCliente, colaSalida] : colasSalida) {
+        if (idCliente == idClienteExcluido) {
+            continue;
+        }
+
+        if (colaSalida == nullptr) {
+            clientesDesconectados.push_back(idCliente);
+            continue;
+        }
+
+        try {
+            colaSalida->try_push(mensaje);
+        } catch (const ClosedQueue&) {
+            clientesDesconectados.push_back(idCliente);
+        }
+    }
+
+    for (uint16_t idCliente : clientesDesconectados) {
+        colasSalida.erase(idCliente);
+    }
+}
+
 void MonitorClientes::despachar(const MensajeSalida& mensajeSalida) {
     if (mensajeSalida.tipoDestino == TipoDestino::TODOS) {
         broadcast(mensajeSalida.mensaje);
+    } else if (mensajeSalida.tipoDestino == TipoDestino::TODOS_EXCEPTO_UNO) {
+        broadcastExcepto(mensajeSalida.idCliente, mensajeSalida.mensaje);
     } else {
         enviarA(mensajeSalida.idCliente, mensajeSalida.mensaje);
     }

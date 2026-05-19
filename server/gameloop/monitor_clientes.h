@@ -22,6 +22,7 @@ public:
 
     void enviarA(uint16_t idCliente, const MensajeServidor& mensaje);
     void broadcast(const MensajeServidor& mensaje);
+    void broadcastExcepto(uint16_t idClienteExcluido, const MensajeServidor& mensaje);
 
     // Con este método decidimos si el mensaje es individual o a todo el mundo
     void despachar(const MensajeSalida& mensajeSalida);
