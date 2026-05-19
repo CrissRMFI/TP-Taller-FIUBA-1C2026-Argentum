@@ -143,8 +143,8 @@ std::list<MensajeSalida> Juego::actualizar() {
     return mensajes;
 }
 
-std::list<uint16_t> Juego::criaturasCerca(Posicion posicion) {
-    // TODO: filtrar criaturasEnMapa por distancia al jugador
+std::list<uint16_t> Juego::criaturasCerca(Posicion /*posicion*/) {
+    // TODO: filtrar criaturasEnMapa por distancia al jugador cuando exista el mapa
     return {};
 }
 
