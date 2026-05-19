@@ -1,4 +1,5 @@
 #include "mapa.h"
+#include <stdexcept>
 
 bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
     return primera.mapaId == segunda.mapaId &&
@@ -7,7 +8,11 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
 }
 
 void Mapa::agregarNpc(const Npc& npc) {
-    npcs.emplace(npc.getId(), npc);
+    auto resultado = npcs.emplace(npc.getId(), npc);
+
+    if (!resultado.second) {
+        throw std::invalid_argument("Ya existe un NPC con el mismo id");
+    }
 }
 
 bool Mapa::posicionValida(const Posicion& /*posicion*/) const {
