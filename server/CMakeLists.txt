@@ -6,7 +6,6 @@ target_sources(taller_server
     # Configuración
     game/config/config_juego.cpp
     game/config/lector_config_toml.cpp
-    game/config/parser_toml.cpp
 
     # Modelo del juego
     game/jugador.cpp
@@ -33,7 +32,6 @@ target_sources(taller_server
     # Configuración
     game/config/config_juego.h
     game/config/lector_config_toml.h
-    game/config/parser_toml.h
 
     # Objetos
     game/objeto/item.h
