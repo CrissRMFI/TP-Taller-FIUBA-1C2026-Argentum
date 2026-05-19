@@ -1,6 +1,7 @@
 #include "gameloop.h"
 
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 #include <utility>
 
@@ -22,8 +23,14 @@ void Gameloop::run() {
 
 void Gameloop::detener() {
     stop();
-    colaComandos.close();
-    colaEventosSesion.close();
+
+    try {
+        colaComandos.close();
+    } catch (const std::runtime_error&) {}
+
+    try {
+        colaEventosSesion.close();
+    } catch (const std::runtime_error&) {}
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {
@@ -36,25 +43,30 @@ Queue<EventoSesion>& Gameloop::getColaEventosSesion() {
 
 void Gameloop::procesarEventosSesion() {
     EventoSesion evento;
-    while (colaEventosSesion.try_pop(evento)) {
-        if (evento.tipo == TipoEventoSesion::Conectar) {
-            juego.conectarJugador(evento.idCliente,
-                                  evento.datos.nombre,
-                                  evento.datos.clase,
-                                  evento.datos.raza,
-                                  evento.datos.posicion);
-        } else {
-            juego.desconectarJugador(evento.idCliente);
+
+    try {
+        while (colaEventosSesion.try_pop(evento)) {
+            if (evento.tipo == TipoEventoSesion::Conectar) {
+                juego.conectarJugador(evento.idCliente,
+                                      evento.datos.nombre,
+                                      evento.datos.clase,
+                                      evento.datos.raza,
+                                      evento.datos.posicion);
+            } else {
+                juego.desconectarJugador(evento.idCliente);
+            }
         }
-    }
+    } catch (const ClosedQueue&) {}
 }
 
 void Gameloop::procesarComandos() {
     ComandoCliente comandoCliente;
 
-    while (colaComandos.try_pop(comandoCliente)) {
-        procesarComando(comandoCliente);
-    }
+    try {
+        while (colaComandos.try_pop(comandoCliente)) {
+            procesarComando(comandoCliente);
+        }
+    } catch (const ClosedQueue&) {}
 }
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
