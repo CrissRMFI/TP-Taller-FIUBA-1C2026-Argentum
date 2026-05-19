@@ -129,11 +129,14 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.expX10       = tbl["cheats"]["exp_x10"].value_or(false);
 
     cfg.inventarioMaxItems = static_cast<uint8_t>(
-    tbl["inventario"]["max_items"].value_or(20)
+        tbl["inventario"]["max_items"].value_or(20)
+    );
 
-    cfg.probabilidadCritico = juego["probabilidad_critico"].value_or(0.10f);
-    cfg.expPerdidaMuertePct = juego["exp_perdida_muerte_pct"].value_or(0.10f);
-);
+    cfg.probabilidadCritico =
+        tbl["combate"]["probabilidad_critico"].value_or(0.10f);
+
+    cfg.expPerdidaMuertePct =
+        tbl["muerte"]["exp_perdida_muerte_pct"].value_or(0.10f);
 
     ConfigCompleta resultado;
     resultado.juego = cfg;
