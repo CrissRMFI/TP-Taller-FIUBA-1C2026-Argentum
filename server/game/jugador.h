@@ -30,6 +30,7 @@ public:
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
+    uint16_t recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo);
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);
 

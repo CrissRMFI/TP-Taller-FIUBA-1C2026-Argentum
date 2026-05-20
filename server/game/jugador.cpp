@@ -88,6 +88,50 @@ void Jugador::recibir_danio(uint16_t cantidad) {
     }
 }
 
+uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo) {
+    if (!estaVivo() || cfg.invulnerable) {
+        return 0;
+    }
+
+    if (esquiva_ataque()) {
+        return 0;
+    }
+
+    uint16_t absorcion = 0;
+
+    const uint16_t idDefensa = inventario.getDefensaEquipada();
+    if (idDefensa != 0) {
+        const Defensa* defensa = catalogo.comoDefensa(idDefensa);
+        if (defensa != nullptr) {
+            absorcion += std::uniform_int_distribution<uint16_t>(
+                    defensa->getDefMin(), defensa->getDefMax())(rng);
+        }
+    }
+
+    const uint16_t idCasco = inventario.getCascoEquipado();
+    if (idCasco != 0) {
+        const Defensa* casco = catalogo.comoDefensa(idCasco);
+        if (casco != nullptr) {
+            absorcion += std::uniform_int_distribution<uint16_t>(
+                    casco->getDefMin(), casco->getDefMax())(rng);
+        }
+    }
+
+    const uint16_t idEscudo = inventario.getEscudoEquipado();
+    if (idEscudo != 0) {
+        const Defensa* escudo = catalogo.comoDefensa(idEscudo);
+        if (escudo != nullptr) {
+            absorcion += std::uniform_int_distribution<uint16_t>(
+                    escudo->getDefMin(), escudo->getDefMax())(rng);
+        }
+    }
+
+    const uint16_t danioFinal = danio > absorcion ? danio - absorcion : 0;
+    recibir_danio(danioFinal);
+
+    return danioFinal;
+}
+
 void Jugador::curar(uint16_t cantidad) {
     if (!estaVivo()) {
         return;

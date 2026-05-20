@@ -1131,8 +1131,7 @@ std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatur
         return mensajes;
     }
 
-    const uint16_t danio = criatura.calcularDanio();
-    jugador->recibir_danio(danio);
+    const uint16_t danio = jugador->recibir_ataque_fisico(criatura.calcularDanio(), catalogo);
 
     MensajeServidor mensajeDanio{
         Opcode::DANIO_RECIBIDO,
