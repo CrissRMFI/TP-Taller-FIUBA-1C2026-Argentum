@@ -664,7 +664,17 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
 // ─── Mapa/Mundo ──────────────────────────────────────────
 
 std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
-    // TODO: verificar que es fantasma, buscar sacerdote cercano o ciudad más cercana
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->esFantasma()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar resurrección cuando esté definido el flujo de sacerdote.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
@@ -826,21 +836,55 @@ std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comand
 }
 
 std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& /*cmd*/) {
-    // TODO: verificar vivo, comerciante cercano, ítem disponible, oro suficiente, espacio
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const bool hayComercianteCercano = mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Comerciante, cfg.rangoInteraccionNpc);
+    
+    const bool haySacerdoteCercano = mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc);
+
+    if (!hayComercianteCercano && !haySacerdoteCercano) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar compra cuando esté definido el flujo de comerciantes/sacerdotes.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoVender& /*cmd*/) {
-    // TODO: verificar vivo, comerciante cercano, ítem en inventario
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Comerciante, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar venta cuando esté definido el flujo de comerciante.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
                                                       const ComandoDepositarItem& /*cmd*/) {
-    // TODO: validar jugador vivo, cercanía a banquero e ítem disponible.
-    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar depósito de ítem cuando esté definido el flujo de banco.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
+
 
 std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& /*cmd*/) {
     
@@ -859,17 +903,37 @@ std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const C
 
 std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
                                                     const ComandoRetirarItem& /*cmd*/) {
-    // TODO: validar jugador vivo, cercanía a banquero, ítem depositado y espacio en inventario.
-    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar retiro de ítem cuando esté definido el flujo de banco.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
+
 std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
                                                    const ComandoRetirarOro& /*cmd*/) {
-    // TODO: validar jugador vivo, cercanía a banquero, monto positivo y oro depositado.
-    // El enunciado define estas operaciones como interacción con NPC Banquero.
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar retiro de oro cuando esté definido el flujo de banco.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
+
 
 std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente,
                                                const ComandoListar& /*cmd*/) {
@@ -879,7 +943,17 @@ std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente,
 }
 
 std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& /*cmd*/) {
-    // TODO: verificar vivo, sacerdote cercano; aplicar curación
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    // TODO: implementar curación cuando esté definido el flujo de sacerdote.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
