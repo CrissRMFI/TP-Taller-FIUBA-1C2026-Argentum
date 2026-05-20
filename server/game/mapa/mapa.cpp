@@ -117,10 +117,11 @@ bool Mapa::hayItemEn(const Posicion& posicion) const {
 }
 
 bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
-    if ( idItem == 0 ||!posicionValida(posicion) || hayParedEn(posicion) || hayNpcEn(posicion) || hayItemEn(posicion)) {
+    if (idItem == 0 || !posicionValida(posicion) || hayParedEn(posicion) ||
+            hayNpcEn(posicion) || hayCriaturaEn(posicion) || hayItemEn(posicion)) {
         return false;
     }
-    
+
     itemsEnSuelo.push_back({ idItem, posicion, 0.0f });
     return true;
 }
