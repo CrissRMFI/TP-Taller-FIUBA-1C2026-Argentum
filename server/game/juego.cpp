@@ -749,23 +749,23 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
     return armarPosicionParaMapa(*jugador);
 }
 
-std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& /*cmd*/) {
-    // TODO: implementar combate cuando exista Mapa/NPC/objetivos.
-    //
-    // Reglas pendientes del enunciado:
-    // - Validar que el atacante exista y esté vivo.
-    // - Buscar objetivo jugador o criatura por id.
-    // - Validar rango cuerpo a cuerpo o distancia según arma/hechizo.
-    // - Bloquear ataques en zonas seguras.
-    // - Aplicar protección newbie: nivel <= cfg.nivelNewbie.
-    // - Aplicar regla PVP: |nivelAtacante - nivelDefensor| <= cfg.maxDiffNivel.
-    // - Bloquear fuego amigo entre miembros del mismo clan.
-    // - Calcular crítico con cfg.probabilidadCritico.
-    // - Si es crítico, duplicar daño y omitir evasión.
-    // - Si no es crítico, aplicar evasión con cfg.esquivarUmbral.
-    // - Aplicar absorción por armadura/casco/escudo.
-    // - Otorgar XP por impacto y por kill.
-    // - Manejar muerte, drops de oro/items y estado fantasma.
+std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& cmd) {
+    Jugador* atacante = buscarJugador(idCliente);
+
+    if (!atacante || !atacante->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (mapa.esZonaSegura(atacante->getPosicion())) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    Jugador* objetivo = buscarJugador(cmd.idObjetivo);
+
+    if (objetivo && mapa.esZonaSegura(objetivo->getPosicion())) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
