@@ -987,7 +987,12 @@ void Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetiv
   const Posicion origen = criatura.getPos();
   
   if (origen.esAdyacente(objetivo)) {
-    // TODO: atacar al jugador cuando se implemente combate PVE.
+    std::optional<uint16_t> idJugador = buscarIdJugadorEn(objetivo);
+
+    if (idJugador.has_value()) {
+        atacarJugadorConCriatura(criatura, *idJugador);
+    }
+
     return;
   }
   
@@ -1013,4 +1018,31 @@ bool Juego::posicionOcupadaPorAlgunJugador(const Posicion& posicion) const {
 
 bool Juego::puedeMoverCriaturaA(const Posicion& destino) const {
   return mapa.puedeOcuparCriatura(destino) && !posicionOcupadaPorAlgunJugador(destino);
+}
+
+std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion) const {
+  for (const auto& [idCliente, jugador] : jugadoresConectados) {
+    const Posicion posicionJugador = jugador.getPosicion();
+    
+    if (posicionJugador.mapaId == posicion.mapaId && posicionJugador.x == posicion.x && posicionJugador.y == posicion.y) {
+      return idCliente;
+    }
+  }
+  
+  return std::nullopt;
+}
+
+void Juego::atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador) {
+    Jugador* jugador = buscarJugador(idJugador);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return;
+    }
+
+    if (mapa.esZonaSegura(jugador->getPosicion()) || mapa.esZonaSegura(criatura.getPos())) {
+        return;
+    }
+
+    const uint16_t danio = criatura.calcularDanio();
+    jugador->recibir_danio(danio);
 }

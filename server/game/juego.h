@@ -92,6 +92,8 @@ class Juego {
     void moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
+    void atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
+    std::optional<uint16_t> buscarIdJugadorEn(const Posicion& posicion) const;
 };
 
 #endif
