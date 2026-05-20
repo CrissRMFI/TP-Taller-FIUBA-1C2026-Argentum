@@ -156,6 +156,10 @@ void Jugador::recuperar(float segundos) {
     if (cfg.manaInfinito) {
         manaActual = manaMax;
     }
+
+    if (cfg.suicidio) {
+      morir();
+    }
 }
 
 void Jugador::ganar_experiencia(uint32_t cantidad) {

@@ -99,6 +99,7 @@ struct ConfigJuego {
     bool vidaInfinita;
     bool manaInfinito;
     bool invulnerable;
+    bool suicidio;
     bool expX10;
 
     float            factorVidaClase(ClasePersonaje clase) const;
