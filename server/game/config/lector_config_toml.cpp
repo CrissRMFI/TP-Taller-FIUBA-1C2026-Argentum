@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <limits>
+#include <stdexcept>
 
 #include <toml++/toml.hpp>
 
@@ -103,6 +105,22 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
     }
 }
 
+static uint16_t leerUint16Obligatorio(const toml::table& tbl, std::string_view seccion, std::string_view clave) {
+  
+  const auto valor = tbl[seccion][clave].value<int64_t>();
+  
+  if (!valor.has_value()) {
+    throw std::runtime_error("Falta clave obligatoria en TOML");
+  }
+  
+  if (*valor <= 0 || *valor > std::numeric_limits<uint16_t>::max()) {
+    throw std::runtime_error("Valor numerico fuera de rango en TOML");
+  
+  }
+  
+  return static_cast<uint16_t>(*valor);
+}
+
 // ─── LectorConfigToml ────────────────────────────────────────────────────────
 
 ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
@@ -152,6 +170,9 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.expPerdidaMuertePct = tbl["experiencia"]["exp_perdida_muerte_pct"].value_or(0.10f);
 
     cfg.tickMs = tbl["servidor"]["tick_ms"].value_or(200);
+
+    cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
+    cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
 
     cfg.vidaInfinita = tbl["cheats"]["vida_infinita"].value_or(false);
     cfg.manaInfinito = tbl["cheats"]["mana_infinito"].value_or(false);

@@ -31,9 +31,7 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 }
 
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat)
-    : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1) {}
-
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto) {}
     
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
                                                 ClasePersonaje clase, Raza raza, Posicion posicion) {

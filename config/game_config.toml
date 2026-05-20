@@ -251,6 +251,13 @@ oro_drop_max  = 0.20
 #poblacion_max = 200          # Tope global de NPCs vivos
 
 # ------------------------------------------------------------
+[mapa]
+# Dimensiones del escenario en celdas.
+# El terreno/tiles reales podrán cargarse luego desde archivo binario.
+ancho = 100
+alto  = 100
+
+# ------------------------------------------------------------
 [fair_play]
 nivel_newbie       = 12      # Nivel <= 12 es newbie
 max_diff_nivel     = 10      # No se pueden atacar si diff > 10

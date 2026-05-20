@@ -1,6 +1,12 @@
 #include "mapa.h"
 #include <stdexcept>
 
+Mapa::Mapa(uint16_t ancho, uint16_t alto) : ancho(ancho), alto(alto) {
+  if (ancho == 0 || alto == 0) {
+    throw std::invalid_argument("Las dimensiones del mapa deben ser mayores a cero");
+  }
+}
+
 bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
     return primera.mapaId == segunda.mapaId &&
            primera.x == segunda.x &&
@@ -8,20 +14,24 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
 }
 
 void Mapa::agregarNpc(const Npc& npc) {
-    if (hayNpcEn(npc.getPosicion())) {
-        throw std::invalid_argument("Ya existe un NPC en la misma posicion");
-    }
-
-    auto resultado = npcs.emplace(npc.getId(), npc);
-
-    if (!resultado.second) {
-        throw std::invalid_argument("Ya existe un NPC con el mismo id");
-    }
+  
+  if (!posicionValida(npc.getPosicion())) {
+    throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
+  }
+  
+  if (hayNpcEn(npc.getPosicion())) {
+    throw std::invalid_argument("Ya existe un NPC en la misma posicion");
+  }
+  
+  auto resultado = npcs.emplace(npc.getId(), npc);
+  
+  if (!resultado.second) {
+    throw std::invalid_argument("Ya existe un NPC con el mismo id");
+  }
 }
 
-bool Mapa::posicionValida(const Posicion& /*posicion*/) const {
-    // TODO: validar dimensiones reales del mapa cuando existan tiles.
-    return true;
+bool Mapa::posicionValida(const Posicion& posicion) const {
+  return posicion.x < ancho && posicion.y < alto;
 }
 
 bool Mapa::hayParedEn(const Posicion& /*posicion*/) const {

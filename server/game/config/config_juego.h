@@ -75,6 +75,10 @@ struct ConfigJuego {
     // ---- Servidor ----
     int tickMs;         // duración de cada tick en ms (también define TICK_SEGUNDOS)
 
+    // ---- Mapa ----
+    uint16_t mapaAncho;
+    uint16_t mapaAlto;
+
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;
     bool manaInfinito;
