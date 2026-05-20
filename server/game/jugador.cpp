@@ -6,6 +6,7 @@
 
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
+#include "../../common/protocolo/tipo_entidad.h"
 
 static std::mt19937 rng(std::random_device{}());
 

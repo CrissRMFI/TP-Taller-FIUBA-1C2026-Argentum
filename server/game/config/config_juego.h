@@ -71,6 +71,15 @@ struct ConfigJuego {
 
     // ---- Criatiruas ----
     uint16_t movimientoCriaturasTicks;
+    uint16_t spawnCriaturasTicks;
+    uint16_t poblacionMaxCriaturas;
+    uint16_t criaturaVidaMaximaBase;
+    uint8_t criaturaNivelBase;
+    uint8_t criaturaFuerzaBase;
+    uint8_t criaturaAgilidadBase;
+    uint8_t criaturaRangoAggroBase;
+    uint8_t criaturaDanioMinBase;
+    uint8_t criaturaDanioMaxBase;
 
     // ---- Muerte / resurrección ----
     float expPerdidaMuertePct;      // fracción de experiencia perdida al morir

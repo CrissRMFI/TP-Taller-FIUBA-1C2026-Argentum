@@ -2,6 +2,20 @@
 
 #include <random>
 
+Criatura::Criatura(uint16_t idCriatura, TipoCriatura tipo, uint16_t vidaMaxima, uint8_t nivel, uint8_t fuerza, uint8_t agilidad, Posicion posicion, uint8_t rangoAggro, uint8_t danioMin, uint8_t danioMax)
+    : idCriatura(idCriatura),
+      tipo(tipo),
+      vidaActual(vidaMaxima),
+      vidaMaxima(vidaMaxima),
+      nivel(nivel),
+      fuerza(fuerza),
+      agilidad(agilidad),
+      posicion(posicion),
+      rangoAggro(rangoAggro),
+      danioMin(danioMin),
+      danioMax(danioMax),
+      persiguiendoJugador() {}
+
 uint16_t Criatura::getId() const {
   return idCriatura;
 }

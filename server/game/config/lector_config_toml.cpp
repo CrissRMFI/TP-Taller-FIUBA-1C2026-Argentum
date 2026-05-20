@@ -121,6 +121,16 @@ static uint16_t leerUint16Obligatorio(const toml::table& tbl, std::string_view s
   return static_cast<uint16_t>(*valor);
 }
 
+static uint8_t leerUint8Obligatorio(const toml::table& tbl, std::string_view seccion, std::string_view clave) {
+    const uint16_t valor = leerUint16Obligatorio(tbl, seccion, clave);
+
+    if (valor > std::numeric_limits<uint8_t>::max()) {
+        throw std::runtime_error("Valor numerico fuera de rango uint8 en TOML");
+    }
+
+    return static_cast<uint8_t>(valor);
+}
+
 // ─── LectorConfigToml ────────────────────────────────────────────────────────
 
 ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
@@ -183,8 +193,17 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.movimientoCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "movimiento_ticks");
 
     cfg.tiempoItemSueloSeg = leerUint16Obligatorio(tbl, "items", "tiempo_suelo_seg");
-    cfg.inventarioMaxItems = static_cast<uint8_t>(
-            tbl["inventario"]["max_items"].value_or(20));
+    cfg.inventarioMaxItems = static_cast<uint8_t>(tbl["inventario"]["max_items"].value_or(20));
+    cfg.spawnCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "spawn_ticks");
+    cfg.poblacionMaxCriaturas = leerUint16Obligatorio(tbl, "criaturas", "poblacion_max");
+
+    cfg.criaturaVidaMaximaBase = leerUint16Obligatorio(tbl, "criaturas", "vida_maxima_base");
+    cfg.criaturaNivelBase = leerUint8Obligatorio(tbl, "criaturas", "nivel_base");
+    cfg.criaturaFuerzaBase = leerUint8Obligatorio(tbl, "criaturas", "fuerza_base");
+    cfg.criaturaAgilidadBase = leerUint8Obligatorio(tbl, "criaturas", "agilidad_base");
+    cfg.criaturaRangoAggroBase = leerUint8Obligatorio(tbl, "criaturas", "rango_aggro_base");
+    cfg.criaturaDanioMinBase = leerUint8Obligatorio(tbl, "criaturas", "danio_min_base");
+    cfg.criaturaDanioMaxBase = leerUint8Obligatorio(tbl, "criaturas", "danio_max_base");
 
     ConfigCompleta resultado;
     resultado.juego = cfg;

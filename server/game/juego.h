@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <list>
 #include <map>
-#include <string>
 #include <optional>
+#include <string>
+#include <unordered_map>
 #include <vector>
-#include <list>
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
 #include "../gameloop/mensaje_salida.h"
@@ -17,7 +17,6 @@
 #include "criatura.h"
 #include "mapa/mapa.h"
 #include "objeto/catalogo_items.h"
-#include <unordered_map>
 
 class Juego {
   public:

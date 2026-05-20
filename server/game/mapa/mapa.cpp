@@ -7,6 +7,10 @@ Mapa::Mapa(uint16_t ancho, uint16_t alto) : ancho(ancho), alto(alto) {
   }
 }
 
+size_t Mapa::cantidadCriaturas() const {
+  return criaturas.size();
+}
+
 bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
     return primera.mapaId == segunda.mapaId &&
            primera.x == segunda.x &&

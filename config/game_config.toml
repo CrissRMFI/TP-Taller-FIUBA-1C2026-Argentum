@@ -248,13 +248,20 @@ prob_pocion   = 0.01
 prob_item     = 0.01
 oro_drop_min  = 0.01
 oro_drop_max  = 0.20
+vida_maxima_base = 50
+nivel_base = 1
+fuerza_base = 5
+agilidad_base = 5
+rango_aggro_base = 5
+danio_min_base = 1
+danio_max_base = 4
 
 # Cada cuántos ticks se mueven las criaturas
 movimiento_ticks = 5
 
 # Cada cuántos ticks spawnea una criatura nueva
-#spawn_ticks   = 50
-#poblacion_max = 200          # Tope global de NPCs vivos
+spawn_ticks   = 50
+poblacion_max = 200          # Tope global de NPCs vivos
 
 # ------------------------------------------------------------
 [mapa]

@@ -8,27 +8,15 @@
 #include <vector>
 
 #include "objeto/catalogo_items.h"
+#include "../../common/protocolo/tipo_entidad.h"
 
 namespace {
-constexpr uint8_t TIPO_ENTIDAD_PERSONAJE = 0;
-constexpr uint8_t ESTADO_ENTIDAD_VIVO = 0;
-constexpr uint8_t ESTADO_ENTIDAD_FANTASMA = 1;
-constexpr uint8_t ESTADO_ENTIDAD_MEDITANDO = 2;
-
 uint8_t estadoEntidadDe(const Jugador& jugador) {
-    if (jugador.enMeditacion()) {
-        return ESTADO_ENTIDAD_MEDITANDO;
-    }
-
-    if (jugador.esFantasma()) {
-        return ESTADO_ENTIDAD_FANTASMA;
-    }
-
-    return ESTADO_ENTIDAD_VIVO;
+    return static_cast<uint8_t>(jugador.getEstado());
 }
 
 bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
-  return primera.mapaId == segunda.mapaId && primera.x == segunda.x && primera.y == segunda.y;
+    return primera.mapaId == segunda.mapaId && primera.x == segunda.x && primera.y == segunda.y;
 }
 }
 
@@ -188,7 +176,7 @@ MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
                    jugador.getId(),
                    posicion.x,
                    posicion.y,
-                   TIPO_ENTIDAD_PERSONAJE,
+                   static_cast<uint8_t>(TipoEntidad::Personaje),
                    estadoEntidadDe(jugador)
                } } };
 }
@@ -201,7 +189,7 @@ MensajeSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugado
                    jugador.getId(),
                    posicion.x,
                    posicion.y,
-                   TIPO_ENTIDAD_PERSONAJE,
+                   static_cast<uint8_t>(TipoEntidad::Personaje),
                    estadoEntidadDe(jugador)
                } } };
 }
@@ -355,7 +343,8 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 
         if (canceloMeditacion && comando.opcode != Opcode::MOVER) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
-                mensajes.push_back(armarPosicion(*jugador));
+                std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
+                mensajes.splice(mensajes.end(), mensajesPosicion);
             }
         }
 
@@ -367,7 +356,8 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 
         if (canceloMeditacion) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
-                mensajes.push_back(armarPosicion(*jugador));
+                std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
+                mensajes.splice(mensajes.end(), mensajesPosicion);
             }
         }
 
@@ -403,7 +393,8 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         }
 
         if (estabaMeditando && !jugador.enMeditacion()) {
-            mensajes.push_back(armarPosicion(jugador));
+            std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
+            mensajes.splice(mensajes.end(), mensajesPosicion);
 
             if (!cambioEstado) {
                 mensajes.push_back(armarEstado(id, jugador));
@@ -417,27 +408,13 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         mensajes.splice(mensajes.end(), mensajesCriaturas);
     }
 
-    std::vector<ItemEnSuelo> itemsExpirados = mapa.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
-    
-    for (const ItemEnSuelo& item : itemsExpirados) {
-    MensajeServidor mensaje{
-        Opcode::ITEM_DESAPARECIO_SUELO,
-        MensajeItemDesaparecioSuelo{
-            item.posicion.x,
-            item.posicion.y
-        }
-    };
+    std::vector<ItemEnSuelo> itemsExpirados =
+            mapa.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
 
-    for (const auto& [idCliente, jugador] : jugadoresConectados) {
-        if (jugador.getPosicion().mapaId == item.posicion.mapaId) {
-            mensajes.push_back(MensajeSalida{
-                TipoDestino::UNO,
-                idCliente,
-                mensaje
-            });
-        }
+    for (const ItemEnSuelo& item : itemsExpirados) {
+        std::list<MensajeSalida> mensajesItem = armarItemDesaparecioSueloParaMapa(item.posicion);
+        mensajes.splice(mensajes.end(), mensajesItem);
     }
-}
 
     return mensajes;
 }
@@ -452,10 +429,13 @@ std::list<MensajeSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     jugador->meditar();
-    return {
-        armarEstado(idCliente, *jugador),
-        armarPosicion(*jugador)
+
+    std::list<MensajeSalida> mensajes = {
+        armarEstado(idCliente, *jugador)
     };
+
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
 }
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
@@ -1098,26 +1078,26 @@ std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatur
     mensajes.push_back(armarEstado(idJugador, *jugador));
 
     if (!jugador->estaVivo()) {
-    MensajeServidor mensajeMuerte{
-        Opcode::MUERTE_ENTIDAD,
-        MensajeMuerteEntidad{jugador->getId()}
-    };
+        MensajeServidor mensajeMuerte{
+            Opcode::MUERTE_ENTIDAD,
+            MensajeMuerteEntidad{jugador->getId()}
+        };
 
-    const Posicion posicionJugador = jugador->getPosicion();
+        const Posicion posicionJugador = jugador->getPosicion();
 
-    for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
-        if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
-            mensajes.push_back(MensajeSalida{
-                TipoDestino::UNO,
-                idCliente,
-                mensajeMuerte
-            });
+        for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
+            if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
+                mensajes.push_back(MensajeSalida{
+                    TipoDestino::UNO,
+                    idCliente,
+                    mensajeMuerte
+                });
+            }
         }
-    }
 
-    std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
-    mensajes.splice(mensajes.end(), mensajesPosicion);
-}
+        std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
+        mensajes.splice(mensajes.end(), mensajesPosicion);
+    }
 
     return mensajes;
 }
