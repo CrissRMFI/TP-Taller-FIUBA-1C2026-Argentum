@@ -82,7 +82,7 @@ class Juego {
     std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
 
     bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
-
+    bool posicionOcupadaPorAlgunJugador(const Posicion& posicion) const;
     void actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;
@@ -90,6 +90,8 @@ class Juego {
     std::vector<Posicion> calcularDestinosAdyacentes(const Posicion& origen) const;
     void moverCriaturaAleatoriamente(const Criatura& criatura);
     void moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
+
+    bool puedeMoverCriaturaA(const Posicion& destino) const;
 };
 
 #endif

@@ -969,9 +969,9 @@ void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
     std::vector<Posicion> destinosValidos;
 
     for (const Posicion& destino : calcularDestinosAdyacentes(criatura.getPos())) {
-        if (mapa.puedeOcuparCriatura(destino)) {
-            destinosValidos.push_back(destino);
-        }
+      if (puedeMoverCriaturaA(destino)) {
+        destinosValidos.push_back(destino);
+      }
     }
 
     if (destinosValidos.empty()) {
@@ -983,14 +983,34 @@ void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
 }
 
 void Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
-    const Posicion origen = criatura.getPos();
-
-    for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
-        if (mapa.puedeOcuparCriatura(destino)) {
-            mapa.moverCriatura(criatura.getId(), destino);
-            return;
-        }
+    
+  const Posicion origen = criatura.getPos();
+  
+  if (origen.esAdyacente(objetivo)) {
+    // TODO: atacar al jugador cuando se implemente combate PVE.
+    return;
+  }
+  
+  for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
+    if (puedeMoverCriaturaA(destino)) {
+      mapa.moverCriatura(criatura.getId(), destino);
+      return;
     }
+  }
+  
+  moverCriaturaAleatoriamente(criatura);
+}
 
-    moverCriaturaAleatoriamente(criatura);
+bool Juego::posicionOcupadaPorAlgunJugador(const Posicion& posicion) const {
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+      if (jugador.getPosicion().mapaId == posicion.mapaId && jugador.getPosicion().x == posicion.x && jugador.getPosicion().y == posicion.y) {
+        return true;
+      }
+    }
+    
+    return false;
+}
+
+bool Juego::puedeMoverCriaturaA(const Posicion& destino) const {
+  return mapa.puedeOcuparCriatura(destino) && !posicionOcupadaPorAlgunJugador(destino);
 }
