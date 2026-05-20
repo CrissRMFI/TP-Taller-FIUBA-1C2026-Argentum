@@ -6,7 +6,7 @@
 #include <optional>
 #include <random>
 #include <vector>
-
+#include <cstdlib>
 #include "objeto/catalogo_items.h"
 #include "../../common/protocolo/tipo_entidad.h"
 
@@ -800,11 +800,27 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
+    if (atacante->es_newbie() || objetivo->es_newbie()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const int diferenciaNivel =
+            std::abs(static_cast<int>(atacante->getNivel()) - static_cast<int>(objetivo->getNivel()));
+
+    if (diferenciaNivel > cfg.maxDiffNivel) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (atacante->tieneClan() && objetivo->tieneClan() &&
+            atacante->getClan() == objetivo->getClan()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
     if (!posicionAtacante.esAdyacente(posicionObjetivo)) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    // TODO: aplicar reglas PVP: newbie, diferencia de nivel, clan, daño, defensa, drops y XP.
+    // TODO: aplicar daño PVP, drops y XP.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
