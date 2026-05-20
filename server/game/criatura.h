@@ -22,7 +22,7 @@ public:
     uint16_t getId() const;
     Posicion getPos() const;
     uint8_t getAggro() const;
-    uint8_t calcularDanio() const;
+    uint16_t calcularDanio() const;
     std::map<uint16_t, bool> estaPersiguiendo() const;
     void mover(Posicion nuevaPosicion);
 

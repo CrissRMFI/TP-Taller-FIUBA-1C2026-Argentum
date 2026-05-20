@@ -28,11 +28,13 @@ uint8_t Criatura::getAggro() const {
   return rangoAggro;
 }
 
-uint8_t Criatura::calcularDanio() const {
+uint16_t Criatura::calcularDanio() const {
   static std::random_device rd;
   static std::mt19937 generador(rd());
   std::uniform_int_distribution<int> distribucion(danioMin, danioMax);
-  return static_cast<uint8_t>(distribucion(generador));
+
+  const uint16_t danioBase = static_cast<uint16_t>(distribucion(generador));
+  return static_cast<uint16_t>(fuerza) * danioBase;
 }
 
 std::map<uint16_t, bool> Criatura::estaPersiguiendo() const {
