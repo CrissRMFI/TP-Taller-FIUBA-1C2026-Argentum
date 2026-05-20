@@ -50,6 +50,18 @@ void Mapa::agregarPared(const Posicion& posicion) {
     paredes.push_back(posicion);
 }
 
+void Mapa::agregarCiudad(const Ciudad& ciudad) {
+    if (ciudad.xMin > ciudad.xMax || ciudad.yMin > ciudad.yMax) {
+        throw std::invalid_argument("La ciudad tiene limites invalidos");
+    }
+
+    if (ciudad.xMax >= ancho || ciudad.yMax >= alto) {
+        throw std::invalid_argument("La ciudad esta fuera de los limites del mapa");
+    }
+
+    ciudades.push_back(ciudad);
+}
+
 bool Mapa::posicionValida(const Posicion& posicion) const {
   return posicion.x < ancho && posicion.y < alto;
 }
@@ -78,12 +90,7 @@ bool Mapa::hayNpcCercano(Posicion posicion, TipoNpc tipo) const {
 }
 
 bool Mapa::hayNpcEn(const Posicion& posicion) const {
-  for (const auto& [id, npc]: npcs) {
-    if (mismaPosicion(npc.getPosicion(), posicion)) {
-      return true;
-    }
-  }
-  return false;
+  return buscarNpcEn(posicion).has_value();
 }
 
 bool Mapa::hayItemEn(const Posicion& posicion) const {
@@ -123,4 +130,46 @@ std::optional<uint16_t> Mapa::tomarItem(const Posicion& posicion) {
 
 std::vector<ItemEnSuelo> Mapa::obtenerItemsEnSuelo() const {
     return itemsEnSuelo;
+}
+
+bool Mapa::esCiudad(const Posicion& posicion) const {
+    for (const Ciudad& ciudad : ciudades) {
+        if (ciudad.mapaId == posicion.mapaId && posicion.x >= ciudad.xMin && posicion.x <= ciudad.xMax && posicion.y >= ciudad.yMin && posicion.y <= ciudad.yMax) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Mapa::esZonaSegura(const Posicion& posicion) const {
+    return esCiudad(posicion);
+}
+
+std::optional<Npc> Mapa::buscarNpcEn(const Posicion& posicion) const {
+  for (const auto& [id, npc] : npcs) {
+    if (mismaPosicion(npc.getPosicion(), posicion)) {
+      return npc;
+    }
+  }
+  return std::nullopt;
+}
+
+std::vector<Npc> Mapa::obtenerNpcs() const {
+  std::vector<Npc> resultado;
+  for (const auto& [id, npc] : npcs) {
+    resultado.push_back(npc);
+  }
+  return resultado;
+}
+
+std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {
+  std::vector<Npc> resultado;
+  
+  for (const auto& [id, npc] : npcs) {
+    if (npc.getTipo() == tipo) {
+      resultado.push_back(npc);
+    }
+  }
+  return resultado;
 }

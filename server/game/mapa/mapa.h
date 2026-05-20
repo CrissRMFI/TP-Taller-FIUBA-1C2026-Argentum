@@ -4,14 +4,21 @@
 #include <cstdint>
 #include <map>
 #include <optional>
-
+#include <vector>
 #include "../modelo/posicion.h"
 #include "../npc/npc.h"
-#include <vector>
 
 struct ItemEnSuelo {
     Posicion posicion;
     uint16_t idItem;
+};
+
+struct Ciudad {
+  uint16_t mapaId;
+  uint16_t xMin;
+  uint16_t yMin;
+  uint16_t xMax;
+  uint16_t yMax;
 };
 
 class Mapa {
@@ -21,6 +28,7 @@ class Mapa {
     std::map<uint16_t, Npc> npcs;
     std::vector<ItemEnSuelo> itemsEnSuelo;
     std::vector<Posicion> paredes;
+    std::vector<Ciudad> ciudades;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
@@ -39,7 +47,13 @@ public:
     
     bool hayItemEn(const Posicion& posicion) const;
     bool agregarItem(const Posicion& posicion, uint16_t idItem);
-    std::optional<uint16_t> tomarItem(const Posicion& posicion);
+    void agregarCiudad(const Ciudad &ciudad);
+    bool esCiudad(const Posicion &posicion) const;
+    bool esZonaSegura(const Posicion &posicion) const;
+    std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;
+    std::vector<Npc> obtenerNpcs() const;
+    std::vector<Npc> obtenerNpcsPorTipo(TipoNpc tipo) const;
+    std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
 };
 
