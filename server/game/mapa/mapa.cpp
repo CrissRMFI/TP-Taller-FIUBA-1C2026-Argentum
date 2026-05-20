@@ -19,6 +19,10 @@ void Mapa::agregarNpc(const Npc& npc) {
     throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
   }
   
+  if (hayParedEn(npc.getPosicion())) {
+    throw std::invalid_argument("No se puede agregar un NPC sobre una pared");
+  }
+  
   if (hayNpcEn(npc.getPosicion())) {
     throw std::invalid_argument("Ya existe un NPC en la misma posicion");
   }
@@ -30,13 +34,33 @@ void Mapa::agregarNpc(const Npc& npc) {
   }
 }
 
+void Mapa::agregarPared(const Posicion& posicion) {
+    if (!posicionValida(posicion)) {
+        throw std::invalid_argument("La pared esta fuera de los limites del mapa");
+    }
+
+    if (hayParedEn(posicion)) {
+        throw std::invalid_argument("Ya existe una pared en esa posicion");
+    }
+
+    if (hayNpcEn(posicion)) {
+        throw std::invalid_argument("No se puede agregar una pared sobre un NPC");
+    }
+
+    paredes.push_back(posicion);
+}
+
 bool Mapa::posicionValida(const Posicion& posicion) const {
   return posicion.x < ancho && posicion.y < alto;
 }
 
-bool Mapa::hayParedEn(const Posicion& /*posicion*/) const {
-    // TODO: validar paredes reales cuando exista representación de tiles.
-    return false;
+bool Mapa::hayParedEn(const Posicion& posicion) const {
+  for (const Posicion& pared : paredes) {
+    if (mismaPosicion(pared, posicion)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::optional<Npc> Mapa::buscarNpcCercano(Posicion posicion, TipoNpc tipo) const {

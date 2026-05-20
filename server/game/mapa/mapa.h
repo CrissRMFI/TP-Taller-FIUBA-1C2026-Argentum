@@ -20,6 +20,7 @@ class Mapa {
     uint16_t alto;
     std::map<uint16_t, Npc> npcs;
     std::vector<ItemEnSuelo> itemsEnSuelo;
+    std::vector<Posicion> paredes;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
@@ -27,6 +28,7 @@ public:
     
     Mapa(uint16_t ancho, uint16_t alto);
     void agregarNpc(const Npc& npc);
+    void agregarPared(const Posicion& posicion);
 
     bool posicionValida(const Posicion& posicion) const;
     bool hayParedEn(const Posicion& posicion) const;
