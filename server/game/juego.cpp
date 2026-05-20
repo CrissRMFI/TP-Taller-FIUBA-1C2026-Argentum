@@ -251,6 +251,22 @@ std::list<MensajeSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion
     return mensajes;
 }
 
+bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal) {
+    if (mapa.agregarItem(origen, idItem)) {
+        posicionFinal = origen;
+        return true;
+    }
+
+    for (const Posicion& posicionCandidata : calcularDestinosAdyacentes(origen)) {
+        if (mapa.agregarItem(posicionCandidata, idItem)) {
+            posicionFinal = posicionCandidata;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
     bool canceloMeditacion = false;
 
@@ -862,11 +878,13 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
     }
 
     const std::vector<uint16_t> itemsDropear = objetivo->vaciar_inventario();
-
+    
     for (uint16_t idItem : itemsDropear) {
-        if (mapa.agregarItem(posicionObjetivo, idItem)) {
-            mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionObjetivo, idItem));
-        }
+      Posicion posicionDrop = posicionObjetivo;
+      if (agregarItemEnSueloCercano(posicionObjetivo, idItem, posicionDrop)) {
+        mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionDrop, idItem));
+      }
+    
     }
 
     mensajes.push_back(armarInventario(objetivo->getId(), *objetivo));
@@ -1253,11 +1271,13 @@ std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatur
     }
 
     const std::vector<uint16_t> itemsDropear = jugador->vaciar_inventario();
-
+    
     for (uint16_t idItem : itemsDropear) {
-        if (mapa.agregarItem(posicionJugador, idItem)) {
-            mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionJugador, idItem));
-        }
+      Posicion posicionDrop = posicionJugador;
+      
+      if (agregarItemEnSueloCercano(posicionJugador, idItem, posicionDrop)) {
+        mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionDrop, idItem));
+      }
     }
 
     mensajes.push_back(armarInventario(idJugador, *jugador));

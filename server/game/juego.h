@@ -54,6 +54,7 @@ class Juego {
     std::list<MensajeSalida> armarPosicionParaMapa(const Jugador& jugador);
     std::list<MensajeSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
     std::list<MensajeSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
+    bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
     std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
 
