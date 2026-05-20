@@ -117,7 +117,7 @@ bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
         return false;
     }
     
-    itemsEnSuelo.push_back({ posicion, idItem });
+    itemsEnSuelo.push_back({ idItem, posicion, 0.0f });
     return true;
 }
 
@@ -241,4 +241,23 @@ void Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
     }
 
     it->second.mover(destino);
+}
+
+std::vector<ItemEnSuelo> Mapa::actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg) {
+    std::vector<ItemEnSuelo> itemsExpirados;
+    std::vector<ItemEnSuelo> itemsVigentes;
+
+    for (ItemEnSuelo& item : itemsEnSuelo) {
+      item.segundosEnSuelo += deltaSegundos;
+      if (item.segundosEnSuelo >= tiempoMaximoSeg) {
+        itemsExpirados.push_back(item);
+      } else {
+        itemsVigentes.push_back(item);
+      }
+    
+    }
+    
+    itemsEnSuelo = std::move(itemsVigentes);
+
+    return itemsExpirados;
 }

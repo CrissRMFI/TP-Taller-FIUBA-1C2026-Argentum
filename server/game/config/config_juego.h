@@ -63,6 +63,7 @@ struct ConfigJuego {
 
     // ---- Inventario ----
     uint8_t inventarioMaxItems;
+    uint16_t tiempoItemSueloSeg;
 
     // ---- Clanes ----
     int clanMaxMiembros;

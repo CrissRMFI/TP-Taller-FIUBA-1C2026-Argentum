@@ -10,8 +10,9 @@
 #include "../criatura.h"
 
 struct ItemEnSuelo {
-    Posicion posicion;
-    uint16_t idItem;
+  uint16_t idItem;
+  Posicion posicion;
+  float segundosEnSuelo;
 };
 
 struct Ciudad {
@@ -64,6 +65,7 @@ public:
     std::vector<Criatura> obtenerCriaturas() const;
     bool puedeOcuparCriatura(const Posicion& posicion) const;
     void moverCriatura(uint16_t idCriatura, const Posicion& destino);
+    std::vector<ItemEnSuelo> actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
 
 };
 

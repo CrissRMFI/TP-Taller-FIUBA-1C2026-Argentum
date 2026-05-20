@@ -96,6 +96,9 @@ probabilidad_critico = 0.10
 
 # ------------------------------------------------------------
 [items]
+# Tiempo que permanece un item tirado en el suelo antes de desaparecer
+tiempo_suelo_seg = 60
+
 # tipo: "arma" | "arma_distancia" | "baculo" | "armadura" | "casco" | "escudo" | "pocion_vida" | "pocion_mana"
 # hechizo (solo baculo): "misil" | "explosion" | "curar" | "flecha_magica"
 

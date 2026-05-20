@@ -182,6 +182,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.expX10 = tbl["cheats"]["exp_x10"].value_or(false);
     cfg.movimientoCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "movimiento_ticks");
 
+    cfg.tiempoItemSueloSeg = leerUint16Obligatorio(tbl, "items", "tiempo_suelo_seg");
     cfg.inventarioMaxItems = static_cast<uint8_t>(
             tbl["inventario"]["max_items"].value_or(20));
 

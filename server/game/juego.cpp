@@ -417,6 +417,28 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         mensajes.splice(mensajes.end(), mensajesCriaturas);
     }
 
+    std::vector<ItemEnSuelo> itemsExpirados = mapa.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
+    
+    for (const ItemEnSuelo& item : itemsExpirados) {
+    MensajeServidor mensaje{
+        Opcode::ITEM_DESAPARECIO_SUELO,
+        MensajeItemDesaparecioSuelo{
+            item.posicion.x,
+            item.posicion.y
+        }
+    };
+
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getPosicion().mapaId == item.posicion.mapaId) {
+            mensajes.push_back(MensajeSalida{
+                TipoDestino::UNO,
+                idCliente,
+                mensaje
+            });
+        }
+    }
+}
+
     return mensajes;
 }
 
