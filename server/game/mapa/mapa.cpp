@@ -14,24 +14,27 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
 }
 
 void Mapa::agregarNpc(const Npc& npc) {
-  
-  if (!posicionValida(npc.getPosicion())) {
-    throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
-  }
-  
-  if (hayParedEn(npc.getPosicion())) {
-    throw std::invalid_argument("No se puede agregar un NPC sobre una pared");
-  }
-  
-  if (hayNpcEn(npc.getPosicion())) {
-    throw std::invalid_argument("Ya existe un NPC en la misma posicion");
-  }
-  
-  auto resultado = npcs.emplace(npc.getId(), npc);
-  
-  if (!resultado.second) {
-    throw std::invalid_argument("Ya existe un NPC con el mismo id");
-  }
+    if (!posicionValida(npc.getPosicion())) {
+        throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
+    }
+
+    if (hayParedEn(npc.getPosicion())) {
+        throw std::invalid_argument("No se puede agregar un NPC sobre una pared");
+    }
+
+    if (hayCriaturaEn(npc.getPosicion())) {
+        throw std::invalid_argument("No se puede agregar un NPC sobre una criatura");
+    }
+
+    if (hayNpcEn(npc.getPosicion())) {
+        throw std::invalid_argument("Ya existe un NPC en la misma posicion");
+    }
+
+    auto resultado = npcs.emplace(npc.getId(), npc);
+
+    if (!resultado.second) {
+        throw std::invalid_argument("Ya existe un NPC con el mismo id");
+    }
 }
 
 void Mapa::agregarPared(const Posicion& posicion) {
@@ -45,6 +48,10 @@ void Mapa::agregarPared(const Posicion& posicion) {
 
     if (hayNpcEn(posicion)) {
         throw std::invalid_argument("No se puede agregar una pared sobre un NPC");
+    }
+
+    if (hayCriaturaEn(posicion)) {
+      throw std::invalid_argument("No se puede agregar una pared sobre una criatura");
     }
 
     paredes.push_back(posicion);
@@ -175,3 +182,44 @@ std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {
   }
   return resultado;
 }
+
+std::optional<Criatura> Mapa::buscarCriaturaEn(const Posicion& posicion) const {
+  for (const auto& [id, criatura] : criaturas) {
+    if (mismaPosicion(criatura.getPos(), posicion)) {
+      return criatura;
+    }
+  }
+  
+  return std::nullopt;
+}
+
+bool Mapa::hayCriaturaEn(const Posicion& posicion) const {
+  return buscarCriaturaEn(posicion).has_value();
+}
+
+std::vector<Criatura> Mapa::obtenerCriaturas() const {
+  std::vector<Criatura> resultado;
+  for (const auto& [id, criatura] : criaturas) {
+    resultado.push_back(criatura);
+  }
+  return resultado;
+}
+
+void Mapa::agregarCriatura(const Criatura& criatura) {
+    const Posicion posicion = criatura.getPos();
+
+    if (!puedeOcuparCriatura(posicion)) {
+        throw std::invalid_argument("La criatura no puede ocupar esa posicion");
+    }
+
+    auto resultado = criaturas.emplace(criatura.getId(), criatura);
+
+    if (!resultado.second) {
+        throw std::invalid_argument("Ya existe una criatura con el mismo id");
+    }
+}
+
+bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
+  return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
+}
+

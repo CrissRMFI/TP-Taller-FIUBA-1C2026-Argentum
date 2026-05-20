@@ -7,6 +7,7 @@
 #include <vector>
 #include "../modelo/posicion.h"
 #include "../npc/npc.h"
+#include "../criatura.h"
 
 struct ItemEnSuelo {
     Posicion posicion;
@@ -29,6 +30,7 @@ class Mapa {
     std::vector<ItemEnSuelo> itemsEnSuelo;
     std::vector<Posicion> paredes;
     std::vector<Ciudad> ciudades;
+    std::map<uint16_t, Criatura> criaturas;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
@@ -55,6 +57,13 @@ public:
     std::vector<Npc> obtenerNpcsPorTipo(TipoNpc tipo) const;
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
+
+    void agregarCriatura(const Criatura& criatura);
+    bool hayCriaturaEn(const Posicion& posicion) const;
+    std::optional<Criatura> buscarCriaturaEn(const Posicion& posicion) const;
+    std::vector<Criatura> obtenerCriaturas() const;
+    bool puedeOcuparCriatura(const Posicion& posicion) const;
+
 };
 
 #endif

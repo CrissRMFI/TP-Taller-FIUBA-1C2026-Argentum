@@ -64,4 +64,7 @@ target_sources(taller_server
     # Mapa
     game/mapa/mapa.cpp
     game/npc/npc.cpp
+
+    # Criatura
+    game/criatura.cpp
 )
