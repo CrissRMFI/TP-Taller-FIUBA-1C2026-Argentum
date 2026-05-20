@@ -404,6 +404,7 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
     }
 
     // TODO: mover criaturas, aplicar aggro, respawn, expirar ítems del suelo
+    actualizarCriaturas();
     return mensajes;
 }
 
@@ -880,4 +881,32 @@ std::list<MensajeSalida> Juego::ejecutarListar(uint16_t idCliente,
 std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& /*cmd*/) {
     // TODO: verificar vivo, sacerdote cercano; aplicar curación
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+}
+
+void Juego::actualizarCriaturas() {
+  std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
+  for (const Criatura& criatura : criaturas) {
+    const Posicion origen = criatura.getPos();
+    std::vector<Posicion> destinos;
+    
+    if (origen.y > 0) {
+      destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId});
+    }
+    
+    destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId});
+    
+    if (origen.x > 0) {
+      destinos.push_back(Posicion{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId});
+    }
+    
+    destinos.push_back(Posicion{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId});
+    
+    for (const Posicion& destino : destinos) {
+      if (mapa.puedeOcuparCriatura(destino)) {
+        mapa.moverCriatura(criatura.getId(), destino);
+        break;
+      }
+    }
+  
+  }
 }

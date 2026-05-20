@@ -80,6 +80,8 @@ class Juego {
     std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
 
     bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
+
+    void actualizarCriaturas();
 };
 
 #endif
