@@ -820,8 +820,60 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    // TODO: aplicar daño PVP, drops y XP.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    const uint16_t danioBruto = atacante->calcular_danio(catalogo);
+const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(danioBruto, catalogo);
+
+std::list<MensajeSalida> mensajes;
+
+mensajes.push_back(MensajeSalida{
+    TipoDestino::UNO,
+    idCliente,
+    MensajeServidor{
+        Opcode::DANIO_PRODUCIDO,
+        MensajeDanoProducido{
+            danioAplicado,
+            objetivo->getId()
+        }
+    }
+});
+
+mensajes.push_back(MensajeSalida{
+    TipoDestino::UNO,
+    objetivo->getId(),
+    MensajeServidor{
+        Opcode::DANIO_RECIBIDO,
+        MensajeDanoRecibido{
+            danioAplicado,
+            atacante->getId()
+        }
+    }
+});
+
+mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
+
+if (!objetivo->estaVivo()) {
+    MensajeServidor mensajeMuerte{
+        Opcode::MUERTE_ENTIDAD,
+        MensajeMuerteEntidad{objetivo->getId()}
+    };
+
+    const Posicion posicionObjetivo = objetivo->getPosicion();
+
+    for (const auto& [idOtro, otroJugador] : jugadoresConectados) {
+        if (otroJugador.getPosicion().mapaId == posicionObjetivo.mapaId) {
+            mensajes.push_back(MensajeSalida{
+                TipoDestino::UNO,
+                idOtro,
+                mensajeMuerte
+            });
+        }
+    }
+
+    std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*objetivo);
+    mensajes.splice(mensajes.end(), mensajesPosicion);
+}
+
+return mensajes;
 }
 
 std::list<MensajeSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTirar& cmd) {
