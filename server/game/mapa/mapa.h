@@ -63,6 +63,7 @@ public:
     std::optional<Criatura> buscarCriaturaEn(const Posicion& posicion) const;
     std::vector<Criatura> obtenerCriaturas() const;
     bool puedeOcuparCriatura(const Posicion& posicion) const;
+    void moverCriatura(uint16_t idCriatura, const Posicion& destino);
 
 };
 

@@ -223,3 +223,22 @@ bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
   return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
 }
 
+void Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
+    auto it = criaturas.find(idCriatura);
+
+    if (it == criaturas.end()) {
+        throw std::invalid_argument("No existe una criatura con ese id");
+    }
+
+    const Posicion origen = it->second.getPos();
+
+    if (mismaPosicion(origen, destino)) {
+        return;
+    }
+
+    if (!puedeOcuparCriatura(destino)) {
+        throw std::invalid_argument("La criatura no puede moverse a esa posicion");
+    }
+
+    it->second.mover(destino);
+}
