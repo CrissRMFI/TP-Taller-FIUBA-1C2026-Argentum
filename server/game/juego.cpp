@@ -748,13 +748,6 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
     
     jugador->mover_a(destino.x, destino.y);
     
-    return { 
-      armarPosicion(*jugador) 
-    };
-
-    // TODO: validar destino contra Mapa cuando existan límites, paredes,
-    // NPCs, criaturas, ciudades y zonas seguras.
-    jugador->mover_a(destino.x, destino.y);
     return armarPosicionParaMapa(*jugador);
 }
 
