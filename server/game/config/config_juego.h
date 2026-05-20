@@ -68,6 +68,9 @@ struct ConfigJuego {
     int clanMaxMiembros;
     int clanNivelMinimo;
 
+    // ---- Criatiruas ----
+    uint16_t movimientoCriaturasTicks;
+
     // ---- Muerte / resurrección ----
     float expPerdidaMuertePct;      // fracción de experiencia perdida al morir
     float factorTiempoResurreccion; // segundos_inmovilizado = distancia * factor

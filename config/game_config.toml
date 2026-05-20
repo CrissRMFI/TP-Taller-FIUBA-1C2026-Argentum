@@ -246,6 +246,9 @@ prob_item     = 0.01
 oro_drop_min  = 0.01
 oro_drop_max  = 0.20
 
+# Cada cuántos ticks se mueven las criaturas
+movimiento_ticks = 5
+
 # Cada cuántos ticks spawnea una criatura nueva
 #spawn_ticks   = 50
 #poblacion_max = 200          # Tope global de NPCs vivos

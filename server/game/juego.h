@@ -36,6 +36,7 @@ class Juego {
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
     Mapa mapa;
+    uint64_t ticksTranscurridos;
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);

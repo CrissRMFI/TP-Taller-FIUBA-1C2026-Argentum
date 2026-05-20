@@ -180,6 +180,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.manaInfinito = tbl["cheats"]["mana_infinito"].value_or(false);
     cfg.invulnerable = tbl["cheats"]["invulnerable"].value_or(false);
     cfg.expX10 = tbl["cheats"]["exp_x10"].value_or(false);
+    cfg.movimientoCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "movimiento_ticks");
 
     cfg.inventarioMaxItems = static_cast<uint8_t>(
             tbl["inventario"]["max_items"].value_or(20));

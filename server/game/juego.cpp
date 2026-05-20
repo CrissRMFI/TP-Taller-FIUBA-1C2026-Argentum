@@ -31,7 +31,7 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 }
 
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto) {}
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
     
 std::list<MensajeSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
                                                 ClasePersonaje clase, Raza raza, Posicion posicion) {
@@ -376,6 +376,7 @@ std::list<MensajeSalida> Juego::ejecutarComando(const uint16_t idCliente, const 
 // ─── Tick del mundo ───────────────────────────────────────────────────────────
 std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
     std::list<MensajeSalida> mensajes;
+    ticksTranscurridos++;
 
     for (auto& [id, jugador] : jugadoresConectados) {
         const bool estabaMeditando = jugador.enMeditacion();
@@ -404,7 +405,10 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
     }
 
     // TODO: mover criaturas, aplicar aggro, respawn, expirar ítems del suelo
-    actualizarCriaturas();
+    if (ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
+        actualizarCriaturas();
+    }
+    
     return mensajes;
 }
 
