@@ -5,7 +5,8 @@
 #include <list>
 #include <map>
 #include <string>
-
+#include <optional>
+#include <vector>
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
 #include "../gameloop/mensaje_salida.h"
@@ -83,6 +84,12 @@ class Juego {
     bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
 
     void actualizarCriaturas();
+
+    std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;
+    std::vector<Posicion> calcularDestinosHacia(const Posicion& origen, const Posicion& objetivo) const;
+    std::vector<Posicion> calcularDestinosAdyacentes(const Posicion& origen) const;
+    void moverCriaturaAleatoriamente(const Criatura& criatura);
+    void moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
 };
 
 #endif

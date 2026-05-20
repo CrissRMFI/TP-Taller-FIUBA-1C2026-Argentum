@@ -890,54 +890,107 @@ std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoC
 }
 
 void Juego::actualizarCriaturas() {
-    static std::random_device randomDevice;
-    static std::mt19937 generador(randomDevice());
-
     std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
 
     for (const Criatura& criatura : criaturas) {
-        const Posicion origen = criatura.getPos();
-        std::vector<Posicion> destinosValidos;
+        std::optional<Jugador> jugadorCercano = buscarJugadorCercano(criatura);
 
-        if (origen.y > 0) {
-            Posicion destino{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId};
-
-            if (mapa.puedeOcuparCriatura(destino)) {
-                destinosValidos.push_back(destino);
-            }
+        if (jugadorCercano.has_value()) {
+            moverCriaturaHacia(criatura, jugadorCercano->getPosicion());
+        } else {
+            moverCriaturaAleatoriamente(criatura);
         }
+    }
+}
 
-        {
-            Posicion destino{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId};
+std::optional<Jugador> Juego::buscarJugadorCercano(const Criatura& criatura) const {
+    const Posicion posicionCriatura = criatura.getPos();
 
-            if (mapa.puedeOcuparCriatura(destino)) {
-                destinosValidos.push_back(destino);
-            }
-        }
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        const Posicion posicionJugador = jugador.getPosicion();
 
-        if (origen.x > 0) {
-            Posicion destino{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId};
-
-            if (mapa.puedeOcuparCriatura(destino)) {
-                destinosValidos.push_back(destino);
-            }
-        }
-
-        {
-            Posicion destino{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId};
-
-            if (mapa.puedeOcuparCriatura(destino)) {
-                destinosValidos.push_back(destino);
-            }
-        }
-
-        if (destinosValidos.empty()) {
+        if (!posicionCriatura.mismaMapa(posicionJugador)) {
             continue;
         }
 
-        std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
-        const Posicion destino = destinosValidos[distribucion(generador)];
+        if (mapa.esZonaSegura(posicionJugador)) {
+            continue;
+        }
 
-        mapa.moverCriatura(criatura.getId(), destino);
+        if (posicionCriatura.distanciaManhattan(posicionJugador) <= criatura.getAggro()) {
+            return jugador;
+        }
     }
+
+    return std::nullopt;
+}
+
+std::vector<Posicion> Juego::calcularDestinosAdyacentes(const Posicion& origen) const {
+    std::vector<Posicion> destinos;
+
+    if (origen.y > 0) {
+        destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId});
+    }
+
+    destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId});
+
+    if (origen.x > 0) {
+        destinos.push_back(Posicion{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId});
+    }
+
+    destinos.push_back(Posicion{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId});
+
+    return destinos;
+}
+
+std::vector<Posicion> Juego::calcularDestinosHacia(const Posicion& origen,
+                                                   const Posicion& objetivo) const {
+    std::vector<Posicion> destinos;
+
+    if (objetivo.x > origen.x) {
+        destinos.push_back(Posicion{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId});
+    } else if (objetivo.x < origen.x && origen.x > 0) {
+        destinos.push_back(Posicion{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId});
+    }
+
+    if (objetivo.y > origen.y) {
+        destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId});
+    } else if (objetivo.y < origen.y && origen.y > 0) {
+        destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId});
+    }
+
+    return destinos;
+}
+
+void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
+    static std::random_device randomDevice;
+    static std::mt19937 generador(randomDevice());
+
+    std::vector<Posicion> destinosValidos;
+
+    for (const Posicion& destino : calcularDestinosAdyacentes(criatura.getPos())) {
+        if (mapa.puedeOcuparCriatura(destino)) {
+            destinosValidos.push_back(destino);
+        }
+    }
+
+    if (destinosValidos.empty()) {
+        return;
+    }
+
+    std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
+    mapa.moverCriatura(criatura.getId(), destinosValidos[distribucion(generador)]);
+}
+
+void Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
+    const Posicion origen = criatura.getPos();
+
+    for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
+        if (mapa.puedeOcuparCriatura(destino)) {
+            mapa.moverCriatura(criatura.getId(), destino);
+            return;
+        }
+    }
+
+    moverCriaturaAleatoriamente(criatura);
 }
