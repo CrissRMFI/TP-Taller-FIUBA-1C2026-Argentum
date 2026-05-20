@@ -297,6 +297,7 @@ factor_tiempo_resurreccion = 0.5
 vida_infinita  = false
 mana_infinito  = false
 invulnerable   = false
+suicidio = false
 exp_x10        = false
 
 # ------------------------------------------------------------
