@@ -391,7 +391,12 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
 
         jugador.recuperar(deltaSegundos);
 
-        const bool cambioEstado = vidaAntes != jugador.getVidaActual() || manaAntes != jugador.getManaActual() || oroAntes != jugador.getOro() || nivelAntes != jugador.getNivel() || experienciaAntes != jugador.getExperiencia();
+        const bool cambioEstado =
+            vidaAntes != jugador.getVidaActual() ||
+            manaAntes != jugador.getManaActual() ||
+            oroAntes != jugador.getOro() ||
+            nivelAntes != jugador.getNivel() ||
+            experienciaAntes != jugador.getExperiencia();
 
         if (cambioEstado) {
             mensajes.push_back(armarEstado(id, jugador));
@@ -406,14 +411,14 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         }
     }
 
-    // TODO: mover criaturas, aplicar aggro, respawn, expirar ítems del suelo
+    // TODO: respawn, expirar ítems del suelo
     if (ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
-        actualizarCriaturas();
+        std::list<MensajeSalida> mensajesCriaturas = actualizarCriaturas();
+        mensajes.splice(mensajes.end(), mensajesCriaturas);
     }
 
     return mensajes;
 }
-
 
 // ─── Meditar ─────────────────────────────────────────────────────────────────
 
@@ -889,18 +894,24 @@ std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoC
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-void Juego::actualizarCriaturas() {
+std::list<MensajeSalida> Juego::actualizarCriaturas() {
+    std::list<MensajeSalida> mensajes;
     std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
 
     for (const Criatura& criatura : criaturas) {
         std::optional<Jugador> jugadorCercano = buscarJugadorCercano(criatura);
 
         if (jugadorCercano.has_value()) {
-            moverCriaturaHacia(criatura, jugadorCercano->getPosicion());
+            std::list<MensajeSalida> mensajesAtaque =
+                moverCriaturaHacia(criatura, jugadorCercano->getPosicion());
+
+            mensajes.splice(mensajes.end(), mensajesAtaque);
         } else {
             moverCriaturaAleatoriamente(criatura);
         }
     }
+
+    return mensajes;
 }
 
 std::optional<Jugador> Juego::buscarJugadorCercano(const Criatura& criatura) const {
@@ -982,28 +993,28 @@ void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
     mapa.moverCriatura(criatura.getId(), destinosValidos[distribucion(generador)]);
 }
 
-void Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
-    
-  const Posicion origen = criatura.getPos();
-  
-  if (origen.esAdyacente(objetivo)) {
-    std::optional<uint16_t> idJugador = buscarIdJugadorEn(objetivo);
+std::list<MensajeSalida> Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
+    const Posicion origen = criatura.getPos();
 
-    if (idJugador.has_value()) {
-        atacarJugadorConCriatura(criatura, *idJugador);
+    if (origen.esAdyacente(objetivo)) {
+        std::optional<uint16_t> idJugador = buscarIdJugadorEn(objetivo);
+
+        if (idJugador.has_value()) {
+            return atacarJugadorConCriatura(criatura, *idJugador);
+        }
+
+        return {};
     }
 
-    return;
-  }
-  
-  for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
-    if (puedeMoverCriaturaA(destino)) {
-      mapa.moverCriatura(criatura.getId(), destino);
-      return;
+    for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
+        if (puedeMoverCriaturaA(destino)) {
+            mapa.moverCriatura(criatura.getId(), destino);
+            return {};
+        }
     }
-  }
-  
-  moverCriaturaAleatoriamente(criatura);
+
+    moverCriaturaAleatoriamente(criatura);
+    return {};
 }
 
 bool Juego::posicionOcupadaPorAlgunJugador(const Posicion& posicion) const {
@@ -1032,17 +1043,59 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion) const
   return std::nullopt;
 }
 
-void Juego::atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador) {
+std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador) {
+    std::list<MensajeSalida> mensajes;
+
     Jugador* jugador = buscarJugador(idJugador);
 
     if (!jugador || !jugador->estaVivo()) {
-        return;
+        return mensajes;
     }
 
     if (mapa.esZonaSegura(jugador->getPosicion()) || mapa.esZonaSegura(criatura.getPos())) {
-        return;
+        return mensajes;
     }
 
     const uint16_t danio = criatura.calcularDanio();
     jugador->recibir_danio(danio);
+
+    MensajeServidor mensajeDanio{
+        Opcode::DANIO_RECIBIDO,
+        MensajeDanoRecibido{
+            danio,
+            criatura.getId()
+        }
+    };
+
+    mensajes.push_back(MensajeSalida{
+        TipoDestino::UNO,
+        idJugador,
+        mensajeDanio
+    });
+
+    mensajes.push_back(armarEstado(idJugador, *jugador));
+
+    if (!jugador->estaVivo()) {
+    MensajeServidor mensajeMuerte{
+        Opcode::MUERTE_ENTIDAD,
+        MensajeMuerteEntidad{jugador->getId()}
+    };
+
+    const Posicion posicionJugador = jugador->getPosicion();
+
+    for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
+        if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
+            mensajes.push_back(MensajeSalida{
+                TipoDestino::UNO,
+                idCliente,
+                mensajeMuerte
+            });
+        }
+    }
+
+    std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
+    mensajes.splice(mensajes.end(), mensajesPosicion);
+}
+
+    return mensajes;
 }
