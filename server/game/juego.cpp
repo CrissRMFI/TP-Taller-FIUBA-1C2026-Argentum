@@ -4,6 +4,8 @@
 #include <utility>
 #include <variant>
 #include <optional>
+#include <random>
+#include <vector>
 
 #include "objeto/catalogo_items.h"
 
@@ -408,7 +410,7 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
     if (ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
         actualizarCriaturas();
     }
-    
+
     return mensajes;
 }
 
@@ -888,29 +890,54 @@ std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoC
 }
 
 void Juego::actualizarCriaturas() {
-  std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
-  for (const Criatura& criatura : criaturas) {
-    const Posicion origen = criatura.getPos();
-    std::vector<Posicion> destinos;
-    
-    if (origen.y > 0) {
-      destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId});
-    }
-    
-    destinos.push_back(Posicion{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId});
-    
-    if (origen.x > 0) {
-      destinos.push_back(Posicion{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId});
-    }
-    
-    destinos.push_back(Posicion{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId});
-    
-    for (const Posicion& destino : destinos) {
-      if (mapa.puedeOcuparCriatura(destino)) {
+    static std::random_device randomDevice;
+    static std::mt19937 generador(randomDevice());
+
+    std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
+
+    for (const Criatura& criatura : criaturas) {
+        const Posicion origen = criatura.getPos();
+        std::vector<Posicion> destinosValidos;
+
+        if (origen.y > 0) {
+            Posicion destino{origen.x, static_cast<uint16_t>(origen.y - 1), origen.mapaId};
+
+            if (mapa.puedeOcuparCriatura(destino)) {
+                destinosValidos.push_back(destino);
+            }
+        }
+
+        {
+            Posicion destino{origen.x, static_cast<uint16_t>(origen.y + 1), origen.mapaId};
+
+            if (mapa.puedeOcuparCriatura(destino)) {
+                destinosValidos.push_back(destino);
+            }
+        }
+
+        if (origen.x > 0) {
+            Posicion destino{static_cast<uint16_t>(origen.x - 1), origen.y, origen.mapaId};
+
+            if (mapa.puedeOcuparCriatura(destino)) {
+                destinosValidos.push_back(destino);
+            }
+        }
+
+        {
+            Posicion destino{static_cast<uint16_t>(origen.x + 1), origen.y, origen.mapaId};
+
+            if (mapa.puedeOcuparCriatura(destino)) {
+                destinosValidos.push_back(destino);
+            }
+        }
+
+        if (destinosValidos.empty()) {
+            continue;
+        }
+
+        std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
+        const Posicion destino = destinosValidos[distribucion(generador)];
+
         mapa.moverCriatura(criatura.getId(), destino);
-        break;
-      }
     }
-  
-  }
 }
