@@ -779,16 +779,32 @@ std::list<MensajeSalida> Juego::ejecutarAtacar(uint16_t idCliente, const Comando
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (mapa.esZonaSegura(atacante->getPosicion())) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    if (cmd.idObjetivo == idCliente) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
     Jugador* objetivo = buscarJugador(cmd.idObjetivo);
 
-    if (objetivo && mapa.esZonaSegura(objetivo->getPosicion())) {
+    if (!objetivo || !objetivo->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    const Posicion posicionAtacante = atacante->getPosicion();
+    const Posicion posicionObjetivo = objetivo->getPosicion();
+
+    if (!posicionAtacante.mismaMapa(posicionObjetivo)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionObjetivo)) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
+    if (!posicionAtacante.esAdyacente(posicionObjetivo)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    // TODO: aplicar reglas PVP: newbie, diferencia de nivel, clan, daño, defensa, drops y XP.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
