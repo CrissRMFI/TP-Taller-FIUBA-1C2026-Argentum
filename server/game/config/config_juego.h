@@ -79,6 +79,9 @@ struct ConfigJuego {
     uint16_t mapaAncho;
     uint16_t mapaAlto;
 
+    // ---- NPCs ----
+    uint16_t rangoInteraccionNpc;
+
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;
     bool manaInfinito;

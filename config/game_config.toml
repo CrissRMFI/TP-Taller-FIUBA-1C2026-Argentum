@@ -258,6 +258,12 @@ ancho = 100
 alto  = 100
 
 # ------------------------------------------------------------
+[npcs]
+# Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
+# 1 significa celda adyacente.
+rango_interaccion = 1
+
+# ------------------------------------------------------------
 [fair_play]
 nivel_newbie       = 12      # Nivel <= 12 es newbie
 max_diff_nivel     = 10      # No se pueden atacar si diff > 10
