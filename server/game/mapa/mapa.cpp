@@ -75,18 +75,20 @@ bool Mapa::hayParedEn(const Posicion& posicion) const {
   return false;
 }
 
-std::optional<Npc> Mapa::buscarNpcCercano(Posicion posicion, TipoNpc tipo) const {
-    for (const auto& [id, npc]: npcs) {
-        if (npc.getTipo() == tipo && mismaPosicion(npc.getPosicion(), posicion)) {
-            return npc;
-        }
+std::optional<Npc> Mapa::buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
+  
+  for (const auto& [id, npc] : npcs) {
+    const Posicion posicionNpc = npc.getPosicion();
+    
+    if (npc.getTipo() == tipo && posicion.mismaMapa(posicionNpc) && posicion.distanciaManhattan(posicionNpc) <= rango) {
+      return npc;
     }
-
-    return std::nullopt;
+  }
+  return std::nullopt;
 }
 
-bool Mapa::hayNpcCercano(Posicion posicion, TipoNpc tipo) const {
-    return buscarNpcCercano(posicion, tipo).has_value();
+bool Mapa::hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
+  return buscarNpcCercano(posicion, tipo, rango).has_value();
 }
 
 bool Mapa::hayNpcEn(const Posicion& posicion) const {

@@ -41,8 +41,8 @@ public:
     bool posicionValida(const Posicion& posicion) const;
     bool hayParedEn(const Posicion& posicion) const;
 
-    std::optional<Npc> buscarNpcCercano(Posicion posicion, TipoNpc tipo) const;
-    bool hayNpcCercano(Posicion posicion, TipoNpc tipo) const;
+    bool hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
+    std::optional<Npc> buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
     bool hayNpcEn(const Posicion& posicion) const;
     
     bool hayItemEn(const Posicion& posicion) const;

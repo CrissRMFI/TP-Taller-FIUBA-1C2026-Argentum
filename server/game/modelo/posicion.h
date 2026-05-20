@@ -13,9 +13,13 @@ struct Posicion {
         return x == otro.x && y == otro.y && mapaId == otro.mapaId;
     }
 
-    bool operator!=(const Posicion& otro) const { return !(*this == otro); }
+    bool operator!=(const Posicion& otro) const { 
+      return !(*this == otro); 
+    }
 
-    bool mismaMapa(const Posicion& otro) const { return mapaId == otro.mapaId; }
+    bool mismaMapa(const Posicion& otro) const { 
+      return mapaId == otro.mapaId; 
+    }
 
     
     float distanciaEuclidea(const Posicion& otro) const {

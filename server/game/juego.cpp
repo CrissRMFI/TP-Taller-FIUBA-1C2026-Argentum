@@ -848,7 +848,7 @@ std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const C
       return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero)) {
+    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, 1)) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
