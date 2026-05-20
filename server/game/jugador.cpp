@@ -324,6 +324,10 @@ uint16_t Jugador::quitar_item_de_slot(uint8_t indice) {
     return inventario.quitarDeSlot(indice);
 }
 
+std::vector<uint16_t> Jugador::vaciar_inventario() {
+    return inventario.vaciar();
+}
+
 bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     uint16_t idItem = inventario.getIdEnSlot(indice);
 

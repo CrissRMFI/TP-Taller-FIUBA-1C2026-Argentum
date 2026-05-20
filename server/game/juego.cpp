@@ -1150,26 +1150,36 @@ std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatur
     mensajes.push_back(armarEstado(idJugador, *jugador));
 
     if (!jugador->estaVivo()) {
-        MensajeServidor mensajeMuerte{
-            Opcode::MUERTE_ENTIDAD,
-            MensajeMuerteEntidad{jugador->getId()}
-        };
+    MensajeServidor mensajeMuerte{
+        Opcode::MUERTE_ENTIDAD,
+        MensajeMuerteEntidad{jugador->getId()}
+    };
 
-        const Posicion posicionJugador = jugador->getPosicion();
+    const Posicion posicionJugador = jugador->getPosicion();
 
-        for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
-            if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
-                mensajes.push_back(MensajeSalida{
-                    TipoDestino::UNO,
-                    idCliente,
-                    mensajeMuerte
-                });
-            }
+    for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
+        if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
+            mensajes.push_back(MensajeSalida{
+                TipoDestino::UNO,
+                idCliente,
+                mensajeMuerte
+            });
         }
-
-        std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
-        mensajes.splice(mensajes.end(), mensajesPosicion);
     }
+
+    const std::vector<uint16_t> itemsDropear = jugador->vaciar_inventario();
+
+    for (uint16_t idItem : itemsDropear) {
+        if (mapa.agregarItem(posicionJugador, idItem)) {
+            mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionJugador, idItem));
+        }
+    }
+
+    mensajes.push_back(armarInventario(idJugador, *jugador));
+
+    std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
+    mensajes.splice(mensajes.end(), mensajesPosicion);
+}
 
     return mensajes;
 }
