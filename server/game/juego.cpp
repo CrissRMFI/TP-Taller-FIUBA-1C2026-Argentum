@@ -12,7 +12,19 @@
 
 namespace {
 uint8_t estadoEntidadDe(const Jugador& jugador) {
-    return static_cast<uint8_t>(jugador.getEstado());
+    if (jugador.getEstado() == Estado::Vivo) {
+        return 0;
+    }
+
+    if (jugador.getEstado() == Estado::Fantasma) {
+        return 1;
+    }
+
+    if (jugador.getEstado() == Estado::Meditando) {
+        return 2;
+    }
+
+    return 0;
 }
 
 bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
