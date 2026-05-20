@@ -1288,3 +1288,18 @@ std::list<MensajeSalida> Juego::atacarJugadorConCriatura(const Criatura& criatur
 
     return mensajes;
 }
+
+bool Juego::agregarCriatura(const Criatura& criatura) {
+    const Posicion posicion = criatura.getPos();
+
+    if (!mapa.puedeOcuparCriatura(posicion)) {
+        return false;
+    }
+
+    if (posicionOcupadaPorAlgunJugador(posicion)) {
+        return false;
+    }
+
+    mapa.agregarCriatura(criatura);
+    return true;
+}
