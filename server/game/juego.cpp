@@ -168,19 +168,6 @@ MensajeSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugado
                } } };
 }
 
-MensajeSalida Juego::armarPosicion(const Jugador& jugador) {
-    Posicion posicion = jugador.getPosicion();
-    return { TipoDestino::TODOS, 0,
-             { Opcode::POSICION_ENTIDAD,
-               MensajePosicionEntidad{
-                   jugador.getId(),
-                   posicion.x,
-                   posicion.y,
-                   static_cast<uint8_t>(TipoEntidad::Personaje),
-                   estadoEntidadDe(jugador)
-               } } };
-}
-
 MensajeSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador) {
     Posicion posicion = jugador.getPosicion();
     return { TipoDestino::UNO, idCliente,
@@ -402,10 +389,10 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         }
     }
 
-    // TODO: respawn, expirar ítems del suelo
-    if (ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
-        std::list<MensajeSalida> mensajesCriaturas = actualizarCriaturas();
-        mensajes.splice(mensajes.end(), mensajesCriaturas);
+    // TODO: respawn
+    if (cfg.movimientoCriaturasTicks > 0 && ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
+      std::list<MensajeSalida> mensajesCriaturas = actualizarCriaturas();
+      mensajes.splice(mensajes.end(), mensajesCriaturas);
     }
 
     std::vector<ItemEnSuelo> itemsExpirados =
