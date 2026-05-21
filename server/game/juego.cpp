@@ -1100,9 +1100,9 @@ std::list<MensajeSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoC
     if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
-
-    // TODO: implementar curación cuando esté definido el flujo de sacerdote.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    jugador->curar(jugador->getVidaMax());
+    jugador->recuperar_mana(jugador->getManaMax());
+    return { armarEstado(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::actualizarCriaturas() {
