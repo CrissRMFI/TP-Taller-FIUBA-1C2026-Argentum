@@ -90,7 +90,7 @@ enum class TipoMensajeClan : uint8_t {
 
 struct MensajeClan {
     TipoMensajeClan tipo;
-    std::string nick;
+    std::string texto;
 };
 
 struct MensajeResucitado {

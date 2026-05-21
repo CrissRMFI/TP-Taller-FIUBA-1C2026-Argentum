@@ -3,6 +3,7 @@
 
 #include "../modelo/clase_personaje.h"
 #include "../modelo/raza.h"
+#include <cstdint>
 
 // Stats base de una raza: valores absolutos y factores multiplicadores
 // que se usan en las ecuaciones de vida, mana y recuperación.
@@ -47,28 +48,58 @@ struct ConfigJuego {
     float expKillMax;     // rand(0, expKillMax) * VidaMaxOtro * factorNivel
 
     // ---- Oro ----
-    float oroMaxExp;      // OroMax = 100 * Nivel^oroMaxExp
+    float oroMaxBase;     // OroMax = oroMaxBase * Nivel^oroMaxExp
+    float oroMaxExp;
     float oroExcesoPct;   // fracción adicional permitida antes de ser "exceso"
     float oroDropNpcMax;  // rand(0, oroDropNpcMax) * VidaMaxNPC
 
     // ---- Combate ----
-    float esquivarUmbral; // esquiva si rand(0,1)^Agilidad < esquivarUmbral
+    float probabilidadCritico; // probabilidad entre 0.0 y 1.0
+    float esquivarUmbral;     // esquiva si rand(0,1)^Agilidad < esquivarUmbral
 
     // ---- Fair play ----
     int nivelNewbie;      // nivel <= nivelNewbie: no puede atacar ni ser atacado
     int maxDiffNivel;     // |nivelA - nivelB| > maxDiffNivel: no pueden atacarse
 
+    // ---- Inventario ----
+    uint8_t inventarioMaxItems;
+    uint16_t tiempoItemSueloSeg;
+
     // ---- Clanes ----
     int clanMaxMiembros;
     int clanNivelMinimo;
 
+    // ---- Criatiruas ----
+    uint16_t movimientoCriaturasTicks;
+    uint16_t spawnCriaturasTicks;
+    uint16_t poblacionMaxCriaturas;
+    uint16_t criaturaVidaMaximaBase;
+    uint8_t criaturaNivelBase;
+    uint8_t criaturaFuerzaBase;
+    uint8_t criaturaAgilidadBase;
+    uint8_t criaturaRangoAggroBase;
+    uint8_t criaturaDanioMinBase;
+    uint8_t criaturaDanioMaxBase;
+
     // ---- Muerte / resurrección ----
+    float expPerdidaMuertePct;      // fracción de experiencia perdida al morir
     float factorTiempoResurreccion; // segundos_inmovilizado = distancia * factor
+
+    // ---- Servidor ----
+    int tickMs;         // duración de cada tick en ms (también define TICK_SEGUNDOS)
+
+    // ---- Mapa ----
+    uint16_t mapaAncho;
+    uint16_t mapaAlto;
+
+    // ---- NPCs ----
+    uint16_t rangoInteraccionNpc;
 
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;
     bool manaInfinito;
     bool invulnerable;
+    bool suicidio;
     bool expX10;
 
     float            factorVidaClase(ClasePersonaje clase) const;

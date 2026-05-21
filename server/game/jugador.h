@@ -5,31 +5,39 @@
 #include <string>
 #include <vector>
 
-#include "objeto/inventario.h"
+#include "config/config_juego.h"
+#include "modelo/clase_personaje.h"
 #include "modelo/posicion.h"
 #include "modelo/raza.h"
-#include "modelo/clase_personaje.h"
+#include "objeto/inventario.h"
+
+class CatalogoItems;
 
 enum class Estado {
     Vivo,
     Fantasma,
     Meditando,
-    Resucitando
 };
 
 class Jugador {
 public:
-    Jugador(const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
+    Jugador(uint16_t id,
+            const std::string& nombre,
+            ClasePersonaje clase,
+            Raza raza,
+            Posicion posicion,
+            const ConfigJuego& cfg);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
+    uint16_t recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo);
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);
 
-    // Recuperación periódica (llamada por Juego::actualizar cada tick)
+    // Recuperación periódica
     void recuperar(float segundos);
 
-    // Experiencia y progresión
+    // Experiencia, oro y progresión
     void ganar_experiencia(uint32_t cantidad);
     void sumar_oro(uint32_t cantidad);
     bool gastar_oro(uint32_t cantidad);
@@ -38,70 +46,91 @@ public:
     void mover_a(uint16_t x, uint16_t y);
     void resucitar(uint16_t x, uint16_t y);
     void meditar();
-    uint16_t calcular_danio();
+    void cancelarMeditacion();
+    uint16_t calcular_danio(const CatalogoItems& catalogo);
 
     // Inventario
     bool agregar_item(uint16_t idItem);
     bool eliminar_item(uint16_t idItem);
-    bool equipar_item(uint16_t idItem);
-    void agregar_item_banco(uint16_t idItem);
-    void agregar_oro_banco(uint32_t cantidad);
+    bool equipar_item(uint8_t indice, const CatalogoItems& catalogo);
+    bool agregar_item_banco(uint8_t indice);
+    bool agregar_oro_banco(uint32_t cantidad);
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
+    uint16_t quitar_item_de_slot(uint8_t indice);
+    std::vector<uint16_t> vaciar_inventario();
 
     // Clan
     void asignarClan(uint16_t idClan);
     void salirClan();
     void marcarFundadorClan();
 
-    // Queries de estado — sin instanceof, el comportamiento emerge de los datos
-    bool puedeMediatar()  const;  // manaMax > 0
-    bool puedeUsarMagia() const;  // manaMax > 0
-    bool estaVivo()       const;
-    bool esFantasma()     const;
-    bool enMeditacion()   const;
-    bool tieneClan()      const;
+    // Queries de estado
+    bool puedeMeditar() const;
+    bool puedeUsarMagia() const;
+    bool estaVivo() const;
+    bool esFantasma() const;
+    bool enMeditacion() const;
+    bool tieneClan() const;
 
     // Getters
-    uint16_t getId()          const;
-    uint8_t  getNivel()       const;
+    uint16_t getId() const;
+    uint8_t getNivel() const;
     uint32_t getExperiencia() const;
-    uint16_t getVidaActual()  const;
-    uint16_t getVidaMax()     const;
-    uint16_t getManaActual()  const;
-    uint16_t getManaMax()     const;
-    uint32_t getOro()         const;
-    uint32_t getOroBanco()    const;
-    uint16_t getClan()        const;
-    bool     fundo_clan()     const;
-    bool     es_newbie()      const;
-    std::string getNombre()   const;
-    Posicion    getPosicion() const;
-    Estado      getEstado()   const;
+    uint16_t getVidaActual() const;
+    uint16_t getVidaMax() const;
+    uint16_t getManaActual() const;
+    uint16_t getManaMax() const;
+    uint32_t getOro() const;
+    uint32_t getOroBanco() const;
+    uint16_t getClan() const;
+    bool fundo_clan() const;
+    bool es_newbie() const;
+    std::string getNombre() const;
+    Posicion getPosicion() const;
+    Estado getEstado() const;
+    std::vector<uint16_t> getSlotsInventario() const;
+    uint16_t getArmaEquipada() const;
+    uint16_t getBaculoEquipado() const;
+    uint16_t getDefensaEquipada() const;
+    uint16_t getCascoEquipado() const;
+    uint16_t getEscudoEquipado() const;
     std::vector<uint16_t> getIdItemsBanco() const;
+
+    void actualizarId(uint16_t nuevoId);
 
 private:
     uint16_t idJugador;
     uint16_t idClan;
     std::string nombre;
+
     uint8_t nivel;
     uint32_t experiencia;
+
     uint16_t vidaActual;
     uint16_t vidaMax;
     uint16_t manaActual;
     uint16_t manaMax;
+    float recuperacionVidaPendiente;
+    float recuperacionManaPendiente;
+    float meditacionManaPendiente;
+
     uint32_t oroMano;
     uint32_t oroExceso;
     uint32_t oroBanco;
-    bool esFantasmaFlag;
-    bool estaMeditando;
+
     uint8_t fuerza;
     uint8_t agilidad;
     uint8_t inteligencia;
     uint8_t constitucion;
+
     Posicion posicion;
+
+    ConfigJuego cfg;
     Inventario inventario;
+
     std::vector<uint16_t> idItemsBanco;
+
     ClasePersonaje clase;
     Estado estado;
     Raza raza;
@@ -112,6 +141,7 @@ private:
     void perder_experiencia(uint32_t cantidad);
     bool consumir_mana(uint16_t cantidad);
     void consumir_item(uint16_t idItem);
+    void normalizarOro();
     bool esquiva_ataque();
     bool es_golpe_critico();
 };

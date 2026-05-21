@@ -1,128 +1,214 @@
 #include "lector_config_toml.h"
 
-#include <fstream>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <limits>
 #include <stdexcept>
 
-std::string ParserTOML::trim(const std::string& s) {
-    size_t ini = s.find_first_not_of(" \t\r\n");
-    if (ini == std::string::npos) return "";
-    size_t fin = s.find_last_not_of(" \t\r\n");
-    return s.substr(ini, fin - ini + 1);
+#include <toml++/toml.hpp>
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+static StatsRaza cargarRaza(const toml::table& tbl, std::string_view nombre) {
+    const auto& r = *tbl["razas"][nombre].as_table();
+
+    return StatsRaza{
+        .fVida = r["f_vida"].value_or(1.0f),
+        .fMana = r["f_mana"].value_or(1.0f),
+        .fRecuperacion = r["f_recuperacion"].value_or(1.0f),
+        .constitucion = r["constitucion"].value_or(18),
+        .fuerza = r["fuerza"].value_or(18),
+        .agilidad = r["agilidad"].value_or(15),
+        .inteligencia = r["inteligencia"].value_or(16),
+    };
 }
 
-std::string ParserTOML::sinComentario(const std::string& linea) {
-    size_t pos = linea.find('#');
-    return pos != std::string::npos ? linea.substr(0, pos) : linea;
-}
+static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
+    const auto* itemsTbl = tbl["items"].as_table();
+    if (!itemsTbl) {
+        return;
+    }
 
-void ParserTOML::parsear(const std::string& ruta) {
-    std::ifstream archivo(ruta);
-    if (!archivo.is_open())
-        throw std::runtime_error("No se pudo abrir el archivo de configuracion: " + ruta);
+    for (auto& [nombreKey, itemNode] : *itemsTbl) {
+        const auto* item = itemNode.as_table();
+        if (!item) {
+            continue;
+        }
 
-    std::string seccion;
-    std::string linea;
+        uint16_t id = static_cast<uint16_t>((*item)["id"].value_or(0));
+        if (id == 0) {
+            continue;
+        }
 
-    while (std::getline(archivo, linea)) {
-        linea = trim(sinComentario(linea));
-        if (linea.empty()) continue;
+        std::string nombre(nombreKey.str());
+        std::string tipo = std::string((*item)["tipo"].value_or(std::string_view{}));
 
-        if (linea.front() == '[') {
-            size_t cierre = linea.find(']');
-            if (cierre == std::string::npos) continue;
-            seccion = trim(linea.substr(1, cierre - 1));
-        } else {
-            size_t eq = linea.find('=');
-            if (eq == std::string::npos) continue;
-            std::string clave = trim(linea.substr(0, eq));
-            std::string valor = trim(linea.substr(eq + 1));
-            std::string claveCompleta = seccion.empty() ? clave : seccion + "." + clave;
-            datos[claveCompleta] = valor;
+        if (tipo == "arma" || tipo == "arma_distancia") {
+            catalogo.registrar(
+                    id,
+                    std::make_unique<Arma>(
+                            id,
+                            nombre,
+                            static_cast<uint8_t>((*item)["danio_min"].value_or(1)),
+                            static_cast<uint8_t>((*item)["danio_max"].value_or(2)),
+                            tipo == "arma_distancia"));
+        } else if (tipo == "baculo") {
+            std::string hechizo =
+                    std::string((*item)["hechizo"].value_or(std::string_view{"misil"}));
+
+            TipoHechizo tipoHechizo = TipoHechizo::Misil;
+            if (hechizo == "curar") {
+                tipoHechizo = TipoHechizo::Curar;
+            } else if (hechizo == "explosion") {
+                tipoHechizo = TipoHechizo::Explosion;
+            } else if (hechizo == "flecha_magica") {
+                tipoHechizo = TipoHechizo::FlechaMagica;
+            }
+
+            catalogo.registrar(
+                    id,
+                    std::make_unique<Baculo>(
+                            id,
+                            nombre,
+                            static_cast<uint8_t>((*item)["danio_min"].value_or(0)),
+                            static_cast<uint8_t>((*item)["danio_max"].value_or(0)),
+                            tipoHechizo,
+                            static_cast<uint16_t>((*item)["costo_mana"].value_or(0))));
+        } else if (tipo == "armadura" || tipo == "casco" || tipo == "escudo") {
+            TipoDefensa slot = TipoDefensa::Armadura;
+            if (tipo == "casco") {
+                slot = TipoDefensa::Casco;
+            } else if (tipo == "escudo") {
+                slot = TipoDefensa::Escudo;
+            }
+
+            catalogo.registrar(
+                    id,
+                    std::make_unique<Defensa>(
+                            id,
+                            nombre,
+                            static_cast<uint8_t>((*item)["defensa_min"].value_or(0)),
+                            static_cast<uint8_t>((*item)["defensa_max"].value_or(0)),
+                            slot));
+        } else if (tipo == "pocion_vida" || tipo == "pocion_mana") {
+            TipoPocion tipoPocion = (tipo == "pocion_vida") ? TipoPocion::Vida : TipoPocion::Mana;
+
+            catalogo.registrar(
+                    id,
+                    std::make_unique<Pocion>(
+                            id,
+                            nombre,
+                            static_cast<uint16_t>((*item)["cantidad"].value_or(50)),
+                            tipoPocion));
         }
     }
 }
 
-float ParserTOML::getFloat(const std::string& clave, float defecto) const {
-    auto it = datos.find(clave);
-    if (it == datos.end()) return defecto;
-    try { return std::stof(it->second); } catch (...) { return defecto; }
+static uint16_t leerUint16Obligatorio(const toml::table& tbl, std::string_view seccion, std::string_view clave) {
+  
+  const auto valor = tbl[seccion][clave].value<int64_t>();
+  
+  if (!valor.has_value()) {
+    throw std::runtime_error("Falta clave obligatoria en TOML");
+  }
+  
+  if (*valor <= 0 || *valor > std::numeric_limits<uint16_t>::max()) {
+    throw std::runtime_error("Valor numerico fuera de rango en TOML");
+  
+  }
+  
+  return static_cast<uint16_t>(*valor);
 }
 
-int ParserTOML::getInt(const std::string& clave, int defecto) const {
-    auto it = datos.find(clave);
-    if (it == datos.end()) return defecto;
-    try { return std::stoi(it->second); } catch (...) { return defecto; }
+static uint8_t leerUint8Obligatorio(const toml::table& tbl, std::string_view seccion, std::string_view clave) {
+    const uint16_t valor = leerUint16Obligatorio(tbl, seccion, clave);
+
+    if (valor > std::numeric_limits<uint8_t>::max()) {
+        throw std::runtime_error("Valor numerico fuera de rango uint8 en TOML");
+    }
+
+    return static_cast<uint8_t>(valor);
 }
 
-bool ParserTOML::getBool(const std::string& clave, bool defecto) const {
-    auto it = datos.find(clave);
-    if (it == datos.end()) return defecto;
-    return it->second == "true";
-}
+// ─── LectorConfigToml ────────────────────────────────────────────────────────
 
-// ---- LectorConfigToml -------------------------------------------------------
-
-StatsRaza LectorConfigToml::cargarRaza(const ParserTOML& p, const std::string& nombre) {
-    return StatsRaza{
-        .fVida         = p.getFloat("razas." + nombre + ".f_vida",         1.0f),
-        .fMana         = p.getFloat("razas." + nombre + ".f_mana",         1.0f),
-        .fRecuperacion = p.getFloat("razas." + nombre + ".f_recuperacion", 1.0f),
-        .constitucion  = p.getInt  ("razas." + nombre + ".constitucion",   18),
-        .fuerza        = p.getInt  ("razas." + nombre + ".fuerza",         18),
-        .agilidad      = p.getInt  ("razas." + nombre + ".agilidad",       15),
-        .inteligencia  = p.getInt  ("razas." + nombre + ".inteligencia",   16),
-    };
-}
-
-ConfigJuego LectorConfigToml::cargar(const std::string& ruta) {
-    ParserTOML p;
-    p.parsear(ruta);
+ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
+    auto tbl = toml::parse_file(ruta);
 
     ConfigJuego cfg;
 
-    cfg.fVidaGuerrero = p.getFloat("vida.f_clase_guerrero", 3.0f);
-    cfg.fVidaPaladin  = p.getFloat("vida.f_clase_paladin",  2.5f);
-    cfg.fVidaClerigo  = p.getFloat("vida.f_clase_clerigo",  2.0f);
-    cfg.fVidaMago     = p.getFloat("vida.f_clase_mago",     1.5f);
+    cfg.fVidaGuerrero = tbl["vida"]["f_clase_guerrero"].value_or(3.0f);
+    cfg.fVidaPaladin = tbl["vida"]["f_clase_paladin"].value_or(2.5f);
+    cfg.fVidaClerigo = tbl["vida"]["f_clase_clerigo"].value_or(2.0f);
+    cfg.fVidaMago = tbl["vida"]["f_clase_mago"].value_or(1.5f);
 
-    cfg.fManaGuerrero = p.getFloat("mana.f_clase_guerrero", 0.0f);
-    cfg.fManaPaladin  = p.getFloat("mana.f_clase_paladin",  0.8f);
-    cfg.fManaClerigo  = p.getFloat("mana.f_clase_clerigo",  1.2f);
-    cfg.fManaMago     = p.getFloat("mana.f_clase_mago",     2.0f);
+    cfg.fManaGuerrero = tbl["mana"]["f_clase_guerrero"].value_or(0.0f);
+    cfg.fManaPaladin = tbl["mana"]["f_clase_paladin"].value_or(0.8f);
+    cfg.fManaClerigo = tbl["mana"]["f_clase_clerigo"].value_or(1.2f);
+    cfg.fManaMago = tbl["mana"]["f_clase_mago"].value_or(2.0f);
 
-    cfg.fMeditacionPaladin = p.getFloat("mana.f_clase_meditacion_paladin", 1.0f);
-    cfg.fMeditacionClerigo = p.getFloat("mana.f_clase_meditacion_clerigo", 2.0f);
-    cfg.fMeditacionMago    = p.getFloat("mana.f_clase_meditacion_mago",    3.0f);
+    cfg.fMeditacionPaladin = tbl["mana"]["f_clase_meditacion_paladin"].value_or(1.0f);
+    cfg.fMeditacionClerigo = tbl["mana"]["f_clase_meditacion_clerigo"].value_or(2.0f);
+    cfg.fMeditacionMago = tbl["mana"]["f_clase_meditacion_mago"].value_or(3.0f);
 
-    cfg.humano = cargarRaza(p, "humano");
-    cfg.elfo   = cargarRaza(p, "elfo");
-    cfg.enano  = cargarRaza(p, "enano");
-    cfg.gnomo  = cargarRaza(p, "gnomo");
+    cfg.humano = cargarRaza(tbl, "humano");
+    cfg.elfo = cargarRaza(tbl, "elfo");
+    cfg.enano = cargarRaza(tbl, "enano");
+    cfg.gnomo = cargarRaza(tbl, "gnomo");
 
-    cfg.expLimiteBase = p.getInt  ("experiencia.limite_base",  1000);
-    cfg.expLimiteExp  = p.getFloat("experiencia.limite_exp",   1.8f);
-    cfg.expBonusNivel = p.getInt  ("experiencia.bonus_nivel",  10);
-    cfg.expKillMax    = p.getFloat("experiencia.exp_kill_max", 0.1f);
+    cfg.expLimiteBase = tbl["experiencia"]["limite_base"].value_or(1000);
+    cfg.expLimiteExp = tbl["experiencia"]["limite_exp"].value_or(1.8f);
+    cfg.expBonusNivel = tbl["experiencia"]["bonus_nivel"].value_or(10);
+    cfg.expKillMax = tbl["experiencia"]["exp_kill_max"].value_or(0.1f);
 
-    cfg.oroMaxExp     = p.getFloat("oro.max_exp",      1.1f);
-    cfg.oroExcesoPct  = p.getFloat("oro.exceso_pct",   0.5f);
-    cfg.oroDropNpcMax = p.getFloat("oro.drop_npc_max", 0.2f);
+    cfg.oroMaxBase = tbl["oro"]["oro_max_base"].value_or(100.0f);
+    cfg.oroMaxExp = tbl["oro"]["max_exp"].value_or(1.1f);
+    cfg.oroExcesoPct = tbl["oro"]["exceso_pct"].value_or(0.5f);
+    cfg.oroDropNpcMax = tbl["oro"]["drop_npc_max"].value_or(0.2f);
 
-    cfg.esquivarUmbral = p.getFloat("combate.esquivar_umbral", 0.001f);
+    cfg.esquivarUmbral = tbl["combate"]["esquivar_umbral"].value_or(0.001f);
+    cfg.probabilidadCritico = tbl["combate"]["probabilidad_critico"].value_or(0.10f);
 
-    cfg.nivelNewbie  = p.getInt("fair_play.nivel_newbie",   12);
-    cfg.maxDiffNivel = p.getInt("fair_play.max_diff_nivel", 10);
+    cfg.nivelNewbie = tbl["fair_play"]["nivel_newbie"].value_or(12);
+    cfg.maxDiffNivel = tbl["fair_play"]["max_diff_nivel"].value_or(10);
 
-    cfg.clanMaxMiembros = p.getInt("clanes.max_miembros", 16);
-    cfg.clanNivelMinimo = p.getInt("clanes.nivel_minimo",  6);
+    cfg.clanMaxMiembros = tbl["clanes"]["max_miembros"].value_or(16);
+    cfg.clanNivelMinimo = tbl["clanes"]["nivel_minimo"].value_or(6);
 
-    cfg.factorTiempoResurreccion =
-        p.getFloat("muerte.factor_tiempo_resurreccion", 0.5f);
+    cfg.factorTiempoResurreccion = tbl["muerte"]["factor_tiempo_resurreccion"].value_or(0.5f);
+    cfg.expPerdidaMuertePct = tbl["experiencia"]["exp_perdida_muerte_pct"].value_or(0.10f);
 
-    cfg.vidaInfinita = p.getBool("cheats.vida_infinita", false);
-    cfg.manaInfinito = p.getBool("cheats.mana_infinito", false);
-    cfg.invulnerable = p.getBool("cheats.invulnerable",  false);
-    cfg.expX10       = p.getBool("cheats.exp_x10",       false);
+    cfg.tickMs = tbl["servidor"]["tick_ms"].value_or(200);
 
-    return cfg;
+    cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
+    cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
+
+    cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
+
+    cfg.vidaInfinita = tbl["cheats"]["vida_infinita"].value_or(false);
+    cfg.manaInfinito = tbl["cheats"]["mana_infinito"].value_or(false);
+    cfg.suicidio = tbl["cheats"]["suicidio"].value_or(false);
+    cfg.invulnerable = tbl["cheats"]["invulnerable"].value_or(false);
+    cfg.expX10 = tbl["cheats"]["exp_x10"].value_or(false);
+    cfg.movimientoCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "movimiento_ticks");
+
+    cfg.tiempoItemSueloSeg = leerUint16Obligatorio(tbl, "items", "tiempo_suelo_seg");
+    cfg.inventarioMaxItems = static_cast<uint8_t>(tbl["inventario"]["max_items"].value_or(20));
+    cfg.spawnCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "spawn_ticks");
+    cfg.poblacionMaxCriaturas = leerUint16Obligatorio(tbl, "criaturas", "poblacion_max");
+
+    cfg.criaturaVidaMaximaBase = leerUint16Obligatorio(tbl, "criaturas", "vida_maxima_base");
+    cfg.criaturaNivelBase = leerUint8Obligatorio(tbl, "criaturas", "nivel_base");
+    cfg.criaturaFuerzaBase = leerUint8Obligatorio(tbl, "criaturas", "fuerza_base");
+    cfg.criaturaAgilidadBase = leerUint8Obligatorio(tbl, "criaturas", "agilidad_base");
+    cfg.criaturaRangoAggroBase = leerUint8Obligatorio(tbl, "criaturas", "rango_aggro_base");
+    cfg.criaturaDanioMinBase = leerUint8Obligatorio(tbl, "criaturas", "danio_min_base");
+    cfg.criaturaDanioMaxBase = leerUint8Obligatorio(tbl, "criaturas", "danio_max_base");
+
+    ConfigCompleta resultado;
+    resultado.juego = cfg;
+    poblarCatalogo(resultado.items, tbl);
+
+    return resultado;
 }

@@ -28,7 +28,7 @@ class ProtocoloServidor : public Protocolo {
     static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
-    static constexpr uint8_t MAX_TIPO_CLAN = 4;
+    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Kickeado);
 
     void validarDireccion(const uint8_t direccion) const;
 
@@ -79,6 +79,7 @@ class ProtocoloServidor : public Protocolo {
     void enviarMensajeClan(const MensajeClan& mensaje);
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
+    void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 
 #endif

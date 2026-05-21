@@ -1,42 +1,97 @@
 #include "gameloop.h"
 
 #include <chrono>
+#include <stdexcept>
 #include <thread>
+#include <utility>
 
-Gameloop::Gameloop(MonitorClientes& monitor): colaComandos(), monitor(monitor), juego() {}
+Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
+    : colaComandos(), colaEventosSesion(), monitor(monitor),
+      juego(config.juego, std::move(config.items)),
+      tickMs(config.juego.tickMs) {
+    if (tickMs <= 0) {
+        throw std::invalid_argument("El tick del gameloop debe ser mayor a cero");
+    }
+}
 
 void Gameloop::run() {
-    while (should_keep_running()) {
-        
-        procesarComandos();
-        // TODO:
-        // auto mensajes = juego.actualizar();
-        // despachar(mensajes);
+    using Clock = std::chrono::steady_clock;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    const auto duracionTick = std::chrono::milliseconds(tickMs);
+    auto instanteAnterior = Clock::now();
+    auto siguienteTick = instanteAnterior + duracionTick;
+
+    while (should_keep_running()) {
+        auto ahora = Clock::now();
+        float deltaSegundos = std::chrono::duration<float>(ahora - instanteAnterior).count();
+        instanteAnterior = ahora;
+
+        procesarEventosSesion();
+        procesarComandos();
+
+        auto mensajes = juego.actualizar(deltaSegundos);
+        despachar(mensajes);
+
+        std::this_thread::sleep_until(siguienteTick);
+        siguienteTick += duracionTick;
+
+        if (Clock::now() > siguienteTick + duracionTick) {
+            siguienteTick = Clock::now() + duracionTick;
+        }
     }
 }
 
 void Gameloop::detener() {
     stop();
-    colaComandos.close();
+
+    try {
+        colaComandos.close();
+    } catch (const std::runtime_error&) {}
+
+    try {
+        colaEventosSesion.close();
+    } catch (const std::runtime_error&) {}
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {
     return colaComandos;
 }
 
+Queue<EventoSesion>& Gameloop::getColaEventosSesion() {
+    return colaEventosSesion;
+}
+
+void Gameloop::procesarEventosSesion() {
+    EventoSesion evento;
+
+    try {
+        while (colaEventosSesion.try_pop(evento)) {
+            if (evento.tipo == TipoEventoSesion::Conectar) {
+                despachar(juego.conectarJugador(evento.idCliente,
+                                                evento.datos.nombre,
+                                                evento.datos.clase,
+                                                evento.datos.raza,
+                                                evento.datos.posicion));
+            } else {
+                despachar(juego.desconectarJugador(evento.idCliente));
+            }
+        }
+    } catch (const ClosedQueue&) {}
+}
+
 void Gameloop::procesarComandos() {
     ComandoCliente comandoCliente;
 
-    while (colaComandos.try_pop(comandoCliente)) {
-        procesarComando(comandoCliente);
-    }
+    try {
+        while (colaComandos.try_pop(comandoCliente)) {
+            procesarComando(comandoCliente);
+        }
+    } catch (const ClosedQueue&) {}
 }
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
-    std::list<MensajeSalida> mensajes = juego.ejecutarComando(comandoCliente.idCliente,comandoCliente.comando
-    );
+    std::list<MensajeSalida> mensajes =
+        juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
     
     despachar(mensajes);
 }

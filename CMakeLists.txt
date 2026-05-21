@@ -123,20 +123,24 @@ if(TALLER_CLIENT)
 endif()
 
 if(TALLER_SERVER)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
+    include(FetchContent)
+    FetchContent_Declare(
+        tomlplusplus
+        GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+        GIT_TAG        v3.4.0
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(tomlplusplus)
+
     add_executable(taller_server)
 
-    # Make them depend on taller_common lib
     add_dependencies(taller_server taller_common)
 
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
-    # Link the taller_common lib target
-    target_link_libraries(taller_server taller_common)
+    target_link_libraries(taller_server taller_common tomlplusplus::tomlplusplus)
 endif()
 
 if(TALLER_EDITOR)

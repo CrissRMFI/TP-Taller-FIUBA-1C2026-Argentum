@@ -517,7 +517,7 @@ MensajeServidor ProtocoloCliente::recibirMensajeClan() {
 
     return MensajeServidor{
             Opcode::MENSAJE_CLAN,
-            MensajeClan{tipo, nick},
+            MensajeClan{(TipoMensajeClan)(tipo), nick},
     };
 }
 

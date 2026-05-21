@@ -5,9 +5,8 @@
 # ============================================================
 
 [servidor]
-# a definir
 #puerto          = 7666
-#tick_ms         = 100        # Cada cuántos ms se actualiza el mundo
+tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
 #max_jugadores   = 300
 #guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
 
@@ -76,12 +75,13 @@ limite_base   = 1000
 limite_exp    = 1.8          # Limite = 1000 * nivel^1.8
 bonus_nivel   = 10           # max(NivelOtro - Nivel + 10, 0)
 exp_kill_max  = 0.1          # rand(0, 0.1) * VidaMaxOtro * factor
-
+exp_perdida_muerte_pct = 0.10
 # ------------------------------------------------------------
 [oro]
 max_exp       = 1.1          # OroMax = 100 * nivel^1.1
 exceso_pct    = 0.50         # Puede tener hasta 50% extra "en exceso"
 drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
+oro_max_base = 100.0
 
 # ------------------------------------------------------------
 [combate]
@@ -92,86 +92,152 @@ drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
 
 # Esquivar: rand(0,1)^agilidad < umbral
 esquivar_umbral = 0.001
+probabilidad_critico = 0.10
 
 # ------------------------------------------------------------
 [items]
-# se podria definir también la cant total de items que el usuario puede tener
+# Tiempo que permanece un item tirado en el suelo antes de desaparecer
+tiempo_suelo_seg = 60
+
+# tipo: "arma" | "arma_distancia" | "baculo" | "armadura" | "casco" | "escudo" | "pocion_vida" | "pocion_mana"
+# hechizo (solo baculo): "misil" | "explosion" | "curar" | "flecha_magica"
+
 # Armas cuerpo a cuerpo
 [items.espada]
+id        = 1
+tipo      = "arma"
 danio_min = 2
 danio_max = 5
 
 [items.hacha]
+id        = 2
+tipo      = "arma"
 danio_min = 4
 danio_max = 5
 
 [items.martillo]
+id        = 3
+tipo      = "arma"
 danio_min = 1
 danio_max = 9
 
 # Armas a distancia
 [items.arco_simple]
+id        = 4
+tipo      = "arma_distancia"
 danio_min = 1
 danio_max = 4
 
 [items.arco_compuesto]
+id        = 5
+tipo      = "arma_distancia"
 danio_min = 4
 danio_max = 16
 
-# Hechizos / báculos
+# Báculos
 [items.vara_fresno]
+id         = 6
+tipo       = "baculo"
+hechizo    = "misil"
 danio_min  = 2
 danio_max  = 4
 costo_mana = 5
 
 [items.baculo_nudoso]
+id         = 7
+tipo       = "baculo"
+hechizo    = "misil"
 danio_min  = 4
 danio_max  = 8
 costo_mana = 15
 
 [items.baculo_engarzado]
+id         = 8
+tipo       = "baculo"
+hechizo    = "explosion"
 danio_min  = 8
 danio_max  = 20
 costo_mana = 30
 
 [items.flauta_elfica]
-cura_vida  = true
+id         = 9
+tipo       = "baculo"
+hechizo    = "curar"
+danio_min  = 0
+danio_max  = 0
 costo_mana = 100
 
 # Armaduras
 [items.armadura_cuero]
+id          = 10
+tipo        = "armadura"
 defensa_min = 2
 defensa_max = 6
 
 [items.armadura_placas]
+id          = 11
+tipo        = "armadura"
 defensa_min = 15
 defensa_max = 30
 
 [items.tunica_azul]
+id          = 12
+tipo        = "armadura"
 defensa_min = 6
 defensa_max = 10
 
 # Cascos
 [items.capucha]
+id          = 13
+tipo        = "casco"
 defensa_min = 1
 defensa_max = 4
 
 [items.casco_hierro]
+id          = 14
+tipo        = "casco"
 defensa_min = 4
 defensa_max = 8
 
 [items.sombrero_magico]
+id          = 15
+tipo        = "casco"
 defensa_min = 4
 defensa_max = 12
 
 # Escudos
 [items.escudo_tortuga]
+id          = 16
+tipo        = "escudo"
 defensa_min = 1
 defensa_max = 2
 
 [items.escudo_hierro]
+id          = 17
+tipo        = "escudo"
 defensa_min = 1
 defensa_max = 4
+
+# Pociones
+[items.pocion_vida_chica]
+id      = 18
+tipo    = "pocion_vida"
+cantidad = 50
+
+[items.pocion_vida_grande]
+id      = 19
+tipo    = "pocion_vida"
+cantidad = 150
+
+[items.pocion_mana_chica]
+id      = 20
+tipo    = "pocion_mana"
+cantidad = 50
+
+[items.pocion_mana_grande]
+id      = 21
+tipo    = "pocion_mana"
+cantidad = 150
 
 # ------------------------------------------------------------
 [criaturas]
@@ -182,10 +248,33 @@ prob_pocion   = 0.01
 prob_item     = 0.01
 oro_drop_min  = 0.01
 oro_drop_max  = 0.20
+vida_maxima_base = 50
+nivel_base = 1
+fuerza_base = 5
+agilidad_base = 5
+rango_aggro_base = 5
+danio_min_base = 1
+danio_max_base = 4
+
+# Cada cuántos ticks se mueven las criaturas
+movimiento_ticks = 5
 
 # Cada cuántos ticks spawnea una criatura nueva
-#spawn_ticks   = 50
-#poblacion_max = 200          # Tope global de NPCs vivos
+spawn_ticks   = 50
+poblacion_max = 200          # Tope global de NPCs vivos
+
+# ------------------------------------------------------------
+[mapa]
+# Dimensiones del escenario en celdas.
+# El terreno/tiles reales podrán cargarse luego desde archivo binario.
+ancho = 100
+alto  = 100
+
+# ------------------------------------------------------------
+[npcs]
+# Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
+# 1 significa celda adyacente.
+rango_interaccion = 1
 
 # ------------------------------------------------------------
 [fair_play]
@@ -208,6 +297,7 @@ factor_tiempo_resurreccion = 0.5
 vida_infinita  = false
 mana_infinito  = false
 invulnerable   = false
+suicidio = false
 exp_x10        = false
 
 # ------------------------------------------------------------

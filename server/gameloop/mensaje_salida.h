@@ -7,7 +7,8 @@
 
 enum class TipoDestino {
     UNO,
-    TODOS
+    TODOS,
+    TODOS_EXCEPTO_UNO
 };
 
 struct MensajeSalida {
