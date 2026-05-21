@@ -85,7 +85,7 @@ LibError::LibError(int error_code, const char* fmt, ...) noexcept {
          * debemos indicar 4 bytes y no 5 ya que no debemos contar el `\0`
          * */
         s = 4;
-    } else if (s == sizeof(msg_error)) {
+    } else if (static_cast<size_t>(s) >= sizeof(msg_error)) {
         /* Esto también técnicamente es un error ya que el mensaje formateado
          * fue más grande que el buffer `msg_error`.
          * No hubo un overflow pero el mensaje en `msg_error` esta truncado.
@@ -117,4 +117,4 @@ LibError::LibError(int error_code, const char* fmt, ...) noexcept {
 
 const char* LibError::what() const noexcept { return msg_error; }
 
-LibError::~LibError() {}
+LibError::~LibError() = default;
