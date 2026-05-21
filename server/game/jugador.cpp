@@ -51,6 +51,7 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         inteligencia(0),
         constitucion(0),
         posicion(posicion),
+        posicionResurreccion(posicion),
         cfg(config),
         inventario(config.inventarioMaxItems),
         idItemsBanco(),
@@ -147,6 +148,12 @@ void Jugador::recuperar_mana(uint16_t cantidad) {
 }
 
 void Jugador::recuperar(float segundos) {
+    if (estaInmovilizado()) {
+        tiempoRestanteInmovilizado -= segundos;
+        if (tiempoRestanteInmovilizado < 0.0f) {
+            tiempoRestanteInmovilizado = 0.0f;
+        }
+    }
     if (!estaVivo()) {
         return;
     }
@@ -265,6 +272,12 @@ void Jugador::resucitar(uint16_t x, uint16_t y) {
     posicion.y = y;
     vidaActual = vidaMax / 2;
     manaActual = 0;
+}
+
+void Jugador::inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos) {
+    tiempoRestanteInmovilizado = segundos;
+    posicionResurreccion.x = resucitarX;
+    posicionResurreccion.y = resucitarY;
 }
 
 void Jugador::meditar() {
@@ -498,6 +511,10 @@ uint16_t Jugador::getClan() const {
     return idClan;
 }
 
+bool Jugador::estaInmovilizado() const {
+    return tiempoRestanteInmovilizado > 0.0f;
+}
+
 bool Jugador::fundo_clan() const {
     return fundadoClan;
 }
@@ -512,6 +529,10 @@ std::string Jugador::getNombre() const {
 
 Posicion Jugador::getPosicion() const {
     return posicion;
+}
+
+Posicion Jugador::getPosicionResurreccion() const {
+    return posicionResurreccion;
 }
 
 Estado Jugador::getEstado() const {

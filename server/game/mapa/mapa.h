@@ -46,6 +46,7 @@ public:
 
     bool hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
     std::optional<Npc> buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
+    std::optional<Npc> buscarSacerdoteMasCercano(const Posicion& posicion) const;
     bool hayNpcEn(const Posicion& posicion) const;
     
     bool hayItemEn(const Posicion& posicion) const;
@@ -58,6 +59,7 @@ public:
     std::vector<Npc> obtenerNpcsPorTipo(TipoNpc tipo) const;
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
+    std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;
 
     void agregarCriatura(const Criatura& criatura);
     bool hayCriaturaEn(const Posicion& posicion) const;

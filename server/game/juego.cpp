@@ -387,6 +387,7 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
 
     for (auto& [id, jugador] : jugadoresConectados) {
         const bool estabaMeditando = jugador.enMeditacion();
+        const bool estabaInmovilizado = jugador.estaInmovilizado();
 
         const uint16_t vidaAntes = jugador.getVidaActual();
         const uint16_t manaAntes = jugador.getManaActual();
@@ -406,8 +407,17 @@ std::list<MensajeSalida> Juego::actualizar(float deltaSegundos) {
         if (cambioEstado) {
             mensajes.push_back(armarEstado(id, jugador));
         }
+        if (estabaInmovilizado && !jugador.estaInmovilizado()) {
+            Posicion posicionResurreccion = jugador.getPosicionResurreccion();
+            jugador.resucitar(posicionResurreccion.x, posicionResurreccion.y);
+            std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
+            mensajes.splice(mensajes.end(), mensajesPosicion);
 
-        if (estabaMeditando && !jugador.enMeditacion()) {
+            if (!cambioEstado) {
+                mensajes.push_back(armarEstado(id, jugador));
+            }
+            
+        } else if (estabaMeditando && !jugador.enMeditacion()) {
             std::list<MensajeSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
             mensajes.splice(mensajes.end(), mensajesPosicion);
 
@@ -694,17 +704,40 @@ std::list<MensajeSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, c
 std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
-    if (!jugador || !jugador->esFantasma()) {
+    if (!jugador || !jugador->esFantasma() || jugador->estaInmovilizado()) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (!mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    if (mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
+        // Resurrección cerca del sacerdote.
+        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
+        if (!posicionResurreccion.has_value()) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+        jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
+        std::list<MensajeSalida> mensajes = {
+            armarEstado(idCliente, *jugador)
+        };
+        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+        return mensajes;
     }
 
-    // TODO: implementar resurrección cuando esté definido el flujo de sacerdote.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    // Revivir al jugador junto al sacerdote de la ciudad mas proxima.
+    std::optional<Npc> npcSacerdoteMasCercano = mapa.buscarSacerdoteMasCercano(jugador->getPosicion());
+    if (!npcSacerdoteMasCercano.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+    std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(npcSacerdoteMasCercano->getPosicion());
+    if (!posicionResurreccion.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+    float tiempoInmovilizado = jugador->getPosicion().distanciaManhattan(npcSacerdoteMasCercano->getPosicion()) * cfg.factorTiempoResurreccion;
+    // Lo inmovilizo en estado fantasma, actualizar() chequea cuando deje de ser fantasma para revivirlo.
+    jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
+    return {};
 }
+    
+
 
 std::list<MensajeSalida> Juego::ejecutarTomar(uint16_t idCliente) {
   

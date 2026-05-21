@@ -98,6 +98,50 @@ std::optional<Npc> Mapa::buscarNpcCercano(const Posicion& posicion, TipoNpc tipo
   return std::nullopt;
 }
 
+std::optional<Npc> Mapa::buscarSacerdoteMasCercano(const Posicion& posicion) const {
+  std::map<int, Npc> sacerdotesCercanos;
+  for (const auto& [id, npc] : npcs) {
+    const Posicion posicionNpc = npc.getPosicion();
+    
+    if (npc.getTipo() == TipoNpc::Sacerdote && posicion.mismaMapa(posicionNpc)) {
+      sacerdotesCercanos[posicion.distanciaManhattan(posicionNpc)] = npc;
+    }
+  }
+  if (sacerdotesCercanos.empty()) {
+    return std::nullopt;
+  }
+  Npc SacerdoteMasCercano = sacerdotesCercanos.begin()->second;
+  for (const auto& [distancia, npc] : sacerdotesCercanos) {
+    if (distancia < posicion.distanciaManhattan(SacerdoteMasCercano.getPosicion())) {
+      SacerdoteMasCercano = npc;
+    }
+  }
+  return SacerdoteMasCercano;
+}
+
+std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion &posicion) const {
+    // Buscar la posición adyacente más cercana al sacerdote que no tenga pared, NPC, criatura o ítem en el suelo (recursivamente).
+    std::vector<Posicion> posicionesAdyacentes = {
+        {posicion.x, static_cast<uint16_t>(posicion.y - 1), posicion.mapaId},
+        {posicion.x, static_cast<uint16_t>(posicion.y + 1), posicion.mapaId},
+        {static_cast<uint16_t>(posicion.x - 1), posicion.y, posicion.mapaId},
+        {static_cast<uint16_t>(posicion.x + 1), posicion.y, posicion.mapaId}
+    };
+    for (const Posicion& p : posicionesAdyacentes) {
+        if (posicionValida(p) && !hayParedEn(p) && !hayNpcEn(p) && !hayCriaturaEn(p) && !hayItemEn(p)) {
+            return p;
+        }
+    }
+    // Lo hacemos recursivamente buscando en las posiciones adyacentes a las adyacentes, hasta encontrar una posición válida o agotar el mapa.
+    for (const Posicion& p : posicionesAdyacentes) {
+        if (posicionValida(p) && !hayParedEn(p) && !hayNpcEn(p) && !hayCriaturaEn(p) && !hayItemEn(p)) {
+            return obtenerPosicionResurreccionCercana(p);
+        }
+    }
+    // No se encontró una posición válida (no debería pasar porque la función es recursiva y el mapa debería tener al menos una posición válida), pero por las dudas devolvemos std::nullopt.
+    return std::nullopt;
+}
+
 bool Mapa::hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
   return buscarNpcCercano(posicion, tipo, rango).has_value();
 }

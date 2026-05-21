@@ -45,6 +45,7 @@ public:
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
     void resucitar(uint16_t x, uint16_t y);
+    void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
     void cancelarMeditacion();
     uint16_t calcular_danio(const CatalogoItems& catalogo);
@@ -84,10 +85,12 @@ public:
     uint32_t getOro() const;
     uint32_t getOroBanco() const;
     uint16_t getClan() const;
+    bool estaInmovilizado() const;
     bool fundo_clan() const;
     bool es_newbie() const;
     std::string getNombre() const;
     Posicion getPosicion() const;
+    Posicion getPosicionResurreccion() const;
     Estado getEstado() const;
     std::vector<uint16_t> getSlotsInventario() const;
     uint16_t getArmaEquipada() const;
@@ -125,7 +128,7 @@ private:
     uint8_t constitucion;
 
     Posicion posicion;
-
+    Posicion posicionResurreccion;
     ConfigJuego cfg;
     Inventario inventario;
 
@@ -135,6 +138,7 @@ private:
     Estado estado;
     Raza raza;
     bool fundadoClan;
+    float tiempoRestanteInmovilizado;
 
     void subirNivel();
     void morir();
