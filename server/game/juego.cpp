@@ -983,7 +983,7 @@ std::list<MensajeSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comand
     };
 }
 
-std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
@@ -994,15 +994,75 @@ std::list<MensajeSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comand
     
     const bool haySacerdoteCercano = mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc);
 
-    if (!hayComercianteCercano && !haySacerdoteCercano) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    if (hayComercianteCercano) {
+        uint16_t idComerciante = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Comerciante, cfg.rangoInteraccionNpc).value().getId();
+        std::optional<Comerciante> comerciante = mapa.obtenerComerciante(idComerciante);
+
+        if (!comerciante.has_value()) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        std::pair<bool, uint8_t> resultado = comerciante.value().venderItem(cmd.idItem);
+        bool puedeComprar = resultado.first;
+
+        if (!puedeComprar) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        uint8_t precioCompra = resultado.second;
+
+        if (jugador->getOro() < precioCompra) {
+            return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+        }
+
+        if (!jugador->agregar_item(cmd.idItem)) {
+            return { armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO) };
+        }
+
+        jugador->gastar_oro(precioCompra);
+
+        return {
+            armarInventario(idCliente, *jugador),
+            armarEstado(idCliente, *jugador)
+        };
+        
+    } else if (haySacerdoteCercano) {
+        uint16_t idSacerdote = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc).value().getId();
+        std::optional<Sacerdote> sacerdote = mapa.obtenerSacerdote(idSacerdote);
+
+        if (!sacerdote.has_value()) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        std::pair<bool, uint8_t> resultado = sacerdote.value().venderItem(cmd.idItem);
+        bool puedeComprar = resultado.first;
+
+        if (!puedeComprar) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        uint8_t precioCompra = resultado.second;
+
+        if (jugador->getOro() < precioCompra) {
+            return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+        }
+
+        if (!jugador->agregar_item(cmd.idItem)) {
+            return { armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO) };
+        }
+
+        jugador->gastar_oro(precioCompra);
+
+        return {
+            armarInventario(idCliente, *jugador),
+            armarEstado(idCliente, *jugador)
+        };
     }
 
-    // TODO: implementar compra cuando esté definido el flujo de comerciantes/sacerdotes.
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
-std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoVender& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoVender& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
@@ -1013,12 +1073,36 @@ std::list<MensajeSalida> Juego::ejecutarVender(uint16_t idCliente, const Comando
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // TODO: implementar venta cuando esté definido el flujo de comerciante.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    uint16_t idItem = jugador->quitar_item_de_slot(cmd.indiceItem);
+    uint16_t idComerciante = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Comerciante, cfg.rangoInteraccionNpc).value().getId();
+    std::optional<Comerciante> comerciante = mapa.obtenerComerciante(idComerciante);
+
+    if (!comerciante.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    std::pair<bool, uint8_t> resultado = comerciante.value().comprarItem(idItem);
+    bool puedeVender = resultado.first;
+
+    if (!puedeVender) {
+        if (catalogo.existe(idItem)) {
+            jugador->agregar_item_en_slot(idItem, cmd.indiceItem);
+        }
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    uint8_t precioVenta = resultado.second;
+
+    jugador->sumar_oro(precioVenta);
+
+    return {
+        armarInventario(idCliente, *jugador),
+        armarEstado(idCliente, *jugador)
+    };
 }
 
 std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
-                                                      const ComandoDepositarItem& /*cmd*/) {
+                                                      const ComandoDepositarItem& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
@@ -1029,12 +1113,26 @@ std::list<MensajeSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // TODO: implementar depósito de ítem cuando esté definido el flujo de banco.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    uint16_t idBanquero = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc).value().getId();
+    std::optional<Banquero> banquero = mapa.obtenerBanquero(idBanquero);
+
+    if (!banquero.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    uint16_t idItem = jugador->quitar_item_de_slot(cmd.indiceItem);
+
+    if (!banquero.value().depositarItem(idCliente, idItem)) {
+        if (catalogo.existe(idItem)) {
+            jugador->agregar_item_en_slot(idItem, cmd.indiceItem);
+        }
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+    return { armarInventario(idCliente, *jugador) };
 }
 
 
-std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& /*cmd*/) {
+std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& cmd) {
     
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
@@ -1045,12 +1143,28 @@ std::list<MensajeSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const C
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // TODO: implementar depósito cuando esté definido el flujo de banco.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    uint16_t idBanquero = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc).value().getId();
+    std::optional<Banquero> banquero = mapa.obtenerBanquero(idBanquero);
+
+    if (!banquero.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (jugador->getOro() < cmd.monto) {
+        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+    }
+
+    if (!banquero.value().depositarOro(idCliente, cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    jugador->gastar_oro(cmd.monto);
+
+    return { armarInventario(idCliente, *jugador) };
 }
 
 std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
-                                                    const ComandoRetirarItem& /*cmd*/) {
+                                                    const ComandoRetirarItem& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
@@ -1061,13 +1175,28 @@ std::list<MensajeSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // TODO: implementar retiro de ítem cuando esté definido el flujo de banco.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    uint16_t idBanquero = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc).value().getId();
+    std::optional<Banquero> banquero = mapa.obtenerBanquero(idBanquero);
+
+    if (!banquero.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!banquero.value().retirarItem(idCliente, cmd.idItem)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!jugador->agregar_item(cmd.idItem)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    return { armarInventario(idCliente, *jugador) };
+
 }
 
 
 std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
-                                                   const ComandoRetirarOro& /*cmd*/) {
+                                                   const ComandoRetirarOro& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
@@ -1078,8 +1207,20 @@ std::list<MensajeSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // TODO: implementar retiro de oro cuando esté definido el flujo de banco.
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    uint16_t idBanquero = mapa.buscarNpcCercano(jugador->getPosicion(), TipoNpc::Banquero, cfg.rangoInteraccionNpc).value().getId();
+    std::optional<Banquero> banquero = mapa.obtenerBanquero(idBanquero);
+
+    if (!banquero.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!banquero.value().retirarOro(idCliente, cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    jugador->sumar_oro(cmd.monto);
+
+    return { armarInventario(idCliente, *jugador) };
 }
 
 

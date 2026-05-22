@@ -16,6 +16,7 @@ public:
     bool eliminarItem(uint16_t idItem);
     bool eliminarSlot(uint8_t indice);
     uint16_t quitarDeSlot(uint8_t indice);
+    void agregarItemEnSlot(uint16_t idItem, uint8_t indice);
 
     bool tieneItem(uint16_t idItem) const;
     uint16_t getIdEnSlot(uint8_t indice) const;

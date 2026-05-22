@@ -59,6 +59,7 @@ public:
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
     uint16_t quitar_item_de_slot(uint8_t indice);
+    void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
     std::vector<uint16_t> vaciar_inventario();
 
     // Clan

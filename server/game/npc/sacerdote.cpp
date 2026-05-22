@@ -4,7 +4,7 @@ void Sacerdote::agregarItemCatalogo(uint16_t idItem, uint8_t precioVenta) {
     itemsDisponibles[idItem] = precioVenta;
 }
 
-std::pair<bool, uint8_t> Sacerdote::venderItem(uint16_t idJugador, uint16_t idItem) {
+std::pair<bool, uint8_t> Sacerdote::venderItem(uint16_t idItem) {
     if (itemsDisponibles.find(idItem) == itemsDisponibles.end()) {
         return {false, 0};
     }

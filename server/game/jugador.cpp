@@ -337,6 +337,10 @@ uint16_t Jugador::quitar_item_de_slot(uint8_t indice) {
     return inventario.quitarDeSlot(indice);
 }
 
+void Jugador::agregar_item_en_slot(uint16_t idItem, uint8_t indice) {
+    inventario.agregarItemEnSlot(idItem, indice);
+}
+
 std::vector<uint16_t> Jugador::vaciar_inventario() {
     return inventario.vaciar();
 }

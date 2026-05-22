@@ -8,7 +8,7 @@ std::map<uint16_t, std::pair<uint8_t, uint8_t>> Comerciante::listarItemsDisponib
     return itemsDisponibles;
 }
 
-std::pair<bool, uint8_t> Comerciante::comprarItem(uint16_t idJugador, uint16_t idItem) {
+std::pair<bool, uint8_t> Comerciante::comprarItem(uint16_t idItem) {
     if (itemsDisponibles.find(idItem) == itemsDisponibles.end()) {
         return {false, 0};
     }
@@ -17,7 +17,7 @@ std::pair<bool, uint8_t> Comerciante::comprarItem(uint16_t idJugador, uint16_t i
     return {true, precioCompra};
 }
 
-std::pair<bool, uint8_t> Comerciante::venderItem(uint16_t idJugador, uint16_t idItem) {
+std::pair<bool, uint8_t> Comerciante::venderItem(uint16_t idItem) {
     if (itemsDisponibles.find(idItem) == itemsDisponibles.end()) {
         return {false, 0};
     }
