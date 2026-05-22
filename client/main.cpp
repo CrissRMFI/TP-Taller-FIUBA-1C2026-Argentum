@@ -7,25 +7,22 @@
 
 #include "client_game_loop.h"
 #include "../common/thread/queue.h"
+#include "cmake-build-debug/_deps/sdl2-src/include/SDL_video.h"
 #include "SDL2pp/SDL.hh"
 #include "SDL2pp/Window.hh"
 
 using namespace SDL2pp;
 
-int main() try {
+int main(int argc, char* argv[]) try {
 
-	// if (argc != 3) {
-	// 	std::cerr << "Usage: " << argv[0] << " <host> <port>\n";
-	// 	return EXIT_FAILURE;
-	// }
-	// Initialize SDL library
-		Queue<ComandoJugador> commands;
-		ClientGameLoop game_loop(commands);
-		game_loop.init("Argentum - Parte I",
-			SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED,
-			640, 480, false);
-
+	if (argc != 3) {
+		std::cerr << "Usage: " << argv[0] << " <host> <port>\n";
+		return EXIT_FAILURE;
+	}
+	const char* hostname = argv[1];
+	const char* servname = argv[2];
+	Client client(hostname, servname);
+	client.run();
 
 	return 0;
 
@@ -42,11 +39,6 @@ int main() try {
  * render cambia display
  *
 
-// const char* hostname = argv[1];
-	// const char* servname = argv[2];
-	//
-	// Client client(hostname, servname);
-	// client.run();
-	//
+
 	// Here all resources are automatically released and library deinitialized
  */

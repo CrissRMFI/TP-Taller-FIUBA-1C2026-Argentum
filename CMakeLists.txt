@@ -104,7 +104,8 @@ endif()
 if(TALLER_CLIENT)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_client
-            client/protocolo/protocolo_cliente.h)
+            client/protocolo/protocolo_cliente.h
+    )
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
@@ -132,7 +133,15 @@ if(TALLER_SERVER)
     )
     FetchContent_MakeAvailable(tomlplusplus)
 
-    add_executable(taller_server)
+    add_executable(taller_server
+            server/server_.cpp
+            server/server_.h
+            server/enviador.cpp
+            server/enviador.h
+            server/recibidor.cpp
+            server/recibidor.h
+            server/aceptador/aceptador.cpp
+            server/cliente/cliente.cpp)
 
     add_dependencies(taller_server taller_common)
 

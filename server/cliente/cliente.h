@@ -8,31 +8,41 @@
 #include "../../common/thread/queue.h"
 #include "../gameloop/comando_cliente.h"
 #include "../protocolo/protocolo_servidor.h"
+#include "common/thread/thread.h"
+#include "server/gameloop/monitor_clientes.h"
 
-class Cliente {
+class Cliente : public Thread{
 private:
-    uint16_t id;
-    ProtocoloServidor protocolo;
+    uint16_t idCliente;
+    ProtocoloServidor protocolo_servidor;
     Queue<MensajeServidor> colaSalida;
-    Queue<ComandoCliente>* colaComandos;
+    Queue<ComandoJugador>& colaComandos;
+    MonitorClientes& monitorClientes;
+    std::atomic<bool> estaActivo{true};
 
 public:
-    Cliente(uint16_t id, Socket&& skt, Queue<ComandoCliente>* colaComandos);
+    Cliente(uint16_t id,
+        Socket&& skt,
+        Queue<ComandoJugador>& colaComandos,
+        MonitorClientes& monitor);
+
+    uint16_t id() const;
+
+    uint16_t obtenerId() const;
+    Queue<MensajeServidor>& obtenerColaSalida();
 
     Cliente(const Cliente&) = delete;
     Cliente& operator=(const Cliente&) = delete;
     Cliente(Cliente&&) = delete;
     Cliente& operator=(Cliente&&) = delete;
 
-    void iniciar();
-    void detener();
-    void esperar();
-    bool estaActivo() const;
 
-    uint16_t obtenerId() const { return id; }
-    Queue<MensajeServidor>* obtenerColaSalida() { return &colaSalida; }
+    void run() override;
+    void stop() override;
 
-    ~Cliente() = default;
+    ~Cliente() override = default;
+
+
 };
 
 #endif

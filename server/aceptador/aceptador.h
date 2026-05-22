@@ -14,24 +14,25 @@
 
 class Aceptador: public Thread {
 private:
-    Socket skt;
-    Queue<ComandoCliente>* colaComandos;
-    MonitorClientes* monitorClientes;
-    std::list<std::unique_ptr<Cliente>> clientes;
-    uint16_t proximoId;
+    Socket& skt_aceptador;
+    Queue<ComandoJugador>& colaComandos;
+    MonitorClientes& monitorClientes;
+    std::vector<Cliente*> clientes;
+    //uint16_t proximoId;
+    std::atomic<bool> running {true};
 
-    void limpiarClientesMuertos();
 
 public:
-    Aceptador(const char* puerto,
-              Queue<ComandoCliente>* colaComandos,
-              MonitorClientes* monitorClientes);
+    Aceptador(Socket& skt,
+              Queue<ComandoJugador>& colaComandos,
+              MonitorClientes& monitorClientes);
 
     void run() override;
     void stop() override;
+    void reap();
+    void cleanup();
 
-    Aceptador(const Aceptador&) = delete;
-    Aceptador& operator=(const Aceptador&) = delete;
+    ~Aceptador() override;
 };
 
 #endif

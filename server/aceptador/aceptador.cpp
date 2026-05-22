@@ -5,58 +5,74 @@
 
 #include <sys/socket.h>
 
-Aceptador::Aceptador(const char* puerto,
-                     Queue<ComandoCliente>* colaComandos,
-                     MonitorClientes* monitorClientes)
-    : skt(puerto),
+#include "common/socket/liberror.h"
+
+Aceptador::Aceptador(Socket& skt,
+                     Queue<ComandoJugador>& colaComandos,
+                     MonitorClientes& monitorClientes)
+    : skt_aceptador(skt),
       colaComandos(colaComandos),
-      monitorClientes(monitorClientes),
-      proximoId(1) {}
+      monitorClientes(monitorClientes)
+      {}
 
 void Aceptador::run() {
-    while (should_keep_running()) {
+    while (running) {
         try {
-            Socket peer = skt.accept();
-            uint16_t id = proximoId++;
-            auto cliente = std::make_unique<Cliente>(id, std::move(peer), colaComandos);
-            cliente->iniciar();
-            monitorClientes->agregarCliente(id, cliente->obtenerColaSalida());
-            clientes.push_back(std::move(cliente));
-            limpiarClientesMuertos();
-        } catch (const std::exception& e) {
-            if (should_keep_running()) {
-                std::cerr << "aceptador: " << e.what() << '\n';
-            }
-            break;
-        }
-    }
+            Socket peer = skt_aceptador.accept();
+            std::cout << "cliente aceptado" << std::endl;
+            const uint16_t clienteID = monitorClientes.almacenarID();
+            auto *cliente = new Cliente (clienteID, std::move(peer), colaComandos, monitorClientes);
+            monitorClientes.agregarCliente(clienteID, cliente->obtenerColaSalida());
+            cliente->start();
+            clientes.push_back(cliente);
 
-    for (auto& c : clientes) {
-        c->detener();
-        c->esperar();
-        monitorClientes->removerCliente(c->obtenerId());
+        } catch (const std::exception& e) {
+            running = false;
+           // std::cerr << "aceptador: " << e.what() << '\n';
+
+        }
+        reap();
     }
-    clientes.clear();
+    cleanup();
 }
 
 void Aceptador::stop() {
-    Thread::stop();
+    if (!running) {return;}
+    running = false;
+
     try {
-        skt.shutdown(SHUT_RDWR);
-        skt.close();
-    } catch (...) {
+
+        skt_aceptador.shutdown(2);
+
+    } catch (const LibError&) {
+        // shutdown puede fallar en un socket listener; close igual debe ejecutarse.
+        skt_aceptador.close();
+    } catch (const std::runtime_error&) {
+        // ignoramos errores al intentar destrabar accept
     }
 }
 
-void Aceptador::limpiarClientesMuertos() {
-    auto it = clientes.begin();
-    while (it != clientes.end()) {
-        if (!(*it)->estaActivo()) {
-            (*it)->esperar();
-            monitorClientes->removerCliente((*it)->obtenerId());
-            it = clientes.erase(it);
-        } else {
-            ++it;
+void Aceptador::reap() {
+    const auto new_end = std::remove_if(clientes.begin(),clientes.end(),[](auto& cliente) {
+        const bool is_dead = !cliente->is_alive();
+        if (is_dead) {
+            cliente-> stop();
+            cliente->join();
+            delete cliente;
         }
-    }
+        return is_dead;
+    });
+    clientes.erase(new_end, clientes.end());
 }
+
+void Aceptador::cleanup() {
+    for (auto* cliente : clientes) {
+        cliente->stop();
+        cliente->join();
+        delete cliente;
+    }
+
+    clientes.clear();
+}
+
+Aceptador::~Aceptador() { cleanup();}

@@ -67,4 +67,9 @@ target_sources(taller_server
 
     # Criatura
     game/criatura.cpp
+
+    # Entidades
+        game/entidad/entidad.cpp
+        game/entidad/entidad.h
+
 )
