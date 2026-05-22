@@ -34,10 +34,41 @@ void Mapa::agregarNpc(const Npc& npc) {
         throw std::invalid_argument("Ya existe un NPC en la misma posicion");
     }
 
-    auto resultado = npcs.emplace(npc.getId(), npc);
+    const uint16_t id = npc.getId();
 
-    if (!resultado.second) {
-        throw std::invalid_argument("Ya existe un NPC con el mismo id");
+    switch (npc.getTipo()) {
+      case TipoNpc::Comerciante: {
+        Comerciante comerciante(id, npc.getPosicion());
+        auto resultado = npcs.emplace(id, comerciante);
+        if (!resultado.second) {
+          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+        }
+
+        comerciantes.emplace(id, comerciante);
+        return;
+      }
+      case TipoNpc::Banquero: {
+        Banquero banquero(id, npc.getPosicion());
+        auto resultado = npcs.emplace(id, banquero);
+        if (!resultado.second) {
+          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+        }
+
+        banqueros.emplace(id, banquero);
+        return;
+      }
+      case TipoNpc::Sacerdote: {
+        Sacerdote sacerdote(id, npc.getPosicion());
+        auto resultado = npcs.emplace(id, sacerdote);
+        if (!resultado.second) {
+          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+        }
+
+        sacerdotes.emplace(id, sacerdote);
+        return;
+      }
+      default:
+        throw std::invalid_argument("Tipo de NPC desconocido");
     }
 }
 
@@ -219,6 +250,30 @@ std::vector<Npc> Mapa::obtenerNpcs() const {
     resultado.push_back(npc);
   }
   return resultado;
+}
+
+std::optional<Sacerdote> Mapa::obtenerSacerdote(uint16_t idSacerdote) const {
+  auto it = sacerdotes.find(idSacerdote);
+  if (it != sacerdotes.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<Comerciante> Mapa::obtenerComerciante(uint16_t idComerciante) const {
+  auto it = comerciantes.find(idComerciante);
+  if (it != comerciantes.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<Banquero> Mapa::obtenerBanquero(uint16_t idBanquero) const {
+  auto it = banqueros.find(idBanquero);
+  if (it != banqueros.end()) {
+    return it->second;
+  }
+  return std::nullopt;
 }
 
 std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {

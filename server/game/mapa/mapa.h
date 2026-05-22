@@ -7,6 +7,9 @@
 #include <vector>
 #include "../modelo/posicion.h"
 #include "../npc/npc.h"
+#include "../npc/sacerdote.h"
+#include "../npc/comerciante.h"
+#include "../npc/banquero.h"
 #include "../criatura.h"
 
 struct ItemEnSuelo {
@@ -28,6 +31,9 @@ class Mapa {
     uint16_t ancho;
     uint16_t alto;
     std::map<uint16_t, Npc> npcs;
+    std::map<uint16_t, Sacerdote> sacerdotes;
+    std::map<uint16_t, Comerciante> comerciantes;
+    std::map<uint16_t, Banquero> banqueros;
     std::vector<ItemEnSuelo> itemsEnSuelo;
     std::vector<Posicion> paredes;
     std::vector<Ciudad> ciudades;
@@ -56,6 +62,9 @@ public:
     bool esZonaSegura(const Posicion &posicion) const;
     std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;
     std::vector<Npc> obtenerNpcs() const;
+    std::optional<Sacerdote> obtenerSacerdote(uint16_t idSacerdote) const;
+    std::optional<Comerciante> obtenerComerciante(uint16_t idComerciante) const;
+    std::optional<Banquero> obtenerBanquero(uint16_t idBanquero) const;
     std::vector<Npc> obtenerNpcsPorTipo(TipoNpc tipo) const;
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
