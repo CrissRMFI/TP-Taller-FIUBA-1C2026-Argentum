@@ -16,7 +16,3 @@ std::pair<bool, uint8_t> Sacerdote::venderItem(uint16_t idJugador, uint16_t idIt
 std::map<uint16_t, uint8_t> Sacerdote::listarItemsDisponibles() {
     return itemsDisponibles;
 }
-
-uint16_t Sacerdote::calcularCuracion() {
-    return factorCuracion;
-}

@@ -8,15 +8,13 @@
 class Sacerdote : public Npc {
 public:
     // Agregar factor de curación fijo en cfg
-    Sacerdote(uint16_t id, Posicion posicion) : Npc(id, TipoNpc::Sacerdote, posicion), itemsDisponibles({}), factorCuracion(10) {}
+    Sacerdote(uint16_t id, Posicion posicion) : Npc(id, TipoNpc::Sacerdote, posicion), itemsDisponibles({}) {}
     void agregarItemCatalogo(uint16_t idItem, uint8_t precioVenta);
 
     std::pair<bool, uint8_t> venderItem(uint16_t idJugador, uint16_t idItem);  // Devuelve <éxito, precioVenta>
     std::map<uint16_t, uint8_t> listarItemsDisponibles();
-    uint16_t calcularCuracion();
 
 private:
-    uint16_t factorCuracion;
     std::map<uint16_t, uint8_t> itemsDisponibles; // <idItem, precioVenta>
 };
 
