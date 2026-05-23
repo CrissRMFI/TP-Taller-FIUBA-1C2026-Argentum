@@ -2,10 +2,13 @@
 
 #include <chrono>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <utility>
 
 #include "traductor_protocolo.h"
+
+constexpr std::string_view ERROR_COLA_YA_CERRADA = "The queue is already closed.";
 
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
@@ -53,11 +56,19 @@ void Gameloop::detener() {
 
     try {
         colaComandos.close();
-    } catch (const std::runtime_error&) {}
+    } catch (const std::runtime_error& err) {
+        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
+            throw;
+        }
+    }
 
     try {
         colaEventosSesion.close();
-    } catch (const std::runtime_error&) {}
+    } catch (const std::runtime_error& err) {
+        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
+            throw;
+        }
+    }
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {
