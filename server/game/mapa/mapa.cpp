@@ -1,5 +1,9 @@
 #include "mapa.h"
+#include <array>
+#include <queue>
+#include <set>
 #include <stdexcept>
+#include <utility>
 
 Mapa::Mapa(uint16_t ancho, uint16_t alto) : ancho(ancho), alto(alto) {
   if (ancho == 0 || alto == 0) {
@@ -139,26 +143,53 @@ std::optional<Npc> Mapa::buscarSacerdoteMasCercano(const Posicion& posicion) con
   return masCercano;
 }
 
-std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion &posicion) const {
-    // Buscar la posición adyacente más cercana al sacerdote que no tenga pared, NPC, criatura o ítem en el suelo (recursivamente).
-    std::vector<Posicion> posicionesAdyacentes = {
-        {posicion.x, static_cast<uint16_t>(posicion.y - 1), posicion.mapaId},
-        {posicion.x, static_cast<uint16_t>(posicion.y + 1), posicion.mapaId},
-        {static_cast<uint16_t>(posicion.x - 1), posicion.y, posicion.mapaId},
-        {static_cast<uint16_t>(posicion.x + 1), posicion.y, posicion.mapaId}
-    };
-    for (const Posicion& p : posicionesAdyacentes) {
-        if (posicionValida(p) && !hayParedEn(p) && !hayNpcEn(p) && !hayCriaturaEn(p) && !hayItemEn(p)) {
-            return p;
+std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion& origen) const {
+    // BFS por anillos desde `origen`: devuelve la primera celda libre (sin pared,
+    // NPC, criatura o ítem en el suelo) que se alcance. Itera en orden de
+    // distancia Manhattan creciente, así la primera celda válida que se descole
+    // es también la más cercana a `origen`.
+    if (!posicionValida(origen)) {
+        return std::nullopt;
+    }
+
+    std::queue<Posicion> cola;
+    std::set<std::pair<uint16_t, uint16_t>> visitadas;
+
+    cola.push(origen);
+    visitadas.insert({origen.x, origen.y});
+
+    static constexpr std::array<std::pair<int, int>, 4> direcciones = {{
+        {0, -1}, {0, 1}, {-1, 0}, {1, 0}
+    }};
+
+    while (!cola.empty()) {
+        const Posicion actual = cola.front();
+        cola.pop();
+
+        if (!hayParedEn(actual) && !hayNpcEn(actual) &&
+            !hayCriaturaEn(actual) && !hayItemEn(actual)) {
+            return actual;
+        }
+
+        for (const auto& [dx, dy] : direcciones) {
+            // Evitar underflow de uint16_t al restar 1 en los bordes.
+            if ((dx < 0 && actual.x == 0) || (dy < 0 && actual.y == 0)) {
+                continue;
+            }
+            const uint16_t nx = static_cast<uint16_t>(static_cast<int>(actual.x) + dx);
+            const uint16_t ny = static_cast<uint16_t>(static_cast<int>(actual.y) + dy);
+
+            // Bounds explícitos contra las dimensiones del mapa.
+            if (nx >= ancho || ny >= alto) {
+                continue;
+            }
+
+            if (visitadas.insert({nx, ny}).second) {
+                cola.push(Posicion{nx, ny, origen.mapaId});
+            }
         }
     }
-    // Lo hacemos recursivamente buscando en las posiciones adyacentes a las adyacentes, hasta encontrar una posición válida o agotar el mapa.
-    for (const Posicion& p : posicionesAdyacentes) {
-        if (posicionValida(p) && !hayParedEn(p) && !hayNpcEn(p) && !hayCriaturaEn(p) && !hayItemEn(p)) {
-            return obtenerPosicionResurreccionCercana(p);
-        }
-    }
-    // No se encontró una posición válida (no debería pasar porque la función es recursiva y el mapa debería tener al menos una posición válida), pero por las dudas devolvemos std::nullopt.
+
     return std::nullopt;
 }
 
