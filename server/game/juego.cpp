@@ -10,10 +10,6 @@
 #include "objeto/catalogo_items.h"
 #include "../../common/protocolo/tipo_entidad.h"
 
-// `Juego` produce eventos de dominio (EventoSalida) sin tocar Opcode ni
-// estructuras del wire format. El TraductorProtocolo del gameloop los
-// convierte a MensajeSalida antes de despachar al `MonitorClientes`.
-
 namespace {
 uint8_t estadoEntidadDe(const Jugador& jugador) {
     if (jugador.getEstado() == Estado::Vivo) {
@@ -36,11 +32,10 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 }
 }
 
-
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
     
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
-                                                ClasePersonaje clase, Raza raza, Posicion posicion) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
+  
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
@@ -142,7 +137,6 @@ Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
 
     return &itJugador->second;
 }
-
 
 Clan* Juego::buscarClanPorNombre(const std::string& nombre) {
     for (auto& [id, c] : clanes)
@@ -741,8 +735,6 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     return mensajes;
 }
 
-
-
 std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
   
   Jugador* jugador = buscarJugador(idCliente);
@@ -1123,7 +1115,6 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
     return { armarInventario(idCliente, *jugador) };
 }
 
-
 std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& cmd) {
     
     Jugador* jugador = buscarJugador(idCliente);
@@ -1186,7 +1177,6 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
 
 }
 
-
 std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
                                                    const ComandoRetirarOro& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
@@ -1214,7 +1204,6 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
 
     return { armarInventario(idCliente, *jugador) };
 }
-
 
 std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
                                                const ComandoListar& /*cmd*/) {

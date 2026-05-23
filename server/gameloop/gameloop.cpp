@@ -20,12 +20,17 @@ void Gameloop::run() {
     using Clock = std::chrono::steady_clock;
 
     const auto duracionTick = std::chrono::milliseconds(tickMs);
+    // Tolerancia máxima de lag: 2 ticks del servidor
+    const float deltaMaxSegundos = std::chrono::duration<float>(duracionTick).count() * 2.0f;
     auto instanteAnterior = Clock::now();
     auto siguienteTick = instanteAnterior + duracionTick;
 
     while (should_keep_running()) {
         auto ahora = Clock::now();
         float deltaSegundos = std::chrono::duration<float>(ahora - instanteAnterior).count();
+        if (deltaSegundos > deltaMaxSegundos) {
+            deltaSegundos = deltaMaxSegundos;
+        }
         instanteAnterior = ahora;
 
         procesarEventosSesion();
