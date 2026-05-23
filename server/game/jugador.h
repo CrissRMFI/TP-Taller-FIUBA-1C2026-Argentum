@@ -17,6 +17,7 @@ enum class Estado {
     Vivo,
     Fantasma,
     Meditando,
+    Resucitando,
 };
 
 class Jugador {

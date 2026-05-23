@@ -17,6 +17,7 @@ struct MensajeEstadoPersonaje {
     uint32_t oro;
     uint8_t  nivel;
     uint32_t experiencia;
+    uint8_t  estado;
 };
 
 struct MensajePosicionEntidad {

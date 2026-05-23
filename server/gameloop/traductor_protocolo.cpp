@@ -17,7 +17,8 @@ MensajeServidor aMensajeServidor(const EventoJuego& evento) {
                      MensajeEstadoPersonaje{
                          e.vidaActual, e.vidaMax,
                          e.manaActual, e.manaMax,
-                         e.oro, e.nivel, e.experiencia } };
+                         e.oro, e.nivel, e.experiencia,
+                         static_cast<uint8_t>(e.estado)} };
         } else if constexpr (std::is_same_v<T, EventoPosicionEntidad>) {
             return { Opcode::POSICION_ENTIDAD,
                      MensajePosicionEntidad{ e.id, e.x, e.y, e.tipo, e.estado } };

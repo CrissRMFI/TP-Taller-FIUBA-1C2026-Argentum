@@ -280,6 +280,7 @@ void Jugador::inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segund
     tiempoRestanteInmovilizado = segundos;
     posicionResurreccion.x = resucitarX;
     posicionResurreccion.y = resucitarY;
+    estado = Estado::Resucitando;
 }
 
 void Jugador::meditar() {
@@ -466,7 +467,7 @@ bool Jugador::estaVivo() const {
 }
 
 bool Jugador::esFantasma() const {
-  return estado == Estado::Fantasma;
+    return estado == Estado::Fantasma || estado == Estado::Resucitando;
 }
 
 bool Jugador::enMeditacion() const {

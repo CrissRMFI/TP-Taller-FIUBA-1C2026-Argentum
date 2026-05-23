@@ -12,16 +12,15 @@
 
 namespace {
 uint8_t estadoEntidadDe(const Jugador& jugador) {
-    if (jugador.getEstado() == Estado::Vivo) {
-        return 0;
-    }
-
-    if (jugador.getEstado() == Estado::Fantasma) {
-        return 1;
-    }
-
-    if (jugador.getEstado() == Estado::Meditando) {
-        return 2;
+    switch (jugador.getEstado()) {
+        case Estado::Vivo:
+            return 0;
+        case Estado::Fantasma:
+            return 1;
+        case Estado::Meditando:
+            return 2;
+        case Estado::Resucitando:
+            return 3;
     }
 
     return 0;
@@ -156,7 +155,8 @@ EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
              EventoEstadoPersonaje{
                  jugador.getVidaActual(), jugador.getVidaMax(),
                  jugador.getManaActual(), jugador.getManaMax(),
-                 jugador.getOro(), jugador.getNivel(), jugador.getExperiencia()
+                 jugador.getOro(), jugador.getNivel(), jugador.getExperiencia(),
+                 jugador.getEstado()
              } };
 }
 
