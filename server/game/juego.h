@@ -80,8 +80,9 @@ class Juego {
     std::list<EventoSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
     std::list<EventoSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
 
-    bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
-    bool posicionOcupadaPorAlgunJugador(const Posicion& posicion) const;
+    std::optional<uint16_t> buscarIdJugadorEn(
+            const Posicion& posicion,
+            std::optional<uint16_t> idExcluido = std::nullopt) const;
     std::list<EventoSalida> actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;
@@ -92,7 +93,6 @@ class Juego {
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
     std::list<EventoSalida> atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
-    std::optional<uint16_t> buscarIdJugadorEn(const Posicion& posicion) const;
 };
 
 #endif

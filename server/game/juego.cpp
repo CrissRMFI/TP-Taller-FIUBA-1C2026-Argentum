@@ -114,14 +114,20 @@ Jugador* Juego::buscarJugador(uint16_t id) {
     return (it != jugadoresConectados.end()) ? &it->second : nullptr;
 }
 
-bool Juego::posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const {
-    for (const auto& [idOtro, otro] : jugadoresConectados) {
-        if (idOtro != idCliente && mismaCelda(otro.getPosicion(), posicion)) {
-            return true;
+std::optional<uint16_t> Juego::buscarIdJugadorEn(
+        const Posicion& posicion,
+        std::optional<uint16_t> idExcluido) const {
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (idExcluido.has_value() && idCliente == *idExcluido) {
+            continue;
+        }
+
+        if (mismaCelda(jugador.getPosicion(), posicion)) {
+            return idCliente;
         }
     }
 
-    return false;
+    return std::nullopt;
 }
 
 Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
@@ -415,7 +421,6 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         }
     }
 
-    // TODO: respawn
     if (cfg.movimientoCriaturasTicks > 0 && ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
       std::list<EventoSalida> mensajesCriaturas = actualizarCriaturas();
       mensajes.splice(mensajes.end(), mensajesCriaturas);
@@ -812,7 +817,7 @@ std::list<EventoSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMo
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (posicionOcupadaPorJugador(idCliente, destino)) {
+    if (buscarIdJugadorEn(destino, idCliente).has_value()) {
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
@@ -1363,30 +1368,8 @@ std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura, cons
     return {};
 }
 
-bool Juego::posicionOcupadaPorAlgunJugador(const Posicion& posicion) const {
-    for (const auto& [idCliente, jugador] : jugadoresConectados) {
-      if (jugador.getPosicion().mapaId == posicion.mapaId && jugador.getPosicion().x == posicion.x && jugador.getPosicion().y == posicion.y) {
-        return true;
-      }
-    }
-    
-    return false;
-}
-
 bool Juego::puedeMoverCriaturaA(const Posicion& destino) const {
-  return mapa.puedeOcuparCriatura(destino) && !posicionOcupadaPorAlgunJugador(destino);
-}
-
-std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion) const {
-  for (const auto& [idCliente, jugador] : jugadoresConectados) {
-    const Posicion posicionJugador = jugador.getPosicion();
-    
-    if (posicionJugador.mapaId == posicion.mapaId && posicionJugador.x == posicion.x && posicionJugador.y == posicion.y) {
-      return idCliente;
-    }
-  }
-  
-  return std::nullopt;
+  return mapa.puedeOcuparCriatura(destino) && !buscarIdJugadorEn(destino).has_value();
 }
 
 std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador) {
@@ -1449,7 +1432,7 @@ bool Juego::agregarCriatura(const Criatura& criatura) {
         return false;
     }
 
-    if (posicionOcupadaPorAlgunJugador(posicion)) {
+    if (buscarIdJugadorEn(posicion).has_value()) {
         return false;
     }
 
