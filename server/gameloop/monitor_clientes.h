@@ -2,6 +2,7 @@
 #define MONITOR_CLIENTES_H
 
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
@@ -11,13 +12,13 @@
 
 class MonitorClientes {
 private:
-    std::unordered_map<uint16_t, Queue<MensajeServidor>*> colasSalida;
+    std::unordered_map<uint16_t, std::shared_ptr<Queue<MensajeServidor>>> colasSalida;
     std::mutex mtx;
 
 public:
     MonitorClientes() = default;
 
-    void agregarCliente(uint16_t idCliente, Queue<MensajeServidor>* colaSalida);
+    void agregarCliente(uint16_t idCliente, std::shared_ptr<Queue<MensajeServidor>> colaSalida);
     void removerCliente(uint16_t idCliente);
 
     void enviarA(uint16_t idCliente, const MensajeServidor& mensaje);
