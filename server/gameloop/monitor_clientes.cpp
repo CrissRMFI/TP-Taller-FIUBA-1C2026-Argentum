@@ -138,7 +138,7 @@ void MonitorClientes::despachar(const MensajeSalida& mensajeSalida) {
         broadcast(mensajeSalida.mensaje);
     } else if (mensajeSalida.tipoDestino == TipoDestino::TODOS_EXCEPTO_UNO) {
         broadcastExcepto(mensajeSalida.idCliente, mensajeSalida.mensaje);
-    } else {
+    } else if (mensajeSalida.tipoDestino == TipoDestino::UNO) {
         enviarA(mensajeSalida.idCliente, mensajeSalida.mensaje);
     }
 }

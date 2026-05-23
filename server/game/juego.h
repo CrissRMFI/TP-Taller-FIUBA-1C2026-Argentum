@@ -47,6 +47,7 @@ class Juego {
     // Construcción de eventos comunes
     EventoSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
     EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
+    EventoSalida armarContinue(uint16_t idCliente);
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);

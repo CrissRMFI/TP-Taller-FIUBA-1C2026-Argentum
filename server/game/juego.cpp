@@ -151,6 +151,10 @@ EventoSalida Juego::armarError(uint16_t idCliente, CodigoErrorAccion cod) {
     return { TipoDestino::UNO, idCliente, EventoErrorAccion{ cod } };
 }
 
+EventoSalida Juego::armarContinue(uint16_t idCliente) {
+    return { TipoDestino::NINGUNO, idCliente, EventoContinue{} };
+}
+
 EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
     return { TipoDestino::UNO, idCliente,
              EventoEstadoPersonaje{
@@ -747,15 +751,10 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         float tiempoInmovilizado = distancia * cfg.factorTiempoResurreccion;
 
         jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
-
-        // Notificar al jugador que esta reviviendo(Inmovilizado)? ArmarEstado pordria tener la variable de si esta inmovilizado para que lo muestre el cliente
-        std::list<EventoSalida> mensajes = {
-            armarEstado(idCliente, *jugador)
+        
+        return {
+            armarContinue(idCliente)
         };
-
-        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
-        return mensajes;
-
     }
 }
 

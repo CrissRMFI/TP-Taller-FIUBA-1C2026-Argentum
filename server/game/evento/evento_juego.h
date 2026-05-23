@@ -110,6 +110,8 @@ struct EventoErrorAccion {
     CodigoErrorAccion codigo;
 };
 
+struct EventoContinue {};
+
 using EventoJuego = std::variant<
         EventoEstadoPersonaje,
         EventoPosicionEntidad,
@@ -126,6 +128,7 @@ using EventoJuego = std::variant<
         EventoClan,
         EventoResucitado,
         EventoListaItems,
-        EventoErrorAccion>;
+        EventoErrorAccion,
+        EventoContinue>;
 
 #endif
