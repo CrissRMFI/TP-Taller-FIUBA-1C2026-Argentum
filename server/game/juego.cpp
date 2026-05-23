@@ -1209,9 +1209,57 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
 }
 
 std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
-                                               const ComandoListar& /*cmd*/) {
-    // TODO: validar jugador vivo y cercanía a comerciante o sacerdote.
-    // El listado de ítems disponibles debe depender del NPC con el que se interactúa.
+                                               const ComandoListar& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+
+    if (!jugador || !jugador->estaVivo()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const Posicion posicionJugador = jugador->getPosicion();
+
+    if (Comerciante* comerciante = mapa.obtenerComerciante(cmd.idNPC)) {
+        const Posicion posicionNpc = comerciante->getPosicion();
+        if (!posicionJugador.mismaMapa(posicionNpc) ||
+                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        std::vector<uint16_t> ids;
+        for (const auto& [idItem, precios] : comerciante->listarItemsDisponibles()) {
+            ids.push_back(idItem);
+        }
+
+        return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ ids } } };
+    }
+
+    if (Sacerdote* sacerdote = mapa.obtenerSacerdote(cmd.idNPC)) {
+        const Posicion posicionNpc = sacerdote->getPosicion();
+        if (!posicionJugador.mismaMapa(posicionNpc) ||
+                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        std::vector<uint16_t> ids;
+        for (const auto& [idItem, precio] : sacerdote->listarItemsDisponibles()) {
+            ids.push_back(idItem);
+        }
+
+        return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ ids } } };
+    }
+
+    if (Banquero* banquero = mapa.obtenerBanquero(cmd.idNPC)) {
+        const Posicion posicionNpc = banquero->getPosicion();
+        if (!posicionJugador.mismaMapa(posicionNpc) ||
+                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        std::pair<uint32_t, std::vector<uint16_t>> cuenta =
+                banquero->listarItemsDisponibles(idCliente);
+        return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ cuenta.second } } };
+    }
+
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 }
 
