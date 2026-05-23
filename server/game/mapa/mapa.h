@@ -30,7 +30,6 @@ class Mapa {
   private:
     uint16_t ancho;
     uint16_t alto;
-    std::map<uint16_t, Npc> npcs;
     std::map<uint16_t, Sacerdote> sacerdotes;
     std::map<uint16_t, Comerciante> comerciantes;
     std::map<uint16_t, Banquero> banqueros;
@@ -41,8 +40,18 @@ class Mapa {
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
+    // Itera todos los NPCs (sacerdotes + comerciantes + banqueros) tratándolos
+    // como `const Npc&`. Reemplaza al antiguo mapa genérico `npcs` para evitar
+    // duplicar el ownership de cada NPC en dos colecciones distintas.
+    template <typename F>
+    void forEachNpc(F&& fn) const {
+        for (const auto& [id, npc] : sacerdotes) fn(npc);
+        for (const auto& [id, npc] : comerciantes) fn(npc);
+        for (const auto& [id, npc] : banqueros) fn(npc);
+    }
+
 public:
-    
+
     Mapa(uint16_t ancho, uint16_t alto);
     void agregarNpc(const Npc& npc);
     void agregarPared(const Posicion& posicion);
@@ -54,7 +63,7 @@ public:
     std::optional<Npc> buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
     std::optional<Npc> buscarSacerdoteMasCercano(const Posicion& posicion) const;
     bool hayNpcEn(const Posicion& posicion) const;
-    
+
     bool hayItemEn(const Posicion& posicion) const;
     bool agregarItem(const Posicion& posicion, uint16_t idItem);
     void agregarCiudad(const Ciudad &ciudad);
