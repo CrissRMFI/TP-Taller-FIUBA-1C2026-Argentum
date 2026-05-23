@@ -593,21 +593,22 @@ std::list<EventoSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, co
     // Para operaciones sobre miembros activos/pendientes el objetivo puede estar desconectado.
     // Buscamos su id iterando ambos mapas.
     uint16_t idObjetivo = 0;
-    
+
     auto itNickConectado = indiceNicksConectados.find(comando.nick);
-    
+
     if (itNickConectado != indiceNicksConectados.end()) {
-      idObjetivo = itNickConectado->second;
+        idObjetivo = itNickConectado->second;
     }
-    
+
     if (!idObjetivo) {
-    for (auto& [id, j] : jugadoresDesconectados) {
-        if (j.getNombre() == comando.nick) {
-            idObjetivo = id;
-            break;
+        for (auto& [id, j] : jugadoresDesconectados) {
+            if (j.getNombre() == comando.nick) {
+                idObjetivo = id;
+                break;
+            }
         }
     }
-}
+
     if (!idObjetivo)
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
 
@@ -615,8 +616,8 @@ std::list<EventoSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente, co
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
 
     if ((accion == Opcode::CLAN_KICK || accion == Opcode::CLAN_BAN) &&
-    clan.esFundador(comando.nick)) {
-      return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+            clan.esFundador(comando.nick)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
     std::list<EventoSalida> msgs;
