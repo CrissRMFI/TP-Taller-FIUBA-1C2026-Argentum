@@ -27,9 +27,6 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
     return 0;
 }
 
-bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
-    return primera.mapaId == segunda.mapaId && primera.x == segunda.x && primera.y == segunda.y;
-}
 }
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
@@ -122,7 +119,7 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(
             continue;
         }
 
-        if (mismaCelda(jugador.getPosicion(), posicion)) {
+        if (jugador.getPosicion() == posicion) {
             return idCliente;
         }
     }
