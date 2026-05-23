@@ -33,9 +33,9 @@ bool mismaCelda(const Posicion& primera, const Posicion& segunda) {
 }
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
-    
+
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
-  
+
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return { armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
@@ -1229,18 +1229,27 @@ std::list<EventoSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCu
 
 std::list<EventoSalida> Juego::actualizarCriaturas() {
     std::list<EventoSalida> mensajes;
-    std::vector<Criatura> criaturas = mapa.obtenerCriaturas();
+    std::vector<uint16_t> idsCriaturas;
 
-    for (const Criatura& criatura : criaturas) {
-        std::optional<Jugador> jugadorCercano = buscarJugadorCercano(criatura);
+    for (const Criatura& criatura : mapa.obtenerCriaturas()) {
+        idsCriaturas.push_back(criatura.getId());
+    }
+
+    for (uint16_t idCriatura : idsCriaturas) {
+        Criatura* criatura = mapa.obtenerCriaturaPor(idCriatura);
+        if (criatura == nullptr) {
+            continue;
+        }
+
+        std::optional<Jugador> jugadorCercano = buscarJugadorCercano(*criatura);
 
         if (jugadorCercano.has_value()) {
             std::list<EventoSalida> mensajesAtaque =
-                moverCriaturaHacia(criatura, jugadorCercano->getPosicion());
+                moverCriaturaHacia(*criatura, jugadorCercano->getPosicion());
 
             mensajes.splice(mensajes.end(), mensajesAtaque);
         } else {
-            moverCriaturaAleatoriamente(criatura);
+            moverCriaturaAleatoriamente(*criatura);
         }
     }
 

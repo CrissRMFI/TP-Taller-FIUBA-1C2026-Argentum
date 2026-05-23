@@ -312,6 +312,16 @@ bool Mapa::hayCriaturaEn(const Posicion& posicion) const {
   return buscarCriaturaEn(posicion).has_value();
 }
 
+Criatura* Mapa::obtenerCriaturaPor(uint16_t idCriatura) {
+  auto it = criaturas.find(idCriatura);
+  return (it != criaturas.end()) ? &it->second : nullptr;
+}
+
+const Criatura* Mapa::obtenerCriaturaPor(uint16_t idCriatura) const {
+  auto it = criaturas.find(idCriatura);
+  return (it != criaturas.end()) ? &it->second : nullptr;
+}
+
 std::vector<Criatura> Mapa::obtenerCriaturas() const {
   std::vector<Criatura> resultado;
   for (const auto& [id, criatura] : criaturas) {

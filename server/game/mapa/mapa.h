@@ -83,6 +83,8 @@ public:
     void agregarCriatura(const Criatura& criatura);
     bool hayCriaturaEn(const Posicion& posicion) const;
     std::optional<Criatura> buscarCriaturaEn(const Posicion& posicion) const;
+    Criatura* obtenerCriaturaPor(uint16_t idCriatura);
+    const Criatura* obtenerCriaturaPor(uint16_t idCriatura) const;
     std::vector<Criatura> obtenerCriaturas() const;
     bool puedeOcuparCriatura(const Posicion& posicion) const;
     void moverCriatura(uint16_t idCriatura, const Posicion& destino);
