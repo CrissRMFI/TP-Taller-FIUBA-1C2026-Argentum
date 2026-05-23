@@ -9,16 +9,27 @@ Cliente::Cliente(uint16_t idCliente,
     : id(idCliente),
       protocolo(std::move(skt)),
       colaSalida(),
-      colaComandos(colaComandos) {}
+      receptor(idCliente, protocolo, colaComandos),
+      emisor(idCliente, protocolo, &colaSalida) {}
 
 void Cliente::iniciar() {
     std::cout << "[cliente " << id << "] conectado\n";
+    receptor.start();
+    emisor.start();
 }
 
-void Cliente::detener() {}
+void Cliente::detener() {
+    receptor.stop();
+    emisor.stop();
+    protocolo.cerrarConexion();
+    colaSalida.close();
+}
 
-void Cliente::esperar() {}
+void Cliente::esperar() {
+    receptor.join();
+    emisor.join();
+}
 
 bool Cliente::estaActivo() const {
-    return true;
+    return receptor.is_alive() || emisor.is_alive();
 }

@@ -8,13 +8,16 @@
 #include "../../common/thread/queue.h"
 #include "../gameloop/comando_cliente.h"
 #include "../protocolo/protocolo_servidor.h"
+#include "emisor.h"
+#include "receptor.h"
 
 class Cliente {
 private:
     uint16_t id;
     ProtocoloServidor protocolo;
     Queue<MensajeServidor> colaSalida;
-    Queue<ComandoCliente>* colaComandos;
+    Receptor receptor;
+    Emisor emisor;
 
 public:
     Cliente(uint16_t id, Socket&& skt, Queue<ComandoCliente>* colaComandos);

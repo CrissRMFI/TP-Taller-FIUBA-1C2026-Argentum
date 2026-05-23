@@ -4,12 +4,16 @@ target_sources(taller_server
     main.cpp
     aceptador/aceptador.cpp
     cliente/cliente.cpp
+    cliente/receptor.cpp
+    cliente/emisor.cpp
     gameloop/monitor_clientes.cpp
     protocolo/protocolo_servidor.cpp
     PUBLIC
     # .h files
     aceptador/aceptador.h
     cliente/cliente.h
+    cliente/receptor.h
+    cliente/emisor.h
     gameloop/comando_cliente.h
     gameloop/mensaje_salida.h
     gameloop/monitor_clientes.h
