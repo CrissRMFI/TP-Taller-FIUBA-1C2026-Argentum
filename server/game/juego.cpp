@@ -64,7 +64,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         jugadoresConectados.at(id).actualizarId(id);
         jugadoresDesconectados.erase(itDesconectado);
     } else {
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, &cfg));
     }
 
     indiceNicksConectados[nombre] = id;

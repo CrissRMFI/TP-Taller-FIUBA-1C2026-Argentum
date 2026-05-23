@@ -1,6 +1,7 @@
 #include "jugador.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <random>
 
@@ -30,7 +31,7 @@ static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t max
     }
 }
 
-Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config) :
+Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego* config) :
         idJugador(id),
         idClan(0),
         nombre(nombre),
@@ -53,13 +54,14 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         posicion(posicion),
         posicionResurreccion(posicion),
         cfg(config),
-        inventario(config.inventarioMaxItems),
+        inventario(config != nullptr ? config->inventarioMaxItems : 0),
         idItemsBanco(),
         clase(clase),
         estado(Estado::Vivo),
         raza(raza),
         fundadoClan(false) {
-    const StatsRaza& sr = cfg.statsRaza(raza);
+    assert(cfg != nullptr);
+    const StatsRaza& sr = cfg->statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
     agilidad = static_cast<uint8_t>(sr.agilidad);
@@ -67,17 +69,17 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
     constitucion = static_cast<uint8_t>(sr.constitucion);
 
     vidaMax = ReglasJuego::calcularVidaMaxima(
-            cfg, raza, clase, nivel, constitucion);
+            *cfg, raza, clase, nivel, constitucion);
 
     manaMax = ReglasJuego::calcularManaMaximo(
-            cfg, raza, clase, nivel, inteligencia);
+            *cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
 }
 
 void Jugador::recibir_danio(uint16_t cantidad) {
-    if (cfg.invulnerable || !estaVivo()) {
+    if (cfg->invulnerable || !estaVivo()) {
         return;
     }
 
@@ -90,7 +92,7 @@ void Jugador::recibir_danio(uint16_t cantidad) {
 }
 
 uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo) {
-    if (!estaVivo() || cfg.invulnerable) {
+    if (!estaVivo() || cfg->invulnerable) {
         return 0;
     }
 
@@ -163,7 +165,7 @@ void Jugador::recuperar(float segundos) {
                 recuperacionVidaPendiente,
                 vidaActual,
                 vidaMax,
-                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+                ReglasJuego::calcularRecuperacionNatural(*cfg, raza, segundos));
     } else {
         recuperacionVidaPendiente = 0.0f;
     }
@@ -173,7 +175,7 @@ void Jugador::recuperar(float segundos) {
                 recuperacionManaPendiente,
                 manaActual,
                 manaMax,
-                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+                ReglasJuego::calcularRecuperacionNatural(*cfg, raza, segundos));
     } else {
         recuperacionManaPendiente = 0.0f;
     }
@@ -184,7 +186,7 @@ void Jugador::recuperar(float segundos) {
                 manaActual,
                 manaMax,
                 ReglasJuego::calcularRecuperacionMeditacion(
-                        cfg, clase, inteligencia, segundos));
+                        *cfg, clase, inteligencia, segundos));
 
         if (manaActual >= manaMax) {
             manaActual = manaMax;
@@ -200,27 +202,27 @@ void Jugador::recuperar(float segundos) {
         meditacionManaPendiente = 0.0f;
     }
 
-    if (cfg.vidaInfinita) {
+    if (cfg->vidaInfinita) {
         vidaActual = vidaMax;
     }
 
-    if (cfg.manaInfinito) {
+    if (cfg->manaInfinito) {
         manaActual = manaMax;
     }
 
-    if (cfg.suicidio) {
+    if (cfg->suicidio) {
       morir();
     }
 }
 
 void Jugador::ganar_experiencia(uint32_t cantidad) {
-    if (cfg.expX10) {
+    if (cfg->expX10) {
         cantidad *= 10;
     }
 
     experiencia += cantidad;
 
-    uint32_t limite = ReglasJuego::calcularLimiteExperiencia(cfg, nivel);
+    uint32_t limite = ReglasJuego::calcularLimiteExperiencia(*cfg, nivel);
 
     if (experiencia >= limite) {
         experiencia -= limite;
@@ -230,7 +232,7 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
 
 void Jugador::sumar_oro(uint32_t cantidad) {
     uint32_t totalActual = oroMano + oroExceso;
-    uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
+    uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
 
     uint32_t espacioTotal = 0;
     if (totalActual < maximoTotal) {
@@ -428,7 +430,7 @@ bool Jugador::sacar_oro_banco(uint32_t cantidad) {
         return false;
     }
 
-    uint32_t maximoEnMano = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
+    uint32_t maximoEnMano = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
     if (getOro() + cantidad > maximoEnMano) {
         return false;
     }
@@ -524,7 +526,7 @@ bool Jugador::fundo_clan() const {
 }
 
 bool Jugador::es_newbie() const {
-    return nivel <= static_cast<uint8_t>(cfg.nivelNewbie);
+    return nivel <= static_cast<uint8_t>(cfg->nivelNewbie);
 }
 
 std::string Jugador::getNombre() const {
@@ -575,10 +577,10 @@ void Jugador::subirNivel() {
     nivel++;
 
     vidaMax = ReglasJuego::calcularVidaMaxima(
-            cfg, raza, clase, nivel, constitucion);
+            *cfg, raza, clase, nivel, constitucion);
 
     manaMax = ReglasJuego::calcularManaMaximo(
-            cfg, raza, clase, nivel, inteligencia);
+            *cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
@@ -589,7 +591,7 @@ void Jugador::morir() {
 
     if (!es_newbie()) {
         uint32_t experienciaAPerder =
-                ReglasJuego::calcularPerdidaExperienciaMuerte(cfg, experiencia);
+                ReglasJuego::calcularPerdidaExperienciaMuerte(*cfg, experiencia);
 
         perder_experiencia(experienciaAPerder);
     }
@@ -616,7 +618,7 @@ void Jugador::consumir_item(uint16_t idItem) {
 
 void Jugador::normalizarOro() {
     uint32_t total = oroMano + oroExceso;
-    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(cfg, nivel);
+    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(*cfg, nivel);
 
     oroMano = std::min(total, oroSeguro);
     oroExceso = total - oroMano;
@@ -624,12 +626,12 @@ void Jugador::normalizarOro() {
 
 bool Jugador::esquiva_ataque() {
     float r = std::uniform_real_distribution<float>(0.f, 1.f)(rng);
-    return std::pow(r, static_cast<float>(agilidad)) < cfg.esquivarUmbral;
+    return std::pow(r, static_cast<float>(agilidad)) < cfg->esquivarUmbral;
 }
 
 bool Jugador::es_golpe_critico() {
     float valorAleatorio = std::uniform_real_distribution<float>(0.0f, 1.0f)(rng);
-    return ReglasJuego::esGolpeCritico(cfg, valorAleatorio);
+    return ReglasJuego::esGolpeCritico(*cfg, valorAleatorio);
 }
 
 void Jugador::actualizarId(uint16_t nuevoId) {
