@@ -245,28 +245,34 @@ std::vector<Npc> Mapa::obtenerNpcs() const {
   return resultado;
 }
 
-std::optional<Sacerdote> Mapa::obtenerSacerdote(uint16_t idSacerdote) const {
+Sacerdote* Mapa::obtenerSacerdote(uint16_t idSacerdote) {
   auto it = sacerdotes.find(idSacerdote);
-  if (it != sacerdotes.end()) {
-    return it->second;
-  }
-  return std::nullopt;
+  return (it != sacerdotes.end()) ? &it->second : nullptr;
 }
 
-std::optional<Comerciante> Mapa::obtenerComerciante(uint16_t idComerciante) const {
+Comerciante* Mapa::obtenerComerciante(uint16_t idComerciante) {
   auto it = comerciantes.find(idComerciante);
-  if (it != comerciantes.end()) {
-    return it->second;
-  }
-  return std::nullopt;
+  return (it != comerciantes.end()) ? &it->second : nullptr;
 }
 
-std::optional<Banquero> Mapa::obtenerBanquero(uint16_t idBanquero) const {
+Banquero* Mapa::obtenerBanquero(uint16_t idBanquero) {
   auto it = banqueros.find(idBanquero);
-  if (it != banqueros.end()) {
-    return it->second;
-  }
-  return std::nullopt;
+  return (it != banqueros.end()) ? &it->second : nullptr;
+}
+
+const Sacerdote* Mapa::obtenerSacerdote(uint16_t idSacerdote) const {
+  auto it = sacerdotes.find(idSacerdote);
+  return (it != sacerdotes.end()) ? &it->second : nullptr;
+}
+
+const Comerciante* Mapa::obtenerComerciante(uint16_t idComerciante) const {
+  auto it = comerciantes.find(idComerciante);
+  return (it != comerciantes.end()) ? &it->second : nullptr;
+}
+
+const Banquero* Mapa::obtenerBanquero(uint16_t idBanquero) const {
+  auto it = banqueros.find(idBanquero);
+  return (it != banqueros.end()) ? &it->second : nullptr;
 }
 
 std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {
