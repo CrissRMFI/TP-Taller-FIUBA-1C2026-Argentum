@@ -70,14 +70,12 @@ public:
     bool esCiudad(const Posicion &posicion) const;
     bool esZonaSegura(const Posicion &posicion) const;
     std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;
-    std::vector<Npc> obtenerNpcs() const;
-    Sacerdote*       obtenerSacerdote(uint16_t idSacerdote);
-    Comerciante*     obtenerComerciante(uint16_t idComerciante);
-    Banquero*        obtenerBanquero(uint16_t idBanquero);
+    Sacerdote*         obtenerSacerdote(uint16_t idSacerdote);
+    Comerciante*       obtenerComerciante(uint16_t idComerciante);
+    Banquero*          obtenerBanquero(uint16_t idBanquero);
     const Sacerdote*   obtenerSacerdote(uint16_t idSacerdote) const;
     const Comerciante* obtenerComerciante(uint16_t idComerciante) const;
     const Banquero*    obtenerBanquero(uint16_t idBanquero) const;
-    std::vector<Npc> obtenerNpcsPorTipo(TipoNpc tipo) const;
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
     std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;

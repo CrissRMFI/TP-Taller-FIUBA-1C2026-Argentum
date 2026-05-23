@@ -237,14 +237,6 @@ std::optional<Npc> Mapa::buscarNpcEn(const Posicion& posicion) const {
   return resultado;
 }
 
-std::vector<Npc> Mapa::obtenerNpcs() const {
-  std::vector<Npc> resultado;
-  forEachNpc([&](const Npc& npc) {
-    resultado.push_back(npc);
-  });
-  return resultado;
-}
-
 Sacerdote* Mapa::obtenerSacerdote(uint16_t idSacerdote) {
   auto it = sacerdotes.find(idSacerdote);
   return (it != sacerdotes.end()) ? &it->second : nullptr;
@@ -273,16 +265,6 @@ const Comerciante* Mapa::obtenerComerciante(uint16_t idComerciante) const {
 const Banquero* Mapa::obtenerBanquero(uint16_t idBanquero) const {
   auto it = banqueros.find(idBanquero);
   return (it != banqueros.end()) ? &it->second : nullptr;
-}
-
-std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {
-  std::vector<Npc> resultado;
-  forEachNpc([&](const Npc& npc) {
-    if (npc.getTipo() == tipo) {
-      resultado.push_back(npc);
-    }
-  });
-  return resultado;
 }
 
 std::optional<Criatura> Mapa::buscarCriaturaEn(const Posicion& posicion) const {
