@@ -93,6 +93,6 @@ class Juego {
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
     std::list<EventoSalida> atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
-};
+    };
 
 #endif

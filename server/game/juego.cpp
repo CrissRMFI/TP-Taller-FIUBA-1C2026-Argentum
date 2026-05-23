@@ -747,15 +747,10 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         float tiempoInmovilizado = distancia * cfg.factorTiempoResurreccion;
 
         jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
-
-        // Notificar al jugador que esta reviviendo(Inmovilizado)? ArmarEstado pordria tener la variable de si esta inmovilizado para que lo muestre el cliente
-        std::list<EventoSalida> mensajes = {
-            armarEstado(idCliente, *jugador)
+        
+        return {
+            armarEstado(idCliente, *jugador),
         };
-
-        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
-        return mensajes;
-
     }
 }
 
