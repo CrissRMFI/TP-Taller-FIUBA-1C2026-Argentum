@@ -808,14 +808,18 @@ std::list<MensajeSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoM
             return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayNpcEn(destino)) {
+    // Colisión absoluta: una celda no puede ser compartida por dos entidades.
+    // Aplica tanto a jugadores vivos como a fantasmas — el enunciado no
+    // diferencia el modelo de colisión por estado del personaje.
+    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) ||
+        mapa.hayNpcEn(destino) || mapa.hayCriaturaEn(destino)) {
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
-    
+
     if (posicionOcupadaPorJugador(idCliente, destino)) {
       return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
-    
+
     jugador->mover_a(destino.x, destino.y);
     
     return armarPosicionParaMapa(*jugador);
