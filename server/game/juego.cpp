@@ -708,33 +708,40 @@ std::list<MensajeSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (mapa.hayNpcCercano(jugador->getPosicion(), TipoNpc::Sacerdote, cfg.rangoInteraccionNpc)) {
-        // Resurrección cerca del sacerdote.
-        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
-        if (!posicionResurreccion.has_value()) {
-            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
-        jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
-        std::list<MensajeSalida> mensajes = {
-            armarEstado(idCliente, *jugador)
-        };
-        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
-        return mensajes;
+    // Buscar al sacerdote más cercano en el mapa del jugador.
+    std::optional<Npc> npcSacerdote = mapa.buscarSacerdoteMasCercano(jugador->getPosicion());
+    if (!npcSacerdote.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    // Revivir al jugador junto al sacerdote de la ciudad mas proxima.
-    std::optional<Npc> npcSacerdoteMasCercano = mapa.buscarSacerdoteMasCercano(jugador->getPosicion());
-    if (!npcSacerdoteMasCercano.has_value()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    // Validar via el accessor con puntero observador que el sacerdote
+    // efectivamente exista como entidad concreta en el mapa.
+    const Sacerdote* sacerdote = mapa.obtenerSacerdote(npcSacerdote->getId());
+    if (sacerdote == nullptr) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
-    std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(npcSacerdoteMasCercano->getPosicion());
+
+    // Colisión física: el jugador debe estar dentro del rango de interacción
+    // del sacerdote para que la resurrección sea válida. Fuera del rango,
+    // el servidor rechaza el comando.
+    const int distancia = jugador->getPosicion().distanciaManhattan(sacerdote->getPosicion());
+    if (distancia > cfg.rangoInteraccionNpc) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    // Resucitar al jugador en una celda libre adyacente a su posición actual.
+    std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
     if (!posicionResurreccion.has_value()) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
-    float tiempoInmovilizado = jugador->getPosicion().distanciaManhattan(npcSacerdoteMasCercano->getPosicion()) * cfg.factorTiempoResurreccion;
-    // Lo inmovilizo en estado fantasma, actualizar() chequea cuando deje de ser fantasma para revivirlo.
-    jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
-    return {};
+
+    jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
+
+    std::list<MensajeSalida> mensajes = {
+        armarEstado(idCliente, *jugador)
+    };
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
 }
     
 
