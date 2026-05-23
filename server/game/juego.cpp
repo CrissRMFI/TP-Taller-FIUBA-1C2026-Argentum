@@ -400,14 +400,20 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         }
         if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
-            jugador.resucitar(posicionResurreccion.x, posicionResurreccion.y);
-            std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
-            mensajes.splice(mensajes.end(), mensajesPosicion);
+            std::optional<Posicion> posicionResurreccionCercana = mapa.obtenerPosicionResurreccionCercana(posicionResurreccion);
+            if (!posicionResurreccionCercana.has_value()) {
+                // Intentar revivirlo en el proximo tick, manteniendolo inmovilizado
+                jugador.inmovilizar(posicionResurreccion.x, posicionResurreccion.y, deltaSegundos);
 
-            if (!cambioEstado) {
-                mensajes.push_back(armarEstado(id, jugador));
+            } else {
+                jugador.resucitar(posicionResurreccionCercana->x, posicionResurreccionCercana->y);
+                std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
+                mensajes.splice(mensajes.end(), mensajesPosicion);
+
+                if (!cambioEstado) {
+                    mensajes.push_back(armarEstado(id, jugador));
+                }
             }
-
         } else if (estabaMeditando && !jugador.enMeditacion()) {
             std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
             mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -715,27 +721,42 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    // Colisión física: el jugador debe estar dentro del rango de interacción
-    // del sacerdote para que la resurrección sea válida. Fuera del rango,
-    // el servidor rechaza el comando.
     const int distancia = jugador->getPosicion().distanciaManhattan(sacerdote->getPosicion());
-    if (distancia > cfg.rangoInteraccionNpc) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    if (distancia <= cfg.rangoInteraccionNpc) {
+        // Resucitar al jugador en una celda libre adyacente a su posición actual.
+        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
+        if (!posicionResurreccion.has_value()) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
+
+        std::list<EventoSalida> mensajes = {
+            armarEstado(idCliente, *jugador)
+        };
+
+        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+        return mensajes;
+    } else {
+        // Revivir al jugador junto al sacerdote de la ciudad mas proxima.
+        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(sacerdote->getPosicion());
+        if (!posicionResurreccion.has_value()) {
+            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+        }
+
+        float tiempoInmovilizado = distancia * cfg.factorTiempoResurreccion;
+
+        jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
+
+        // Notificar al jugador que esta reviviendo(Inmovilizado)? ArmarEstado pordria tener la variable de si esta inmovilizado para que lo muestre el cliente
+        std::list<EventoSalida> mensajes = {
+            armarEstado(idCliente, *jugador)
+        };
+
+        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+        return mensajes;
+
     }
-
-    // Resucitar al jugador en una celda libre adyacente a su posición actual.
-    std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
-    if (!posicionResurreccion.has_value()) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-    }
-
-    jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
-
-    std::list<EventoSalida> mensajes = {
-        armarEstado(idCliente, *jugador)
-    };
-    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
-    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
@@ -774,7 +795,7 @@ std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
 
 std::list<EventoSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma())) {
+    if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma()) || jugador->estaInmovilizado()) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
