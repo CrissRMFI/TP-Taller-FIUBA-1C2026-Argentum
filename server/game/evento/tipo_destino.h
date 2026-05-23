@@ -7,8 +7,7 @@
 enum class TipoDestino {
     UNO,
     TODOS,
-    TODOS_EXCEPTO_UNO,
-    NINGUNO
+    TODOS_EXCEPTO_UNO
 };
 
 #endif
