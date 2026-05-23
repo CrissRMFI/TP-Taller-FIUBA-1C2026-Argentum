@@ -20,8 +20,10 @@ void Aceptador::run() {
         try {
             Socket peer = skt_aceptador.accept();
             std::cout << "cliente aceptado" << std::endl;
+            // se almacena un id por cliente
             const uint16_t clienteID = monitorClientes.almacenarID();
             auto *cliente = new Cliente (clienteID, std::move(peer), colaComandos, monitorClientes);
+            // monitor asocia id_cliente con su cola de salida
             monitorClientes.agregarCliente(clienteID, cliente->obtenerColaSalida());
             cliente->start();
             clientes.push_back(cliente);

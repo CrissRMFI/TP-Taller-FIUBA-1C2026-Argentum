@@ -28,7 +28,10 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 
 }
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) : cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1), mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
+cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1),
+mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
+
 
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
 

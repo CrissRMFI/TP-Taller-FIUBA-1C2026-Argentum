@@ -13,7 +13,14 @@ ProtocoloServidor::ProtocoloServidor(Socket&& skt) : Protocolo(std::move(skt)) {
 
 void ProtocoloServidor::cerrarConexion() {
     if (!cerrado) {
-        skt.close();
+        try {
+            skt.shutdown(2);
+        } catch (const std::runtime_error&) {}
+
+        try {
+            skt.close();
+        } catch (const std::runtime_error&) {}
+
         cerrado = true;
     }
 }

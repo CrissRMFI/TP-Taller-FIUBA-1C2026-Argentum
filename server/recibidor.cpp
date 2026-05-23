@@ -25,6 +25,7 @@ void Recibidor::run() {
         std::cout << "Recibidor::run() EXCEPTION: " << e.what() << std::endl;
     }
     monitor.removerCliente(idCliente);
+    std::cout << "[cliente " << idCliente << "] removido \n";
 }
 
 bool Recibidor::is_running() const {

@@ -13,10 +13,12 @@ class Enviador: public Thread {
 private:
     ProtocoloServidor& protocolo;
     Queue<MensajeServidor>& colaSalida;
+
     std::atomic<bool> running{true};
 
 public:
     Enviador(ProtocoloServidor& proto_servidor, Queue<MensajeServidor>& colaSalida);
+
     ~Enviador() override = default;
 
     void run() override;

@@ -2,6 +2,7 @@
 #define MONITOR_CLIENTES_H
 
 #include <cstdint>
+#include <map>
 #include <mutex>
 #include <unordered_map>
 
@@ -9,20 +10,26 @@
 #include "../../common/thread/queue.h"
 #include "mensaje_salida.h"
 
+// de momento el monitor no es dueño de la colas --> estoy usando punteros crudos en la cola
+// monitor se encargar de adminsitrar a los usuarios: les asigna un id al conectarse,
+// asocia id con sus colas de salidas
+
 class MonitorClientes {
 private:
+    // agrego un mapa que asocia id del usuario con su nombre
+    std::unordered_map<uint16_t, std::string> nombresUsuarios;
+
+    // cambio nombre a colasClientes para que se mas explicito
+
     std::unordered_map<uint16_t, Queue<MensajeServidor>*> colasClientes;
-    std::map<uint16_t, std::string> nombresUsuarios;
-    std::unordered_map<uint16_t, std::shared_ptr<Queue<MensajeServidor>>> colasSalida;
     std::mutex mtx;
+
     uint16_t proximoID;
 
 public:
     MonitorClientes();
-    void agregarCliente(uint16_t idCliente, Queue<MensajeServidor>& colaSalida);
-    MonitorClientes() = default;
 
-    void agregarCliente(uint16_t idCliente, std::shared_ptr<Queue<MensajeServidor>> colaSalida);
+    void agregarCliente(uint16_t idCliente, Queue<MensajeServidor>& colaSalida);
     void removerCliente(uint16_t idCliente);
 
     uint16_t almacenarID();
@@ -42,3 +49,8 @@ public:
 };
 
 #endif
+
+// uso de punteros crudos en las colas de salida
+// lo mejor seria poner shared pointers, pero tengo que cambiar los parametros
+// de los hilos enviador y receptor.
+// la idea es que monitor maneja las colas y que este sea llamado en los hilos

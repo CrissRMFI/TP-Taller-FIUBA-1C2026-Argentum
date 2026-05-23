@@ -79,7 +79,7 @@ private:
     MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
-    MensajeServidor recibirErrorAccion();
+    //MensajeServidor recibirErrorAccion();
 };
 
 #endif

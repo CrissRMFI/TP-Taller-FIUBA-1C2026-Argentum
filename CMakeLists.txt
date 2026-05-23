@@ -105,6 +105,10 @@ if(TALLER_CLIENT)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_client
             client/protocolo/protocolo_cliente.h
+            client/protocolo/protocolo_cliente_comando.cpp
+            client/protocolo/protocolo_cliente_comando.h
+            client/protocolo/protocolo_cliente_mensaje.cpp
+            client/protocolo/protocolo_cliente_mensaje.h
     )
 
     # Make them depend on taller_common lib

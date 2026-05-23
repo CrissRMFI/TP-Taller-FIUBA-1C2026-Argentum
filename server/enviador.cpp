@@ -6,9 +6,10 @@
 
 #include <numbers>
 
-Enviador::Enviador(ProtocoloServidor &proto_servidor, Queue<MensajeServidor> &colaSalida):
-    protocolo(proto_servidor), colaSalida(colaSalida)
-{}
+
+Enviador::Enviador(ProtocoloServidor &proto_servidor, Queue<MensajeServidor> &colaSalida) :
+    protocolo(proto_servidor),
+    colaSalida(colaSalida) {}
 
 void Enviador::run() {
     try {

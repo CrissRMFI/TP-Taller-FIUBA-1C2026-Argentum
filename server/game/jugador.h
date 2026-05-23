@@ -20,7 +20,7 @@ enum class Estado {
     Resucitando,
 };
 
-class Jugador {
+class Jugador{
 public:
     Jugador(uint16_t id,
             const std::string& nombre,

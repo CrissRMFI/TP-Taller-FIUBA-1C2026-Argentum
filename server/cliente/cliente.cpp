@@ -31,6 +31,7 @@ void Cliente::run() {
     std::cout << "[cliente " << idCliente << "] conectado\n";
 
     //ProtocoloServidor protocolo_servidor(protocolo_servidor);
+
     Enviador enviador(protocolo_servidor, colaSalida);
     Recibidor recibidor(protocolo_servidor, colaComandos, monitorClientes, idCliente);
     recibidor.start();
@@ -50,4 +51,5 @@ void Cliente::stop() {
     } catch (std::runtime_error&) {
         // cualquier otro error
     }
+    std::cout << "[cliente " << idCliente << "] desconectado\n";
 }

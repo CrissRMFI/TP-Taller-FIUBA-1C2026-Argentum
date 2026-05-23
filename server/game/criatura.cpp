@@ -1,7 +1,8 @@
 #include "criatura.h"
 
 #include <random>
-
+/*
+ * Verificar campos de criatura tirar al hacer build: los campos tipo, vida maxima, vida actual, nivel, agilidad
 Criatura::Criatura(uint16_t idCriatura, TipoCriatura tipo, uint16_t vidaMaxima, uint8_t nivel, uint8_t fuerza, uint8_t agilidad, Posicion posicion, uint8_t rangoAggro, uint8_t danioMin, uint8_t danioMax)
     : idCriatura(idCriatura),
       tipo(tipo),
@@ -10,6 +11,20 @@ Criatura::Criatura(uint16_t idCriatura, TipoCriatura tipo, uint16_t vidaMaxima, 
       nivel(nivel),
       fuerza(fuerza),
       agilidad(agilidad),
+      posicion(posicion),
+      rangoAggro(rangoAggro),
+      danioMin(danioMin),
+      danioMax(danioMax),
+      persiguiendoJugador() {}
+*/
+Criatura::Criatura(uint16_t idCriatura, uint8_t fuerza, Posicion posicion, uint8_t rangoAggro, uint8_t danioMin, uint8_t danioMax)
+    : idCriatura(idCriatura),
+     // tipo(tipo),
+    //  vidaActual(vidaMaxima),
+     // vidaMaxima(vidaMaxima),
+     // nivel(nivel),
+      fuerza(fuerza),
+      //agilidad(agilidad),
       posicion(posicion),
       rangoAggro(rangoAggro),
       danioMin(danioMin),

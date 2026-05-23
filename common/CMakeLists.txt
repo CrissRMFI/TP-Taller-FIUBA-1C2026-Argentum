@@ -2,7 +2,6 @@ target_sources(taller_common
     PRIVATE
     # .cpp files
     foo.cpp
-
     mensajes/mensajes_error_accion.cpp
     mensajes/mensajes_error_protocolo.cpp
 
