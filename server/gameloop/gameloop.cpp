@@ -5,6 +5,8 @@
 #include <thread>
 #include <utility>
 
+#include "traductor_protocolo.h"
+
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
       juego(config.juego, std::move(config.items)),
@@ -90,14 +92,16 @@ void Gameloop::procesarComandos() {
 }
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
-    std::list<MensajeSalida> mensajes =
+    std::list<EventoSalida> eventos =
         juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
-    
-    despachar(mensajes);
+
+    despachar(eventos);
 }
 
-void Gameloop::despachar(const std::list<MensajeSalida>& mensajes) {
-    for (const MensajeSalida& mensaje: mensajes) {
-        monitor.despachar(mensaje);
+void Gameloop::despachar(const std::list<EventoSalida>& eventos) {
+    // Traducimos cada evento de dominio al wire format del protocolo
+    // recién acá. `Juego` no conoce Opcode ni structs de `MensajeServidor`.
+    for (const EventoSalida& evento : eventos) {
+        monitor.despachar(TraductorProtocolo::traducir(evento));
     }
 }

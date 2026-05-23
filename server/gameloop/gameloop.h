@@ -6,10 +6,10 @@
 #include "../../common/thread/queue.h"
 #include "../../common/thread/thread.h"
 #include "../game/config/lector_config_toml.h"
+#include "../game/evento/evento_salida.h"
 #include "../game/juego.h"
 #include "comando_cliente.h"
 #include "evento_sesion.h"
-#include "mensaje_salida.h"
 #include "monitor_clientes.h"
 
 class Gameloop: public Thread {
@@ -23,7 +23,7 @@ private:
     void procesarEventosSesion();
     void procesarComandos();
     void procesarComando(const ComandoCliente& comandoCliente);
-    void despachar(const std::list<MensajeSalida>& mensajes);
+    void despachar(const std::list<EventoSalida>& eventos);
 
 public:
     Gameloop(MonitorClientes& monitor, ConfigCompleta config);
