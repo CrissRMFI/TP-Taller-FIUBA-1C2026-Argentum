@@ -53,7 +53,7 @@ class Mapa {
 public:
 
     Mapa(uint16_t ancho, uint16_t alto);
-    void agregarNpc(const Npc& npc);
+    bool agregarNpc(const Npc& npc);
     void agregarPared(const Posicion& posicion);
 
     bool posicionValida(const Posicion& posicion) const;
@@ -80,14 +80,14 @@ public:
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
     std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;
 
-    void agregarCriatura(const Criatura& criatura);
+    bool agregarCriatura(const Criatura& criatura);
     bool hayCriaturaEn(const Posicion& posicion) const;
     std::optional<Criatura> buscarCriaturaEn(const Posicion& posicion) const;
     Criatura* obtenerCriaturaPor(uint16_t idCriatura);
     const Criatura* obtenerCriaturaPor(uint16_t idCriatura) const;
     std::vector<Criatura> obtenerCriaturas() const;
     bool puedeOcuparCriatura(const Posicion& posicion) const;
-    void moverCriatura(uint16_t idCriatura, const Posicion& destino);
+    bool moverCriatura(uint16_t idCriatura, const Posicion& destino);
     std::vector<ItemEnSuelo> actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     size_t cantidadCriaturas() const;
 

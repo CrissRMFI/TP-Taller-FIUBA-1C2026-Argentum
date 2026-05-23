@@ -1332,7 +1332,10 @@ void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
     }
 
     std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
-    mapa.moverCriatura(criatura.getId(), destinosValidos[distribucion(generador)]);
+    const Posicion destino = destinosValidos[distribucion(generador)];
+    if (!mapa.moverCriatura(criatura.getId(), destino)) {
+        return;
+    }
 }
 
 std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
@@ -1350,8 +1353,9 @@ std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura, cons
 
     for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
         if (puedeMoverCriaturaA(destino)) {
-            mapa.moverCriatura(criatura.getId(), destino);
-            return {};
+            if (mapa.moverCriatura(criatura.getId(), destino)) {
+                return {};
+            }
         }
     }
 
@@ -1449,6 +1453,5 @@ bool Juego::agregarCriatura(const Criatura& criatura) {
         return false;
     }
 
-    mapa.agregarCriatura(criatura);
-    return true;
+    return mapa.agregarCriatura(criatura);
 }

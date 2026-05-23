@@ -21,21 +21,21 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
            primera.y == segunda.y;
 }
 
-void Mapa::agregarNpc(const Npc& npc) {
+bool Mapa::agregarNpc(const Npc& npc) {
     if (!posicionValida(npc.getPosicion())) {
-        throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
+        return false;
     }
 
     if (hayParedEn(npc.getPosicion())) {
-        throw std::invalid_argument("No se puede agregar un NPC sobre una pared");
+        return false;
     }
 
     if (hayCriaturaEn(npc.getPosicion())) {
-        throw std::invalid_argument("No se puede agregar un NPC sobre una criatura");
+        return false;
     }
 
     if (hayNpcEn(npc.getPosicion())) {
-        throw std::invalid_argument("Ya existe un NPC en la misma posicion");
+        return false;
     }
 
     const uint16_t id = npc.getId();
@@ -44,26 +44,26 @@ void Mapa::agregarNpc(const Npc& npc) {
       case TipoNpc::Comerciante: {
         auto resultado = comerciantes.emplace(id, Comerciante(id, npc.getPosicion()));
         if (!resultado.second) {
-          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+          return false;
         }
-        return;
+        return true;
       }
       case TipoNpc::Banquero: {
         auto resultado = banqueros.emplace(id, Banquero(id, npc.getPosicion()));
         if (!resultado.second) {
-          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+          return false;
         }
-        return;
+        return true;
       }
       case TipoNpc::Sacerdote: {
         auto resultado = sacerdotes.emplace(id, Sacerdote(id, npc.getPosicion()));
         if (!resultado.second) {
-          throw std::invalid_argument("Ya existe un NPC con el mismo id");
+          return false;
         }
-        return;
+        return true;
       }
       default:
-        throw std::invalid_argument("Tipo de NPC desconocido");
+        return false;
     }
 }
 
@@ -330,42 +330,45 @@ std::vector<Criatura> Mapa::obtenerCriaturas() const {
   return resultado;
 }
 
-void Mapa::agregarCriatura(const Criatura& criatura) {
+bool Mapa::agregarCriatura(const Criatura& criatura) {
     const Posicion posicion = criatura.getPos();
 
     if (!puedeOcuparCriatura(posicion)) {
-        throw std::invalid_argument("La criatura no puede ocupar esa posicion");
+        return false;
     }
 
     auto resultado = criaturas.emplace(criatura.getId(), criatura);
 
     if (!resultado.second) {
-        throw std::invalid_argument("Ya existe una criatura con el mismo id");
+        return false;
     }
+
+    return true;
 }
 
 bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
   return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
 }
 
-void Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
+bool Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
     auto it = criaturas.find(idCriatura);
 
     if (it == criaturas.end()) {
-        throw std::invalid_argument("No existe una criatura con ese id");
+        return false;
     }
 
     const Posicion origen = it->second.getPos();
 
     if (mismaPosicion(origen, destino)) {
-        return;
+        return true;
     }
 
     if (!puedeOcuparCriatura(destino)) {
-        throw std::invalid_argument("La criatura no puede moverse a esa posicion");
+        return false;
     }
 
     it->second.mover(destino);
+    return true;
 }
 
 std::vector<ItemEnSuelo> Mapa::actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg) {
