@@ -71,6 +71,10 @@ uint16_t Inventario::quitarDeSlot(uint8_t indice) {
     return idItem;
 }
 
+void Inventario::agregarItemEnSlot(uint16_t idItem, uint8_t indice) {
+    slots[indice] = idItem;
+}
+
 bool Inventario::tieneItem(uint16_t idItem) const {
     if (idItem == ITEM_VACIO) {
         return false;

@@ -44,6 +44,7 @@ Enviado periódicamente o ante cualquier cambio en el estado del jugador.
 | oro         | uint32 | oro en mano             |
 | nivel       | uint8  | nivel actual            |
 | experiencia | uint32 | experiencia acumulada   |
+| estado      | uint8  | 0=vivo 1=fantasma 2=meditando 3=resucitando |
 
 ## POSICION_ENTIDAD (opcode 27)
 
@@ -56,7 +57,7 @@ Enviado cuando una entidad aparece o se mueve en el área visible del jugador.
 | x      | uint16 | posición x                         |
 | y      | uint16 | posición y                         |
 | tipo   | uint8  | 0=personaje 1=criatura 2=NPCCiudad |
-| estado | uint8  | 0=vivo 1=fantasma 2=meditando      |
+| estado | uint8  | 0=vivo 1=fantasma 2=meditando 3=resucitando |
 
 ## ENTIDAD_DESAPARECIO (opcode 28)
 

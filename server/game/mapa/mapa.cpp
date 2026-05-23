@@ -1,5 +1,9 @@
 #include "mapa.h"
+#include <array>
+#include <queue>
+#include <set>
 #include <stdexcept>
+#include <utility>
 
 Mapa::Mapa(uint16_t ancho, uint16_t alto) : ancho(ancho), alto(alto) {
   if (ancho == 0 || alto == 0) {
@@ -17,27 +21,49 @@ bool Mapa::mismaPosicion(const Posicion& primera, const Posicion& segunda) {
            primera.y == segunda.y;
 }
 
-void Mapa::agregarNpc(const Npc& npc) {
+bool Mapa::agregarNpc(const Npc& npc) {
     if (!posicionValida(npc.getPosicion())) {
-        throw std::invalid_argument("El NPC esta fuera de los limites del mapa");
+        return false;
     }
 
     if (hayParedEn(npc.getPosicion())) {
-        throw std::invalid_argument("No se puede agregar un NPC sobre una pared");
+        return false;
     }
 
     if (hayCriaturaEn(npc.getPosicion())) {
-        throw std::invalid_argument("No se puede agregar un NPC sobre una criatura");
+        return false;
     }
 
     if (hayNpcEn(npc.getPosicion())) {
-        throw std::invalid_argument("Ya existe un NPC en la misma posicion");
+        return false;
     }
 
-    auto resultado = npcs.emplace(npc.getId(), npc);
+    const uint16_t id = npc.getId();
 
-    if (!resultado.second) {
-        throw std::invalid_argument("Ya existe un NPC con el mismo id");
+    switch (npc.getTipo()) {
+      case TipoNpc::Comerciante: {
+        auto resultado = comerciantes.emplace(id, Comerciante(id, npc.getPosicion()));
+        if (!resultado.second) {
+          return false;
+        }
+        return true;
+      }
+      case TipoNpc::Banquero: {
+        auto resultado = banqueros.emplace(id, Banquero(id, npc.getPosicion()));
+        if (!resultado.second) {
+          return false;
+        }
+        return true;
+      }
+      case TipoNpc::Sacerdote: {
+        auto resultado = sacerdotes.emplace(id, Sacerdote(id, npc.getPosicion()));
+        if (!resultado.second) {
+          return false;
+        }
+        return true;
+      }
+      default:
+        return false;
     }
 }
 
@@ -87,15 +113,84 @@ bool Mapa::hayParedEn(const Posicion& posicion) const {
 }
 
 std::optional<Npc> Mapa::buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
-  
-  for (const auto& [id, npc] : npcs) {
+  std::optional<Npc> resultado;
+  forEachNpc([&](const Npc& npc) {
+    if (resultado.has_value()) {
+      return;
+    }
     const Posicion posicionNpc = npc.getPosicion();
-    
     if (npc.getTipo() == tipo && posicion.mismaMapa(posicionNpc) && posicion.distanciaManhattan(posicionNpc) <= rango) {
-      return npc;
+      resultado = npc;
+    }
+  });
+  return resultado;
+}
+
+std::optional<Npc> Mapa::buscarSacerdoteMasCercano(const Posicion& posicion) const {
+  std::optional<Npc> masCercano;
+  int distanciaMinima = 0;
+  for (const auto& [id, sacerdote] : sacerdotes) {
+    const Posicion posicionNpc = sacerdote.getPosicion();
+    if (!posicion.mismaMapa(posicionNpc)) {
+      continue;
+    }
+    const int distancia = posicion.distanciaManhattan(posicionNpc);
+    if (!masCercano.has_value() || distancia < distanciaMinima) {
+      masCercano = sacerdote;
+      distanciaMinima = distancia;
     }
   }
-  return std::nullopt;
+  return masCercano;
+}
+
+std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion& origen) const {
+    // BFS por anillos desde `origen`: devuelve la primera celda libre (sin pared,
+    // NPC, criatura o ítem en el suelo) que se alcance. Itera en orden de
+    // distancia Manhattan creciente, así la primera celda válida que se descole
+    // es también la más cercana a `origen`.
+    if (!posicionValida(origen)) {
+        return std::nullopt;
+    }
+
+    std::queue<Posicion> cola;
+    std::set<std::pair<uint16_t, uint16_t>> visitadas;
+
+    cola.push(origen);
+    visitadas.insert({origen.x, origen.y});
+
+    static constexpr std::array<std::pair<int, int>, 4> direcciones = {{
+        {0, -1}, {0, 1}, {-1, 0}, {1, 0}
+    }};
+
+    while (!cola.empty()) {
+        const Posicion actual = cola.front();
+        cola.pop();
+
+        if (!hayParedEn(actual) && !hayNpcEn(actual) &&
+            !hayCriaturaEn(actual) && !hayItemEn(actual)) {
+            return actual;
+        }
+
+        for (const auto& [dx, dy] : direcciones) {
+            // Evitar underflow de uint16_t al restar 1 en los bordes.
+            if ((dx < 0 && actual.x == 0) || (dy < 0 && actual.y == 0)) {
+                continue;
+            }
+            const uint16_t nx = static_cast<uint16_t>(static_cast<int>(actual.x) + dx);
+            const uint16_t ny = static_cast<uint16_t>(static_cast<int>(actual.y) + dy);
+
+            // Bounds explícitos contra las dimensiones del mapa.
+            if (nx >= ancho || ny >= alto) {
+                continue;
+            }
+
+            if (visitadas.insert({nx, ny}).second) {
+                cola.push(Posicion{nx, ny, origen.mapaId});
+            }
+        }
+    }
+
+    return std::nullopt;
 }
 
 bool Mapa::hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
@@ -112,7 +207,7 @@ bool Mapa::hayItemEn(const Posicion& posicion) const {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -161,31 +256,46 @@ bool Mapa::esZonaSegura(const Posicion& posicion) const {
 }
 
 std::optional<Npc> Mapa::buscarNpcEn(const Posicion& posicion) const {
-  for (const auto& [id, npc] : npcs) {
+  std::optional<Npc> resultado;
+  forEachNpc([&](const Npc& npc) {
+    if (resultado.has_value()) {
+      return;
+    }
     if (mismaPosicion(npc.getPosicion(), posicion)) {
-      return npc;
+      resultado = npc;
     }
-  }
-  return std::nullopt;
-}
-
-std::vector<Npc> Mapa::obtenerNpcs() const {
-  std::vector<Npc> resultado;
-  for (const auto& [id, npc] : npcs) {
-    resultado.push_back(npc);
-  }
+  });
   return resultado;
 }
 
-std::vector<Npc> Mapa::obtenerNpcsPorTipo(TipoNpc tipo) const {
-  std::vector<Npc> resultado;
-  
-  for (const auto& [id, npc] : npcs) {
-    if (npc.getTipo() == tipo) {
-      resultado.push_back(npc);
-    }
-  }
-  return resultado;
+Sacerdote* Mapa::obtenerSacerdote(uint16_t idSacerdote) {
+  auto it = sacerdotes.find(idSacerdote);
+  return (it != sacerdotes.end()) ? &it->second : nullptr;
+}
+
+Comerciante* Mapa::obtenerComerciante(uint16_t idComerciante) {
+  auto it = comerciantes.find(idComerciante);
+  return (it != comerciantes.end()) ? &it->second : nullptr;
+}
+
+Banquero* Mapa::obtenerBanquero(uint16_t idBanquero) {
+  auto it = banqueros.find(idBanquero);
+  return (it != banqueros.end()) ? &it->second : nullptr;
+}
+
+const Sacerdote* Mapa::obtenerSacerdote(uint16_t idSacerdote) const {
+  auto it = sacerdotes.find(idSacerdote);
+  return (it != sacerdotes.end()) ? &it->second : nullptr;
+}
+
+const Comerciante* Mapa::obtenerComerciante(uint16_t idComerciante) const {
+  auto it = comerciantes.find(idComerciante);
+  return (it != comerciantes.end()) ? &it->second : nullptr;
+}
+
+const Banquero* Mapa::obtenerBanquero(uint16_t idBanquero) const {
+  auto it = banqueros.find(idBanquero);
+  return (it != banqueros.end()) ? &it->second : nullptr;
 }
 
 std::optional<Criatura> Mapa::buscarCriaturaEn(const Posicion& posicion) const {
@@ -194,12 +304,22 @@ std::optional<Criatura> Mapa::buscarCriaturaEn(const Posicion& posicion) const {
       return criatura;
     }
   }
-  
+
   return std::nullopt;
 }
 
 bool Mapa::hayCriaturaEn(const Posicion& posicion) const {
   return buscarCriaturaEn(posicion).has_value();
+}
+
+Criatura* Mapa::obtenerCriaturaPor(uint16_t idCriatura) {
+  auto it = criaturas.find(idCriatura);
+  return (it != criaturas.end()) ? &it->second : nullptr;
+}
+
+const Criatura* Mapa::obtenerCriaturaPor(uint16_t idCriatura) const {
+  auto it = criaturas.find(idCriatura);
+  return (it != criaturas.end()) ? &it->second : nullptr;
 }
 
 std::vector<Criatura> Mapa::obtenerCriaturas() const {
@@ -210,42 +330,45 @@ std::vector<Criatura> Mapa::obtenerCriaturas() const {
   return resultado;
 }
 
-void Mapa::agregarCriatura(const Criatura& criatura) {
+bool Mapa::agregarCriatura(const Criatura& criatura) {
     const Posicion posicion = criatura.getPos();
 
     if (!puedeOcuparCriatura(posicion)) {
-        throw std::invalid_argument("La criatura no puede ocupar esa posicion");
+        return false;
     }
 
     auto resultado = criaturas.emplace(criatura.getId(), criatura);
 
     if (!resultado.second) {
-        throw std::invalid_argument("Ya existe una criatura con el mismo id");
+        return false;
     }
+
+    return true;
 }
 
 bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
   return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
 }
 
-void Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
+bool Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
     auto it = criaturas.find(idCriatura);
 
     if (it == criaturas.end()) {
-        throw std::invalid_argument("No existe una criatura con ese id");
+        return false;
     }
 
     const Posicion origen = it->second.getPos();
 
     if (mismaPosicion(origen, destino)) {
-        return;
+        return true;
     }
 
     if (!puedeOcuparCriatura(destino)) {
-        throw std::invalid_argument("La criatura no puede moverse a esa posicion");
+        return false;
     }
 
     it->second.mover(destino);
+    return true;
 }
 
 std::vector<ItemEnSuelo> Mapa::actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg) {
@@ -259,9 +382,9 @@ std::vector<ItemEnSuelo> Mapa::actualizarItemsEnSuelo(float deltaSegundos, uint1
       } else {
         itemsVigentes.push_back(item);
       }
-    
+
     }
-    
+
     itemsEnSuelo = std::move(itemsVigentes);
 
     return itemsExpirados;

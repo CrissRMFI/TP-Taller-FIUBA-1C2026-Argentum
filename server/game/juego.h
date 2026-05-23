@@ -10,9 +10,9 @@
 #include <vector>
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
-#include "../gameloop/mensaje_salida.h"
 #include "clan.h"
 #include "config/config_juego.h"
+#include "evento/evento_salida.h"
 #include "jugador.h"
 #include "criatura.h"
 #include "mapa/mapa.h"
@@ -22,11 +22,11 @@ class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
 
-    std::list<MensajeSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
-    std::list<MensajeSalida> desconectarJugador(uint16_t id);
+    std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
+    std::list<EventoSalida> desconectarJugador(uint16_t id);
 
-    std::list<MensajeSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
-    std::list<MensajeSalida> actualizar(float deltaSegundos);
+    std::list<EventoSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
+    std::list<EventoSalida> actualizar(float deltaSegundos);
 
   private:
     ConfigJuego   cfg;
@@ -44,57 +44,55 @@ class Juego {
     Jugador*    buscarJugadorPorNick(const std::string& nick);
     Clan*       buscarClanPorNombre(const std::string& nombre);
 
-    // Construcción de mensajes comunes
-    MensajeSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
-    MensajeSalida armarEstado(uint16_t idCliente, const Jugador& j);
-    MensajeSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
-    MensajeSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
-    MensajeSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
-    std::list<MensajeSalida> armarDesaparicionParaMapa(const Jugador& jugador);
-    std::list<MensajeSalida> armarPosicionParaMapa(const Jugador& jugador);
-    std::list<MensajeSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
-    std::list<MensajeSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
+    // Construcción de eventos comunes
+    EventoSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
+    EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
+    EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
+    EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
+    EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
+    std::list<EventoSalida> armarDesaparicionParaMapa(const Jugador& jugador);
+    std::list<EventoSalida> armarPosicionParaMapa(const Jugador& jugador);
+    std::list<EventoSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
+    std::list<EventoSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
     bool agregarCriatura(const Criatura& criatura);
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
-    std::list<uint16_t> criaturasCerca(Posicion posicionJugador);
+    std::list<EventoSalida> ejecutarMeditar(uint16_t idCliente);
+    std::list<EventoSalida> ejecutarResucitar(uint16_t idCliente);
+    std::list<EventoSalida> ejecutarTomar(uint16_t idCliente);
+    std::list<EventoSalida> ejecutarRevisarClan(uint16_t idCliente);
+    std::list<EventoSalida> ejecutarDejarClan(uint16_t idCliente);
+    std::list<EventoSalida> ejecutarMover(uint16_t idCliente, const ComandoMover& comando);
+    std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
+    std::list<EventoSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
+    std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
+    std::list<EventoSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
+    std::list<EventoSalida> ejecutarVender(uint16_t idCliente, const ComandoVender& comando);
+    std::list<EventoSalida> ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& comando);
+    std::list<EventoSalida> ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& comando);
+    std::list<EventoSalida> ejecutarRetirarItem(uint16_t idCliente, const ComandoRetirarItem& comando);
+    std::list<EventoSalida> ejecutarRetirarOro(uint16_t idCliente, const ComandoRetirarOro& comando);
+    std::list<EventoSalida> ejecutarListar(uint16_t idCliente, const ComandoListar& comando);
+    std::list<EventoSalida> ejecutarCurar(uint16_t idCliente, const ComandoCurar& comando);
+    std::list<EventoSalida> ejecutarChatGlobal(uint16_t idCliente, const ComandoChatGlobal& comando);
+    std::list<EventoSalida> ejecutarChatPrivado(uint16_t idCliente, const ComandoChatPrivado& comando);
+    std::list<EventoSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
+    std::list<EventoSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
+    std::list<EventoSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
 
-    std::list<MensajeSalida> ejecutarMeditar(uint16_t idCliente);
-    std::list<MensajeSalida> ejecutarResucitar(uint16_t idCliente);
-    std::list<MensajeSalida> ejecutarTomar(uint16_t idCliente);
-    std::list<MensajeSalida> ejecutarRevisarClan(uint16_t idCliente);
-    std::list<MensajeSalida> ejecutarDejarClan(uint16_t idCliente);
-    std::list<MensajeSalida> ejecutarMover(uint16_t idCliente, const ComandoMover& comando);
-    std::list<MensajeSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
-    std::list<MensajeSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
-    std::list<MensajeSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
-    std::list<MensajeSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
-    std::list<MensajeSalida> ejecutarVender(uint16_t idCliente, const ComandoVender& comando);
-    std::list<MensajeSalida> ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& comando);
-    std::list<MensajeSalida> ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& comando);
-    std::list<MensajeSalida> ejecutarRetirarItem(uint16_t idCliente, const ComandoRetirarItem& comando);
-    std::list<MensajeSalida> ejecutarRetirarOro(uint16_t idCliente, const ComandoRetirarOro& comando);
-    std::list<MensajeSalida> ejecutarListar(uint16_t idCliente, const ComandoListar& comando);
-    std::list<MensajeSalida> ejecutarCurar(uint16_t idCliente, const ComandoCurar& comando);
-    std::list<MensajeSalida> ejecutarChatGlobal(uint16_t idCliente, const ComandoChatGlobal& comando);
-    std::list<MensajeSalida> ejecutarChatPrivado(uint16_t idCliente, const ComandoChatPrivado& comando);
-    std::list<MensajeSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
-    std::list<MensajeSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
-    std::list<MensajeSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
-
-    bool posicionOcupadaPorJugador(uint16_t idCliente, const Posicion& posicion) const;
-    bool posicionOcupadaPorAlgunJugador(const Posicion& posicion) const;
-    std::list<MensajeSalida> actualizarCriaturas();
+    std::optional<uint16_t> buscarIdJugadorEn(
+            const Posicion& posicion,
+            std::optional<uint16_t> idExcluido = std::nullopt) const;
+    std::list<EventoSalida> actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;
     std::vector<Posicion> calcularDestinosHacia(const Posicion& origen, const Posicion& objetivo) const;
     std::vector<Posicion> calcularDestinosAdyacentes(const Posicion& origen) const;
     void moverCriaturaAleatoriamente(const Criatura& criatura);
-    std::list<MensajeSalida> moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
+    std::list<EventoSalida> moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
-    std::list<MensajeSalida> atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
-    std::optional<uint16_t> buscarIdJugadorEn(const Posicion& posicion) const;
-};
+    std::list<EventoSalida> atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
+    };
 
 #endif

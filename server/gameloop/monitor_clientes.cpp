@@ -1,5 +1,7 @@
 #include "monitor_clientes.h"
 
+#include <memory>
+#include <utility>
 #include <vector>
 
 MonitorClientes::MonitorClientes(): proximoID(1){}
@@ -11,9 +13,19 @@ void MonitorClientes::agregarCliente(uint16_t idCliente, Queue<MensajeServidor>&
 }
 
 uint16_t MonitorClientes::almacenarID() {
+void MonitorClientes::agregarCliente(uint16_t idCliente,
+                                     std::shared_ptr<Queue<MensajeServidor>> colaSalida) {
     std::lock_guard<std::mutex> lock(mtx);
     return proximoID++;
+
+    if (colaSalida == nullptr) {
+        colasSalida.erase(idCliente);
+        return;
+    }
+
+    colasSalida[idCliente] = std::move(colaSalida);
 }
+
 void MonitorClientes::removerCliente(uint16_t idCliente) {
     std::lock_guard<std::mutex> lock(mtx);
     colasClientes.erase(idCliente);
@@ -43,53 +55,94 @@ void MonitorClientes::setNombreCliente(const uint16_t idCliente, const std::stri
 }
 
 void MonitorClientes::enviarA(uint16_t idCliente, const MensajeServidor& mensaje) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::shared_ptr<Queue<MensajeServidor>> colaSalida;
 
-    auto it = colasClientes.find(idCliente);
-    if (it == colasClientes.end() || it->second == nullptr) {
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+
+        auto it = colasClientes.find(idCliente);
+        if (it == colasClientes.end()) {
+            return;
+        }
+
+        colaSalida = it->second;
+    }
+
+    if (colaSalida == nullptr) {
         return;
     }
 
     try {
-        it->second->try_push(mensaje);
+        colaSalida->try_push(mensaje);
     } catch (const ClosedQueue&) {
-        colasClientes.erase(it);
+        std::lock_guard<std::mutex> lock(mtx);
+
+        auto it = colasSalida.find(idCliente);
+        if (it != colasSalida.end() && it->second == colaSalida) {
+            colasSalida.erase(it);
+        }
     }
 }
 
 void MonitorClientes::broadcast(const MensajeServidor& mensaje) {
-    std::lock_guard<std::mutex> lock(mtx);
-    std::vector<uint16_t> clientesDesconectados;
+    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> snapshot;
 
-    for (auto& [idCliente, colaSalida] : colasClientes) {
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        snapshot.reserve(colasSalida.size());
+
+        for (const auto& [idCliente, colaSalida] : colasSalida) {
+            snapshot.emplace_back(idCliente, colaSalida);
+        }
+    }
+
+    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> clientesDesconectados;
+
+    for (const auto& [idCliente, colaSalida] : snapshot) {
         if (colaSalida == nullptr) {
-            clientesDesconectados.push_back(idCliente);
+            clientesDesconectados.emplace_back(idCliente, colaSalida);
             continue;
         }
 
         try {
             colaSalida->try_push(mensaje);
         } catch (const ClosedQueue&) {
-            clientesDesconectados.push_back(idCliente);
+            clientesDesconectados.emplace_back(idCliente, colaSalida);
         }
     }
 
-    for (uint16_t idCliente : clientesDesconectados) {
-        colasClientes.erase(idCliente);
+    if (clientesDesconectados.empty()) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mtx);
+    for (const auto& [idCliente, colaSalida] : clientesDesconectados) {
+        auto it = colasSalida.find(idCliente);
+        if (it != colasSalida.end() && it->second == colaSalida) {
+            colasSalida.erase(it);
+        }
     }
 }
 
 void MonitorClientes::broadcastExcepto(uint16_t idClienteExcluido, const MensajeServidor& mensaje) {
-    std::lock_guard<std::mutex> lock(mtx);
-    std::vector<uint16_t> clientesDesconectados;
+    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> snapshot;
 
-    for (auto& [idCliente, colaSalida] : colasClientes) {
-        if (idCliente == idClienteExcluido) {
-            continue;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        snapshot.reserve(colasSalida.size());
+
+        for (const auto& [idCliente, colaSalida] : colasSalida) {
+            if (idCliente != idClienteExcluido) {
+                snapshot.emplace_back(idCliente, colaSalida);
+            }
         }
+    }
 
+    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> clientesDesconectados;
+
+    for (const auto& [idCliente, colaSalida] : snapshot) {
         if (colaSalida == nullptr) {
-            clientesDesconectados.push_back(idCliente);
+            clientesDesconectados.emplace_back(idCliente, colaSalida);
             continue;
         }
 
@@ -101,7 +154,7 @@ void MonitorClientes::broadcastExcepto(uint16_t idClienteExcluido, const Mensaje
     }
 
     for (uint16_t idCliente : clientesDesconectados) {
-        colasClientes.erase(idCliente);
+        colasSalida.erase(idCliente);
     }
 }
 

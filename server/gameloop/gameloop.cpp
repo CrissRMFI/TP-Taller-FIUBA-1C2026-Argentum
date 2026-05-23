@@ -2,8 +2,13 @@
 
 #include <chrono>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <utility>
+
+#include "traductor_protocolo.h"
+
+constexpr std::string_view ERROR_COLA_YA_CERRADA = "The queue is already closed.";
 
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
@@ -18,12 +23,17 @@ void Gameloop::run() {
     using Clock = std::chrono::steady_clock;
 
     const auto duracionTick = std::chrono::milliseconds(tickMs);
+    // Tolerancia máxima de lag: 2 ticks del servidor
+    const float deltaMaxSegundos = std::chrono::duration<float>(duracionTick).count() * 2.0f;
     auto instanteAnterior = Clock::now();
     auto siguienteTick = instanteAnterior + duracionTick;
 
     while (should_keep_running()) {
         auto ahora = Clock::now();
         float deltaSegundos = std::chrono::duration<float>(ahora - instanteAnterior).count();
+        if (deltaSegundos > deltaMaxSegundos) {
+            deltaSegundos = deltaMaxSegundos;
+        }
         instanteAnterior = ahora;
 
         procesarEventosSesion();
@@ -46,11 +56,19 @@ void Gameloop::detener() {
 
     try {
         colaComandos.close();
-    } catch (const std::runtime_error&) {}
+    } catch (const std::runtime_error& err) {
+        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
+            throw;
+        }
+    }
 
     try {
         colaEventosSesion.close();
-    } catch (const std::runtime_error&) {}
+    } catch (const std::runtime_error& err) {
+        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
+            throw;
+        }
+    }
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {
@@ -90,14 +108,16 @@ void Gameloop::procesarComandos() {
 }
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
-    std::list<MensajeSalida> mensajes =
+    std::list<EventoSalida> eventos =
         juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
-    
-    despachar(mensajes);
+
+    despachar(eventos);
 }
 
-void Gameloop::despachar(const std::list<MensajeSalida>& mensajes) {
-    for (const MensajeSalida& mensaje: mensajes) {
-        monitor.despachar(mensaje);
+void Gameloop::despachar(const std::list<EventoSalida>& eventos) {
+    // Traducimos cada evento de dominio al wire format del protocolo
+    // recién acá. `Juego` no conoce Opcode ni structs de `MensajeServidor`.
+    for (const EventoSalida& evento : eventos) {
+        monitor.despachar(TraductorProtocolo::traducir(evento));
     }
 }

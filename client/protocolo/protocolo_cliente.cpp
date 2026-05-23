@@ -342,6 +342,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
     uint32_t oro = recibirCuatroBytes();
     uint8_t nivel = recibirUnByte();
     uint32_t experiencia = recibirCuatroBytes();
+    uint8_t estado = recibirUnByte();
 
     return MensajeServidor{
             Opcode::ESTADO_PERSONAJE,
@@ -353,6 +354,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
                     oro,
                     nivel,
                     experiencia,
+                    estado,
             },
     };
 }

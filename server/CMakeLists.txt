@@ -20,6 +20,7 @@ target_sources(taller_server
     # Gameloop
     gameloop/gameloop.cpp
     gameloop/monitor_clientes.cpp
+    gameloop/traductor_protocolo.cpp
 
     # Protocolo servidor
     protocolo/protocolo_servidor.cpp
@@ -64,6 +65,9 @@ target_sources(taller_server
     # Mapa
     game/mapa/mapa.cpp
     game/npc/npc.cpp
+    game/npc/sacerdote.cpp
+    game/npc/comerciante.cpp
+    game/npc/banquero.cpp
 
     # Criatura
     game/criatura.cpp

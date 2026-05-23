@@ -17,6 +17,7 @@ enum class Estado {
     Vivo,
     Fantasma,
     Meditando,
+    Resucitando,
 };
 
 class Jugador {
@@ -26,7 +27,7 @@ public:
             ClasePersonaje clase,
             Raza raza,
             Posicion posicion,
-            const ConfigJuego& cfg);
+            const ConfigJuego* cfg);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
@@ -45,6 +46,7 @@ public:
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
     void resucitar(uint16_t x, uint16_t y);
+    void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
     void cancelarMeditacion();
     uint16_t calcular_danio(const CatalogoItems& catalogo);
@@ -58,6 +60,7 @@ public:
     bool sacar_item_banco(uint16_t idItem);
     bool sacar_oro_banco(uint32_t cantidad);
     uint16_t quitar_item_de_slot(uint8_t indice);
+    void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
     std::vector<uint16_t> vaciar_inventario();
 
     // Clan
@@ -84,10 +87,12 @@ public:
     uint32_t getOro() const;
     uint32_t getOroBanco() const;
     uint16_t getClan() const;
+    bool estaInmovilizado() const;
     bool fundo_clan() const;
     bool es_newbie() const;
     std::string getNombre() const;
     Posicion getPosicion() const;
+    Posicion getPosicionResurreccion() const;
     Estado getEstado() const;
     std::vector<uint16_t> getSlotsInventario() const;
     uint16_t getArmaEquipada() const;
@@ -125,8 +130,8 @@ private:
     uint8_t constitucion;
 
     Posicion posicion;
-
-    ConfigJuego cfg;
+    Posicion posicionResurreccion;
+    const ConfigJuego* cfg;
     Inventario inventario;
 
     std::vector<uint16_t> idItemsBanco;
@@ -135,6 +140,7 @@ private:
     Estado estado;
     Raza raza;
     bool fundadoClan;
+    float tiempoRestanteInmovilizado;
 
     void subirNivel();
     void morir();

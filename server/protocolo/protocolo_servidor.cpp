@@ -453,6 +453,7 @@ void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mens
     enviarCuatroBytes(mensaje.oro);
     enviarUnByte(mensaje.nivel);
     enviarCuatroBytes(mensaje.experiencia);
+    enviarUnByte(mensaje.estado);
 }
 
 void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mensaje) {
