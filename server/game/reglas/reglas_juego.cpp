@@ -57,6 +57,40 @@ float ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg, Raza raza
     return std::max(0.0f, valor);
 }
 
+uint32_t ReglasJuego::calcularExperienciaImpacto(const ConfigJuego& cfg,
+                                                 uint16_t danioAplicado,
+                                                 uint8_t nivelAtacante,
+                                                 uint8_t nivelObjetivo) {
+    const int diff = static_cast<int>(nivelObjetivo)
+                   - static_cast<int>(nivelAtacante)
+                   + cfg.expBonusNivel;
+
+    if (diff <= 0 || danioAplicado == 0) {
+        return 0;
+    }
+
+    return static_cast<uint32_t>(danioAplicado) * static_cast<uint32_t>(diff);
+}
+
+uint32_t ReglasJuego::calcularExperienciaKill(const ConfigJuego& cfg,
+                                              uint16_t vidaMaxObjetivo,
+                                              uint8_t nivelAtacante,
+                                              uint8_t nivelObjetivo,
+                                              float valorAleatorio) {
+    const int diff = static_cast<int>(nivelObjetivo)
+                   - static_cast<int>(nivelAtacante)
+                   + cfg.expBonusNivel;
+
+    if (diff <= 0 || vidaMaxObjetivo == 0) {
+        return 0;
+    }
+
+    const float r = std::clamp(valorAleatorio, 0.0f, 1.0f) * cfg.expKillMax;
+    const float xp = r * static_cast<float>(vidaMaxObjetivo) * static_cast<float>(diff);
+
+    return static_cast<uint32_t>(std::max(0.0f, xp));
+}
+
 float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos) {
     if (clase == ClasePersonaje::GUERRERO) {
         return 0.0f;

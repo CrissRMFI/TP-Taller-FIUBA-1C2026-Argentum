@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include "objeto/catalogo_items.h"
+#include "reglas/reglas_juego.h"
 #include "../../common/protocolo/tipo_entidad.h"
 
 namespace {
@@ -891,6 +892,12 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
+    // Capturamos atributos del objetivo ANTES del golpe: si muere, su nivel y
+    // vidaMax podrían reiniciarse en la lógica de muerte/respawn.
+    const uint8_t nivelAtacante = atacante->getNivel();
+    const uint8_t nivelObjetivoAntes = objetivo->getNivel();
+    const uint16_t vidaMaxObjetivoAntes = objetivo->getVidaMax();
+
     const uint16_t danioBruto = atacante->calcular_danio(catalogo);
     const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(danioBruto, catalogo);
 
@@ -908,7 +915,33 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
 
     mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
 
+    // XP por impacto (regla 3.3.2). Sólo si el golpe entró con daño efectivo.
+    bool atacanteGanoXp = false;
+    if (danioAplicado > 0) {
+        const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
+                cfg, danioAplicado, nivelAtacante, nivelObjetivoAntes);
+        if (xpHit > 0) {
+            atacante->ganar_experiencia(xpHit);
+            atacanteGanoXp = true;
+        }
+    }
+
     if (!objetivo->estaVivo()) {
+        // XP por kill (regla 3.3.3). Random en [0, 1) se transforma a [0, expKillMax)
+        // dentro de ReglasJuego, así la fórmula vive en el módulo centralizador.
+        static std::mt19937 rngKill(std::random_device{}());
+        const float valorAleatorio =
+                std::uniform_real_distribution<float>(0.0f, 1.0f)(rngKill);
+
+        const uint32_t xpKill = ReglasJuego::calcularExperienciaKill(
+                cfg, vidaMaxObjetivoAntes, nivelAtacante, nivelObjetivoAntes,
+                valorAleatorio);
+
+        if (xpKill > 0) {
+            atacante->ganar_experiencia(xpKill);
+            atacanteGanoXp = true;
+        }
+
         const EventoMuerteEntidad eventoMuerte{ objetivo->getId() };
         const Posicion posicionObjetivo = objetivo->getPosicion();
 
@@ -933,6 +966,10 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
 
         std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*objetivo);
         mensajes.splice(mensajes.end(), mensajesPosicion);
+    }
+
+    if (atacanteGanoXp) {
+        mensajes.push_back(armarEstado(idCliente, *atacante));
     }
     return mensajes;
 }

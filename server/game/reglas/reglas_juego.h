@@ -24,8 +24,19 @@ public:
     static float calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos);
 
     static bool esGolpeCritico(const ConfigJuego& cfg, float valorAleatorio);
-    
+
     static uint32_t calcularPerdidaExperienciaMuerte(const ConfigJuego& cfg, uint32_t experienciaActual);
+
+    static uint32_t calcularExperienciaImpacto(const ConfigJuego& cfg,
+                                               uint16_t danioAplicado,
+                                               uint8_t nivelAtacante,
+                                               uint8_t nivelObjetivo);
+
+    static uint32_t calcularExperienciaKill(const ConfigJuego& cfg,
+                                            uint16_t vidaMaxObjetivo,
+                                            uint8_t nivelAtacante,
+                                            uint8_t nivelObjetivo,
+                                            float valorAleatorio);
 };
 
 #endif
