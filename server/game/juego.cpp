@@ -1364,15 +1364,7 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    const Posicion posicionJugador = jugador->getPosicion();
-
-    if (Comerciante* comerciante = mapa.obtenerComerciante(cmd.idNPC)) {
-        const Posicion posicionNpc = comerciante->getPosicion();
-        if (!posicionJugador.mismaMapa(posicionNpc) ||
-                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
-            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
-
+    if (Comerciante* comerciante = obtenerComercianteParaInteraccion(cmd.idNPC, *jugador)) {
         std::vector<uint16_t> ids;
         for (const auto& [idItem, precios] : comerciante->listarItemsDisponibles()) {
             ids.push_back(idItem);
@@ -1381,13 +1373,7 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
         return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ ids } } };
     }
 
-    if (Sacerdote* sacerdote = mapa.obtenerSacerdote(cmd.idNPC)) {
-        const Posicion posicionNpc = sacerdote->getPosicion();
-        if (!posicionJugador.mismaMapa(posicionNpc) ||
-                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
-            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
-
+    if (Sacerdote* sacerdote = obtenerSacerdoteParaInteraccion(cmd.idNPC, *jugador)) {
         std::vector<uint16_t> ids;
         for (const auto& [idItem, precio] : sacerdote->listarItemsDisponibles()) {
             ids.push_back(idItem);
@@ -1396,19 +1382,13 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
         return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ ids } } };
     }
 
-    if (Banquero* banquero = mapa.obtenerBanquero(cmd.idNPC)) {
-        const Posicion posicionNpc = banquero->getPosicion();
-        if (!posicionJugador.mismaMapa(posicionNpc) ||
-                posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
-            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
-
+    if (Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador)) {
         std::pair<uint32_t, std::vector<uint16_t>> cuenta =
                 banquero->listarItemsDisponibles(idCliente);
         return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ cuenta.second } } };
     }
 
-    return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
 }
 
 std::list<EventoSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& cmd) {
