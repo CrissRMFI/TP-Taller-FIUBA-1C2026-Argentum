@@ -91,12 +91,14 @@ void Jugador::recibir_danio(uint16_t cantidad) {
     }
 }
 
-uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo) {
+uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, bool esCritico, const CatalogoItems& catalogo) {
     if (!estaVivo() || cfg->invulnerable) {
         return 0;
     }
 
-    if (esquiva_ataque()) {
+    // Regla 5.2: el crítico omite la fase de evasión. La absorción (regla 5.5)
+    // se sigue aplicando porque la regla 5.2 sólo habla de "fase de evasión".
+    if (!esCritico && esquiva_ataque()) {
         return 0;
     }
 
@@ -293,39 +295,43 @@ void Jugador::cancelarMeditacion() {
     }
 }
 
-uint16_t Jugador::calcular_danio(const CatalogoItems& catalogo) {
-    uint8_t danioMin = 1;
-    uint8_t danioMax = 1;
+ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo) {
+    uint8_t danioArmaMin = 1;
+    uint8_t danioArmaMax = 1;
 
-    uint16_t idArma = inventario.getArmaEquipada();
-    uint16_t idBaculo = inventario.getBaculoEquipado();
+    const uint16_t idArmaEquipada = inventario.getArmaEquipada();
+    const uint16_t idBaculoEquipado = inventario.getBaculoEquipado();
 
-    if (idArma != 0) {
-        if (const Arma* arma = catalogo.comoArma(idArma)) {
-            danioMin = arma->getDanioMin();
-            danioMax = arma->getDanioMax();
+    if (idArmaEquipada != 0) {
+        if (const Arma* armaEquipada = catalogo.comoArma(idArmaEquipada)) {
+            danioArmaMin = armaEquipada->getDanioMin();
+            danioArmaMax = armaEquipada->getDanioMax();
         }
-    } else if (idBaculo != 0) {
-        if (const Baculo* baculo = catalogo.comoBaculo(idBaculo)) {
-            danioMin = baculo->getDanioMin();
-            danioMax = baculo->getDanioMax();
+    } else if (idBaculoEquipado != 0) {
+        if (const Baculo* baculoEquipado = catalogo.comoBaculo(idBaculoEquipado)) {
+            danioArmaMin = baculoEquipado->getDanioMin();
+            danioArmaMax = baculoEquipado->getDanioMax();
         }
     }
 
-    if (danioMax < danioMin) {
-        danioMax = danioMin;
+    if (danioArmaMax < danioArmaMin) {
+        danioArmaMax = danioArmaMin;
     }
 
-    uint16_t danioBase = std::uniform_int_distribution<uint16_t>(
-            danioMin, danioMax)(rng);
+    const uint16_t danioBaseArma = std::uniform_int_distribution<uint16_t>(
+            danioArmaMin, danioArmaMax)(rng);
 
-    uint16_t danio = static_cast<uint16_t>(fuerza) * danioBase;
+    // Regla 5.1: Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
+    uint16_t danioCalculado = static_cast<uint16_t>(fuerza) * danioBaseArma;
 
-    if (es_golpe_critico()) {
-        danio = static_cast<uint16_t>(danio * 2);
+    // Regla 5.2: el crítico duplica el daño. El flag se propaga al caller para
+    // que el defensor pueda saltear su esquive.
+    const bool esGolpeCritico = es_golpe_critico();
+    if (esGolpeCritico) {
+        danioCalculado = static_cast<uint16_t>(danioCalculado * 2);
     }
 
-    return danio;
+    return ResultadoDanio{ danioCalculado, esGolpeCritico };
 }
 
 bool Jugador::agregar_item(uint16_t idItem) {
@@ -626,8 +632,8 @@ void Jugador::normalizarOro() {
 }
 
 bool Jugador::esquiva_ataque() {
-    float r = std::uniform_real_distribution<float>(0.f, 1.f)(rng);
-    return std::pow(r, static_cast<float>(agilidad)) < cfg->esquivarUmbral;
+    const float valorAleatorio = std::uniform_real_distribution<float>(0.f, 1.f)(rng);
+    return ReglasJuego::esquivaAtaque(*cfg, agilidad, valorAleatorio);
 }
 
 bool Jugador::es_golpe_critico() {

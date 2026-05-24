@@ -931,8 +931,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const uint8_t nivelObjetivoAntes = objetivo->getNivel();
     const uint16_t vidaMaxObjetivoAntes = objetivo->getVidaMax();
 
-    const uint16_t danioBruto = atacante->calcular_danio(catalogo);
-    const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(danioBruto, catalogo);
+    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
+    const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(
+            resultadoDanio.valor, resultadoDanio.esCritico, catalogo);
 
     std::list<EventoSalida> mensajes;
 
@@ -1520,7 +1521,12 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
         return mensajes;
     }
 
-    const uint16_t danio = jugador->recibir_ataque_fisico(criatura.calcularDanio(), catalogo);
+    // Las criaturas no tienen crítico (regla 5.2 es del lado del jugador
+    // atacante). Pasamos esCritico=false explícito para que el defensor
+    // pueda evaluar evasión normalmente.
+    const uint16_t danioBrutoCriatura = criatura.calcularDanio();
+    const uint16_t danio = jugador->recibir_ataque_fisico(
+            danioBrutoCriatura, /*esCritico=*/false, catalogo);
 
     mensajes.push_back(EventoSalida{
         TipoDestino::UNO, idJugador,
@@ -1642,26 +1648,32 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     static std::mt19937 generadorAleatorio(std::random_device{}());
     std::uniform_real_distribution<float> distribucionUniforme(0.0f, 1.0f);
 
-    // Regla 5.4: el defensor —incluida la criatura— puede esquivar.
-    // La fórmula vive centralizada en ReglasJuego (regla 12.1).
-    const float valorAleatorioEsquive = distribucionUniforme(generadorAleatorio);
-    const bool criaturaEsquiva = ReglasJuego::esquivaAtaque(
-            cfg, criatura.getAgilidad(), valorAleatorioEsquive);
+    // PvE: la criatura no porta armadura/casco/escudo (regla 5.5: la absorción
+    // sale de los ítems equipados). Por lo tanto Defensa = 0 y el daño final
+    // es el bruto saturado al pool de vida actual. Calculamos primero para
+    // conocer el flag de crítico antes de decidir si la criatura puede esquivar.
+    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
 
     std::list<EventoSalida> mensajes;
 
-    if (criaturaEsquiva) {
-        mensajes.push_back(EventoSalida{
-            TipoDestino::UNO, idCliente,
-            EventoEsquive{ criatura.getId(), /*esquivador=*/1 }
-        });
-        return mensajes;
+    // Regla 5.2: el crítico omite la fase de evasión incluso en PvE.
+    // Regla 5.4: si el ataque no es crítico, el defensor (la criatura) puede
+    // esquivar. Fórmula centralizada en ReglasJuego (regla 12.1).
+    if (!resultadoDanio.esCritico) {
+        const float valorAleatorioEsquive = distribucionUniforme(generadorAleatorio);
+        const bool criaturaEsquiva = ReglasJuego::esquivaAtaque(
+                cfg, criatura.getAgilidad(), valorAleatorioEsquive);
+
+        if (criaturaEsquiva) {
+            mensajes.push_back(EventoSalida{
+                TipoDestino::UNO, idCliente,
+                EventoEsquive{ criatura.getId(), /*esquivador=*/1 }
+            });
+            return mensajes;
+        }
     }
 
-    // PvE: la criatura no porta armadura/casco/escudo (regla 5.5: la absorción
-    // sale de los ítems equipados). Por lo tanto Defensa = 0 y el daño final
-    // es el bruto saturado al pool de vida actual.
-    const uint16_t danioBruto = atacante->calcular_danio(catalogo);
+    const uint16_t danioBruto = resultadoDanio.valor;
     const uint16_t danioAplicado = static_cast<uint16_t>(
             std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);

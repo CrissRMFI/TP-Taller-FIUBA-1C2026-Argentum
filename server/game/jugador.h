@@ -20,6 +20,15 @@ enum class Estado {
     Resucitando,
 };
 
+// Resultado del cálculo de daño físico de un atacante. El flag `esCritico`
+// viaja explícito para que el defensor pueda aplicar la regla 5.2 (el crítico
+// omite la fase de evasión). Sin este flag la información se perdía dentro de
+// `calcular_danio`.
+struct ResultadoDanio {
+    uint16_t valor;
+    bool esCritico;
+};
+
 class Jugador{
 public:
     Jugador(uint16_t id,
@@ -31,7 +40,12 @@ public:
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
-    uint16_t recibir_ataque_fisico(uint16_t danio, const CatalogoItems& catalogo);
+
+    // Aplica daño físico al jugador. Si `esCritico` es true se saltea la fase
+    // de evasión (regla 5.2). La absorción por armadura/casco/escudo (regla
+    // 5.5) se aplica en ambos casos. Devuelve el daño final entrado a vida.
+    uint16_t recibir_ataque_fisico(uint16_t danio, bool esCritico, const CatalogoItems& catalogo);
+
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);
 
@@ -49,7 +63,10 @@ public:
     void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
     void cancelarMeditacion();
-    uint16_t calcular_danio(const CatalogoItems& catalogo);
+    // Calcula el daño del próximo golpe del jugador y reporta si fue crítico.
+    // El consumidor necesita el flag para invocar `recibir_ataque_fisico` con
+    // la semántica correcta de la regla 5.2.
+    ResultadoDanio calcular_danio(const CatalogoItems& catalogo);
 
     // Inventario
     bool agregar_item(uint16_t idItem);
