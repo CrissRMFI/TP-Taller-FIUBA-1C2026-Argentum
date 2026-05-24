@@ -761,23 +761,13 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    // Buscar al sacerdote más cercano en el mapa del jugador.
-    std::optional<Npc> npcSacerdote = mapa.buscarSacerdoteMasCercano(jugador->getPosicion());
-    if (!npcSacerdote.has_value()) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    }
+    const Posicion posicionJugador = jugador->getPosicion();
 
-    // Validar via el accessor con puntero observador que el sacerdote
-    // efectivamente exista como entidad concreta en el mapa.
-    const Sacerdote* sacerdote = mapa.obtenerSacerdote(npcSacerdote->getId());
-    if (sacerdote == nullptr) {
-        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
-    }
-
-    const int distancia = jugador->getPosicion().distanciaManhattan(sacerdote->getPosicion());
-    if (distancia <= cfg.rangoInteraccionNpc) {
-        // Resucitar al jugador en una celda libre adyacente a su posición actual.
-        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(jugador->getPosicion());
+    // En ciudad la resurrección es inmediata. Fuera de ciudad se aplica la
+    // mecánica remota: espera proporcional a la distancia al sacerdote.
+    if (mapa.esCiudad(posicionJugador)) {
+        std::optional<Posicion> posicionResurreccion =
+                mapa.obtenerPosicionResurreccionCercana(posicionJugador);
         if (!posicionResurreccion.has_value()) {
             return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
         }
@@ -790,21 +780,49 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
 
         mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
         return mensajes;
-    } else {
-        // Revivir al jugador junto al sacerdote de la ciudad mas proxima.
-        std::optional<Posicion> posicionResurreccion = mapa.obtenerPosicionResurreccionCercana(sacerdote->getPosicion());
-        if (!posicionResurreccion.has_value()) {
-            return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
-        }
+    }
 
-        float tiempoInmovilizado = distancia * cfg.factorTiempoResurreccion;
+    // Fuera de ciudad: buscar al sacerdote más cercano en el mapa del jugador.
+    std::optional<Npc> npcSacerdote = mapa.buscarSacerdoteMasCercano(posicionJugador);
+    if (!npcSacerdote.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
 
-        jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
-        
-        return {
+    // Validar via el accessor con puntero observador que el sacerdote
+    // efectivamente exista como entidad concreta en el mapa.
+    const Sacerdote* sacerdote = mapa.obtenerSacerdote(npcSacerdote->getId());
+    if (sacerdote == nullptr) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    std::optional<Posicion> posicionResurreccion =
+            mapa.obtenerPosicionResurreccionCercana(sacerdote->getPosicion());
+    if (!posicionResurreccion.has_value()) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const int distancia = posicionJugador.distanciaManhattan(sacerdote->getPosicion());
+    const float tiempoInmovilizado = distancia * cfg.factorTiempoResurreccion;
+
+    if (tiempoInmovilizado <= 0.0f) {
+        jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
+
+        std::list<EventoSalida> mensajes = {
             armarEstado(idCliente, *jugador),
         };
+
+        mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+        return mensajes;
     }
+
+    jugador->inmovilizar(posicionResurreccion->x, posicionResurreccion->y, tiempoInmovilizado);
+
+    std::list<EventoSalida> mensajes = {
+        armarEstado(idCliente, *jugador),
+    };
+
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
