@@ -120,6 +120,12 @@ class Juego {
     bool dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
     std::list<EventoSalida> procesarDropsJugadorMuerto(Jugador& jugador, const Posicion& posicionMuerte);
 
+    // Centraliza el broadcast de muerte de un jugador: notifica a los demás
+    // jugadores del mismo mapa, procesa los drops y re-emite la posición con
+    // el nuevo estado de fantasma. Reemplaza el mismo bloque triplicado en
+    // actualizar(), ejecutarAtaqueAJugador() y atacarJugadorConCriatura().
+    std::list<EventoSalida> emitirMuerteJugador(Jugador& victima, const Posicion& posicionMuerte);
+
     // Helpers de validación NPC-por-id (regla del bug #6): obtienen el NPC
     // concreto del mapa por el id que envió el cliente y verifican que esté
     // en el mismo mapa y dentro del rango de interacción. Devuelven nullptr

@@ -542,18 +542,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         // Meditando muere en el mismo tick (estabaMeditando=true entraba
         // también a la rama C después de que A ya hubiera emitido la posición).
         if (estabaVivo && !jugador.estaVivo()) {
-            const EventoMuerteEntidad eventoMuerte{jugador.getId()};
-
-            for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
-                if (otroJugador.getPosicion().mapaId == posicionAntes.mapaId) {
-                    mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente, eventoMuerte});
-                }
-            }
-
-            mensajes.splice(mensajes.end(), procesarDropsJugadorMuerto(jugador, posicionAntes));
-
-            std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
-            mensajes.splice(mensajes.end(), mensajesPosicion);
+            mensajes.splice(mensajes.end(), emitirMuerteJugador(jugador, posicionAntes));
         } else if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
             std::optional<Posicion> posicionResurreccionCercana =
@@ -1185,19 +1174,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             atacanteGanoXp = true;
         }
 
-        const EventoMuerteEntidad eventoMuerte{objetivo->getId()};
-        const Posicion posicionObjetivo = objetivo->getPosicion();
-
-        for (const auto& [idOtro, otroJugador] : jugadoresConectados) {
-            if (otroJugador.getPosicion().mapaId == posicionObjetivo.mapaId) {
-                mensajes.push_back(EventoSalida{TipoDestino::UNO, idOtro, eventoMuerte});
-            }
-        }
-
-        mensajes.splice(mensajes.end(), procesarDropsJugadorMuerto(*objetivo, posicionObjetivo));
-
-        std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*objetivo);
-        mensajes.splice(mensajes.end(), mensajesPosicion);
+        mensajes.splice(mensajes.end(), emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
     }
 
     // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado
@@ -1719,19 +1696,7 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     }
 
     if (!jugador->estaVivo()) {
-        const EventoMuerteEntidad eventoMuerte{jugador->getId()};
-        const Posicion posicionJugador = jugador->getPosicion();
-
-        for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
-            if (otroJugador.getPosicion().mapaId == posicionJugador.mapaId) {
-                mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente, eventoMuerte});
-            }
-        }
-
-        mensajes.splice(mensajes.end(), procesarDropsJugadorMuerto(*jugador, posicionJugador));
-
-        std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
-        mensajes.splice(mensajes.end(), mensajesPosicion);
+        mensajes.splice(mensajes.end(), emitirMuerteJugador(*jugador, jugador->getPosicion()));
     }
 
     return mensajes;
@@ -1968,6 +1933,23 @@ std::list<EventoSalida> Juego::procesarDropsJugadorMuerto(Jugador& jugador,
     }
 
     mensajes.push_back(armarInventario(jugador.getId(), jugador));
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::emitirMuerteJugador(Jugador& victima,
+                                                   const Posicion& posicionMuerte) {
+    std::list<EventoSalida> mensajes;
+    const EventoMuerteEntidad eventoMuerte{victima.getId()};
+
+    for (const auto& [idOtro, otroJugador] : jugadoresConectados) {
+        if (otroJugador.getPosicion().mapaId == posicionMuerte.mapaId) {
+            mensajes.push_back(EventoSalida{TipoDestino::UNO, idOtro, eventoMuerte});
+        }
+    }
+
+    mensajes.splice(mensajes.end(), procesarDropsJugadorMuerto(victima, posicionMuerte));
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(victima));
+
     return mensajes;
 }
 
