@@ -106,6 +106,7 @@ enum class TipoEventoClan : uint8_t {
     Conectado        = 7,
     Desconectado     = 8,
     BajoAtaque       = 9,
+    Abandono         = 10,
 };
 
 struct EventoClan {

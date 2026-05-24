@@ -30,7 +30,7 @@ class ProtocoloServidor : public Protocolo {
             static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
-    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::BajoAtaque);
+    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Abandono);
 
     void validarDireccion(const uint8_t direccion) const;
 

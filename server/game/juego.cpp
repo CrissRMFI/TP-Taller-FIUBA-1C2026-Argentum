@@ -788,9 +788,14 @@ std::list<EventoSalida> Juego::ejecutarDejarClan(uint16_t idCliente) {
     if (jugador->fundo_clan())
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
 
-    clanes.at(jugador->getClan()).eliminarMiembro(jugador->getNombre());
+    const uint16_t idClan = jugador->getClan();
+    const std::string nombreJugador = jugador->getNombre();
+
+    clanes.at(idClan).eliminarMiembro(nombreJugador);
     jugador->salirClan();
-    return {};
+
+    return armarEventoClanParaMiembrosOnline(
+            idClan, TipoEventoClan::Abandono, nombreJugador, idCliente);
 }
 
 std::list<EventoSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
