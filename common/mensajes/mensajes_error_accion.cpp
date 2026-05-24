@@ -20,6 +20,9 @@ const char* MensajesErrorAccion::mensaje(CodigoErrorAccion codigo) {
         case CodigoErrorAccion::CLAN_LLENO:
             return "Clan lleno";
 
+        case CodigoErrorAccion::MANA_INSUFICIENTE:
+            return "Mana insuficiente";
+
         default:
             return "Error de accion desconocido";
     }
