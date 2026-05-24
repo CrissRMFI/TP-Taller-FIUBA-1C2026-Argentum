@@ -140,6 +140,11 @@ public:
     Posicion getPosicionResurreccion() const;
     Estado getEstado() const;
     std::vector<uint16_t> getSlotsInventario() const;
+
+    // Peek no destructivo de un slot del inventario. Devuelve el idItem que
+    // hay en `indice`, o 0 si el slot está vacío / el índice es inválido.
+    // Permite validar antes de quitarlo.
+    uint16_t getIdItemEnSlot(uint8_t indice) const;
     uint16_t getArmaEquipada() const;
     uint16_t getBaculoEquipado() const;
     uint16_t getDefensaEquipada() const;

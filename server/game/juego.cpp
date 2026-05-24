@@ -1216,12 +1216,22 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    uint16_t idItem = jugador->quitar_item_de_slot(cmd.indiceItem);
+    // Peek antes de tocar el inventario: si el slot está vacío o tiene un
+    // id que no existe en el catálogo, devolvemos error sin mutar nada.
+    // Esto evita el bug de ensuciar la cuenta del banco con id 0 o ítems
+    // fantasma, y elimina la necesidad de rollback.
+    const uint16_t idItemEnSlot = jugador->getIdItemEnSlot(cmd.indiceItem);
+    if (idItemEnSlot == 0 || !catalogo.existe(idItemEnSlot)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
 
-    if (!banquero->depositarItem(idCliente, idItem)) {
-        if (catalogo.existe(idItem)) {
-            jugador->agregar_item_en_slot(idItem, cmd.indiceItem);
-        }
+    // Una vez validado, sí mutamos: quitar del inventario y depositar.
+    // `depositarItem` ya rechaza id 0 como defensa en profundidad.
+    const uint16_t idItemDepositado = jugador->quitar_item_de_slot(cmd.indiceItem);
+    if (!banquero->depositarItem(idCliente, idItemDepositado)) {
+        // Camino teórico: peek dijo válido y depositar falló. Rollback por
+        // seguridad para no perder el ítem.
+        jugador->agregar_item_en_slot(idItemDepositado, cmd.indiceItem);
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
     return { armarInventario(idCliente, *jugador) };
@@ -1277,16 +1287,29 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (!banquero->retirarItem(idCliente, cmd.idItem)) {
-        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    // Orden corregido: validar primero ambas precondiciones (item existe en
+    // banco + cabe en inventario) y RECIÉN AHÍ aplicar la mutación. Antes el
+    // flujo era "sacar primero, agregar después", lo que perdía el ítem si
+    // el inventario estaba lleno.
+
+    if (!banquero->tieneItem(idCliente, cmd.idItem)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
     if (!jugador->agregar_item(cmd.idItem)) {
+        // El ítem sigue en el banco — no se perdió.
+        return { armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO) };
+    }
+
+    // Inventario aceptó el ítem; ahora sí lo sacamos del banco. Esta llamada
+    // no puede fallar porque ya validamos con `tieneItem`, pero por defensa
+    // hacemos rollback inverso si por alguna razón fallara.
+    if (!banquero->retirarItem(idCliente, cmd.idItem)) {
+        jugador->eliminar_item(cmd.idItem);
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
     return { armarInventario(idCliente, *jugador) };
-
 }
 
 std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,

@@ -607,6 +607,10 @@ std::vector<uint16_t> Jugador::getSlotsInventario() const {
     return inventario.getSlots();
 }
 
+uint16_t Jugador::getIdItemEnSlot(uint8_t indice) const {
+    return inventario.getIdEnSlot(indice);
+}
+
 uint16_t Jugador::getArmaEquipada() const {
     return inventario.getArmaEquipada();
 }

@@ -27,21 +27,39 @@ bool Banquero::retirarOro(uint16_t idJugador, uint32_t cantidad) {
 }
 
 bool Banquero::depositarItem(uint16_t idJugador, uint16_t idItem) {
+    // El id 0 es la sentinela de "slot vacío" en `Inventario`. Aceptarlo
+    // ensuciaría la cuenta con ítems fantasma. El banco es el guardián de
+    // este invariante porque es el dueño del almacenamiento.
+    if (idItem == 0) {
+        return false;
+    }
+
     cuentas[idJugador].second.push_back(idItem);
     return true;
 }
 
 bool Banquero::retirarItem(uint16_t idJugador, uint16_t idItem) {
-    if (cuentas.find(idJugador) == cuentas.end()) {
+    auto itCuenta = cuentas.find(idJugador);
+    if (itCuenta == cuentas.end()) {
         return false;
     }
 
-    auto& items = cuentas[idJugador].second;
-    auto it = std::find(items.begin(), items.end(), idItem);
-    if (it == items.end()) {
+    auto& itemsDeLaCuenta = itCuenta->second.second;
+    auto itItem = std::find(itemsDeLaCuenta.begin(), itemsDeLaCuenta.end(), idItem);
+    if (itItem == itemsDeLaCuenta.end()) {
         return false;
     }
 
-    items.erase(it);
+    itemsDeLaCuenta.erase(itItem);
     return true;
+}
+
+bool Banquero::tieneItem(uint16_t idJugador, uint16_t idItem) const {
+    auto itCuenta = cuentas.find(idJugador);
+    if (itCuenta == cuentas.end()) {
+        return false;
+    }
+
+    const auto& itemsDeLaCuenta = itCuenta->second.second;
+    return std::find(itemsDeLaCuenta.begin(), itemsDeLaCuenta.end(), idItem) != itemsDeLaCuenta.end();
 }
