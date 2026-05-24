@@ -29,6 +29,17 @@ struct ResultadoDanio {
     bool esCritico;
 };
 
+// Resultado de aplicar un ataque físico sobre el defensor. Discrimina esquive
+// vs golpe efectivo para que el caller pueda emitir EventoEsquive con la
+// misma semántica que ya usa el flujo PvE (juego.cpp:2010-2019). Sin esto,
+// el cliente recibe `cantidad == 0` tanto en esquive como en absorción total
+// y no puede diferenciar la animación correcta.
+struct ResultadoDefensa {
+    enum class Tipo : uint8_t { Golpeado, Esquivo };
+    Tipo tipo;
+    uint16_t danioAplicado;  // 0 si tipo == Esquivo
+};
+
 // Tipo de ataque que el jugador ejecuta según su equipamiento.
 // `Juego` lo consulta vía `Jugador::describir_ataque` para decidir si valida
 // adyacencia (melee) o rango de visión (distancia/hechizo).
@@ -61,11 +72,12 @@ public:
 
     // Aplica daño físico al jugador. Si `esCritico` es true se saltea la fase
     // de evasión (regla 5.2). La absorción por armadura/casco/escudo (regla
-    // 5.5) se aplica en ambos casos. Devuelve el daño final entrado a vida.
-    uint16_t recibir_ataque_fisico(uint16_t danio,
-                                   bool esCritico,
-                                   const CatalogoItems& catalogo,
-                                   float multiplicadorDefensa = 1.0f);
+    // 5.5) se aplica cuando no hay esquive. Devuelve un ResultadoDefensa que
+    // distingue esquive de golpe (con su daño final entrado a vida).
+    ResultadoDefensa recibir_ataque_fisico(uint16_t danio,
+                                           bool esCritico,
+                                           const CatalogoItems& catalogo,
+                                           float multiplicadorDefensa = 1.0f);
 
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);

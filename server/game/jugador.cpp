@@ -91,18 +91,21 @@ void Jugador::recibir_danio(uint16_t cantidad) {
     }
 }
 
-uint16_t Jugador::recibir_ataque_fisico(uint16_t danio,
-                                        bool esCritico,
-                                        const CatalogoItems& catalogo,
-                                        float multiplicadorDefensa) {
+ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
+                                                bool esCritico,
+                                                const CatalogoItems& catalogo,
+                                                float multiplicadorDefensa) {
+    // Defensor muerto o flag debug `invulnerable`: el ataque no impacta pero
+    // tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no
+    // confunda este caso con una evasión real.
     if (!estaVivo() || cfg->invulnerable) {
-        return 0;
+        return { ResultadoDefensa::Tipo::Golpeado, 0 };
     }
 
     // Regla 5.2: el crítico omite la fase de evasión. La absorción (regla 5.5)
     // se sigue aplicando porque la regla 5.2 sólo habla de "fase de evasión".
     if (!esCritico && esquiva_ataque()) {
-        return 0;
+        return { ResultadoDefensa::Tipo::Esquivo, 0 };
     }
 
     uint16_t absorcion = 0;
@@ -139,7 +142,7 @@ uint16_t Jugador::recibir_ataque_fisico(uint16_t danio,
     const uint16_t danioFinal = danio > absorcionFinal ? danio - absorcionFinal : 0;
     recibir_danio(danioFinal);
 
-    return danioFinal;
+    return { ResultadoDefensa::Tipo::Golpeado, danioFinal };
 }
 
 void Jugador::curar(uint16_t cantidad) {

@@ -1126,39 +1126,50 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
     const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
             resultadoDanio.valor, multiplicadorClan(*atacante));
-    const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(
+    const ResultadoDefensa resultadoDefensa = objetivo->recibir_ataque_fisico(
             danioBruto, resultadoDanio.esCritico, catalogo, multiplicadorClan(*objetivo));
 
     std::list<EventoSalida> mensajes;
-
-    mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                    EventoDanioProducido{danioAplicado, objetivo->getId()}});
-
-    mensajes.push_back(EventoSalida{TipoDestino::UNO, objetivo->getId(),
-                                    EventoDanioRecibido{danioAplicado, atacante->getId()}});
-
-    mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
-
-    if (danioAplicado > 0 && objetivo->tieneClan()) {
-        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
-                                                objetivo->getClan(), TipoEventoClan::BajoAtaque,
-                                                objetivo->getNombre(), objetivo->getId()));
-    }
-
-    // XP por impacto (regla 3.3.2). Sólo si el golpe entró con daño efectivo.
     bool atacanteGanoXp = false;
-    if (danioAplicado > 0) {
-        const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
-                cfg, danioAplicado, nivelAtacante, nivelObjetivoAntes);
-        if (xpHit > 0) {
-            atacante->ganar_experiencia(xpHit);
-            atacanteGanoXp = true;
+
+    if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
+        // Simetría con PvE (ver ejecutarAtaqueACriatura): notificar al atacante
+        // y al defensor que la evasión ocurrió. Sin daño no hay XP de impacto,
+        // BajoAtaque ni estado del defensor que reportar.
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
+                                        EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, objetivo->getId(),
+                                        EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
+    } else {
+        const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
+
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
+                                        EventoDanioProducido{danioAplicado, objetivo->getId()}});
+
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, objetivo->getId(),
+                                        EventoDanioRecibido{danioAplicado, atacante->getId()}});
+
+        mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
+
+        if (danioAplicado > 0 && objetivo->tieneClan()) {
+            mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
+                                                    objetivo->getClan(), TipoEventoClan::BajoAtaque,
+                                                    objetivo->getNombre(), objetivo->getId()));
+        }
+
+        // XP por impacto (regla 3.3.2). Sólo si el golpe entró con daño efectivo.
+        if (danioAplicado > 0) {
+            const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
+                    cfg, danioAplicado, nivelAtacante, nivelObjetivoAntes);
+            if (xpHit > 0) {
+                atacante->ganar_experiencia(xpHit);
+                atacanteGanoXp = true;
+            }
         }
     }
 
-    if (!objetivo->estaVivo()) {
-        // XP por kill (regla 3.3.3). Random en [0, 1) se transforma a [0, expKillMax)
-        // dentro de ReglasJuego, así la fórmula vive en el módulo centralizador.
+    if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Golpeado && !objetivo->estaVivo()) {
+        
         static std::mt19937 rngKill(std::random_device{}());
         const float valorAleatorio = std::uniform_real_distribution<float>(0.0f, 1.0f)(rngKill);
 
@@ -1681,8 +1692,16 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     // atacante). Pasamos esCritico=false explícito para que el defensor
     // pueda evaluar evasión normalmente.
     const uint16_t danioBrutoCriatura = criatura.calcularDanio();
-    const uint16_t danio = jugador->recibir_ataque_fisico(danioBrutoCriatura, /*esCritico=*/false,
-                                                          catalogo, multiplicadorClan(*jugador));
+    const ResultadoDefensa resultadoDefensa = jugador->recibir_ataque_fisico(
+            danioBrutoCriatura, /*esCritico=*/false, catalogo, multiplicadorClan(*jugador));
+
+    if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
+                                        EventoEsquive{idJugador, /*esquivador=*/1}});
+        return mensajes;
+    }
+
+    const uint16_t danio = resultadoDefensa.danioAplicado;
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
                                     EventoDanioRecibido{danio, criatura.getId()}});
