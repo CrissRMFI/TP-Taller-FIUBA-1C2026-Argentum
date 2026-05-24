@@ -47,6 +47,7 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         meditacionManaPendiente(0.0f),
         oroMano(0),
         oroExceso(0),
+        oroPerdidoPendiente(0),
         oroBanco(0),
         fuerza(0),
         agilidad(0),
@@ -268,6 +269,12 @@ bool Jugador::gastar_oro(uint32_t cantidad) {
     normalizarOro();
 
     return true;
+}
+
+uint32_t Jugador::extraer_oro_perdido() {
+    const uint32_t oro = oroPerdidoPendiente;
+    oroPerdidoPendiente = 0;
+    return oro;
 }
 
 void Jugador::mover_a(uint16_t x, uint16_t y) {
@@ -656,6 +663,7 @@ void Jugador::subirNivel() {
 
 void Jugador::morir() {
     estado = Estado::Fantasma;
+    vidaActual = 0;
 
     if (!es_newbie()) {
         uint32_t experienciaAPerder =
@@ -664,6 +672,9 @@ void Jugador::morir() {
         perder_experiencia(experienciaAPerder);
     }
 
+    const uint32_t espacioPendiente =
+            std::numeric_limits<uint32_t>::max() - oroPerdidoPendiente;
+    oroPerdidoPendiente += std::min(oroExceso, espacioPendiente);
     oroExceso = 0;
 }
 

@@ -74,6 +74,7 @@ public:
     void ganar_experiencia(uint32_t cantidad);
     void sumar_oro(uint32_t cantidad);
     bool gastar_oro(uint32_t cantidad);
+    uint32_t extraer_oro_perdido();
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
@@ -172,6 +173,7 @@ private:
 
     uint32_t oroMano;
     uint32_t oroExceso;
+    uint32_t oroPerdidoPendiente;
     uint32_t oroBanco;
 
     uint8_t fuerza;

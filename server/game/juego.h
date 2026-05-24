@@ -101,7 +101,8 @@ class Juego {
 
     std::list<EventoSalida> armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad);
     std::list<EventoSalida> armarOroDesaparecioSueloParaMapa(const Posicion& posicion);
-    bool dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
+    bool dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
+    std::list<EventoSalida> procesarDropsJugadorMuerto(Jugador& jugador, const Posicion& posicionMuerte);
 
     // Helpers de validación NPC-por-id (regla del bug #6): obtienen el NPC
     // concreto del mapa por el id que envió el cliente y verifican que esté

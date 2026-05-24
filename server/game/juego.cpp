@@ -422,14 +422,17 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     ticksTranscurridos++;
 
     for (auto& [id, jugador] : jugadoresConectados) {
+        const bool estabaVivo = jugador.estaVivo();
         const bool estabaMeditando = jugador.enMeditacion();
         const bool estabaInmovilizado = jugador.estaInmovilizado();
+        const Posicion posicionAntes = jugador.getPosicion();
 
         const uint16_t vidaAntes = jugador.getVidaActual();
         const uint16_t manaAntes = jugador.getManaActual();
         const uint32_t oroAntes = jugador.getOro();
         const uint16_t nivelAntes = jugador.getNivel();
         const uint32_t experienciaAntes = jugador.getExperiencia();
+        const Estado estadoAntes = jugador.getEstado();
 
         jugador.recuperar(deltaSegundos);
 
@@ -438,10 +441,28 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
             manaAntes != jugador.getManaActual() ||
             oroAntes != jugador.getOro() ||
             nivelAntes != jugador.getNivel() ||
-            experienciaAntes != jugador.getExperiencia();
+            experienciaAntes != jugador.getExperiencia() ||
+            estadoAntes != jugador.getEstado();
 
         if (cambioEstado) {
             mensajes.push_back(armarEstado(id, jugador));
+        }
+        if (estabaVivo && !jugador.estaVivo()) {
+            const EventoMuerteEntidad eventoMuerte{ jugador.getId() };
+
+            for (const auto& [idCliente, otroJugador] : jugadoresConectados) {
+                if (otroJugador.getPosicion().mapaId == posicionAntes.mapaId) {
+                    mensajes.push_back(EventoSalida{
+                        TipoDestino::UNO, idCliente, eventoMuerte
+                    });
+                }
+            }
+
+            mensajes.splice(mensajes.end(),
+                            procesarDropsJugadorMuerto(jugador, posicionAntes));
+
+            std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
+            mensajes.splice(mensajes.end(), mensajesPosicion);
         }
         if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
@@ -1063,16 +1084,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             }
         }
 
-        const std::vector<uint16_t> itemsDropear = objetivo->vaciar_inventario();
-
-        for (uint16_t idItem : itemsDropear) {
-            Posicion posicionDrop = posicionObjetivo;
-            if (agregarItemEnSueloCercano(posicionObjetivo, idItem, posicionDrop)) {
-                mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionDrop, idItem));
-            }
-        }
-
-        mensajes.push_back(armarInventario(objetivo->getId(), *objetivo));
+        mensajes.splice(mensajes.end(),
+                        procesarDropsJugadorMuerto(*objetivo, posicionObjetivo));
 
         std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*objetivo);
         mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -1606,17 +1619,8 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
             }
         }
 
-        const std::vector<uint16_t> itemsDropear = jugador->vaciar_inventario();
-
-        for (uint16_t idItem : itemsDropear) {
-            Posicion posicionDrop = posicionJugador;
-
-            if (agregarItemEnSueloCercano(posicionJugador, idItem, posicionDrop)) {
-                mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionDrop, idItem));
-            }
-        }
-
-        mensajes.push_back(armarInventario(idJugador, *jugador));
+        mensajes.splice(mensajes.end(),
+                        procesarDropsJugadorMuerto(*jugador, posicionJugador));
 
         std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
         mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -1721,7 +1725,7 @@ std::list<EventoSalida> Juego::armarOroDesaparecioSueloParaMapa(const Posicion& 
     return mensajes;
 }
 
-bool Juego::dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal) {
+bool Juego::dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal) {
     if (mapa.agregarOroEnSuelo(origen, cantidad)) {
         posicionFinal = origen;
         return true;
@@ -1737,6 +1741,32 @@ bool Juego::dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantida
     }
 
     return false;
+}
+
+std::list<EventoSalida> Juego::procesarDropsJugadorMuerto(
+        Jugador& jugador,
+        const Posicion& posicionMuerte) {
+    std::list<EventoSalida> mensajes;
+
+    const uint32_t oroDrop = jugador.extraer_oro_perdido();
+    if (oroDrop > 0) {
+        Posicion posicionDrop = posicionMuerte;
+        if (dropearOroEnSueloCercano(posicionMuerte, oroDrop, posicionDrop)) {
+            mensajes.splice(mensajes.end(), armarOroEnSueloParaMapa(posicionDrop, oroDrop));
+        }
+    }
+
+    const std::vector<uint16_t> itemsDropear = jugador.vaciar_inventario();
+
+    for (uint16_t idItem : itemsDropear) {
+        Posicion posicionDrop = posicionMuerte;
+        if (agregarItemEnSueloCercano(posicionMuerte, idItem, posicionDrop)) {
+            mensajes.splice(mensajes.end(), armarItemEnSueloParaMapa(posicionDrop, idItem));
+        }
+    }
+
+    mensajes.push_back(armarInventario(jugador.getId(), jugador));
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugador& atacanteRef, Criatura& criatura) {
@@ -1854,7 +1884,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
         if (cantidadOro > 0) {
             Posicion celdaDrop = posicionCriatura;
-            if (dropearOroNpcEnSueloCercano(posicionCriatura, cantidadOro, celdaDrop)) {
+            if (dropearOroEnSueloCercano(posicionCriatura, cantidadOro, celdaDrop)) {
                 mensajes.splice(mensajes.end(),
                                 armarOroEnSueloParaMapa(celdaDrop, cantidadOro));
             }
