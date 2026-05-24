@@ -61,9 +61,11 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
 
     if (itDesconectado != jugadoresDesconectados.end()) {
         jugadoresConectados.emplace(id, std::move(itDesconectado->second));
-        jugadoresConectados.at(id).actualizarId(id);
         jugadoresDesconectados.erase(itDesconectado);
     } else {
+        if (existeIdPersonaje(id)) {
+            return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        }
         jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
     }
 
@@ -138,6 +140,42 @@ Jugador* Juego::buscarJugador(uint16_t id) {
     return (it != jugadoresConectados.end()) ? &it->second : nullptr;
 }
 
+Jugador* Juego::buscarJugadorPorIdPersonaje(uint16_t idPersonaje) {
+    for (auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getId() == idPersonaje) {
+            return &jugador;
+        }
+    }
+
+    return nullptr;
+}
+
+std::optional<uint16_t> Juego::buscarIdClienteDeJugador(uint16_t idPersonaje) const {
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getId() == idPersonaje) {
+            return idCliente;
+        }
+    }
+
+    return std::nullopt;
+}
+
+bool Juego::existeIdPersonaje(uint16_t idPersonaje) const {
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getId() == idPersonaje) {
+            return true;
+        }
+    }
+
+    for (const auto& [idCliente, jugador] : jugadoresDesconectados) {
+        if (jugador.getId() == idPersonaje) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::optional<uint16_t> idExcluido) const {
     for (const auto& [idCliente, jugador] : jugadoresConectados) {
         if (idExcluido.has_value() && idCliente == *idExcluido) {
@@ -205,7 +243,7 @@ size_t Juego::contarAliadosClanCercanos(const Jugador& jugador) const {
     const Posicion posicionJugador = jugador.getPosicion();
 
     for (const auto& [idCliente, otro] : jugadoresConectados) {
-        if (idCliente == jugador.getId() || !otro.estaVivo() || !otro.tieneClan() ||
+        if (otro.getId() == jugador.getId() || !otro.estaVivo() || !otro.tieneClan() ||
             otro.getClan() != jugador.getClan()) {
             continue;
         }
@@ -314,7 +352,7 @@ std::list<EventoSalida> Juego::armarDesaparicionParaMapa(const Jugador& jugador)
     Posicion posicion = jugador.getPosicion();
 
     for (const auto& [idCliente, otro] : jugadoresConectados) {
-        if (idCliente != jugador.getId() && otro.getPosicion().mapaId == posicion.mapaId) {
+        if (otro.getId() != jugador.getId() && otro.getPosicion().mapaId == posicion.mapaId) {
             mensajes.push_back(
                     {TipoDestino::UNO, idCliente, EventoEntidadDesaparecio{jugador.getId()}});
         }
@@ -1061,12 +1099,12 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    if (cmd.idObjetivo == idCliente) {
+    if (cmd.idObjetivo == atacante->getId()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
-    if (buscarJugador(cmd.idObjetivo) != nullptr) {
+    if (buscarJugadorPorIdPersonaje(cmd.idObjetivo) != nullptr) {
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
     }
 
@@ -1080,9 +1118,11 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
 std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugador& atacanteRef,
                                                       const ComandoAtacar& cmd) {
     Jugador* atacante = &atacanteRef;
-    Jugador* objetivo = buscarJugador(cmd.idObjetivo);
+    Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
+    const std::optional<uint16_t> idClienteObjetivo =
+            buscarIdClienteDeJugador(cmd.idObjetivo);
 
-    if (!objetivo || !objetivo->estaVivo()) {
+    if (!objetivo || !idClienteObjetivo.has_value() || !objetivo->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
@@ -1156,7 +1196,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         // BajoAtaque ni estado del defensor que reportar.
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
-        mensajes.push_back(EventoSalida{TipoDestino::UNO, objetivo->getId(),
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
     } else {
         const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
@@ -1164,15 +1204,15 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoDanioProducido{danioAplicado, objetivo->getId()}});
 
-        mensajes.push_back(EventoSalida{TipoDestino::UNO, objetivo->getId(),
+        mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
                                         EventoDanioRecibido{danioAplicado, atacante->getId()}});
 
-        mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
+        mensajes.push_back(armarEstado(*idClienteObjetivo, *objetivo));
 
         if (danioAplicado > 0 && objetivo->tieneClan()) {
             mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
                                                     objetivo->getClan(), TipoEventoClan::BajoAtaque,
-                                                    objetivo->getNombre(), objetivo->getId()));
+                                                    objetivo->getNombre(), *idClienteObjetivo));
         }
 
         // XP por impacto (regla 3.3.2). Sólo si el golpe entró con daño efectivo.
@@ -1359,7 +1399,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
     // Una vez validado, sí mutamos: quitar del inventario y depositar.
     // `depositarItem` ya rechaza id 0 como defensa en profundidad.
     const uint16_t idItemDepositado = jugador->quitar_item_de_slot(cmd.indiceItem);
-    if (!banquero->depositarItem(idCliente, idItemDepositado)) {
+    if (!banquero->depositarItem(jugador->getId(), idItemDepositado)) {
         // Camino teórico: peek dijo válido y depositar falló. Rollback por
         // seguridad para no perder el ítem.
         jugador->agregar_item_en_slot(idItemDepositado, cmd.indiceItem);
@@ -1393,7 +1433,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE)};
     }
 
-    if (!banquero->depositarOro(idCliente, cmd.monto)) {
+    if (!banquero->depositarOro(jugador->getId(), cmd.monto)) {
         jugador->sumar_oro(cmd.monto);
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
@@ -1423,7 +1463,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    if (!banquero->tieneItem(idCliente, cmd.idItem)) {
+    if (!banquero->tieneItem(jugador->getId(), cmd.idItem)) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
@@ -1435,12 +1475,12 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
     // Primero sacamos del banco y luego agregamos al inventario. Como ya
     // validamos capacidad, `agregar_item` debería aceptar; si no, hacemos
     // rollback al banco para no perder ni duplicar el ítem.
-    if (!banquero->retirarItem(idCliente, cmd.idItem)) {
+    if (!banquero->retirarItem(jugador->getId(), cmd.idItem)) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     if (!jugador->agregar_item(cmd.idItem)) {
-        banquero->depositarItem(idCliente, cmd.idItem);
+        banquero->depositarItem(jugador->getId(), cmd.idItem);
         return {armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO)};
     }
 
@@ -1468,7 +1508,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    if (!banquero->retirarOro(idCliente, cmd.monto)) {
+    if (!banquero->retirarOro(jugador->getId(), cmd.monto)) {
         return {armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE)};
     }
 
@@ -1766,8 +1806,7 @@ std::optional<uint16_t> Juego::reservarIdCriatura() {
         }
 
         if (candidato == 0 || mapa.obtenerCriaturaPor(candidato) != nullptr ||
-            jugadoresConectados.find(candidato) != jugadoresConectados.end() ||
-            jugadoresDesconectados.find(candidato) != jugadoresDesconectados.end()) {
+            existeIdPersonaje(candidato)) {
             continue;
         }
 
@@ -1905,7 +1944,10 @@ std::list<EventoSalida> Juego::procesarDropsJugadorMuerto(Jugador& jugador,
         }
     }
 
-    mensajes.push_back(armarInventario(jugador.getId(), jugador));
+    const std::optional<uint16_t> idCliente = buscarIdClienteDeJugador(jugador.getId());
+    if (idCliente.has_value()) {
+        mensajes.push_back(armarInventario(*idCliente, jugador));
+    }
     return mensajes;
 }
 

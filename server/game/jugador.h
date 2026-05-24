@@ -174,8 +174,6 @@ public:
     uint16_t getEscudoEquipado() const;
     std::vector<uint16_t> getIdItemsBanco() const;
 
-    void actualizarId(uint16_t nuevoId);
-
 private:
     uint16_t idJugador;
     uint16_t idClan;

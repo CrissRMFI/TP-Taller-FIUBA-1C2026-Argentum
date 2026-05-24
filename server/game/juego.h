@@ -45,6 +45,9 @@ class Juego {
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);
+    Jugador*    buscarJugadorPorIdPersonaje(uint16_t idPersonaje);
+    std::optional<uint16_t> buscarIdClienteDeJugador(uint16_t idPersonaje) const;
+    bool        existeIdPersonaje(uint16_t idPersonaje) const;
     Jugador*    buscarJugadorPorNick(const std::string& nick);
     Clan*       buscarClanPorNombre(const std::string& nombre);
 

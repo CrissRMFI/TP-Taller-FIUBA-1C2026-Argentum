@@ -743,7 +743,3 @@ bool Jugador::esquiva_ataque(Aleatorio& aleatorio) {
 bool Jugador::es_golpe_critico(Aleatorio& aleatorio) {
     return ReglasJuego::esGolpeCritico(cfg, aleatorio.uniforme());
 }
-
-void Jugador::actualizarId(uint16_t nuevoId) {
-    idJugador = nuevoId;
-}
