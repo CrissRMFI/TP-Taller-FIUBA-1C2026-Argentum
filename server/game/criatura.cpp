@@ -1,5 +1,7 @@
 #include "criatura.h"
 
+#include <algorithm>
+#include <limits>
 #include <random>
 
 Criatura::Criatura(uint16_t idCriatura,
@@ -63,7 +65,9 @@ uint16_t Criatura::calcularDanio() const {
     std::uniform_int_distribution<int> distribucion(danioMin, danioMax);
 
     const uint16_t danioBase = static_cast<uint16_t>(distribucion(generador));
-    return static_cast<uint16_t>(fuerza) * danioBase;
+    const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBase;
+    return static_cast<uint16_t>(
+            std::min<uint32_t>(danioCrudo, std::numeric_limits<uint16_t>::max()));
 }
 
 void Criatura::recibir_danio(uint32_t danio) {

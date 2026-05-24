@@ -353,14 +353,15 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo) {
             danioArmaMin, danioArmaMax)(rng);
 
     // Regla 5.1: Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
-    uint16_t danioCalculado = static_cast<uint16_t>(fuerza) * danioBaseArma;
-
     // Regla 5.2: el crítico duplica el daño. El flag se propaga al caller para
     // que el defensor pueda saltear su esquive.
+    // Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder
+    // 65535 con stats altos (ej. 255 * 65535) y el cast directo truncaría.
     const bool esGolpeCritico = es_golpe_critico();
-    if (esGolpeCritico) {
-        danioCalculado = static_cast<uint16_t>(danioCalculado * 2);
-    }
+    const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBaseArma;
+    const uint32_t danioConCritico = esGolpeCritico ? danioCrudo * 2u : danioCrudo;
+    const uint16_t danioCalculado = static_cast<uint16_t>(
+            std::min<uint32_t>(danioConCritico, std::numeric_limits<uint16_t>::max()));
 
     return ResultadoDanio{ danioCalculado, esGolpeCritico };
 }
