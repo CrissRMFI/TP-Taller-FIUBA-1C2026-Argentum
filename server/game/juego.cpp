@@ -10,24 +10,10 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/tipo_entidad.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
-
-static uint8_t estadoEntidadDe(const Jugador& jugador) {
-    switch (jugador.getEstado()) {
-        case Estado::Vivo:
-            return 0;
-        case Estado::Fantasma:
-            return 1;
-        case Estado::Meditando:
-            return 2;
-        case Estado::Resucitando:
-            return 3;
-    }
-
-    return 0;
-}
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         cfg(cfg),
@@ -318,7 +304,23 @@ EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura
     Posicion posicion = criatura.getPos();
     return {TipoDestino::UNO, idCliente,
             EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y,
-                                  static_cast<uint8_t>(TipoEntidad::Criatura), 0}};
+                                  static_cast<uint8_t>(TipoEntidad::Criatura),
+                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)}};
+}
+
+uint8_t Juego::estadoEntidadDe(const Jugador& jugador) const {
+    switch (jugador.getEstado()) {
+        case Estado::Vivo:
+            return static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo);
+        case Estado::Fantasma:
+            return static_cast<uint8_t>(EstadoEntidadProtocolo::Fantasma);
+        case Estado::Meditando:
+            return static_cast<uint8_t>(EstadoEntidadProtocolo::Meditando);
+        case Estado::Resucitando:
+            return static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
+    }
+
+    return static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo);
 }
 
 std::list<EventoSalida> Juego::armarPosicionParaMapa(const Jugador& jugador) {

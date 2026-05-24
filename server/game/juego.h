@@ -58,6 +58,7 @@ class Juego {
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
+    uint8_t estadoEntidadDe(const Jugador& jugador) const;
     std::list<EventoSalida> armarDesaparicionParaMapa(const Jugador& jugador);
     std::list<EventoSalida> armarPosicionParaMapa(const Jugador& jugador);
     std::list<EventoSalida> armarPosicionCriaturaParaMapa(const Criatura& criatura);
