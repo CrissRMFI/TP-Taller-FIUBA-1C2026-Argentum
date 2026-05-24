@@ -89,6 +89,10 @@ bool Inventario::tieneItem(uint16_t idItem) const {
     return false;
 }
 
+bool Inventario::tieneEspacioLibre() const {
+    return cantidadSlotsLibres() > 0;
+}
+
 uint16_t Inventario::getIdEnSlot(uint8_t indice) const {
     if (indice >= slots.size()) {
         return ITEM_VACIO;

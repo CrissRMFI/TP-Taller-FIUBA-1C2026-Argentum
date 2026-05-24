@@ -1,5 +1,6 @@
 #include "banquero.h"
 
+#include <limits>
 
 std::pair<uint32_t, std::vector<uint16_t>> Banquero::listarItemsDisponibles(uint16_t idJugador) {
     if (cuentas.find(idJugador) != cuentas.end()) {
@@ -13,16 +14,26 @@ bool Banquero::depositarOro(uint16_t idJugador, uint32_t cantidad) {
         return false;
     }
 
-    cuentas[idJugador].first += cantidad;
+    uint32_t& oroDepositado = cuentas[idJugador].first;
+    if (cantidad > std::numeric_limits<uint32_t>::max() - oroDepositado) {
+        return false;
+    }
+
+    oroDepositado += cantidad;
     return true;
 }
 
 bool Banquero::retirarOro(uint16_t idJugador, uint32_t cantidad) {
-    if (cuentas.find(idJugador) == cuentas.end() || cuentas[idJugador].first < cantidad) {
+    if (cantidad == 0) {
         return false;
     }
 
-    cuentas[idJugador].first -= cantidad;
+    auto itCuenta = cuentas.find(idJugador);
+    if (itCuenta == cuentas.end() || itCuenta->second.first < cantidad) {
+        return false;
+    }
+
+    itCuenta->second.first -= cantidad;
     return true;
 }
 

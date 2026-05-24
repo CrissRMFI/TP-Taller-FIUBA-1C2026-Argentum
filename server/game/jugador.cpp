@@ -277,6 +277,21 @@ uint32_t Jugador::extraer_oro_perdido() {
     return oro;
 }
 
+bool Jugador::puede_recibir_oro(uint32_t cantidad) const {
+    if (cantidad == 0) {
+        return false;
+    }
+
+    const uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
+    if (oroMano > maximoTotal || oroExceso > maximoTotal - oroMano) {
+        return false;
+    }
+
+    const uint32_t totalActual = oroMano + oroExceso;
+
+    return totalActual <= maximoTotal && cantidad <= maximoTotal - totalActual;
+}
+
 void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.x = x;
     posicion.y = y;
@@ -408,6 +423,10 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
 
 bool Jugador::agregar_item(uint16_t idItem) {
     return inventario.agregarItem(idItem);
+}
+
+bool Jugador::puede_agregar_item(uint16_t idItem) const {
+    return idItem != 0 && inventario.tieneEspacioLibre();
 }
 
 bool Jugador::eliminar_item(uint16_t idItem) {

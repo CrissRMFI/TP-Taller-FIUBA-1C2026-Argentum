@@ -75,6 +75,7 @@ public:
     void sumar_oro(uint32_t cantidad);
     bool gastar_oro(uint32_t cantidad);
     uint32_t extraer_oro_perdido();
+    bool puede_recibir_oro(uint32_t cantidad) const;
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
@@ -98,6 +99,7 @@ public:
     bool consumir_mana(uint16_t cantidad);
 
     // Inventario
+    bool puede_agregar_item(uint16_t idItem) const;
     bool agregar_item(uint16_t idItem);
     bool eliminar_item(uint16_t idItem);
     bool equipar_item(uint8_t indice, const CatalogoItems& catalogo);

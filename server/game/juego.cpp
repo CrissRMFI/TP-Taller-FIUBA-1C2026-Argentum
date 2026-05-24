@@ -1283,17 +1283,24 @@ std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente, const Co
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
+    if (cmd.monto == 0) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
     if (jugador->getOro() < cmd.monto) {
         return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
     }
 
+    if (!jugador->gastar_oro(cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
+    }
+
     if (!banquero->depositarOro(idCliente, cmd.monto)) {
+        jugador->sumar_oro(cmd.monto);
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    jugador->gastar_oro(cmd.monto);
-
-    return { armarInventario(idCliente, *jugador) };
+    return { armarEstado(idCliente, *jugador) };
 }
 
 std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
@@ -1314,21 +1321,29 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
     // flujo era "sacar primero, agregar después", lo que perdía el ítem si
     // el inventario estaba lleno.
 
+    if (cmd.idItem == 0 || !catalogo.existe(cmd.idItem)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
     if (!banquero->tieneItem(idCliente, cmd.idItem)) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (!jugador->agregar_item(cmd.idItem)) {
-        // El ítem sigue en el banco — no se perdió.
+    if (!jugador->puede_agregar_item(cmd.idItem)) {
+        // El ítem sigue en el banco: todavía no mutamos ninguna colección.
         return { armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO) };
     }
 
-    // Inventario aceptó el ítem; ahora sí lo sacamos del banco. Esta llamada
-    // no puede fallar porque ya validamos con `tieneItem`, pero por defensa
-    // hacemos rollback inverso si por alguna razón fallara.
+    // Primero sacamos del banco y luego agregamos al inventario. Como ya
+    // validamos capacidad, `agregar_item` debería aceptar; si no, hacemos
+    // rollback al banco para no perder ni duplicar el ítem.
     if (!banquero->retirarItem(idCliente, cmd.idItem)) {
-        jugador->eliminar_item(cmd.idItem);
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!jugador->agregar_item(cmd.idItem)) {
+        banquero->depositarItem(idCliente, cmd.idItem);
+        return { armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO) };
     }
 
     return { armarInventario(idCliente, *jugador) };
@@ -1347,13 +1362,21 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
-    if (!banquero->retirarOro(idCliente, cmd.monto)) {
+    if (cmd.monto == 0) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    if (!jugador->puede_recibir_oro(cmd.monto)) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!banquero->retirarOro(idCliente, cmd.monto)) {
+        return { armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE) };
     }
 
     jugador->sumar_oro(cmd.monto);
 
-    return { armarInventario(idCliente, *jugador) };
+    return { armarEstado(idCliente, *jugador) };
 }
 
 std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
