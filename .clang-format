@@ -1,0 +1,49 @@
+Language: Cpp
+BasedOnStyle: Google
+
+Standard: c++20
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+AccessModifierOffset: -4
+NamespaceIndentation: None
+
+BreakBeforeBraces: Attach
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+SpaceBeforeParens: ControlStatements
+SpaceBeforeAssignmentOperators: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInAngles: false
+SpaceAfterCStyleCast: false
+
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignTrailingComments: true
+ContinuationIndentWidth: 8
+ConstructorInitializerIndentWidth: 8
+
+BreakConstructorInitializers: AfterColon
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+SortIncludes: true
+IncludeBlocks: Preserve
+IncludeIsMainRegex: "([-_](test|unittest))?$"
+
+ReflowComments: true
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
