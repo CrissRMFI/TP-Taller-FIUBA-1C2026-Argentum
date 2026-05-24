@@ -14,8 +14,7 @@
 #include "reglas/reglas_juego.h"
 #include "../../common/protocolo/tipo_entidad.h"
 
-namespace {
-uint8_t estadoEntidadDe(const Jugador& jugador) {
+static uint8_t estadoEntidadDe(const Jugador& jugador) {
     switch (jugador.getEstado()) {
         case Estado::Vivo:
             return 0;
@@ -28,8 +27,6 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
     }
 
     return 0;
-}
-
 }
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :

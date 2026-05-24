@@ -2,18 +2,26 @@
 
 #include <chrono>
 #include <stdexcept>
-#include <string_view>
 #include <thread>
 #include <utility>
 
 #include "traductor_protocolo.h"
 
-constexpr std::string_view ERROR_COLA_YA_CERRADA = "The queue is already closed.";
+template <typename T>
+static void cerrarColaSiCorresponde(Queue<T>& cola, std::atomic_bool& cerrada) {
+    if (cerrada.exchange(true)) {
+        return;
+    }
+
+    cola.close();
+}
 
 Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
       juego(config.juego, std::move(config.items)),
-      tickMs(config.juego.tickMs) {
+      tickMs(config.juego.tickMs),
+      colaComandosCerrada(false),
+      colaEventosSesionCerrada(false) {
     if (tickMs <= 0) {
         throw std::invalid_argument("El tick del gameloop debe ser mayor a cero");
     }
@@ -54,21 +62,8 @@ void Gameloop::run() {
 void Gameloop::detener() {
     stop();
 
-    try {
-        colaComandos.close();
-    } catch (const std::runtime_error& err) {
-        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
-            throw;
-        }
-    }
-
-    try {
-        colaEventosSesion.close();
-    } catch (const std::runtime_error& err) {
-        if (std::string_view(err.what()) != ERROR_COLA_YA_CERRADA) {
-            throw;
-        }
-    }
+    cerrarColaSiCorresponde(colaComandos, colaComandosCerrada);
+    cerrarColaSiCorresponde(colaEventosSesion, colaEventosSesionCerrada);
 }
 
 Queue<ComandoCliente>& Gameloop::getColaComandos() {

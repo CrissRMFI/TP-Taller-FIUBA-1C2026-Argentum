@@ -6,14 +6,7 @@
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/protocolo/opcode.h"
 
-namespace {
-
-// Despacho lineal por tipo del variant `EventoJuego`. Cada bloque:
-//   1) intenta extraer el puntero al tipo concreto con `std::get_if`,
-//   2) si matchea, construye y devuelve el `MensajeServidor` correspondiente.
-// Si ningún tipo matchea (lo cual sólo pasaría si se agrega un EventoJuego
-// nuevo y se olvida agregarlo acá), se tira excepción.
-MensajeServidor aMensajeServidor(const EventoJuego& evento) {
+static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     if (auto* e = std::get_if<EventoEstadoPersonaje>(&evento)) {
         return { Opcode::ESTADO_PERSONAJE,
                  MensajeEstadoPersonaje{
@@ -94,8 +87,6 @@ MensajeServidor aMensajeServidor(const EventoJuego& evento) {
 
     throw std::runtime_error("Tipo de EventoJuego sin traduccion a MensajeServidor");
 }
-
-}  // namespace
 
 MensajeSalida TraductorProtocolo::traducir(const EventoSalida& evento) {
     return { evento.tipoDestino, evento.idCliente, aMensajeServidor(evento.evento) };
