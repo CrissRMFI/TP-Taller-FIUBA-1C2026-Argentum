@@ -95,6 +95,11 @@ struct ConfigJuego {
     // ---- NPCs ----
     uint16_t rangoInteraccionNpc;
 
+    // ---- Rangos de ataque (regla 5.3) ----
+    // Alcance máximo en celdas para armas a distancia y hechizos de báculo.
+    // El melee siempre es adyacencia (distancia Manhattan == 1).
+    uint16_t rangoVisionAtaque;
+
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;
     bool manaInfinito;

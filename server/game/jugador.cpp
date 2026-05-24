@@ -334,6 +334,57 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo) {
     return ResultadoDanio{ danioCalculado, esGolpeCritico };
 }
 
+DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const {
+    const uint16_t idArmaEquipada = inventario.getArmaEquipada();
+    const uint16_t idBaculoEquipado = inventario.getBaculoEquipado();
+
+    // Regla 6.2: arma y báculo son mutuamente excluyentes. Si por alguna razón
+    // ambos slots están ocupados (inconsistencia), priorizamos el arma física.
+    if (idArmaEquipada != 0) {
+        const Arma* armaEquipada = catalogo.comoArma(idArmaEquipada);
+        if (armaEquipada != nullptr && armaEquipada->esArmaDistancia()) {
+            return DescriptorAtaque{
+                TipoAtaque::Distancia,
+                cfg->rangoVisionAtaque,
+                /*costoMana=*/0
+            };
+        }
+        // Arma melee o registro corrupto: tratamos como melee.
+        return DescriptorAtaque{
+            TipoAtaque::CuerpoACuerpo,
+            /*alcanceMaximo=*/1,
+            /*costoMana=*/0
+        };
+    }
+
+    if (idBaculoEquipado != 0) {
+        const Baculo* baculoEquipado = catalogo.comoBaculo(idBaculoEquipado);
+        if (baculoEquipado != nullptr) {
+            // El hechizo Curar no es un ataque ofensivo: no debe procesarse
+            // por el comando ATACAR. `Juego` lo verá y devolverá error.
+            if (baculoEquipado->getHechizo() == TipoHechizo::Curar) {
+                return DescriptorAtaque{
+                    TipoAtaque::HechizoNoOfensivo,
+                    cfg->rangoVisionAtaque,
+                    baculoEquipado->getCostoMana()
+                };
+            }
+            return DescriptorAtaque{
+                TipoAtaque::Hechizo,
+                cfg->rangoVisionAtaque,
+                baculoEquipado->getCostoMana()
+            };
+        }
+    }
+
+    // Sin arma ni báculo: puñetazo melee.
+    return DescriptorAtaque{
+        TipoAtaque::CuerpoACuerpo,
+        /*alcanceMaximo=*/1,
+        /*costoMana=*/0
+    };
+}
+
 bool Jugador::agregar_item(uint16_t idItem) {
     return inventario.agregarItem(idItem);
 }

@@ -94,6 +94,10 @@ oro_max_base = 100.0
 esquivar_umbral = 0.001
 probabilidad_critico = 0.10
 
+# Alcance máximo en celdas (distancia Manhattan) para armas a distancia
+# y hechizos de báculo (regla 5.3). El melee siempre es adyacencia.
+rango_vision_ataque = 8
+
 # ------------------------------------------------------------
 [items]
 # Tiempo que permanece un item tirado en el suelo antes de desaparecer

@@ -185,6 +185,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
+    cfg.rangoVisionAtaque = leerUint16Obligatorio(tbl, "combate", "rango_vision_ataque");
 
     cfg.vidaInfinita = tbl["cheats"]["vida_infinita"].value_or(false);
     cfg.manaInfinito = tbl["cheats"]["mana_infinito"].value_or(false);

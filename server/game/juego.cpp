@@ -921,8 +921,25 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (!posicionAtacante.esAdyacente(posicionObjetivo)) {
+    // Regla 5.3: el alcance depende del equipamiento del atacante.
+    // Regla 3.2.1: si es hechizo, el atacante debe tener maná suficiente.
+    const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
+
+    if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const int distanciaAlObjetivo = posicionAtacante.distanciaManhattan(posicionObjetivo);
+    if (distanciaAlObjetivo > descriptorAtaque.alcanceMaximo) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    bool atacanteConsumioMana = false;
+    if (descriptorAtaque.costoMana > 0) {
+        if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
+            return { armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE) };
+        }
+        atacanteConsumioMana = true;
     }
 
     // Capturamos atributos del objetivo ANTES del golpe: si muere, su nivel y
@@ -1002,7 +1019,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         mensajes.splice(mensajes.end(), mensajesPosicion);
     }
 
-    if (atacanteGanoXp) {
+    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado
+    // o maná consumido por hechizo.
+    if (atacanteGanoXp || atacanteConsumioMana) {
         mensajes.push_back(armarEstado(idCliente, *atacante));
     }
     return mensajes;
@@ -1634,8 +1653,25 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
-    if (!posicionAtacante.esAdyacente(posicionCriatura)) {
+    // Regla 5.3: el alcance depende del equipamiento del atacante.
+    // Regla 3.2.1: si es hechizo, el atacante debe tener maná suficiente.
+    const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
+
+    if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    const int distanciaACriatura = posicionAtacante.distanciaManhattan(posicionCriatura);
+    if (distanciaACriatura > descriptorAtaque.alcanceMaximo) {
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    bool atacanteConsumioMana = false;
+    if (descriptorAtaque.costoMana > 0) {
+        if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
+            return { armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE) };
+        }
+        atacanteConsumioMana = true;
     }
 
     // Snapshot pre-golpe: niveles y vida máxima sobreviven aunque la criatura muera.
@@ -1736,7 +1772,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         }
     }
 
-    if (atacanteGanoXp) {
+    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado
+    // o maná consumido por hechizo.
+    if (atacanteGanoXp || atacanteConsumioMana) {
         mensajes.push_back(armarEstado(idCliente, *atacante));
     }
 

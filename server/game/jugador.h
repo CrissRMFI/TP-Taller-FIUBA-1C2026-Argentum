@@ -29,6 +29,24 @@ struct ResultadoDanio {
     bool esCritico;
 };
 
+// Tipo de ataque que el jugador ejecuta según su equipamiento.
+// `Juego` lo consulta vía `Jugador::describir_ataque` para decidir si valida
+// adyacencia (melee) o rango de visión (distancia/hechizo).
+enum class TipoAtaque {
+    CuerpoACuerpo,   // sin arma o arma melee: alcance == 1
+    Distancia,       // Arma::esArmaDistancia() == true
+    Hechizo,         // Baculo de daño equipado (consume maná)
+    HechizoNoOfensivo // Baculo equipado pero hechizo Curar — ATACAR no aplica
+};
+
+// Descriptor del próximo ataque del jugador. Lo emite `describir_ataque`
+// para que `Juego` valide alcance y costo de maná antes de ejecutar.
+struct DescriptorAtaque {
+    TipoAtaque tipo;
+    uint16_t alcanceMaximo;  // distancia Manhattan máxima válida hasta el objetivo
+    uint16_t costoMana;      // maná que el atacante debe pagar al ejecutar
+};
+
 class Jugador{
 public:
     Jugador(uint16_t id,
@@ -67,6 +85,16 @@ public:
     // El consumidor necesita el flag para invocar `recibir_ataque_fisico` con
     // la semántica correcta de la regla 5.2.
     ResultadoDanio calcular_danio(const CatalogoItems& catalogo);
+
+    // Describe el próximo ataque según el equipamiento actual. `Juego` lo
+    // consulta para validar alcance (regla 5.3) y maná (regla 3.2.1) sin
+    // tener que inspeccionar Arma/Baculo del catálogo por su cuenta.
+    DescriptorAtaque describir_ataque(const CatalogoItems& catalogo) const;
+
+    // Consume `cantidad` puntos de maná si hay suficiente; devuelve true en ese
+    // caso. Útil para que `Juego` cobre el costo de un hechizo de báculo antes
+    // de calcular daño.
+    bool consumir_mana(uint16_t cantidad);
 
     // Inventario
     bool agregar_item(uint16_t idItem);
@@ -162,7 +190,6 @@ private:
     void subirNivel();
     void morir();
     void perder_experiencia(uint32_t cantidad);
-    bool consumir_mana(uint16_t cantidad);
     void consumir_item(uint16_t idItem);
     void normalizarOro();
     bool esquiva_ataque();
