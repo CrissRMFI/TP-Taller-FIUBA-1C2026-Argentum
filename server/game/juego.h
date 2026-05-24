@@ -133,6 +133,29 @@ class Juego {
     // en el mismo mapa y dentro del rango de interacción. Devuelven nullptr
     // si el id no matchea, si el NPC está en otro mapa o si está fuera de
     // rango. `Juego` traduce el nullptr al `armarError` correspondiente.
+    template <typename Npc>
+    Npc* obtenerNpcParaInteraccion(uint16_t idNpc,
+                                   const Jugador& jugador,
+                                   Npc* (Mapa::*obtenerNpc)(uint16_t)) {
+        Npc* npc = (mapa.*obtenerNpc)(idNpc);
+        if (npc == nullptr) {
+            return nullptr;
+        }
+
+        const Posicion posicionJugador = jugador.getPosicion();
+        const Posicion posicionNpc = npc->getPosicion();
+
+        if (!posicionJugador.mismaMapa(posicionNpc)) {
+            return nullptr;
+        }
+
+        if (posicionJugador.distanciaManhattan(posicionNpc) > cfg.rangoInteraccionNpc) {
+            return nullptr;
+        }
+
+        return npc;
+    }
+
     Comerciante* obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador);
     Sacerdote*   obtenerSacerdoteParaInteraccion  (uint16_t idNpc, const Jugador& jugador);
     Banquero*    obtenerBanqueroParaInteraccion   (uint16_t idNpc, const Jugador& jugador);

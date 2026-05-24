@@ -39,8 +39,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         aleatorio() {}
 
 
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
-                                               ClasePersonaje clase, Raza raza, Posicion posicion) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
@@ -139,8 +138,7 @@ Jugador* Juego::buscarJugador(uint16_t id) {
     return (it != jugadoresConectados.end()) ? &it->second : nullptr;
 }
 
-std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion,
-                                                 std::optional<uint16_t> idExcluido) const {
+std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::optional<uint16_t> idExcluido) const {
     for (const auto& [idCliente, jugador] : jugadoresConectados) {
         if (idExcluido.has_value() && idCliente == *idExcluido) {
             continue;
@@ -1701,63 +1699,18 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
 }
 
 Comerciante* Juego::obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    Comerciante* comerciante = mapa.obtenerComerciante(idNpc);
-    if (comerciante == nullptr) {
-        return nullptr;
-    }
-
-    const Posicion posicionJugador = jugador.getPosicion();
-    const Posicion posicionComerciante = comerciante->getPosicion();
-
-    if (!posicionJugador.mismaMapa(posicionComerciante)) {
-        return nullptr;
-    }
-
-    if (posicionJugador.distanciaManhattan(posicionComerciante) > cfg.rangoInteraccionNpc) {
-        return nullptr;
-    }
-
-    return comerciante;
+    return obtenerNpcParaInteraccion<Comerciante>(
+            idNpc, jugador, &Mapa::obtenerComerciante);
 }
 
 Sacerdote* Juego::obtenerSacerdoteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    Sacerdote* sacerdote = mapa.obtenerSacerdote(idNpc);
-    if (sacerdote == nullptr) {
-        return nullptr;
-    }
-
-    const Posicion posicionJugador = jugador.getPosicion();
-    const Posicion posicionSacerdote = sacerdote->getPosicion();
-
-    if (!posicionJugador.mismaMapa(posicionSacerdote)) {
-        return nullptr;
-    }
-
-    if (posicionJugador.distanciaManhattan(posicionSacerdote) > cfg.rangoInteraccionNpc) {
-        return nullptr;
-    }
-
-    return sacerdote;
+    return obtenerNpcParaInteraccion<Sacerdote>(
+            idNpc, jugador, &Mapa::obtenerSacerdote);
 }
 
 Banquero* Juego::obtenerBanqueroParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    Banquero* banquero = mapa.obtenerBanquero(idNpc);
-    if (banquero == nullptr) {
-        return nullptr;
-    }
-
-    const Posicion posicionJugador = jugador.getPosicion();
-    const Posicion posicionBanquero = banquero->getPosicion();
-
-    if (!posicionJugador.mismaMapa(posicionBanquero)) {
-        return nullptr;
-    }
-
-    if (posicionJugador.distanciaManhattan(posicionBanquero) > cfg.rangoInteraccionNpc) {
-        return nullptr;
-    }
-
-    return banquero;
+    return obtenerNpcParaInteraccion<Banquero>(
+            idNpc, jugador, &Mapa::obtenerBanquero);
 }
 
 bool Juego::agregarCriatura(const Criatura& criatura) {
