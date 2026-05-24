@@ -296,7 +296,6 @@ bool Jugador::puede_recibir_oro(uint32_t cantidad) const {
 void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.x = x;
     posicion.y = y;
-    cancelarMeditacion();
 }
 
 void Jugador::resucitar(uint16_t x, uint16_t y) {
