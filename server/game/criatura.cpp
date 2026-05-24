@@ -25,8 +25,7 @@ Criatura::Criatura(uint16_t idCriatura,
       posicion(posicion),
       rangoAggro(rangoAggro),
       danioMin(danioMin),
-      danioMax(danioMax),
-      persiguiendoJugador() {}
+      danioMax(danioMax) {}
 
 uint16_t Criatura::getId() const {
     return idCriatura;
@@ -81,10 +80,6 @@ void Criatura::recibir_danio(uint32_t danio) {
 
 bool Criatura::esta_muerta() const {
     return vidaActual == 0;
-}
-
-std::map<uint16_t, bool> Criatura::estaPersiguiendo() const {
-    return persiguiendoJugador;
 }
 
 void Criatura::mover(Posicion nuevaPosicion) {

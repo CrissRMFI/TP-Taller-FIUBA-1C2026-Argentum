@@ -2,7 +2,6 @@
 #define CRIATURA_H
 
 #include <cstdint>
-#include <map>
 
 #include "modelo/posicion.h"
 
@@ -44,7 +43,6 @@ public:
     void recibir_danio(uint32_t danio);
     bool esta_muerta() const;
 
-    std::map<uint16_t, bool> estaPersiguiendo() const;
     void mover(Posicion nuevaPosicion);
 
 private:
@@ -59,7 +57,6 @@ private:
     uint8_t rangoAggro;
     uint8_t danioMin;
     uint8_t danioMax;
-    std::map<uint16_t, bool> persiguiendoJugador;
 };
 
 #endif
