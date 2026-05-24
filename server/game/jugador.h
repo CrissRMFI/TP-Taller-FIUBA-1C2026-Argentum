@@ -204,7 +204,7 @@ private:
 
     Posicion posicion;
     Posicion posicionResurreccion;
-    const ConfigJuego* cfg;
+    const ConfigJuego& cfg;
     Inventario inventario;
 
     std::vector<uint16_t> idItemsBanco;

@@ -52,7 +52,7 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         constitucion(0),
         posicion(posicion),
         posicionResurreccion(posicion),
-        cfg(&config),
+        cfg(config),
         inventario(config.inventarioMaxItems),
         idItemsBanco(),
         clase(clase),
@@ -60,7 +60,7 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         raza(raza),
         fundadoClan(false),
         tiempoRestanteInmovilizado(0.0f) {
-    const StatsRaza& sr = cfg->statsRaza(raza);
+    const StatsRaza& sr = cfg.statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
     agilidad = static_cast<uint8_t>(sr.agilidad);
@@ -68,17 +68,17 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
     constitucion = static_cast<uint8_t>(sr.constitucion);
 
     vidaMax = ReglasJuego::calcularVidaMaxima(
-            *cfg, raza, clase, nivel, constitucion);
+            cfg, raza, clase, nivel, constitucion);
 
     manaMax = ReglasJuego::calcularManaMaximo(
-            *cfg, raza, clase, nivel, inteligencia);
+            cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
 }
 
 void Jugador::recibir_danio(uint16_t cantidad) {
-    if (cfg->invulnerable || !estaVivo()) {
+    if (cfg.invulnerable || !estaVivo()) {
         return;
     }
 
@@ -98,7 +98,7 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     // Defensor muerto o flag debug `invulnerable`: el ataque no impacta pero
     // tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no
     // confunda este caso con una evasión real.
-    if (!estaVivo() || cfg->invulnerable) {
+    if (!estaVivo() || cfg.invulnerable) {
         return { ResultadoDefensa::Tipo::Golpeado, 0 };
     }
 
@@ -175,7 +175,7 @@ void Jugador::recuperar(float segundos) {
                 recuperacionVidaPendiente,
                 vidaActual,
                 vidaMax,
-                ReglasJuego::calcularRecuperacionNatural(*cfg, raza, segundos));
+                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
     } else {
         recuperacionVidaPendiente = 0.0f;
     }
@@ -185,7 +185,7 @@ void Jugador::recuperar(float segundos) {
                 recuperacionManaPendiente,
                 manaActual,
                 manaMax,
-                ReglasJuego::calcularRecuperacionNatural(*cfg, raza, segundos));
+                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
     } else {
         recuperacionManaPendiente = 0.0f;
     }
@@ -196,7 +196,7 @@ void Jugador::recuperar(float segundos) {
                 manaActual,
                 manaMax,
                 ReglasJuego::calcularRecuperacionMeditacion(
-                        *cfg, clase, inteligencia, segundos));
+                        cfg, clase, inteligencia, segundos));
 
         if (manaActual >= manaMax) {
             manaActual = manaMax;
@@ -212,21 +212,21 @@ void Jugador::recuperar(float segundos) {
         meditacionManaPendiente = 0.0f;
     }
 
-    if (cfg->vidaInfinita) {
+    if (cfg.vidaInfinita) {
         vidaActual = vidaMax;
     }
 
-    if (cfg->manaInfinito) {
+    if (cfg.manaInfinito) {
         manaActual = manaMax;
     }
 
-    if (cfg->suicidio) {
-      morir();
+    if (cfg.suicidio) {
+        morir();
     }
 }
 
 void Jugador::ganar_experiencia(uint32_t cantidad) {
-    if (cfg->expX10) {
+    if (cfg.expX10) {
         const uint32_t maximo = std::numeric_limits<uint32_t>::max();
         cantidad = (cantidad > maximo / 10) ? maximo : cantidad * 10;
     }
@@ -236,7 +236,7 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
     experiencia += std::min(cantidad, espacioDisponible);
 
     while (nivel < std::numeric_limits<uint8_t>::max()) {
-        const uint32_t limite = ReglasJuego::calcularLimiteExperiencia(*cfg, nivel);
+        const uint32_t limite = ReglasJuego::calcularLimiteExperiencia(cfg, nivel);
         if (experiencia < limite) {
             break;
         }
@@ -247,7 +247,7 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
 
 void Jugador::sumar_oro(uint32_t cantidad) {
     uint32_t totalActual = oroMano + oroExceso;
-    uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
+    uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
 
     uint32_t espacioTotal = 0;
     if (totalActual < maximoTotal) {
@@ -288,7 +288,7 @@ bool Jugador::puede_recibir_oro(uint32_t cantidad) const {
         return false;
     }
 
-    const uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
+    const uint32_t maximoTotal = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
     if (oroMano > maximoTotal || oroExceso > maximoTotal - oroMano) {
         return false;
     }
@@ -379,7 +379,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
         if (armaEquipada != nullptr && armaEquipada->esArmaDistancia()) {
             return DescriptorAtaque{
                 TipoAtaque::Distancia,
-                cfg->rangoVisionAtaque,
+                cfg.rangoVisionAtaque,
                 /*costoMana=*/0
             };
         }
@@ -395,7 +395,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
         if (!puedeUsarMagia()) {
             return DescriptorAtaque{
                 TipoAtaque::HechizoNoOfensivo,
-                cfg->rangoVisionAtaque,
+                cfg.rangoVisionAtaque,
                 /*costoMana=*/0
             };
         }
@@ -407,13 +407,13 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
             if (baculoEquipado->getHechizo() == TipoHechizo::Curar) {
                 return DescriptorAtaque{
                     TipoAtaque::HechizoNoOfensivo,
-                    cfg->rangoVisionAtaque,
+                    cfg.rangoVisionAtaque,
                     baculoEquipado->getCostoMana()
                 };
             }
             return DescriptorAtaque{
                 TipoAtaque::Hechizo,
-                cfg->rangoVisionAtaque,
+                cfg.rangoVisionAtaque,
                 baculoEquipado->getCostoMana()
             };
         }
@@ -534,7 +534,7 @@ bool Jugador::sacar_oro_banco(uint32_t cantidad) {
         return false;
     }
 
-    uint32_t maximoEnMano = ReglasJuego::calcularOroMaximoTotal(*cfg, nivel);
+    uint32_t maximoEnMano = ReglasJuego::calcularOroMaximoTotal(cfg, nivel);
     if (getOro() + cantidad > maximoEnMano) {
         return false;
     }
@@ -630,7 +630,7 @@ bool Jugador::fundo_clan() const {
 }
 
 bool Jugador::es_newbie() const {
-    return nivel <= static_cast<uint8_t>(cfg->nivelNewbie);
+    return nivel <= static_cast<uint8_t>(cfg.nivelNewbie);
 }
 
 std::string Jugador::getNombre() const {
@@ -685,10 +685,10 @@ void Jugador::subirNivel() {
     nivel++;
 
     vidaMax = ReglasJuego::calcularVidaMaxima(
-            *cfg, raza, clase, nivel, constitucion);
+            cfg, raza, clase, nivel, constitucion);
 
     manaMax = ReglasJuego::calcularManaMaximo(
-            *cfg, raza, clase, nivel, inteligencia);
+            cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
@@ -700,7 +700,7 @@ void Jugador::morir() {
 
     if (!es_newbie()) {
         uint32_t experienciaAPerder =
-                ReglasJuego::calcularPerdidaExperienciaMuerte(*cfg, experiencia);
+                ReglasJuego::calcularPerdidaExperienciaMuerte(cfg, experiencia);
 
         perder_experiencia(experienciaAPerder);
     }
@@ -730,18 +730,18 @@ void Jugador::consumir_item(uint16_t idItem) {
 
 void Jugador::normalizarOro() {
     uint32_t total = oroMano + oroExceso;
-    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(*cfg, nivel);
+    uint32_t oroSeguro = ReglasJuego::calcularOroSeguro(cfg, nivel);
 
     oroMano = std::min(total, oroSeguro);
     oroExceso = total - oroMano;
 }
 
 bool Jugador::esquiva_ataque(Aleatorio& aleatorio) {
-    return ReglasJuego::esquivaAtaque(*cfg, agilidad, aleatorio.uniforme());
+    return ReglasJuego::esquivaAtaque(cfg, agilidad, aleatorio.uniforme());
 }
 
 bool Jugador::es_golpe_critico(Aleatorio& aleatorio) {
-    return ReglasJuego::esGolpeCritico(*cfg, aleatorio.uniforme());
+    return ReglasJuego::esGolpeCritico(cfg, aleatorio.uniforme());
 }
 
 void Jugador::actualizarId(uint16_t nuevoId) {

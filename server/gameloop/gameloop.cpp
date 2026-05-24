@@ -110,8 +110,6 @@ void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
 }
 
 void Gameloop::despachar(const std::list<EventoSalida>& eventos) {
-    // Traducimos cada evento de dominio al wire format del protocolo
-    // recién acá. `Juego` no conoce Opcode ni structs de `MensajeServidor`.
     for (const EventoSalida& evento : eventos) {
         monitor.despachar(TraductorProtocolo::traducir(evento));
     }
