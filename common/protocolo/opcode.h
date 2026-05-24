@@ -49,6 +49,8 @@ enum class Opcode : uint8_t {
     RESUCITADO              = 39,
     LISTA_ITEMS             = 40,
     ERROR_ACCION            = 41,
+    ORO_EN_SUELO            = 42,
+    ORO_DESAPARECIO_SUELO   = 43,
 };
 
 #endif

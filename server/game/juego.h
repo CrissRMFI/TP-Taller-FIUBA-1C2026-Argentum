@@ -93,6 +93,13 @@ class Juego {
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
     std::list<EventoSalida> atacarJugadorConCriatura(const Criatura& criatura, uint16_t idJugador);
+
+    std::list<EventoSalida> ejecutarAtaqueAJugador(uint16_t idCliente, Jugador& atacante, const ComandoAtacar& comando);
+    std::list<EventoSalida> ejecutarAtaqueACriatura(uint16_t idCliente, Jugador& atacante, Criatura& criatura);
+
+    std::list<EventoSalida> armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad);
+    std::list<EventoSalida> armarOroDesaparecioSueloParaMapa(const Posicion& posicion);
+    bool dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
     };
 
 #endif

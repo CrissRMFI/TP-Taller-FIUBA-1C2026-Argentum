@@ -62,6 +62,17 @@ struct MensajeItemDesaparecioSuelo {
   uint16_t y;
 };
 
+struct MensajeOroEnSuelo {
+  uint32_t cantidad;
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeOroDesaparecioSuelo {
+  uint16_t x;
+  uint16_t y;
+};
+
 struct MensajeActualizarInventario {
   std::vector<uint16_t> slots;
 };
@@ -117,6 +128,8 @@ using PayloadMensajeServidor = std::variant<
         MensajeMuerteEntidad,
         MensajeItemEnSuelo,
         MensajeItemDesaparecioSuelo,
+        MensajeOroEnSuelo,
+        MensajeOroDesaparecioSuelo,
         MensajeActualizarInventario,
         MensajeActualizarEquipamiento,
         MensajeChat,

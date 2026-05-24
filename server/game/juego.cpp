@@ -441,6 +441,14 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         mensajes.splice(mensajes.end(), mensajesItem);
     }
 
+    std::vector<OroEnSuelo> orosExpirados =
+            mapa.actualizarOroEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
+
+    for (const OroEnSuelo& pila : orosExpirados) {
+        std::list<EventoSalida> mensajesOro = armarOroDesaparecioSueloParaMapa(pila.posicion);
+        mensajes.splice(mensajes.end(), mensajesOro);
+    }
+
     return mensajes;
 }
 
@@ -759,16 +767,27 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
 }
 
 std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
-  
+
   Jugador* jugador = buscarJugador(idCliente);
-  
+
   if (!jugador || !jugador->estaVivo()) {
     return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
   }
-  
+
   Posicion posicion = jugador->getPosicion();
+
+  // Prioridad: si hay una pila de oro en la celda, se levanta antes que los ítems.
+  if (std::optional<uint32_t> cantidadOro = mapa.tomarOro(posicion); cantidadOro.has_value()) {
+    jugador->sumar_oro(*cantidadOro);
+    std::list<EventoSalida> mensajes = {
+      armarEstado(idCliente, *jugador)
+    };
+    mensajes.splice(mensajes.end(), armarOroDesaparecioSueloParaMapa(posicion));
+    return mensajes;
+  }
+
   std::optional<uint16_t> idItem = mapa.tomarItem(posicion);
-  
+
   if (!idItem.has_value()) {
     return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
   }
@@ -855,6 +874,20 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
     }
 
+    // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
+    if (Jugador* objetivoJugador = buscarJugador(cmd.idObjetivo)) {
+        return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
+    }
+
+    if (Criatura* criaturaObjetivo = mapa.obtenerCriaturaPor(cmd.idObjetivo)) {
+        return ejecutarAtaqueACriatura(idCliente, *atacante, *criaturaObjetivo);
+    }
+
+    return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+}
+
+std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugador& atacanteRef, const ComandoAtacar& cmd) {
+    Jugador* atacante = &atacanteRef;
     Jugador* objetivo = buscarJugador(cmd.idObjetivo);
 
     if (!objetivo || !objetivo->estaVivo()) {
@@ -1539,4 +1572,161 @@ bool Juego::agregarCriatura(const Criatura& criatura) {
     }
 
     return mapa.agregarCriatura(criatura);
+}
+
+std::list<EventoSalida> Juego::armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad) {
+    std::list<EventoSalida> mensajes;
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getPosicion().mapaId == posicion.mapaId) {
+            mensajes.push_back({ TipoDestino::UNO, idCliente,
+                                 EventoOroEnSuelo{ cantidad, posicion.x, posicion.y } });
+        }
+    }
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::armarOroDesaparecioSueloParaMapa(const Posicion& posicion) {
+    std::list<EventoSalida> mensajes;
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (jugador.getPosicion().mapaId == posicion.mapaId) {
+            mensajes.push_back({ TipoDestino::UNO, idCliente,
+                                 EventoOroDesaparecioSuelo{ posicion.x, posicion.y } });
+        }
+    }
+    return mensajes;
+}
+
+bool Juego::dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal) {
+    if (mapa.agregarOroEnSuelo(origen, cantidad)) {
+        posicionFinal = origen;
+        return true;
+    }
+
+    // Fallback: probar en celdas adyacentes válidas. Útil si la celda del NPC
+    // queda bloqueada por una pared post-spawn o por un ítem ya tirado.
+    for (const Posicion& celdaCandidata : calcularDestinosAdyacentes(origen)) {
+        if (mapa.agregarOroEnSuelo(celdaCandidata, cantidad)) {
+            posicionFinal = celdaCandidata;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugador& atacanteRef, Criatura& criatura) {
+    Jugador* atacante = &atacanteRef;
+
+    const Posicion posicionAtacante = atacante->getPosicion();
+    const Posicion posicionCriatura = criatura.getPos();
+
+    if (!posicionAtacante.mismaMapa(posicionCriatura)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionCriatura)) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
+    }
+
+    if (!posicionAtacante.esAdyacente(posicionCriatura)) {
+        return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };
+    }
+
+    // Snapshot pre-golpe: niveles y vida máxima sobreviven aunque la criatura muera.
+    const uint8_t nivelAtacante = atacante->getNivel();
+    const uint8_t nivelCriaturaAntes = criatura.getNivel();
+    const uint16_t vidaMaximaCriaturaAntes = criatura.getVidaMaxima();
+    const uint16_t vidaActualCriaturaAntes = criatura.getVidaActual();
+
+    // RNG centralizado para todas las muestras aleatorias de este ataque.
+    static std::mt19937 generadorAleatorio(std::random_device{}());
+    std::uniform_real_distribution<float> distribucionUniforme(0.0f, 1.0f);
+
+    // Regla 5.4: el defensor —incluida la criatura— puede esquivar.
+    // La fórmula vive centralizada en ReglasJuego (regla 12.1).
+    const float valorAleatorioEsquive = distribucionUniforme(generadorAleatorio);
+    const bool criaturaEsquiva = ReglasJuego::esquivaAtaque(
+            cfg, criatura.getAgilidad(), valorAleatorioEsquive);
+
+    std::list<EventoSalida> mensajes;
+
+    if (criaturaEsquiva) {
+        mensajes.push_back(EventoSalida{
+            TipoDestino::UNO, idCliente,
+            EventoEsquive{ criatura.getId(), /*esquivador=*/1 }
+        });
+        return mensajes;
+    }
+
+    // PvE: la criatura no porta armadura/casco/escudo (regla 5.5: la absorción
+    // sale de los ítems equipados). Por lo tanto Defensa = 0 y el daño final
+    // es el bruto saturado al pool de vida actual.
+    const uint16_t danioBruto = atacante->calcular_danio(catalogo);
+    const uint16_t danioAplicado = static_cast<uint16_t>(
+            std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
+    criatura.recibir_danio(danioBruto);
+
+    mensajes.push_back(EventoSalida{
+        TipoDestino::UNO, idCliente,
+        EventoDanioProducido{ danioAplicado, criatura.getId() }
+    });
+
+    // XP por impacto (regla 3.3.2).
+    bool atacanteGanoXp = false;
+    if (danioAplicado > 0) {
+        const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
+                cfg, danioAplicado, nivelAtacante, nivelCriaturaAntes);
+        if (xpHit > 0) {
+            atacante->ganar_experiencia(xpHit);
+            atacanteGanoXp = true;
+        }
+    }
+
+    if (criatura.esta_muerta()) {
+        const uint16_t idCriatura = criatura.getId();
+
+        // XP por kill (regla 3.3.3).
+        const float valorAleatorioXpKill = distribucionUniforme(generadorAleatorio);
+        const uint32_t xpKill = ReglasJuego::calcularExperienciaKill(
+                cfg, vidaMaximaCriaturaAntes, nivelAtacante, nivelCriaturaAntes,
+                valorAleatorioXpKill);
+        if (xpKill > 0) {
+            atacante->ganar_experiencia(xpKill);
+            atacanteGanoXp = true;
+        }
+
+        // Drop de oro (regla 4.2). Muestra independiente del rng.
+        const float valorAleatorioDropOro = distribucionUniforme(generadorAleatorio);
+        const uint32_t cantidadOro = ReglasJuego::calcularDropOroNpc(
+                cfg, vidaMaximaCriaturaAntes, valorAleatorioDropOro);
+
+        // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro:
+        // así la propia celda del NPC pasa a ser candidata válida.
+        mapa.removerCriatura(idCriatura);
+
+        if (cantidadOro > 0) {
+            Posicion celdaDrop = posicionCriatura;
+            if (dropearOroNpcEnSueloCercano(posicionCriatura, cantidadOro, celdaDrop)) {
+                mensajes.splice(mensajes.end(),
+                                armarOroEnSueloParaMapa(celdaDrop, cantidadOro));
+            }
+        }
+
+        // Notificar la muerte a todos los jugadores en el mismo mapa para que
+        // limpien la entidad de su escena.
+        const EventoMuerteEntidad eventoMuerte{ idCriatura };
+        for (const auto& [idOtro, otroJugador] : jugadoresConectados) {
+            if (otroJugador.getPosicion().mapaId == posicionCriatura.mapaId) {
+                mensajes.push_back(EventoSalida{
+                    TipoDestino::UNO, idOtro, eventoMuerte
+                });
+            }
+        }
+    }
+
+    if (atacanteGanoXp) {
+        mensajes.push_back(armarEstado(idCliente, *atacante));
+    }
+
+    return mensajes;
 }

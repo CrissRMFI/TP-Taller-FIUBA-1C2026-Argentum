@@ -91,6 +91,28 @@ uint32_t ReglasJuego::calcularExperienciaKill(const ConfigJuego& cfg,
     return static_cast<uint32_t>(std::max(0.0f, xp));
 }
 
+bool ReglasJuego::esquivaAtaque(const ConfigJuego& cfg,
+                                uint8_t agilidad,
+                                float valorAleatorio) {
+    const float valorAleatorioNormalizado = std::clamp(valorAleatorio, 0.0f, 1.0f);
+    const float probabilidadDeEsquive =
+            std::pow(valorAleatorioNormalizado, static_cast<float>(agilidad));
+    return probabilidadDeEsquive < cfg.esquivarUmbral;
+}
+
+uint32_t ReglasJuego::calcularDropOroNpc(const ConfigJuego& cfg,
+                                         uint16_t vidaMaxNpc,
+                                         float valorAleatorio) {
+    if (vidaMaxNpc == 0) {
+        return 0;
+    }
+
+    const float factor = std::clamp(valorAleatorio, 0.0f, 1.0f) * cfg.oroDropNpcMax;
+    const float oro = factor * static_cast<float>(vidaMaxNpc);
+
+    return static_cast<uint32_t>(std::max(0.0f, oro));
+}
+
 float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos) {
     if (clase == ClasePersonaje::GUERRERO) {
         return 0.0f;

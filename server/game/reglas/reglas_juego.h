@@ -37,6 +37,16 @@ public:
                                             uint8_t nivelAtacante,
                                             uint8_t nivelObjetivo,
                                             float valorAleatorio);
+
+    static uint32_t calcularDropOroNpc(const ConfigJuego& cfg,
+                                       uint16_t vidaMaxNpc,
+                                       float valorAleatorio);
+
+    // Regla 5.4: defensor esquiva si pow(rand(0,1), Agilidad) < umbral.
+    // `valorAleatorio` debe venir uniforme en [0, 1).
+    static bool esquivaAtaque(const ConfigJuego& cfg,
+                              uint8_t agilidad,
+                              float valorAleatorio);
 };
 
 #endif

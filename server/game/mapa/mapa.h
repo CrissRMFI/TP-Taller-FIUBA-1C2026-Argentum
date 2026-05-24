@@ -18,6 +18,12 @@ struct ItemEnSuelo {
   float segundosEnSuelo;
 };
 
+struct OroEnSuelo {
+  uint32_t cantidad;
+  Posicion posicion;
+  float segundosEnSuelo;
+};
+
 struct Ciudad {
   uint16_t mapaId;
   uint16_t xMin;
@@ -34,6 +40,7 @@ class Mapa {
     std::map<uint16_t, Comerciante> comerciantes;
     std::map<uint16_t, Banquero> banqueros;
     std::vector<ItemEnSuelo> itemsEnSuelo;
+    std::vector<OroEnSuelo> orosEnSuelo;
     std::vector<Posicion> paredes;
     std::vector<Ciudad> ciudades;
     std::map<uint16_t, Criatura> criaturas;
@@ -66,6 +73,12 @@ public:
 
     bool hayItemEn(const Posicion& posicion) const;
     bool agregarItem(const Posicion& posicion, uint16_t idItem);
+
+    bool hayOroEn(const Posicion& posicion) const;
+    bool agregarOroEnSuelo(const Posicion& posicion, uint32_t cantidad);
+    std::optional<uint32_t> tomarOro(const Posicion& posicion);
+    std::vector<OroEnSuelo> obtenerOroEnSuelo() const;
+    std::vector<OroEnSuelo> actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     void agregarCiudad(const Ciudad &ciudad);
     bool esCiudad(const Posicion &posicion) const;
     bool esZonaSegura(const Posicion &posicion) const;
@@ -81,6 +94,7 @@ public:
     std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;
 
     bool agregarCriatura(const Criatura& criatura);
+    bool removerCriatura(uint16_t idCriatura);
     bool hayCriaturaEn(const Posicion& posicion) const;
     std::optional<Criatura> buscarCriaturaEn(const Posicion& posicion) const;
     Criatura* obtenerCriaturaPor(uint16_t idCriatura);

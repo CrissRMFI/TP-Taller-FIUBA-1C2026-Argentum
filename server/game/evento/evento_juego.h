@@ -67,6 +67,17 @@ struct EventoItemDesaparecioSuelo {
     uint16_t y;
 };
 
+struct EventoOroEnSuelo {
+    uint32_t cantidad;
+    uint16_t x;
+    uint16_t y;
+};
+
+struct EventoOroDesaparecioSuelo {
+    uint16_t x;
+    uint16_t y;
+};
+
 struct EventoActualizarInventario {
     std::vector<uint16_t> slots;
 };
@@ -122,6 +133,8 @@ using EventoJuego = std::variant<
         EventoMuerteEntidad,
         EventoItemEnSuelo,
         EventoItemDesaparecioSuelo,
+        EventoOroEnSuelo,
+        EventoOroDesaparecioSuelo,
         EventoActualizarInventario,
         EventoActualizarEquipamiento,
         EventoChat,

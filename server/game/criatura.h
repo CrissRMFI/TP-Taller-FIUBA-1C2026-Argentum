@@ -17,26 +17,42 @@ enum class TipoCriatura {
 
 class Criatura {
 public:
-   // Criatura(uint16_t idCriatura, TipoCriatura tipo, uint16_t vidaMaxima, uint8_t nivel, uint8_t fuerza, uint8_t agilidad, Posicion posicion, uint8_t rangoAggro, uint8_t danioMin, uint8_t danioMax);
-
-    Criatura(uint16_t idCriatura, uint8_t fuerza, Posicion posicion, uint8_t rangoAggro, uint8_t danioMin,
+    Criatura(uint16_t idCriatura,
+             TipoCriatura tipo,
+             uint16_t vidaMaxima,
+             uint8_t nivel,
+             uint8_t fuerza,
+             uint8_t agilidad,
+             Posicion posicion,
+             uint8_t rangoAggro,
+             uint8_t danioMin,
              uint8_t danioMax);
 
     uint16_t getId() const;
+    TipoCriatura getTipo() const;
     Posicion getPos() const;
     uint8_t getAggro() const;
+    uint8_t getNivel() const;
+    uint8_t getAgilidad() const;
+    uint16_t getVidaActual() const;
+    uint16_t getVidaMaxima() const;
     uint16_t calcularDanio() const;
+
+    // Aplica `danio` al pool de vida. Satura en 0; no resucita.
+    void recibir_danio(uint32_t danio);
+    bool esta_muerta() const;
+
     std::map<uint16_t, bool> estaPersiguiendo() const;
     void mover(Posicion nuevaPosicion);
 
 private:
     uint16_t idCriatura;
-    //TipoCriatura tipo;
-    //uint16_t vidaActual;
-    //uint16_t vidaMaxima;
-   // uint8_t nivel;
+    TipoCriatura tipo;
+    uint16_t vidaActual;
+    uint16_t vidaMaxima;
+    uint8_t nivel;
     uint8_t fuerza;
-    //uint8_t agilidad;
+    uint8_t agilidad;
     Posicion posicion;
     uint8_t rangoAggro;
     uint8_t danioMin;
