@@ -100,6 +100,15 @@ class Juego {
     std::list<EventoSalida> armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad);
     std::list<EventoSalida> armarOroDesaparecioSueloParaMapa(const Posicion& posicion);
     bool dropearOroNpcEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
+
+    // Helpers de validación NPC-por-id (regla del bug #6): obtienen el NPC
+    // concreto del mapa por el id que envió el cliente y verifican que esté
+    // en el mismo mapa y dentro del rango de interacción. Devuelven nullptr
+    // si el id no matchea, si el NPC está en otro mapa o si está fuera de
+    // rango. `Juego` traduce el nullptr al `armarError` correspondiente.
+    Comerciante* obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador);
+    Sacerdote*   obtenerSacerdoteParaInteraccion  (uint16_t idNpc, const Jugador& jugador);
+    Banquero*    obtenerBanqueroParaInteraccion   (uint16_t idNpc, const Jugador& jugador);
     };
 
 #endif
