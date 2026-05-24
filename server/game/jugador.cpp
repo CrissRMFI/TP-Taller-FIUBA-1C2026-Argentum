@@ -60,7 +60,8 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         clase(clase),
         estado(Estado::Vivo),
         raza(raza),
-        fundadoClan(false) {
+        fundadoClan(false),
+        tiempoRestanteInmovilizado(0.0f) {
     const StatsRaza& sr = cfg->statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);

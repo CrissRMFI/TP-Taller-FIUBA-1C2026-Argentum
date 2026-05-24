@@ -536,6 +536,11 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         if (cambioEstado) {
             mensajes.push_back(armarEstado(id, jugador));
         }
+        // Dispatch único de transiciones de estado del jugador: muerte, fin de
+        // inmovilización y fin de meditación son mutuamente excluyentes. El
+        // else-if evita el doble armarPosicionParaMapa cuando un jugador en
+        // Meditando muere en el mismo tick (estabaMeditando=true entraba
+        // también a la rama C después de que A ya hubiera emitido la posición).
         if (estabaVivo && !jugador.estaVivo()) {
             const EventoMuerteEntidad eventoMuerte{jugador.getId()};
 
@@ -549,8 +554,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
 
             std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(jugador);
             mensajes.splice(mensajes.end(), mensajesPosicion);
-        }
-        if (estabaInmovilizado && !jugador.estaInmovilizado()) {
+        } else if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
             std::optional<Posicion> posicionResurreccionCercana =
                     buscarPosicionLibreParaResurreccion(posicionResurreccion, id);
