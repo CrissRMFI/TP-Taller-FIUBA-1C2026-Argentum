@@ -6,6 +6,8 @@
 
 #include "modelo/posicion.h"
 
+class Aleatorio;
+
 enum class TipoCriatura {
     Goblin,
     Esqueleto,
@@ -36,7 +38,7 @@ public:
     uint8_t getAgilidad() const;
     uint16_t getVidaActual() const;
     uint16_t getVidaMaxima() const;
-    uint16_t calcularDanio() const;
+    uint16_t calcularDanio(Aleatorio& aleatorio) const;
 
     // Aplica `danio` al pool de vida. Satura en 0; no resucita.
     void recibir_danio(uint32_t danio);

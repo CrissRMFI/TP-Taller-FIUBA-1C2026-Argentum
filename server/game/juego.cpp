@@ -35,7 +35,8 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mapa(cfg.mapaAncho, cfg.mapaAlto),
-        ticksTranscurridos(0) {}
+        ticksTranscurridos(0),
+        aleatorio() {}
 
 
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
@@ -1116,11 +1117,12 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const uint8_t nivelObjetivoAntes = objetivo->getNivel();
     const uint16_t vidaMaxObjetivoAntes = objetivo->getVidaMax();
 
-    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
+    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
     const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
             resultadoDanio.valor, multiplicadorClan(*atacante));
     const ResultadoDefensa resultadoDefensa = objetivo->recibir_ataque_fisico(
-            danioBruto, resultadoDanio.esCritico, catalogo, multiplicadorClan(*objetivo));
+            danioBruto, resultadoDanio.esCritico, catalogo, aleatorio,
+            multiplicadorClan(*objetivo));
 
     std::list<EventoSalida> mensajes;
     bool atacanteGanoXp = false;
@@ -1162,9 +1164,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     }
 
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Golpeado && !objetivo->estaVivo()) {
-        
-        static std::mt19937 rngKill(std::random_device{}());
-        const float valorAleatorio = std::uniform_real_distribution<float>(0.0f, 1.0f)(rngKill);
+        const float valorAleatorio = aleatorio.uniforme();
 
         const uint32_t xpKill = ReglasJuego::calcularExperienciaKill(
                 cfg, vidaMaxObjetivoAntes, nivelAtacante, nivelObjetivoAntes, valorAleatorio);
@@ -1593,9 +1593,6 @@ std::vector<Posicion> Juego::calcularDestinosHacia(const Posicion& origen,
 }
 
 std::list<EventoSalida> Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
-    static std::random_device randomDevice;
-    static std::mt19937 generador(randomDevice());
-
     std::vector<Posicion> destinosValidos;
 
     for (const Posicion& destino : calcularDestinosAdyacentes(criatura.getPos())) {
@@ -1608,8 +1605,8 @@ std::list<EventoSalida> Juego::moverCriaturaAleatoriamente(const Criatura& criat
         return {};
     }
 
-    std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
-    const Posicion destino = destinosValidos[distribucion(generador)];
+    const size_t indiceDestino = aleatorio.enteroEnRango<size_t>(0, destinosValidos.size() - 1);
+    const Posicion destino = destinosValidos[indiceDestino];
     if (!mapa.moverCriatura(criatura.getId(), destino)) {
         return {};
     }
@@ -1672,9 +1669,10 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     // Las criaturas no tienen crítico (regla 5.2 es del lado del jugador
     // atacante). Pasamos esCritico=false explícito para que el defensor
     // pueda evaluar evasión normalmente.
-    const uint16_t danioBrutoCriatura = criatura.calcularDanio();
+    const uint16_t danioBrutoCriatura = criatura.calcularDanio(aleatorio);
     const ResultadoDefensa resultadoDefensa = jugador->recibir_ataque_fisico(
-            danioBrutoCriatura, /*esCritico=*/false, catalogo, multiplicadorClan(*jugador));
+            danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio,
+            multiplicadorClan(*jugador));
 
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
@@ -1806,7 +1804,7 @@ bool Juego::puedeSpawnearCriaturaEn(const Posicion& posicion) const {
            !mapa.hayOroEn(posicion) && !buscarIdJugadorEn(posicion).has_value();
 }
 
-std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() const {
+std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() {
     const uint64_t cantidadCeldas =
             static_cast<uint64_t>(cfg.mapaAncho) * static_cast<uint64_t>(cfg.mapaAlto);
 
@@ -1814,9 +1812,7 @@ std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() const {
         return std::nullopt;
     }
 
-    static std::mt19937 generador(std::random_device{}());
-    std::uniform_int_distribution<uint64_t> distribucionCelda(0, cantidadCeldas - 1);
-    const uint64_t inicio = distribucionCelda(generador);
+    const uint64_t inicio = aleatorio.enteroEnRango<uint64_t>(0, cantidadCeldas - 1);
 
     for (uint64_t offset = 0; offset < cantidadCeldas; ++offset) {
         const uint64_t indice = (inicio + offset) % cantidadCeldas;
@@ -1849,14 +1845,13 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
             TipoCriatura::Goblin, TipoCriatura::Esqueleto, TipoCriatura::Zombie,
             TipoCriatura::Arania, TipoCriatura::Orco,      TipoCriatura::Golem};
 
-    static std::mt19937 generador(std::random_device{}());
-    std::uniform_int_distribution<size_t> distribucionTipo(0, tiposCriatura.size() - 1);
+    const size_t indiceTipo = aleatorio.enteroEnRango<size_t>(0, tiposCriatura.size() - 1);
 
     const uint8_t danioMaximo = cfg.criaturaDanioMaxBase < cfg.criaturaDanioMinBase
                                         ? cfg.criaturaDanioMinBase
                                         : cfg.criaturaDanioMaxBase;
 
-    Criatura criatura(*idCriatura, tiposCriatura[distribucionTipo(generador)],
+    Criatura criatura(*idCriatura, tiposCriatura[indiceTipo],
                       cfg.criaturaVidaMaximaBase, cfg.criaturaNivelBase, cfg.criaturaFuerzaBase,
                       cfg.criaturaAgilidadBase, *posicion, cfg.criaturaRangoAggroBase,
                       cfg.criaturaDanioMinBase, danioMaximo);
@@ -1995,15 +1990,11 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t vidaMaximaCriaturaAntes = criatura.getVidaMaxima();
     const uint16_t vidaActualCriaturaAntes = criatura.getVidaActual();
 
-    // RNG centralizado para todas las muestras aleatorias de este ataque.
-    static std::mt19937 generadorAleatorio(std::random_device{}());
-    std::uniform_real_distribution<float> distribucionUniforme(0.0f, 1.0f);
-
     // PvE: la criatura no porta armadura/casco/escudo (regla 5.5: la absorción
     // sale de los ítems equipados). Por lo tanto Defensa = 0 y el daño final
     // es el bruto saturado al pool de vida actual. Calculamos primero para
     // conocer el flag de crítico antes de decidir si la criatura puede esquivar.
-    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
+    const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
     const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
             resultadoDanio.valor, multiplicadorClan(*atacante));
 
@@ -2013,7 +2004,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     // Regla 5.4: si el ataque no es crítico, el defensor (la criatura) puede
     // esquivar. Fórmula centralizada en ReglasJuego (regla 12.1).
     if (!resultadoDanio.esCritico) {
-        const float valorAleatorioEsquive = distribucionUniforme(generadorAleatorio);
+        const float valorAleatorioEsquive = aleatorio.uniforme();
         const bool criaturaEsquiva =
                 ReglasJuego::esquivaAtaque(cfg, criatura.getAgilidad(), valorAleatorioEsquive);
 
@@ -2046,7 +2037,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         const uint16_t idCriatura = criatura.getId();
 
         // XP por kill (regla 3.3.3).
-        const float valorAleatorioXpKill = distribucionUniforme(generadorAleatorio);
+        const float valorAleatorioXpKill = aleatorio.uniforme();
         const uint32_t xpKill =
                 ReglasJuego::calcularExperienciaKill(cfg, vidaMaximaCriaturaAntes, nivelAtacante,
                                                      nivelCriaturaAntes, valorAleatorioXpKill);
@@ -2056,7 +2047,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         }
 
         // Drop de oro (regla 4.2). Muestra independiente del rng.
-        const float valorAleatorioDropOro = distribucionUniforme(generadorAleatorio);
+        const float valorAleatorioDropOro = aleatorio.uniforme();
         const uint32_t cantidadOro = ReglasJuego::calcularDropOroNpc(cfg, vidaMaximaCriaturaAntes,
                                                                      valorAleatorioDropOro);
 

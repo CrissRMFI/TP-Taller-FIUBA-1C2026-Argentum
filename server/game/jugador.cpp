@@ -3,13 +3,11 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <random>
 
+#include "aleatorio.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
 #include "../../common/protocolo/tipo_entidad.h"
-
-static std::mt19937 rng(std::random_device{}());
 
 static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t maximo, float delta) {
     if (actual >= maximo) {
@@ -95,6 +93,7 @@ void Jugador::recibir_danio(uint16_t cantidad) {
 ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
                                                 bool esCritico,
                                                 const CatalogoItems& catalogo,
+                                                Aleatorio& aleatorio,
                                                 float multiplicadorDefensa) {
     // Defensor muerto o flag debug `invulnerable`: el ataque no impacta pero
     // tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no
@@ -105,7 +104,7 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
 
     // Regla 5.2: el crítico omite la fase de evasión. La absorción (regla 5.5)
     // se sigue aplicando porque la regla 5.2 sólo habla de "fase de evasión".
-    if (!esCritico && esquiva_ataque()) {
+    if (!esCritico && esquiva_ataque(aleatorio)) {
         return { ResultadoDefensa::Tipo::Esquivo, 0 };
     }
 
@@ -115,8 +114,8 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idDefensa != 0) {
         const Defensa* defensa = catalogo.comoDefensa(idDefensa);
         if (defensa != nullptr) {
-            absorcion += std::uniform_int_distribution<uint16_t>(
-                    defensa->getDefMin(), defensa->getDefMax())(rng);
+            absorcion += aleatorio.enteroEnRango<uint16_t>(
+                    defensa->getDefMin(), defensa->getDefMax());
         }
     }
 
@@ -124,8 +123,8 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idCasco != 0) {
         const Defensa* casco = catalogo.comoDefensa(idCasco);
         if (casco != nullptr) {
-            absorcion += std::uniform_int_distribution<uint16_t>(
-                    casco->getDefMin(), casco->getDefMax())(rng);
+            absorcion += aleatorio.enteroEnRango<uint16_t>(
+                    casco->getDefMin(), casco->getDefMax());
         }
     }
 
@@ -133,8 +132,8 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idEscudo != 0) {
         const Defensa* escudo = catalogo.comoDefensa(idEscudo);
         if (escudo != nullptr) {
-            absorcion += std::uniform_int_distribution<uint16_t>(
-                    escudo->getDefMin(), escudo->getDefMax())(rng);
+            absorcion += aleatorio.enteroEnRango<uint16_t>(
+                    escudo->getDefMin(), escudo->getDefMax());
         }
     }
 
@@ -330,7 +329,7 @@ void Jugador::cancelarMeditacion() {
     }
 }
 
-ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo) {
+ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo, Aleatorio& aleatorio) {
     uint8_t danioArmaMin = 1;
     uint8_t danioArmaMax = 1;
 
@@ -353,15 +352,14 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo) {
         danioArmaMax = danioArmaMin;
     }
 
-    const uint16_t danioBaseArma = std::uniform_int_distribution<uint16_t>(
-            danioArmaMin, danioArmaMax)(rng);
+    const uint16_t danioBaseArma = aleatorio.enteroEnRango<uint16_t>(danioArmaMin, danioArmaMax);
 
     // Regla 5.1: Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
     // Regla 5.2: el crítico duplica el daño. El flag se propaga al caller para
     // que el defensor pueda saltear su esquive.
     // Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder
     // 65535 con stats altos (ej. 255 * 65535) y el cast directo truncaría.
-    const bool esGolpeCritico = es_golpe_critico();
+    const bool esGolpeCritico = es_golpe_critico(aleatorio);
     const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBaseArma;
     const uint32_t danioConCritico = esGolpeCritico ? danioCrudo * 2u : danioCrudo;
     const uint16_t danioCalculado = static_cast<uint16_t>(
@@ -738,14 +736,12 @@ void Jugador::normalizarOro() {
     oroExceso = total - oroMano;
 }
 
-bool Jugador::esquiva_ataque() {
-    const float valorAleatorio = std::uniform_real_distribution<float>(0.f, 1.f)(rng);
-    return ReglasJuego::esquivaAtaque(*cfg, agilidad, valorAleatorio);
+bool Jugador::esquiva_ataque(Aleatorio& aleatorio) {
+    return ReglasJuego::esquivaAtaque(*cfg, agilidad, aleatorio.uniforme());
 }
 
-bool Jugador::es_golpe_critico() {
-    float valorAleatorio = std::uniform_real_distribution<float>(0.0f, 1.0f)(rng);
-    return ReglasJuego::esGolpeCritico(*cfg, valorAleatorio);
+bool Jugador::es_golpe_critico(Aleatorio& aleatorio) {
+    return ReglasJuego::esGolpeCritico(*cfg, aleatorio.uniforme());
 }
 
 void Jugador::actualizarId(uint16_t nuevoId) {

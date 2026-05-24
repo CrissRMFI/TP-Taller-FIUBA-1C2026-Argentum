@@ -11,6 +11,7 @@
 #include "modelo/raza.h"
 #include "objeto/inventario.h"
 
+class Aleatorio;
 class CatalogoItems;
 
 enum class Estado {
@@ -74,9 +75,11 @@ public:
     // de evasión (regla 5.2). La absorción por armadura/casco/escudo (regla
     // 5.5) se aplica cuando no hay esquive. Devuelve un ResultadoDefensa que
     // distingue esquive de golpe (con su daño final entrado a vida).
+    // `aleatorio` se inyecta para muestrear las tiradas de evasión y absorción.
     ResultadoDefensa recibir_ataque_fisico(uint16_t danio,
                                            bool esCritico,
                                            const CatalogoItems& catalogo,
+                                           Aleatorio& aleatorio,
                                            float multiplicadorDefensa = 1.0f);
 
     void curar(uint16_t cantidad);
@@ -100,8 +103,9 @@ public:
     void cancelarMeditacion();
     // Calcula el daño del próximo golpe del jugador y reporta si fue crítico.
     // El consumidor necesita el flag para invocar `recibir_ataque_fisico` con
-    // la semántica correcta de la regla 5.2.
-    ResultadoDanio calcular_danio(const CatalogoItems& catalogo);
+    // la semántica correcta de la regla 5.2. `aleatorio` se inyecta para
+    // muestrear el daño base del arma y la tirada de crítico.
+    ResultadoDanio calcular_danio(const CatalogoItems& catalogo, Aleatorio& aleatorio);
 
     // Describe el próximo ataque según el equipamiento actual. `Juego` lo
     // consulta para validar alcance (regla 5.3) y maná (regla 3.2.1) sin
@@ -216,8 +220,8 @@ private:
     void perder_experiencia(uint32_t cantidad);
     void consumir_item(uint16_t idItem);
     void normalizarOro();
-    bool esquiva_ataque();
-    bool es_golpe_critico();
+    bool esquiva_ataque(Aleatorio& aleatorio);
+    bool es_golpe_critico(Aleatorio& aleatorio);
 };
 
 #endif

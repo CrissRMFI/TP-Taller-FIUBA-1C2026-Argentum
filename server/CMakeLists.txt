@@ -11,6 +11,7 @@ target_sources(taller_server
     game/jugador.cpp
     game/juego.cpp
     game/clan.cpp
+    game/aleatorio.cpp
 
     # Objetos
     game/objeto/inventario.cpp
@@ -48,6 +49,7 @@ target_sources(taller_server
     game/criatura.h
     game/jugador.h
     game/juego.h
+    game/aleatorio.h
 
     # Reglas
     game/reglas/reglas_juego.cpp

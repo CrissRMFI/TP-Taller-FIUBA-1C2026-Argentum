@@ -2,7 +2,8 @@
 
 #include <algorithm>
 #include <limits>
-#include <random>
+
+#include "aleatorio.h"
 
 Criatura::Criatura(uint16_t idCriatura,
                    TipoCriatura tipo,
@@ -59,12 +60,8 @@ uint16_t Criatura::getVidaMaxima() const {
     return vidaMaxima;
 }
 
-uint16_t Criatura::calcularDanio() const {
-    static std::random_device randomDevice;
-    static std::mt19937 generador(randomDevice());
-    std::uniform_int_distribution<int> distribucion(danioMin, danioMax);
-
-    const uint16_t danioBase = static_cast<uint16_t>(distribucion(generador));
+uint16_t Criatura::calcularDanio(Aleatorio& aleatorio) const {
+    const uint16_t danioBase = aleatorio.enteroEnRango<uint16_t>(danioMin, danioMax);
     const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBase;
     return static_cast<uint16_t>(
             std::min<uint32_t>(danioCrudo, std::numeric_limits<uint16_t>::max()));

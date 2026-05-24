@@ -11,6 +11,7 @@
 #include <vector>
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
+#include "aleatorio.h"
 #include "clan.h"
 #include "config/config_juego.h"
 #include "evento/evento_salida.h"
@@ -40,6 +41,7 @@ class Juego {
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
     Mapa mapa;
     uint64_t ticksTranscurridos;
+    Aleatorio aleatorio;
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);
@@ -66,7 +68,7 @@ class Juego {
     bool agregarCriatura(const Criatura& criatura);
     std::list<EventoSalida> intentarSpawnCriatura();
     std::optional<uint16_t> reservarIdCriatura();
-    std::optional<Posicion> buscarPosicionSpawnCriatura() const;
+    std::optional<Posicion> buscarPosicionSpawnCriatura();
     bool puedeSpawnearCriaturaEn(const Posicion& posicion) const;
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
