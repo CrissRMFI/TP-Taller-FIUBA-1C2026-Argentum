@@ -875,7 +875,7 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
     }
 
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
-    if (Jugador* objetivoJugador = buscarJugador(cmd.idObjetivo)) {
+    if (buscarJugador(cmd.idObjetivo) != nullptr) {
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
     }
 

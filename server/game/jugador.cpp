@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <random>
 
 #include "objeto/catalogo_items.h"
@@ -219,14 +220,19 @@ void Jugador::recuperar(float segundos) {
 
 void Jugador::ganar_experiencia(uint32_t cantidad) {
     if (cfg->expX10) {
-        cantidad *= 10;
+        const uint32_t maximo = std::numeric_limits<uint32_t>::max();
+        cantidad = (cantidad > maximo / 10) ? maximo : cantidad * 10;
     }
 
-    experiencia += cantidad;
+    const uint32_t espacioDisponible =
+            std::numeric_limits<uint32_t>::max() - experiencia;
+    experiencia += std::min(cantidad, espacioDisponible);
 
-    uint32_t limite = ReglasJuego::calcularLimiteExperiencia(*cfg, nivel);
-
-    if (experiencia >= limite) {
+    while (nivel < std::numeric_limits<uint8_t>::max()) {
+        const uint32_t limite = ReglasJuego::calcularLimiteExperiencia(*cfg, nivel);
+        if (experiencia < limite) {
+            break;
+        }
         experiencia -= limite;
         subirNivel();
     }
