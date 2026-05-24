@@ -201,14 +201,9 @@ void Jugador::recuperar(float segundos) {
         if (manaActual >= manaMax) {
             manaActual = manaMax;
             estado = Estado::Vivo;
+            meditacionManaPendiente = 0.0f;
         }
     } else if (estado != Estado::Meditando) {
-        meditacionManaPendiente = 0.0f;
-    }
-
-    if (estado == Estado::Meditando && manaActual >= manaMax) {
-        manaActual = manaMax;
-        estado = Estado::Vivo;
         meditacionManaPendiente = 0.0f;
     }
 
