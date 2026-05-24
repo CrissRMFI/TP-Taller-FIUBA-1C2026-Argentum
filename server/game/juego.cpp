@@ -349,9 +349,7 @@ std::list<EventoSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion&
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline(
-        uint16_t idClan, TipoEventoClan tipo, const std::string& texto,
-        std::optional<uint16_t> idExcluido) const {
+std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline( uint16_t idClan, TipoEventoClan tipo, const std::string& texto, std::optional<uint16_t> idExcluido) const {
     std::list<EventoSalida> mensajes;
 
     for (const auto& [idCliente, jugador] : jugadoresConectados) {
@@ -384,8 +382,7 @@ bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
     return false;
 }
 
-std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente,
-                                               const ComandoJugador& comando) {
+std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
     bool canceloMeditacion = false;
 
     if (comando.opcode != Opcode::MEDITAR) {
@@ -396,114 +393,142 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente,
         }
     }
 
-    try {
-        std::list<EventoSalida> mensajes;
-
-        switch (comando.opcode) {
-            case Opcode::MEDITAR:
-                mensajes = ejecutarMeditar(idCliente);
-                break;
-            case Opcode::RESUCITAR:
-                mensajes = ejecutarResucitar(idCliente);
-                break;
-            case Opcode::TOMAR:
-                mensajes = ejecutarTomar(idCliente);
-                break;
-            case Opcode::REVISAR_CLAN:
-                mensajes = ejecutarRevisarClan(idCliente);
-                break;
-            case Opcode::DEJAR_CLAN:
-                mensajes = ejecutarDejarClan(idCliente);
-                break;
-            case Opcode::MOVER:
-                mensajes = ejecutarMover(idCliente, std::get<ComandoMover>(comando.payload));
-                break;
-            case Opcode::ATACAR:
-                mensajes = ejecutarAtacar(idCliente, std::get<ComandoAtacar>(comando.payload));
-                break;
-            case Opcode::TIRAR:
-                mensajes = ejecutarTirar(idCliente, std::get<ComandoTirar>(comando.payload));
-                break;
-            case Opcode::EQUIPAR:
-                mensajes = ejecutarEquipar(idCliente, std::get<ComandoEquipar>(comando.payload));
-                break;
-            case Opcode::COMPRAR:
-                mensajes = ejecutarComprar(idCliente, std::get<ComandoComprar>(comando.payload));
-                break;
-            case Opcode::VENDER:
-                mensajes = ejecutarVender(idCliente, std::get<ComandoVender>(comando.payload));
-                break;
-            case Opcode::DEPOSITAR_ITEM:
-                mensajes = ejecutarDepositarItem(idCliente,
-                                                 std::get<ComandoDepositarItem>(comando.payload));
-                break;
-            case Opcode::DEPOSITAR_ORO:
-                mensajes = ejecutarDepositarOro(idCliente,
-                                                std::get<ComandoDepositarOro>(comando.payload));
-                break;
-            case Opcode::RETIRAR_ITEM:
-                mensajes = ejecutarRetirarItem(idCliente,
-                                               std::get<ComandoRetirarItem>(comando.payload));
-                break;
-            case Opcode::RETIRAR_ORO:
-                mensajes =
-                        ejecutarRetirarOro(idCliente, std::get<ComandoRetirarOro>(comando.payload));
-                break;
-            case Opcode::LISTAR:
-                mensajes = ejecutarListar(idCliente, std::get<ComandoListar>(comando.payload));
-                break;
-            case Opcode::CURAR:
-                mensajes = ejecutarCurar(idCliente, std::get<ComandoCurar>(comando.payload));
-                break;
-            case Opcode::CHAT_GLOBAL:
-                mensajes =
-                        ejecutarChatGlobal(idCliente, std::get<ComandoChatGlobal>(comando.payload));
-                break;
-            case Opcode::CHAT_PRIVADO:
-                mensajes = ejecutarChatPrivado(idCliente,
-                                               std::get<ComandoChatPrivado>(comando.payload));
-                break;
-            case Opcode::FUNDAR_CLAN:
-                mensajes =
-                        ejecutarFundarClan(idCliente, std::get<ComandoFundarClan>(comando.payload));
-                break;
-            case Opcode::UNIRSE_CLAN:
-                mensajes =
-                        ejecutarUnirseClan(idCliente, std::get<ComandoUnirseClan>(comando.payload));
-                break;
-            case Opcode::CLAN_ACEPTAR:
-            case Opcode::CLAN_RECHAZAR:
-            case Opcode::CLAN_BAN:
-            case Opcode::CLAN_KICK:
-                mensajes = ejecutarGestionMiembroClan(
-                        idCliente, std::get<ComandoGestionMiembreClan>(comando.payload),
-                        comando.opcode);
-                break;
-            default:
-                mensajes = {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
-                break;
-        }
-
-        if (canceloMeditacion && comando.opcode != Opcode::MOVER) {
+    auto finalizar = [&](std::list<EventoSalida> mensajes,
+                         bool emitirPosicionSiEsMover = false) {
+        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::MOVER)) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
                 std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
                 mensajes.splice(mensajes.end(), mensajesPosicion);
             }
         }
-
         return mensajes;
-    } catch (const std::bad_variant_access&) {
-        std::list<EventoSalida> mensajes = {
-                armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    };
 
-        if (canceloMeditacion) {
-            if (Jugador* jugador = buscarJugador(idCliente)) {
-                std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
-                mensajes.splice(mensajes.end(), mensajesPosicion);
-            }
+    auto comandoInvalido = [&]() {
+        return finalizar({armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)}, true);
+    };
+
+    auto ejecutarSinPayload = [&](bool payloadValido, auto ejecutar) -> std::list<EventoSalida> {
+        if (!payloadValido) {
+            return comandoInvalido();
         }
+        return finalizar(ejecutar());
+    };
 
-        return mensajes;
+    auto ejecutarConPayload = [&](const auto* payload, auto ejecutar) -> std::list<EventoSalida> {
+        if (payload == nullptr) {
+            return comandoInvalido();
+        }
+        return finalizar(ejecutar(*payload));
+    };
+
+    switch (comando.opcode) {
+        case Opcode::MEDITAR:
+            return ejecutarSinPayload(std::holds_alternative<ComandoMeditar>(comando.payload),
+                                      [&]() { return ejecutarMeditar(idCliente); });
+        case Opcode::RESUCITAR:
+            return ejecutarSinPayload(std::holds_alternative<ComandoResucitar>(comando.payload),
+                                      [&]() { return ejecutarResucitar(idCliente); });
+        case Opcode::TOMAR:
+            return ejecutarSinPayload(std::holds_alternative<ComandoTomar>(comando.payload),
+                                      [&]() { return ejecutarTomar(idCliente); });
+        case Opcode::REVISAR_CLAN:
+            return ejecutarSinPayload(std::holds_alternative<ComandoRevisarClan>(comando.payload),
+                                      [&]() { return ejecutarRevisarClan(idCliente); });
+        case Opcode::DEJAR_CLAN:
+            return ejecutarSinPayload(std::holds_alternative<ComandoDejarClan>(comando.payload),
+                                      [&]() { return ejecutarDejarClan(idCliente); });
+        case Opcode::MOVER:
+            return ejecutarConPayload(std::get_if<ComandoMover>(&comando.payload),
+                                      [&](const ComandoMover& payload) {
+                                          return ejecutarMover(idCliente, payload);
+                                      });
+        case Opcode::ATACAR:
+            return ejecutarConPayload(std::get_if<ComandoAtacar>(&comando.payload),
+                                      [&](const ComandoAtacar& payload) {
+                                          return ejecutarAtacar(idCliente, payload);
+                                      });
+        case Opcode::TIRAR:
+            return ejecutarConPayload(std::get_if<ComandoTirar>(&comando.payload),
+                                      [&](const ComandoTirar& payload) {
+                                          return ejecutarTirar(idCliente, payload);
+                                      });
+        case Opcode::EQUIPAR:
+            return ejecutarConPayload(std::get_if<ComandoEquipar>(&comando.payload),
+                                      [&](const ComandoEquipar& payload) {
+                                          return ejecutarEquipar(idCliente, payload);
+                                      });
+        case Opcode::COMPRAR:
+            return ejecutarConPayload(std::get_if<ComandoComprar>(&comando.payload),
+                                      [&](const ComandoComprar& payload) {
+                                          return ejecutarComprar(idCliente, payload);
+                                      });
+        case Opcode::VENDER:
+            return ejecutarConPayload(std::get_if<ComandoVender>(&comando.payload),
+                                      [&](const ComandoVender& payload) {
+                                          return ejecutarVender(idCliente, payload);
+                                      });
+        case Opcode::DEPOSITAR_ITEM:
+            return ejecutarConPayload(std::get_if<ComandoDepositarItem>(&comando.payload),
+                                      [&](const ComandoDepositarItem& payload) {
+                                          return ejecutarDepositarItem(idCliente, payload);
+                                      });
+        case Opcode::DEPOSITAR_ORO:
+            return ejecutarConPayload(std::get_if<ComandoDepositarOro>(&comando.payload),
+                                      [&](const ComandoDepositarOro& payload) {
+                                          return ejecutarDepositarOro(idCliente, payload);
+                                      });
+        case Opcode::RETIRAR_ITEM:
+            return ejecutarConPayload(std::get_if<ComandoRetirarItem>(&comando.payload),
+                                      [&](const ComandoRetirarItem& payload) {
+                                          return ejecutarRetirarItem(idCliente, payload);
+                                      });
+        case Opcode::RETIRAR_ORO:
+            return ejecutarConPayload(std::get_if<ComandoRetirarOro>(&comando.payload),
+                                      [&](const ComandoRetirarOro& payload) {
+                                          return ejecutarRetirarOro(idCliente, payload);
+                                      });
+        case Opcode::LISTAR:
+            return ejecutarConPayload(std::get_if<ComandoListar>(&comando.payload),
+                                      [&](const ComandoListar& payload) {
+                                          return ejecutarListar(idCliente, payload);
+                                      });
+        case Opcode::CURAR:
+            return ejecutarConPayload(std::get_if<ComandoCurar>(&comando.payload),
+                                      [&](const ComandoCurar& payload) {
+                                          return ejecutarCurar(idCliente, payload);
+                                      });
+        case Opcode::CHAT_GLOBAL:
+            return ejecutarConPayload(std::get_if<ComandoChatGlobal>(&comando.payload),
+                                      [&](const ComandoChatGlobal& payload) {
+                                          return ejecutarChatGlobal(idCliente, payload);
+                                      });
+        case Opcode::CHAT_PRIVADO:
+            return ejecutarConPayload(std::get_if<ComandoChatPrivado>(&comando.payload),
+                                      [&](const ComandoChatPrivado& payload) {
+                                          return ejecutarChatPrivado(idCliente, payload);
+                                      });
+        case Opcode::FUNDAR_CLAN:
+            return ejecutarConPayload(std::get_if<ComandoFundarClan>(&comando.payload),
+                                      [&](const ComandoFundarClan& payload) {
+                                          return ejecutarFundarClan(idCliente, payload);
+                                      });
+        case Opcode::UNIRSE_CLAN:
+            return ejecutarConPayload(std::get_if<ComandoUnirseClan>(&comando.payload),
+                                      [&](const ComandoUnirseClan& payload) {
+                                          return ejecutarUnirseClan(idCliente, payload);
+                                      });
+        case Opcode::CLAN_ACEPTAR:
+        case Opcode::CLAN_RECHAZAR:
+        case Opcode::CLAN_BAN:
+        case Opcode::CLAN_KICK:
+            return ejecutarConPayload(std::get_if<ComandoGestionMiembreClan>(&comando.payload),
+                                      [&](const ComandoGestionMiembreClan& payload) {
+                                          return ejecutarGestionMiembroClan(
+                                                  idCliente, payload, comando.opcode);
+                                      });
+        default:
+            return comandoInvalido();
     }
 }
 
