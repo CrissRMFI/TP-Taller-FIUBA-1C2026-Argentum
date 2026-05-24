@@ -85,6 +85,9 @@ class Juego {
     std::optional<uint16_t> buscarIdJugadorEn(
             const Posicion& posicion,
             std::optional<uint16_t> idExcluido = std::nullopt) const;
+    std::optional<Posicion> buscarPosicionLibreParaResurreccion(
+            const Posicion& origen,
+            std::optional<uint16_t> idJugadorExcluido = std::nullopt) const;
     std::list<EventoSalida> actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;

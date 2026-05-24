@@ -1,10 +1,12 @@
 #include "juego.h"
 
+#include <array>
 #include <list>
 #include <utility>
 #include <variant>
 #include <optional>
 #include <random>
+#include <set>
 #include <vector>
 #include <cstdlib>
 #include "objeto/catalogo_items.h"
@@ -140,6 +142,53 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(
 
         if (jugador.getPosicion() == posicion) {
             return idCliente;
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::optional<Posicion> Juego::buscarPosicionLibreParaResurreccion(
+        const Posicion& origen,
+        std::optional<uint16_t> idJugadorExcluido) const {
+    if (!mapa.posicionValida(origen)) {
+        return std::nullopt;
+    }
+
+    std::vector<Posicion> pendientes;
+    std::set<std::pair<uint16_t, uint16_t>> visitadas;
+
+    pendientes.push_back(origen);
+    visitadas.insert({origen.x, origen.y});
+
+    static constexpr std::array<std::pair<int, int>, 4> direcciones = {{
+        {0, -1}, {0, 1}, {-1, 0}, {1, 0}
+    }};
+
+    for (std::vector<Posicion>::size_type indice = 0; indice < pendientes.size(); ++indice) {
+        const Posicion actual = pendientes[indice];
+        if (!mapa.hayParedEn(actual) && !mapa.hayNpcEn(actual) &&
+                !mapa.hayCriaturaEn(actual) && !mapa.hayItemEn(actual) &&
+                !buscarIdJugadorEn(actual, idJugadorExcluido).has_value()) {
+            return actual;
+        }
+
+        for (const auto& [dx, dy] : direcciones) {
+            if ((dx < 0 && actual.x == 0) || (dy < 0 && actual.y == 0)) {
+                continue;
+            }
+
+            const uint16_t nx = static_cast<uint16_t>(static_cast<int>(actual.x) + dx);
+            const uint16_t ny = static_cast<uint16_t>(static_cast<int>(actual.y) + dy);
+            const Posicion vecina{nx, ny, origen.mapaId};
+
+            if (!mapa.posicionValida(vecina)) {
+                continue;
+            }
+
+            if (visitadas.insert({nx, ny}).second) {
+                pendientes.push_back(vecina);
+            }
         }
     }
 
@@ -466,7 +515,8 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         }
         if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
-            std::optional<Posicion> posicionResurreccionCercana = mapa.obtenerPosicionResurreccionCercana(posicionResurreccion);
+            std::optional<Posicion> posicionResurreccionCercana =
+                    buscarPosicionLibreParaResurreccion(posicionResurreccion, id);
             if (!posicionResurreccionCercana.has_value()) {
                 // Intentar revivirlo en el proximo tick, manteniendolo inmovilizado
                 jugador.inmovilizar(posicionResurreccion.x, posicionResurreccion.y, deltaSegundos);
@@ -788,7 +838,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     // mecánica remota: espera proporcional a la distancia al sacerdote.
     if (mapa.esCiudad(posicionJugador)) {
         std::optional<Posicion> posicionResurreccion =
-                mapa.obtenerPosicionResurreccionCercana(posicionJugador);
+                buscarPosicionLibreParaResurreccion(posicionJugador, idCliente);
         if (!posicionResurreccion.has_value()) {
             return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
         }
@@ -817,7 +867,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     }
 
     std::optional<Posicion> posicionResurreccion =
-            mapa.obtenerPosicionResurreccionCercana(sacerdote->getPosicion());
+            buscarPosicionLibreParaResurreccion(sacerdote->getPosicion(), idCliente);
     if (!posicionResurreccion.has_value()) {
         return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
