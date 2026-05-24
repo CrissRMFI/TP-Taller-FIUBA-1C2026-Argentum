@@ -1,7 +1,6 @@
 #include "jugador.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <limits>
 #include <random>
@@ -32,7 +31,7 @@ static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t max
     }
 }
 
-Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego* config) :
+Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config) :
         idJugador(id),
         idClan(0),
         nombre(nombre),
@@ -55,14 +54,13 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         constitucion(0),
         posicion(posicion),
         posicionResurreccion(posicion),
-        cfg(config),
-        inventario(config != nullptr ? config->inventarioMaxItems : 0),
+        cfg(&config),
+        inventario(config.inventarioMaxItems),
         idItemsBanco(),
         clase(clase),
         estado(Estado::Vivo),
         raza(raza),
         fundadoClan(false) {
-    assert(cfg != nullptr);
     const StatsRaza& sr = cfg->statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);

@@ -63,7 +63,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         jugadoresConectados.at(id).actualizarId(id);
         jugadoresDesconectados.erase(itDesconectado);
     } else {
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, &cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
     }
 
     indiceNicksConectados[nombre] = id;
@@ -1537,10 +1537,8 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente,
         return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ ids } } };
     }
 
-    if (Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador)) {
-        std::pair<uint32_t, std::vector<uint16_t>> cuenta =
-                banquero->listarItemsDisponibles(idCliente);
-        return { EventoSalida{ TipoDestino::UNO, idCliente, EventoListaItems{ cuenta.second } } };
+    if (obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador) != nullptr) {
+        return { armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA) };
     }
 
     return { armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO) };

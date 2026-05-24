@@ -54,7 +54,7 @@ public:
             ClasePersonaje clase,
             Raza raza,
             Posicion posicion,
-            const ConfigJuego* cfg);
+            const ConfigJuego& cfg);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
