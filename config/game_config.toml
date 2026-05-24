@@ -99,6 +99,10 @@ probabilidad_critico = 0.10
 rango_vision_ataque = 8
 
 # ------------------------------------------------------------
+[inventario]
+max_items = 20
+
+# ------------------------------------------------------------
 [items]
 # Tiempo que permanece un item tirado en el suelo antes de desaparecer
 tiempo_suelo_seg = 60
