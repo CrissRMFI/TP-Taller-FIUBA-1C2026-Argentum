@@ -1,6 +1,7 @@
 #ifndef JUEGO_H
 #define JUEGO_H
 
+#include <cstddef>
 #include <cstdint>
 #include <list>
 #include <map>
@@ -56,6 +57,11 @@ class Juego {
     std::list<EventoSalida> armarPosicionCriaturaParaMapa(const Criatura& criatura);
     std::list<EventoSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
     std::list<EventoSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
+    std::list<EventoSalida> armarEventoClanParaMiembrosOnline(
+            uint16_t idClan,
+            TipoEventoClan tipo,
+            const std::string& texto,
+            std::optional<uint16_t> idExcluido = std::nullopt) const;
     bool agregarCriatura(const Criatura& criatura);
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
@@ -88,6 +94,8 @@ class Juego {
     std::optional<Posicion> buscarPosicionLibreParaResurreccion(
             const Posicion& origen,
             std::optional<uint16_t> idJugadorExcluido = std::nullopt) const;
+    size_t contarAliadosClanCercanos(const Jugador& jugador) const;
+    float multiplicadorClan(const Jugador& jugador) const;
     std::list<EventoSalida> actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;

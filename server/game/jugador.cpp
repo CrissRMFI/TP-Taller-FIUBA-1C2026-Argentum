@@ -93,7 +93,10 @@ void Jugador::recibir_danio(uint16_t cantidad) {
     }
 }
 
-uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, bool esCritico, const CatalogoItems& catalogo) {
+uint16_t Jugador::recibir_ataque_fisico(uint16_t danio,
+                                        bool esCritico,
+                                        const CatalogoItems& catalogo,
+                                        float multiplicadorDefensa) {
     if (!estaVivo() || cfg->invulnerable) {
         return 0;
     }
@@ -133,7 +136,9 @@ uint16_t Jugador::recibir_ataque_fisico(uint16_t danio, bool esCritico, const Ca
         }
     }
 
-    const uint16_t danioFinal = danio > absorcion ? danio - absorcion : 0;
+    const uint16_t absorcionFinal = ReglasJuego::aplicarMultiplicadorCombate(
+            absorcion, multiplicadorDefensa);
+    const uint16_t danioFinal = danio > absorcionFinal ? danio - absorcionFinal : 0;
     recibir_danio(danioFinal);
 
     return danioFinal;

@@ -1,6 +1,7 @@
 #ifndef REGLAS_JUEGO_H
 #define REGLAS_JUEGO_H
 
+#include <cstddef>
 #include <cstdint>
 
 #include "../config/config_juego.h"
@@ -41,6 +42,12 @@ public:
     static uint32_t calcularDropOroNpc(const ConfigJuego& cfg,
                                        uint16_t vidaMaxNpc,
                                        float valorAleatorio);
+
+    static float calcularMultiplicadorClan(const ConfigJuego& cfg,
+                                           size_t aliadosCercanos);
+
+    static uint16_t aplicarMultiplicadorCombate(uint16_t valor,
+                                                float multiplicador);
 
     // Regla 5.4: defensor esquiva si pow(rand(0,1), Agilidad) < umbral.
     // `valorAleatorio` debe venir uniforme en [0, 1).

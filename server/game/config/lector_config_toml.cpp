@@ -175,6 +175,8 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.clanMaxMiembros = tbl["clanes"]["max_miembros"].value_or(16);
     cfg.clanNivelMinimo = tbl["clanes"]["nivel_minimo"].value_or(6);
+    cfg.clanRadioBonus = static_cast<uint16_t>(tbl["clanes"]["radio_bonus"].value_or(5));
+    cfg.bonusClanPorAliado = tbl["clanes"]["bonus_por_aliado"].value_or(0.10f);
 
     cfg.factorTiempoResurreccion = tbl["muerte"]["factor_tiempo_resurreccion"].value_or(0.5f);
     cfg.expPerdidaMuertePct = tbl["experiencia"]["exp_perdida_muerte_pct"].value_or(0.10f);

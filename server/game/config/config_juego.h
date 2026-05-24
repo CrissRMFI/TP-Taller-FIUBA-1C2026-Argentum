@@ -68,6 +68,8 @@ struct ConfigJuego {
     // ---- Clanes ----
     int clanMaxMiembros;
     int clanNivelMinimo;
+    uint16_t clanRadioBonus;
+    float bonusClanPorAliado;
 
     // ---- Criatiruas ----
     uint16_t movimientoCriaturasTicks;

@@ -103,6 +103,9 @@ enum class TipoEventoClan : uint8_t {
     Rechazado        = 4,
     Baneado          = 5,
     Kickeado         = 6,
+    Conectado        = 7,
+    Desconectado     = 8,
+    BajoAtaque       = 9,
 };
 
 struct EventoClan {

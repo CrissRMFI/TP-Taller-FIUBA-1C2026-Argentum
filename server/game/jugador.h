@@ -62,7 +62,10 @@ public:
     // Aplica daño físico al jugador. Si `esCritico` es true se saltea la fase
     // de evasión (regla 5.2). La absorción por armadura/casco/escudo (regla
     // 5.5) se aplica en ambos casos. Devuelve el daño final entrado a vida.
-    uint16_t recibir_ataque_fisico(uint16_t danio, bool esCritico, const CatalogoItems& catalogo);
+    uint16_t recibir_ataque_fisico(uint16_t danio,
+                                   bool esCritico,
+                                   const CatalogoItems& catalogo,
+                                   float multiplicadorDefensa = 1.0f);
 
     void curar(uint16_t cantidad);
     void recuperar_mana(uint16_t cantidad);

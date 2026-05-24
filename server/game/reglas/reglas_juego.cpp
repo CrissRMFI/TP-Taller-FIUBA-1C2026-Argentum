@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include "../modelo/clase_personaje.h"
 
 uint16_t ReglasJuego::calcularVidaMaxima(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t constitucion) {
@@ -111,6 +112,23 @@ uint32_t ReglasJuego::calcularDropOroNpc(const ConfigJuego& cfg,
     const float oro = factor * static_cast<float>(vidaMaxNpc);
 
     return static_cast<uint32_t>(std::max(0.0f, oro));
+}
+
+float ReglasJuego::calcularMultiplicadorClan(const ConfigJuego& cfg,
+                                             size_t aliadosCercanos) {
+    const float bonusPorAliado = std::max(0.0f, cfg.bonusClanPorAliado);
+    return 1.0f + bonusPorAliado * static_cast<float>(aliadosCercanos);
+}
+
+uint16_t ReglasJuego::aplicarMultiplicadorCombate(uint16_t valor,
+                                                  float multiplicador) {
+    const float multiplicadorSeguro = std::max(0.0f, multiplicador);
+    const float resultado = static_cast<float>(valor) * multiplicadorSeguro;
+
+    return static_cast<uint16_t>(
+            std::min<float>(
+                    static_cast<float>(std::numeric_limits<uint16_t>::max()),
+                    resultado));
 }
 
 float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos) {

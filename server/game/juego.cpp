@@ -107,6 +107,13 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
+    if (jugador.tieneClan()) {
+        mensajes.splice(mensajes.end(),
+                armarEventoClanParaMiembrosOnline(
+                        jugador.getClan(), TipoEventoClan::Conectado,
+                        jugador.getNombre(), id));
+    }
+
     return mensajes;
 }
 
@@ -117,6 +124,13 @@ std::list<EventoSalida> Juego::desconectarJugador(uint16_t id) {
     }
 
     std::list<EventoSalida> mensajes = armarDesaparicionParaMapa(it->second);
+
+    if (it->second.tieneClan()) {
+        mensajes.splice(mensajes.end(),
+                armarEventoClanParaMiembrosOnline(
+                        it->second.getClan(), TipoEventoClan::Desconectado,
+                        it->second.getNombre(), id));
+    }
 
     const std::string nombre = it->second.getNombre();
     indiceNicksConectados.erase(nombre);
@@ -193,6 +207,35 @@ std::optional<Posicion> Juego::buscarPosicionLibreParaResurreccion(
     }
 
     return std::nullopt;
+}
+
+size_t Juego::contarAliadosClanCercanos(const Jugador& jugador) const {
+    if (!jugador.tieneClan()) {
+        return 0;
+    }
+
+    size_t aliados = 0;
+    const Posicion posicionJugador = jugador.getPosicion();
+
+    for (const auto& [idCliente, otro] : jugadoresConectados) {
+        if (idCliente == jugador.getId() || !otro.estaVivo() || !otro.tieneClan() ||
+                otro.getClan() != jugador.getClan()) {
+            continue;
+        }
+
+        const Posicion posicionOtro = otro.getPosicion();
+        if (posicionJugador.mismaMapa(posicionOtro) &&
+                posicionJugador.distanciaManhattan(posicionOtro) <= cfg.clanRadioBonus) {
+            aliados++;
+        }
+    }
+
+    return aliados;
+}
+
+float Juego::multiplicadorClan(const Jugador& jugador) const {
+    return ReglasJuego::calcularMultiplicadorClan(
+            cfg, contarAliadosClanCercanos(jugador));
 }
 
 Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
@@ -330,6 +373,27 @@ std::list<EventoSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion&
       if (jugador.getPosicion().mapaId == posicion.mapaId) {
         mensajes.push_back({ TipoDestino::UNO, idCliente,
                              EventoItemDesaparecioSuelo{ posicion.x, posicion.y } });
+        }
+    }
+
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline(
+        uint16_t idClan,
+        TipoEventoClan tipo,
+        const std::string& texto,
+        std::optional<uint16_t> idExcluido) const {
+    std::list<EventoSalida> mensajes;
+
+    for (const auto& [idCliente, jugador] : jugadoresConectados) {
+        if (idExcluido.has_value() && idCliente == *idExcluido) {
+            continue;
+        }
+
+        if (jugador.tieneClan() && jugador.getClan() == idClan) {
+            mensajes.push_back({ TipoDestino::UNO, idCliente,
+                                 EventoClan{ tipo, texto } });
         }
     }
 
@@ -1079,8 +1143,10 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const uint16_t vidaMaxObjetivoAntes = objetivo->getVidaMax();
 
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
+    const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
+            resultadoDanio.valor, multiplicadorClan(*atacante));
     const uint16_t danioAplicado = objetivo->recibir_ataque_fisico(
-            resultadoDanio.valor, resultadoDanio.esCritico, catalogo);
+            danioBruto, resultadoDanio.esCritico, catalogo, multiplicadorClan(*objetivo));
 
     std::list<EventoSalida> mensajes;
 
@@ -1095,6 +1161,13 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     });
 
     mensajes.push_back(armarEstado(objetivo->getId(), *objetivo));
+
+    if (danioAplicado > 0 && objetivo->tieneClan()) {
+        mensajes.splice(mensajes.end(),
+                armarEventoClanParaMiembrosOnline(
+                        objetivo->getClan(), TipoEventoClan::BajoAtaque,
+                        objetivo->getNombre(), objetivo->getId()));
+    }
 
     // XP por impacto (regla 3.3.2). Sólo si el golpe entró con daño efectivo.
     bool atacanteGanoXp = false;
@@ -1651,7 +1724,7 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     // pueda evaluar evasión normalmente.
     const uint16_t danioBrutoCriatura = criatura.calcularDanio();
     const uint16_t danio = jugador->recibir_ataque_fisico(
-            danioBrutoCriatura, /*esCritico=*/false, catalogo);
+            danioBrutoCriatura, /*esCritico=*/false, catalogo, multiplicadorClan(*jugador));
 
     mensajes.push_back(EventoSalida{
         TipoDestino::UNO, idJugador,
@@ -1659,6 +1732,13 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     });
 
     mensajes.push_back(armarEstado(idJugador, *jugador));
+
+    if (danio > 0 && jugador->tieneClan()) {
+        mensajes.splice(mensajes.end(),
+                armarEventoClanParaMiembrosOnline(
+                        jugador->getClan(), TipoEventoClan::BajoAtaque,
+                        jugador->getNombre(), idJugador));
+    }
 
     if (!jugador->estaVivo()) {
         const EventoMuerteEntidad eventoMuerte{ jugador->getId() };
@@ -1872,6 +1952,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     // es el bruto saturado al pool de vida actual. Calculamos primero para
     // conocer el flag de crítico antes de decidir si la criatura puede esquivar.
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo);
+    const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
+            resultadoDanio.valor, multiplicadorClan(*atacante));
 
     std::list<EventoSalida> mensajes;
 
@@ -1892,7 +1974,6 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         }
     }
 
-    const uint16_t danioBruto = resultadoDanio.valor;
     const uint16_t danioAplicado = static_cast<uint16_t>(
             std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);

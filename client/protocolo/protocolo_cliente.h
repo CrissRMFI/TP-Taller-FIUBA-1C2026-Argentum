@@ -26,7 +26,7 @@ private:
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
-    static constexpr uint8_t MAX_TIPO_CLAN = 4;
+    static constexpr uint8_t MAX_TIPO_CLAN = (uint8_t)(TipoMensajeClan::BajoAtaque);
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
 
     void validarDireccion(uint8_t direccion) const;
