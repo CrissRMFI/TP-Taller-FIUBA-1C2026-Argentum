@@ -79,6 +79,12 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
+    for (const Criatura& criatura : mapa.obtenerCriaturas()) {
+        if (criatura.getPos().mapaId == jugador.getPosicion().mapaId) {
+            mensajes.push_back(armarPosicionCriaturaPara(id, criatura));
+        }
+    }
+
     for (const ItemEnSuelo& item: mapa.obtenerItemsEnSuelo()) {
         if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back({ TipoDestino::UNO, id,
@@ -86,6 +92,16 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
                                      item.idItem,
                                      item.posicion.x,
                                      item.posicion.y } });
+        }
+    }
+
+    for (const OroEnSuelo& oro : mapa.obtenerOroEnSuelo()) {
+        if (oro.posicion.mapaId == jugador.getPosicion().mapaId) {
+            mensajes.push_back({ TipoDestino::UNO, id,
+                                 EventoOroEnSuelo{
+                                     oro.cantidad,
+                                     oro.posicion.x,
+                                     oro.posicion.y } });
         }
     }
 
@@ -192,6 +208,18 @@ EventoSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador
              } };
 }
 
+EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura) {
+    Posicion posicion = criatura.getPos();
+    return { TipoDestino::UNO, idCliente,
+             EventoPosicionEntidad{
+                 criatura.getId(),
+                 posicion.x,
+                 posicion.y,
+                 static_cast<uint8_t>(TipoEntidad::Criatura),
+                 0
+             } };
+}
+
 std::list<EventoSalida> Juego::armarPosicionParaMapa(const Jugador& jugador) {
     std::list<EventoSalida> mensajes;
     Posicion posicion = jugador.getPosicion();
@@ -199,6 +227,19 @@ std::list<EventoSalida> Juego::armarPosicionParaMapa(const Jugador& jugador) {
     for (const auto& [idCliente, otro]: jugadoresConectados) {
         if (otro.getPosicion().mapaId == posicion.mapaId) {
             mensajes.push_back(armarPosicionPara(idCliente, jugador));
+        }
+    }
+
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::armarPosicionCriaturaParaMapa(const Criatura& criatura) {
+    std::list<EventoSalida> mensajes;
+    Posicion posicion = criatura.getPos();
+
+    for (const auto& [idCliente, jugador]: jugadoresConectados) {
+        if (jugador.getPosicion().mapaId == posicion.mapaId) {
+            mensajes.push_back(armarPosicionCriaturaPara(idCliente, criatura));
         }
     }
 
@@ -1378,7 +1419,9 @@ std::list<EventoSalida> Juego::actualizarCriaturas() {
 
             mensajes.splice(mensajes.end(), mensajesAtaque);
         } else {
-            moverCriaturaAleatoriamente(*criatura);
+            std::list<EventoSalida> mensajesMovimiento =
+                moverCriaturaAleatoriamente(*criatura);
+            mensajes.splice(mensajes.end(), mensajesMovimiento);
         }
     }
 
@@ -1444,7 +1487,7 @@ std::vector<Posicion> Juego::calcularDestinosHacia(const Posicion& origen,
     return destinos;
 }
 
-void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
+std::list<EventoSalida> Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
     static std::random_device randomDevice;
     static std::mt19937 generador(randomDevice());
 
@@ -1457,14 +1500,21 @@ void Juego::moverCriaturaAleatoriamente(const Criatura& criatura) {
     }
 
     if (destinosValidos.empty()) {
-        return;
+        return {};
     }
 
     std::uniform_int_distribution<size_t> distribucion(0, destinosValidos.size() - 1);
     const Posicion destino = destinosValidos[distribucion(generador)];
     if (!mapa.moverCriatura(criatura.getId(), destino)) {
-        return;
+        return {};
     }
+
+    const Criatura* criaturaActualizada = mapa.obtenerCriaturaPor(criatura.getId());
+    if (criaturaActualizada == nullptr) {
+        return {};
+    }
+
+    return armarPosicionCriaturaParaMapa(*criaturaActualizada);
 }
 
 std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo) {
@@ -1483,13 +1533,16 @@ std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura, cons
     for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
         if (puedeMoverCriaturaA(destino)) {
             if (mapa.moverCriatura(criatura.getId(), destino)) {
-                return {};
+                const Criatura* criaturaActualizada = mapa.obtenerCriaturaPor(criatura.getId());
+                if (criaturaActualizada == nullptr) {
+                    return {};
+                }
+                return armarPosicionCriaturaParaMapa(*criaturaActualizada);
             }
         }
     }
 
-    moverCriaturaAleatoriamente(criatura);
-    return {};
+    return moverCriaturaAleatoriamente(criatura);
 }
 
 bool Juego::puedeMoverCriaturaA(const Posicion& destino) const {

@@ -50,8 +50,10 @@ class Juego {
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
+    EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
     std::list<EventoSalida> armarDesaparicionParaMapa(const Jugador& jugador);
     std::list<EventoSalida> armarPosicionParaMapa(const Jugador& jugador);
+    std::list<EventoSalida> armarPosicionCriaturaParaMapa(const Criatura& criatura);
     std::list<EventoSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
     std::list<EventoSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
     bool agregarCriatura(const Criatura& criatura);
@@ -88,7 +90,7 @@ class Juego {
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;
     std::vector<Posicion> calcularDestinosHacia(const Posicion& origen, const Posicion& objetivo) const;
     std::vector<Posicion> calcularDestinosAdyacentes(const Posicion& origen) const;
-    void moverCriaturaAleatoriamente(const Criatura& criatura);
+    std::list<EventoSalida> moverCriaturaAleatoriamente(const Criatura& criatura);
     std::list<EventoSalida> moverCriaturaHacia(const Criatura& criatura, const Posicion& objetivo);
 
     bool puedeMoverCriaturaA(const Posicion& destino) const;
