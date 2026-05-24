@@ -33,6 +33,7 @@ class Juego {
     ConfigJuego   cfg;
     CatalogoItems catalogo;
     uint16_t      proximoIdClan;
+    uint16_t      proximoIdCriatura;
     std::map<uint16_t, Clan>     clanes;
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
@@ -63,6 +64,10 @@ class Juego {
             const std::string& texto,
             std::optional<uint16_t> idExcluido = std::nullopt) const;
     bool agregarCriatura(const Criatura& criatura);
+    std::list<EventoSalida> intentarSpawnCriatura();
+    std::optional<uint16_t> reservarIdCriatura();
+    std::optional<Posicion> buscarPosicionSpawnCriatura() const;
+    bool puedeSpawnearCriaturaEn(const Posicion& posicion) const;
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
     std::list<EventoSalida> ejecutarMeditar(uint16_t idCliente);

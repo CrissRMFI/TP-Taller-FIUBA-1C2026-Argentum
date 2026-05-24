@@ -2,6 +2,7 @@
 
 #include <array>
 #include <list>
+#include <limits>
 #include <utility>
 #include <variant>
 #include <optional>
@@ -33,6 +34,7 @@ uint8_t estadoEntidadDe(const Jugador& jugador) {
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
 cfg(cfg), catalogo(std::move(cat)), proximoIdClan(1),
+proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
 mapa(cfg.mapaAncho, cfg.mapaAlto), ticksTranscurridos(0) {}
 
 
@@ -607,6 +609,13 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     if (cfg.movimientoCriaturasTicks > 0 && ticksTranscurridos % cfg.movimientoCriaturasTicks == 0) {
       std::list<EventoSalida> mensajesCriaturas = actualizarCriaturas();
       mensajes.splice(mensajes.end(), mensajesCriaturas);
+    }
+
+    if (cfg.spawnCriaturasTicks > 0 &&
+            ticksTranscurridos % cfg.spawnCriaturasTicks == 0 &&
+            mapa.cantidadCriaturas() < cfg.poblacionMaxCriaturas) {
+        std::list<EventoSalida> mensajesSpawn = intentarSpawnCriatura();
+        mensajes.splice(mensajes.end(), mensajesSpawn);
     }
 
     std::vector<ItemEnSuelo> itemsExpirados =
@@ -1834,6 +1843,113 @@ bool Juego::agregarCriatura(const Criatura& criatura) {
     }
 
     return mapa.agregarCriatura(criatura);
+}
+
+std::optional<uint16_t> Juego::reservarIdCriatura() {
+    static constexpr uint16_t ID_MINIMO_CRIATURA = 1;
+    static constexpr uint16_t ID_MAXIMO_CRIATURA = std::numeric_limits<uint16_t>::max();
+
+    for (uint32_t intentos = 0; intentos < ID_MAXIMO_CRIATURA; ++intentos) {
+        const uint16_t candidato = proximoIdCriatura;
+
+        if (proximoIdCriatura == ID_MINIMO_CRIATURA) {
+            proximoIdCriatura = ID_MAXIMO_CRIATURA;
+        } else {
+            proximoIdCriatura--;
+        }
+
+        if (candidato == 0 || mapa.obtenerCriaturaPor(candidato) != nullptr ||
+                jugadoresConectados.find(candidato) != jugadoresConectados.end() ||
+                jugadoresDesconectados.find(candidato) != jugadoresDesconectados.end()) {
+            continue;
+        }
+
+        return candidato;
+    }
+
+    return std::nullopt;
+}
+
+bool Juego::puedeSpawnearCriaturaEn(const Posicion& posicion) const {
+    return mapa.puedeOcuparCriatura(posicion) &&
+           !mapa.hayItemEn(posicion) &&
+           !mapa.hayOroEn(posicion) &&
+           !buscarIdJugadorEn(posicion).has_value();
+}
+
+std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() const {
+    const uint64_t cantidadCeldas =
+            static_cast<uint64_t>(cfg.mapaAncho) * static_cast<uint64_t>(cfg.mapaAlto);
+
+    if (cantidadCeldas == 0) {
+        return std::nullopt;
+    }
+
+    static std::mt19937 generador(std::random_device{}());
+    std::uniform_int_distribution<uint64_t> distribucionCelda(0, cantidadCeldas - 1);
+    const uint64_t inicio = distribucionCelda(generador);
+
+    for (uint64_t offset = 0; offset < cantidadCeldas; ++offset) {
+        const uint64_t indice = (inicio + offset) % cantidadCeldas;
+        const uint16_t x = static_cast<uint16_t>(indice % cfg.mapaAncho);
+        const uint16_t y = static_cast<uint16_t>(indice / cfg.mapaAncho);
+        const Posicion posicion{x, y, 0};
+
+        if (puedeSpawnearCriaturaEn(posicion)) {
+            return posicion;
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::list<EventoSalida> Juego::intentarSpawnCriatura() {
+    std::list<EventoSalida> mensajes;
+
+    std::optional<Posicion> posicion = buscarPosicionSpawnCriatura();
+    if (!posicion.has_value()) {
+        return mensajes;
+    }
+
+    std::optional<uint16_t> idCriatura = reservarIdCriatura();
+    if (!idCriatura.has_value()) {
+        return mensajes;
+    }
+
+    static constexpr std::array<TipoCriatura, 6> tiposCriatura = {
+        TipoCriatura::Goblin,
+        TipoCriatura::Esqueleto,
+        TipoCriatura::Zombie,
+        TipoCriatura::Arania,
+        TipoCriatura::Orco,
+        TipoCriatura::Golem
+    };
+
+    static std::mt19937 generador(std::random_device{}());
+    std::uniform_int_distribution<size_t> distribucionTipo(0, tiposCriatura.size() - 1);
+
+    const uint8_t danioMaximo =
+            cfg.criaturaDanioMaxBase < cfg.criaturaDanioMinBase ?
+            cfg.criaturaDanioMinBase : cfg.criaturaDanioMaxBase;
+
+    Criatura criatura(
+            *idCriatura,
+            tiposCriatura[distribucionTipo(generador)],
+            cfg.criaturaVidaMaximaBase,
+            cfg.criaturaNivelBase,
+            cfg.criaturaFuerzaBase,
+            cfg.criaturaAgilidadBase,
+            *posicion,
+            cfg.criaturaRangoAggroBase,
+            cfg.criaturaDanioMinBase,
+            danioMaximo);
+
+    if (!agregarCriatura(criatura)) {
+        return mensajes;
+    }
+
+    mensajes.splice(mensajes.end(), armarPosicionCriaturaParaMapa(criatura));
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad) {
