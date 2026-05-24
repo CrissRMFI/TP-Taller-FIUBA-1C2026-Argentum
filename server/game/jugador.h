@@ -36,7 +36,7 @@ enum class TipoAtaque {
     CuerpoACuerpo,   // sin arma o arma melee: alcance == 1
     Distancia,       // Arma::esArmaDistancia() == true
     Hechizo,         // Baculo de daño equipado (consume maná)
-    HechizoNoOfensivo // Baculo equipado pero hechizo Curar — ATACAR no aplica
+    HechizoNoOfensivo // Curar o magia no permitida para ATACAR
 };
 
 // Descriptor del próximo ataque del jugador. Lo emite `describir_ataque`

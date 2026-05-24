@@ -371,6 +371,14 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
     }
 
     if (idBaculoEquipado != 0) {
+        if (!puedeUsarMagia()) {
+            return DescriptorAtaque{
+                TipoAtaque::HechizoNoOfensivo,
+                cfg->rangoVisionAtaque,
+                /*costoMana=*/0
+            };
+        }
+
         const Baculo* baculoEquipado = catalogo.comoBaculo(idBaculoEquipado);
         if (baculoEquipado != nullptr) {
             // El hechizo Curar no es un ataque ofensivo: no debe procesarse
