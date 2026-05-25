@@ -28,6 +28,7 @@ target_sources(taller_server
     # Persistencia de jugadores
     persistencia/escritor_jugadores.cpp
     persistencia/indice_jugadores.cpp
+    persistencia/lector_jugadores.cpp
     persistencia/serializador_jugador.cpp
 
     # Protocolo servidor
@@ -68,6 +69,7 @@ target_sources(taller_server
     # Persistencia de jugadores
     persistencia/escritor_jugadores.h
     persistencia/indice_jugadores.h
+    persistencia/lector_jugadores.h
     persistencia/serializador_jugador.h
 
     # Protocolo servidor
