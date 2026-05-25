@@ -607,12 +607,32 @@ uint32_t Jugador::getOro() const {
     return oroMano + oroExceso;
 }
 
+uint32_t Jugador::getOroMano() const {
+    return oroMano;
+}
+
+uint32_t Jugador::getOroExceso() const {
+    return oroExceso;
+}
+
 uint32_t Jugador::getOroBanco() const {
     return oroBanco;
 }
 
+uint32_t Jugador::getOroPerdidoPendiente() const {
+    return oroPerdidoPendiente;
+}
+
 uint16_t Jugador::getClan() const {
     return idClan;
+}
+
+ClasePersonaje Jugador::getClase() const {
+    return clase;
+}
+
+Raza Jugador::getRaza() const {
+    return raza;
 }
 
 bool Jugador::estaInmovilizado() const {

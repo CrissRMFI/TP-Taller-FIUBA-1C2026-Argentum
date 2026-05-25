@@ -152,8 +152,13 @@ public:
     uint16_t getManaActual() const;
     uint16_t getManaMax() const;
     uint32_t getOro() const;
+    uint32_t getOroMano() const;
+    uint32_t getOroExceso() const;
     uint32_t getOroBanco() const;
+    uint32_t getOroPerdidoPendiente() const;
     uint16_t getClan() const;
+    ClasePersonaje getClase() const;
+    Raza getRaza() const;
     bool estaInmovilizado() const;
     bool fundo_clan() const;
     bool es_newbie() const;

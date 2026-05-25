@@ -25,6 +25,9 @@ target_sources(taller_server
     gameloop/monitor_clientes.cpp
     gameloop/traductor_protocolo.cpp
 
+    # Persistencia de jugadores
+    persistencia/serializador_jugador.cpp
+
     # Protocolo servidor
     protocolo/protocolo_servidor.cpp
 
@@ -59,6 +62,9 @@ target_sources(taller_server
     gameloop/gameloop.h
     gameloop/mensaje_salida.h
     gameloop/monitor_clientes.h
+
+    # Persistencia de jugadores
+    persistencia/serializador_jugador.h
 
     # Protocolo servidor
     protocolo/protocolo_servidor.h
