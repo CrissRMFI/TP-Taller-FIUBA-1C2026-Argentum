@@ -94,6 +94,14 @@ oro_max_base = 100.0
 esquivar_umbral = 0.001
 probabilidad_critico = 0.10
 
+# Alcance máximo en celdas (distancia Manhattan) para armas a distancia
+# y hechizos de báculo (regla 5.3). El melee siempre es adyacencia.
+rango_vision_ataque = 8
+
+# ------------------------------------------------------------
+[inventario]
+max_items = 20
+
 # ------------------------------------------------------------
 [items]
 # Tiempo que permanece un item tirado en el suelo antes de desaparecer
@@ -285,6 +293,8 @@ max_diff_nivel     = 10      # No se pueden atacar si diff > 10
 [clanes]
 max_miembros  = 16
 nivel_minimo  = 6            # Nivel mínimo para fundar
+radio_bonus = 5              # Distancia Manhattan para contar aliados cercanos
+bonus_por_aliado = 0.10      # Multiplicador extra por aliado cercano
 
 # ------------------------------------------------------------
 [muerte]

@@ -346,6 +346,15 @@ bool Mapa::agregarCriatura(const Criatura& criatura) {
     return true;
 }
 
+bool Mapa::removerCriatura(uint16_t idCriatura) {
+    auto it = criaturas.find(idCriatura);
+    if (it == criaturas.end()) {
+        return false;
+    }
+    criaturas.erase(it);
+    return true;
+}
+
 bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
   return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
 }
@@ -369,6 +378,71 @@ bool Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
 
     it->second.mover(destino);
     return true;
+}
+
+bool Mapa::hayOroEn(const Posicion& posicion) const {
+    for (const OroEnSuelo& pila : orosEnSuelo) {
+        if (mismaPosicion(pila.posicion, posicion)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Mapa::agregarOroEnSuelo(const Posicion& posicion, uint32_t cantidad) {
+    if (cantidad == 0 || !posicionValida(posicion) || hayParedEn(posicion)) {
+        return false;
+    }
+
+    // Si ya hay una pila en la misma celda, acumulamos (saturando en uint32_t).
+    for (OroEnSuelo& pila : orosEnSuelo) {
+        if (mismaPosicion(pila.posicion, posicion)) {
+            const uint32_t restante = UINT32_MAX - pila.cantidad;
+            pila.cantidad += std::min(cantidad, restante);
+            pila.segundosEnSuelo = 0.0f;
+            return true;
+        }
+    }
+
+    orosEnSuelo.push_back({ cantidad, posicion, 0.0f });
+    return true;
+}
+
+std::optional<uint32_t> Mapa::tomarOro(const Posicion& posicion) {
+    if (!posicionValida(posicion) || hayParedEn(posicion)) {
+        return std::nullopt;
+    }
+
+    for (auto it = orosEnSuelo.begin(); it != orosEnSuelo.end(); ++it) {
+        if (mismaPosicion(it->posicion, posicion)) {
+            uint32_t cantidad = it->cantidad;
+            orosEnSuelo.erase(it);
+            return cantidad;
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::vector<OroEnSuelo> Mapa::obtenerOroEnSuelo() const {
+    return orosEnSuelo;
+}
+
+std::vector<OroEnSuelo> Mapa::actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg) {
+    std::vector<OroEnSuelo> expiradas;
+    std::vector<OroEnSuelo> vigentes;
+
+    for (OroEnSuelo& pila : orosEnSuelo) {
+        pila.segundosEnSuelo += deltaSegundos;
+        if (pila.segundosEnSuelo >= tiempoMaximoSeg) {
+            expiradas.push_back(pila);
+        } else {
+            vigentes.push_back(pila);
+        }
+    }
+
+    orosEnSuelo = std::move(vigentes);
+    return expiradas;
 }
 
 std::vector<ItemEnSuelo> Mapa::actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg) {

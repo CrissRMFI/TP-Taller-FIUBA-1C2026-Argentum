@@ -1,5 +1,6 @@
 #include "aceptador.h"
 
+#include <algorithm>
 #include <iostream>
 #include <utility>
 

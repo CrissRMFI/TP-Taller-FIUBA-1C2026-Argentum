@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include "../modelo/clase_personaje.h"
 
 uint16_t ReglasJuego::calcularVidaMaxima(const ConfigJuego& cfg, Raza raza, ClasePersonaje clase, uint16_t nivel, uint16_t constitucion) {
@@ -55,6 +56,60 @@ float ReglasJuego::calcularRecuperacionNatural(const ConfigJuego& cfg, Raza raza
     float valor = cfg.statsRaza(raza).fRecuperacion * segundos;
 
     return std::max(0.0f, valor);
+}
+
+uint32_t ReglasJuego::calcularExperienciaImpacto(const ConfigJuego& cfg, uint16_t danioAplicado, uint8_t nivelAtacante, uint8_t nivelObjetivo) {
+    const int diff = static_cast<int>(nivelObjetivo) - static_cast<int>(nivelAtacante) + cfg.expBonusNivel;
+
+    if (diff <= 0 || danioAplicado == 0) {
+        return 0;
+    }
+
+    return static_cast<uint32_t>(danioAplicado) * static_cast<uint32_t>(diff);
+}
+
+uint32_t ReglasJuego::calcularExperienciaKill(const ConfigJuego& cfg, uint16_t vidaMaxObjetivo, uint8_t nivelAtacante, uint8_t nivelObjetivo, float valorAleatorio) {
+
+    const int diff = static_cast<int>(nivelObjetivo) - static_cast<int>(nivelAtacante) + cfg.expBonusNivel;
+
+    if (diff <= 0 || vidaMaxObjetivo == 0) {
+        return 0;
+    }
+
+    const float r = std::clamp(valorAleatorio, 0.0f, 1.0f) * cfg.expKillMax;
+    const float xp = r * static_cast<float>(vidaMaxObjetivo) * static_cast<float>(diff);
+
+    return static_cast<uint32_t>(std::max(0.0f, xp));
+}
+
+bool ReglasJuego::esquivaAtaque(const ConfigJuego& cfg, uint8_t agilidad, float valorAleatorio) {
+    
+    const float valorAleatorioNormalizado = std::clamp(valorAleatorio, 0.0f, 1.0f);
+    const float probabilidadDeEsquive = std::pow(valorAleatorioNormalizado, static_cast<float>(agilidad));
+    return probabilidadDeEsquive < cfg.esquivarUmbral;
+}
+
+uint32_t ReglasJuego::calcularDropOroNpc(const ConfigJuego& cfg, uint16_t vidaMaxNpc, float valorAleatorio) {
+    if (vidaMaxNpc == 0) {
+        return 0;
+    }
+
+    const float factor = std::clamp(valorAleatorio, 0.0f, 1.0f) * cfg.oroDropNpcMax;
+    const float oro = factor * static_cast<float>(vidaMaxNpc);
+
+    return static_cast<uint32_t>(std::max(0.0f, oro));
+}
+
+float ReglasJuego::calcularMultiplicadorClan(const ConfigJuego& cfg, size_t aliadosCercanos) {
+    const float bonusPorAliado = std::max(0.0f, cfg.bonusClanPorAliado);
+    return 1.0f + bonusPorAliado * static_cast<float>(aliadosCercanos);
+}
+
+uint16_t ReglasJuego::aplicarMultiplicadorCombate(uint16_t valor, float multiplicador) {
+    const float multiplicadorSeguro = std::max(0.0f, multiplicador);
+    const float resultado = static_cast<float>(valor) * multiplicadorSeguro;
+
+    return static_cast<uint16_t>(std::min<float>( static_cast<float> (std::numeric_limits<uint16_t>::max()), resultado));
 }
 
 float ReglasJuego::calcularRecuperacionMeditacion(const ConfigJuego& cfg, ClasePersonaje clase, uint16_t inteligencia, float segundos) {

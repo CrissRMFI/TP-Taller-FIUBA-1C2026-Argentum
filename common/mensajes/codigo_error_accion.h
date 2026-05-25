@@ -10,6 +10,7 @@ enum class CodigoErrorAccion : uint8_t {
     ACCION_NO_PERMITIDA = 3,
     OBJETIVO_INVALIDO = 4,
     CLAN_LLENO = 5,
+    MANA_INSUFICIENTE = 6,
 };
 
 #endif

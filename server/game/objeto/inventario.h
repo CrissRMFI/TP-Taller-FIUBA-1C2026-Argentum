@@ -19,6 +19,7 @@ public:
     void agregarItemEnSlot(uint16_t idItem, uint8_t indice);
 
     bool tieneItem(uint16_t idItem) const;
+    bool tieneEspacioLibre() const;
     uint16_t getIdEnSlot(uint8_t indice) const;
     std::vector<uint16_t> getSlots() const;
 
