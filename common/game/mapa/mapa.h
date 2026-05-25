@@ -47,9 +47,6 @@ class Mapa {
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
 
-    // Itera todos los NPCs (sacerdotes + comerciantes + banqueros) tratándolos
-    // como `const Npc&`. Reemplaza al antiguo mapa genérico `npcs` para evitar
-    // duplicar el ownership de cada NPC en dos colecciones distintas.
     template <typename F>
     void forEachNpc(F&& fn) const {
         for (const auto& [id, npc] : sacerdotes) fn(npc);
@@ -62,6 +59,14 @@ public:
     Mapa(uint16_t ancho, uint16_t alto);
     bool agregarNpc(const Npc& npc);
     void agregarPared(const Posicion& posicion);
+
+    uint16_t getAncho() const { return ancho; }
+    uint16_t getAlto() const  { return alto; }
+    const std::vector<Posicion>& getParedes() const  { return paredes; }
+    const std::vector<Ciudad>&   getCiudades() const { return ciudades; }
+    const std::map<uint16_t, Sacerdote>&   getSacerdotes() const   { return sacerdotes; }
+    const std::map<uint16_t, Comerciante>& getComerciantes() const { return comerciantes; }
+    const std::map<uint16_t, Banquero>&    getBanqueros() const    { return banqueros; }
 
     bool posicionValida(const Posicion& posicion) const;
     bool hayParedEn(const Posicion& posicion) const;

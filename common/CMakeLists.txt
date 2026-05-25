@@ -3,6 +3,7 @@ target_sources(taller_common
     # .cpp files
     foo.cpp
     mensajes/mensajes_error_accion.cpp
+    mensajes/mensajes_error_persistencia.cpp
     mensajes/mensajes_error_protocolo.cpp
 
     protocolo/protocolo.cpp
@@ -21,13 +22,20 @@ target_sources(taller_common
     game/npc/banquero.cpp
     game/mapa/mapa.cpp
 
+    # Persistencia binaria de mapas (.bin)
+    persistencia/error_persistencia.cpp
+    persistencia/escritor_mapa.cpp
+    persistencia/lector_mapa.cpp
+
     PUBLIC
     # .h files
     foo.h
 
     mensajes/codigo_error_accion.h
+    mensajes/codigo_error_persistencia.h
     mensajes/codigo_error_protocolo.h
     mensajes/mensajes_error_accion.h
+    mensajes/mensajes_error_persistencia.h
     mensajes/mensajes_error_protocolo.h
 
     protocolo/comando_jugador.h
@@ -48,4 +56,10 @@ target_sources(taller_common
     game/npc/sacerdote.h
     game/npc/comerciante.h
     game/npc/banquero.h
-    game/mapa/mapa.h)
+    game/mapa/mapa.h
+
+    # Persistencia binaria de mapas
+    persistencia/formato_mapa.h
+    persistencia/error_persistencia.h
+    persistencia/escritor_mapa.h
+    persistencia/lector_mapa.h)
