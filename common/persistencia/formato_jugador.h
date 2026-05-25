@@ -47,4 +47,11 @@ struct RegistroJugador {
 
 static_assert(sizeof(RegistroJugador) == 252);
 
+struct IndiceEntrada {
+    char     nombre[32];
+    uint64_t offset;
+};
+
+static_assert(sizeof(IndiceEntrada) == 40);
+
 #endif
