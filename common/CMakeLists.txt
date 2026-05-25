@@ -62,4 +62,7 @@ target_sources(taller_common
     persistencia/formato_mapa.h
     persistencia/error_persistencia.h
     persistencia/escritor_mapa.h
-    persistencia/lector_mapa.h)
+    persistencia/lector_mapa.h
+
+    # Persistencia binaria de jugadores
+    persistencia/formato_jugador.h)
