@@ -7,7 +7,7 @@
 
 #include "config/config_juego.h"
 #include "modelo/clase_personaje.h"
-#include "modelo/posicion.h"
+#include "../../common/game/modelo/posicion.h"
 #include "modelo/raza.h"
 #include "objeto/inventario.h"
 

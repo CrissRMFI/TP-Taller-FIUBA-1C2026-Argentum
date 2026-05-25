@@ -12,6 +12,15 @@ target_sources(taller_common
     socket/resolvererror.cpp
     socket/socket.cpp
 
+    # Modelo del dominio compartido entre server, editor y persistencia
+    game/aleatorio.cpp
+    game/criatura.cpp
+    game/npc/npc.cpp
+    game/npc/sacerdote.cpp
+    game/npc/comerciante.cpp
+    game/npc/banquero.cpp
+    game/mapa/mapa.cpp
+
     PUBLIC
     # .h files
     foo.h
@@ -29,4 +38,14 @@ target_sources(taller_common
     socket/liberror.h
     socket/resolver.h
     socket/resolvererror.h
-    socket/socket.h)
+    socket/socket.h
+
+    # Modelo del dominio compartido
+    game/aleatorio.h
+    game/criatura.h
+    game/modelo/posicion.h
+    game/npc/npc.h
+    game/npc/sacerdote.h
+    game/npc/comerciante.h
+    game/npc/banquero.h
+    game/mapa/mapa.h)

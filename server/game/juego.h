@@ -11,13 +11,13 @@
 #include <vector>
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
-#include "aleatorio.h"
+#include "../../common/game/aleatorio.h"
 #include "clan.h"
 #include "config/config_juego.h"
 #include "evento/evento_salida.h"
 #include "jugador.h"
-#include "criatura.h"
-#include "mapa/mapa.h"
+#include "../../common/game/criatura.h"
+#include "../../common/game/mapa/mapa.h"
 #include "objeto/catalogo_items.h"
 
 class Juego {

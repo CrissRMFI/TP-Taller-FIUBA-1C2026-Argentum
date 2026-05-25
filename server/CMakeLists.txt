@@ -11,12 +11,14 @@ target_sources(taller_server
     game/jugador.cpp
     game/juego.cpp
     game/clan.cpp
-    game/aleatorio.cpp
 
     # Objetos
     game/objeto/inventario.cpp
     game/objeto/equipamiento.cpp
     game/objeto/catalogo_items.cpp
+
+    # Reglas
+    game/reglas/reglas_juego.cpp
 
     # Gameloop
     gameloop/gameloop.cpp
@@ -28,7 +30,6 @@ target_sources(taller_server
 
     PUBLIC
     # Modelos planos
-    game/modelo/posicion.h
     game/modelo/raza.h
     game/modelo/clase_personaje.h
 
@@ -46,13 +47,11 @@ target_sources(taller_server
 
     # Juego
     game/clan.h
-    game/criatura.h
     game/jugador.h
     game/juego.h
-    game/aleatorio.h
 
     # Reglas
-    game/reglas/reglas_juego.cpp
+    game/reglas/reglas_juego.h
 
     # Gameloop
     gameloop/comando_cliente.h
@@ -63,15 +62,4 @@ target_sources(taller_server
 
     # Protocolo servidor
     protocolo/protocolo_servidor.h
-
-    # Mapa
-    game/mapa/mapa.cpp
-    game/npc/npc.cpp
-    game/npc/sacerdote.cpp
-    game/npc/comerciante.cpp
-    game/npc/banquero.cpp
-
-    # Criatura
-    game/criatura.cpp
-
 )

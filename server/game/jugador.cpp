@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-#include "aleatorio.h"
+#include "../../common/game/aleatorio.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
 #include "../../common/protocolo/tipo_entidad.h"
