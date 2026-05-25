@@ -20,8 +20,7 @@ float ConfigJuego::factorManaClase(ClasePersonaje clase) const {
     return fManaMago;
 }
 
-// El guerrero no puede meditar: devuelve 0 para que cualquier cálculo que lo
-// llame por error produzca recuperación nula en lugar de comportamiento indefinido.
+// El guerrero no puede meditar: devuelve 0 para que cualquier cálculo que lo llame por error produzca recuperación nula en lugar de comportamiento indefinido.
 float ConfigJuego::factorMeditacionClase(ClasePersonaje clase) const {
     switch (clase) {
         case ClasePersonaje::GUERRERO: return 0.0f;

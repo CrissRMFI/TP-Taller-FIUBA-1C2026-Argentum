@@ -49,8 +49,7 @@ public:
     static uint16_t aplicarMultiplicadorCombate(uint16_t valor,
                                                 float multiplicador);
 
-    // Regla 5.4: defensor esquiva si pow(rand(0,1), Agilidad) < umbral.
-    // `valorAleatorio` debe venir uniforme en [0, 1).
+    // Defensor esquiva si pow(rand(0,1), Agilidad) < umbral. valorAleatorio debe venir uniforme en [0, 1).
     static bool esquivaAtaque(const ConfigJuego& cfg,
                               uint8_t agilidad,
                               float valorAleatorio);

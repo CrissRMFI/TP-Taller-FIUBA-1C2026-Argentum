@@ -120,15 +120,13 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
                                                 const CatalogoItems& catalogo,
                                                 Aleatorio& aleatorio,
                                                 float multiplicadorDefensa) {
-    // Defensor muerto o flag debug `invulnerable`: el ataque no impacta pero
-    // tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no
-    // confunda este caso con una evasión real.
+    // Defensor muerto o flag debug invulnerable: el ataque no impacta pero tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no  confunda este caso con una evasión real.
+
     if (!estaVivo() || cfg.invulnerable) {
         return { ResultadoDefensa::Tipo::Golpeado, 0 };
     }
 
-    // Regla 5.2: el crítico omite la fase de evasión. La absorción (regla 5.5)
-    // se sigue aplicando porque la regla 5.2 sólo habla de "fase de evasión".
+    // El crítico omite la fase de evasión. La absorción se sigue aplicando.
     if (!esCritico && esquiva_ataque(aleatorio)) {
         return { ResultadoDefensa::Tipo::Esquivo, 0 };
     }
@@ -278,9 +276,6 @@ void Jugador::sumar_oro(uint32_t cantidad) {
 
     oroMano += cantidadAceptada;
     normalizarOro();
-
-    // Si cantidad > cantidadAceptada, ese oro no entra en el máximo permitido.
-    // Cuando exista mapa, Juego debería decidir si se dropea al suelo.
 }
 
 bool Jugador::gastar_oro(uint32_t cantidad) {
@@ -373,11 +368,10 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo, Aleatorio&
 
     const uint16_t danioBaseArma = aleatorio.enteroEnRango<uint16_t>(danioArmaMin, danioArmaMax);
 
-    // Regla 5.1: Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
-    // Regla 5.2: el crítico duplica el daño. El flag se propaga al caller para
-    // que el defensor pueda saltear su esquive.
-    // Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder
-    // 65535 con stats altos (ej. 255 * 65535) y el cast directo truncaría.
+    // Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
+    // El crítico duplica el daño. El flag se propaga al caller para que el defensor pueda saltear su esquive.
+    // Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder 65535 con stats altos (ej. 255 * 65535) y el cast directo truncaría.
+
     const bool esGolpeCritico = es_golpe_critico(aleatorio);
     const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBaseArma;
     const uint32_t danioConCritico = esGolpeCritico ? danioCrudo * 2u : danioCrudo;
@@ -391,8 +385,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
     const uint16_t idArmaEquipada = inventario.getArmaEquipada();
     const uint16_t idBaculoEquipado = inventario.getBaculoEquipado();
 
-    // Regla 6.2: arma y báculo son mutuamente excluyentes. Si por alguna razón
-    // ambos slots están ocupados (inconsistencia), priorizamos el arma física.
+    // Arma y báculo son mutuamente excluyentes. Si por alguna razón ambos slots están ocupados (inconsistencia), priorizamos el arma física.
     if (idArmaEquipada != 0) {
         const Arma* armaEquipada = catalogo.comoArma(idArmaEquipada);
         if (armaEquipada != nullptr && armaEquipada->esArmaDistancia()) {
@@ -402,7 +395,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
                 /*costoMana=*/0
             };
         }
-        // Arma melee o registro corrupto: tratamos como melee.
+        
         return DescriptorAtaque{
             TipoAtaque::CuerpoACuerpo,
             /*alcanceMaximo=*/1,
@@ -421,8 +414,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
 
         const Baculo* baculoEquipado = catalogo.comoBaculo(idBaculoEquipado);
         if (baculoEquipado != nullptr) {
-            // El hechizo Curar no es un ataque ofensivo: no debe procesarse
-            // por el comando ATACAR. `Juego` lo verá y devolverá error.
+            // El hechizo Curar no es un ataque ofensivo: no debe procesarse por el comando ATACAR. `Juego` lo verá y devolverá error.
             if (baculoEquipado->getHechizo() == TipoHechizo::Curar) {
                 return DescriptorAtaque{
                     TipoAtaque::HechizoNoOfensivo,
@@ -438,7 +430,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
         }
     }
 
-    // Sin arma ni báculo: puñetazo melee.
+    // Sin arma ni báculo
     return DescriptorAtaque{
         TipoAtaque::CuerpoACuerpo,
         /*alcanceMaximo=*/1,
