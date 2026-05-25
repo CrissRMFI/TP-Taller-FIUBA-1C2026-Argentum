@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>login.qml</file>
+        <file>graficos/crearButton.png</file>
+        <file>graficos/LED@2x.png</file>
+        <file>graficos/ElecciónPersonaje.png</file>
+        <file>graficos/LED-Checked.png</file>
+        <file>graficos/LED.png</file>
+        <file>graficos/LED-Checked@2x.png</file>
+        <file>graficos/menu.png</file>
+        <file>graficos/unirseButton.png</file>
+        <file>graficos/ventanalauncher.png</file>
+        <file>graficos/VolverButton.png</file>
+    </qresource>
+</RCC>
