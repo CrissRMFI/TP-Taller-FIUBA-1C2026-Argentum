@@ -39,7 +39,6 @@ public:
     uint16_t getVidaMaxima() const;
     uint16_t calcularDanio(Aleatorio& aleatorio) const;
 
-    // Aplica `danio` al pool de vida. Satura en 0; no resucita.
     void recibir_danio(uint32_t danio);
     bool esta_muerta() const;
 

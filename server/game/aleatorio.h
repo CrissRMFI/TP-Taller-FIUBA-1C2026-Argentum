@@ -8,11 +8,6 @@
 // inyecta a todos los sitios que necesitan muestras aleatorias: cálculo de
 // daño, esquive, crítico, movimiento y spawn de criaturas, drops, XP por
 // kill, etc.
-//
-// Permite seedear el motor explícitamente para tests deterministas, y elimina
-// los `static std::mt19937` esparcidos por funciones (que rompen la
-// inyección de semilla y la thread-safety si en algún futuro el gameloop
-// dejara de ser single-threaded).
 class Aleatorio {
   public:
     explicit Aleatorio(uint64_t semilla);
