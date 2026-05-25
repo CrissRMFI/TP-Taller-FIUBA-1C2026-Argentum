@@ -8,28 +8,38 @@
 #include <algorithm>
 #include <utility>
 
+/*
+Documentación:
+Banquero tiene el atributo cuentas. Ese atributo es un map, clave -> valor
+clave -> (uint16_t)
+valor -> std::pair<uint32_t, std::vector<uint16_t>>
+
+Por qué usamos estos tipos de datos ?
+Para la clave, uint16_t porque con eso vamos a identificar el propietario de la cuenta
+Para el valor, representa un par de datos asociados, el uint32_t es para el oro en el banco 
+y el vector<uint16_t> es para guardar todos los id de los items depositados.
+*/
+
+
 class Banquero : public Npc {
+private:
+    std::map<uint16_t, std::pair<uint32_t, std::vector<uint16_t>>> cuentas; 
+    
 public:
-    Banquero(uint16_t id, Posicion posicion) : Npc(id, TipoNpc::Banquero, posicion) {cuentas = {};}
+    
+    Banquero(uint16_t id, Posicion posicion);
 
     std::pair<uint32_t, std::vector<uint16_t>> listarItemsDisponibles(uint16_t idJugador);
+    
     bool depositarOro(uint16_t idJugador, uint32_t cantidad);
+    
     bool retirarOro(uint16_t idJugador, uint32_t cantidad);
 
-    // Almacena `idItem` en la cuenta de `idJugador`. Devuelve false si
-    // `idItem == 0` (sentinela de slot vacío) para evitar ensuciar cuentas.
     bool depositarItem(uint16_t idJugador, uint16_t idItem);
 
-    // Saca `idItem` de la cuenta de `idJugador`. Devuelve false si la cuenta
-    // no existe o no tiene ese ítem.
     bool retirarItem(uint16_t idJugador, uint16_t idItem);
 
-    // Consulta no destructiva: ¿la cuenta de `idJugador` contiene `idItem`?
-    // Permite validar antes de comprometerse al retiro.
     bool tieneItem(uint16_t idJugador, uint16_t idItem) const;
-
-private:
-    std::map<uint16_t, std::pair<uint32_t, std::vector<uint16_t>>> cuentas; // <idJugador, <oro, <idItems>> >
 };
 
 #endif

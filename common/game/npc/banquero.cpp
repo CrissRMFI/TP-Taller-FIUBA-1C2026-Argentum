@@ -2,6 +2,11 @@
 
 #include <limits>
 
+Banquero::Banquero(uint16_t id, Posicion posicion) : 
+  Npc(id, TipoNpc::Banquero, posicion) 
+  {cuentas = {};
+}
+
 std::pair<uint32_t, std::vector<uint16_t>> Banquero::listarItemsDisponibles(uint16_t idJugador) {
     if (cuentas.find(idJugador) != cuentas.end()) {
         return cuentas[idJugador];
@@ -38,9 +43,7 @@ bool Banquero::retirarOro(uint16_t idJugador, uint32_t cantidad) {
 }
 
 bool Banquero::depositarItem(uint16_t idJugador, uint16_t idItem) {
-    // El id 0 es la sentinela de "slot vacío" en `Inventario`. Aceptarlo
-    // ensuciaría la cuenta con ítems fantasma. El banco es el guardián de
-    // este invariante porque es el dueño del almacenamiento.
+    
     if (idItem == 0) {
         return false;
     }
