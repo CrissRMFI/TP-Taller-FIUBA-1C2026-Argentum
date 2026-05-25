@@ -13,6 +13,7 @@
 
 class Aleatorio;
 class CatalogoItems;
+class SerializadorJugador;
 
 enum class Estado {
     Vivo,
@@ -59,6 +60,27 @@ struct DescriptorAtaque {
     uint16_t costoMana;      // maná que el atacante debe pagar al ejecutar
 };
 
+struct DatosRestauracion {
+    uint16_t idClan;
+    bool     fundadoClan;
+    Estado   estado;
+    uint8_t  nivel;
+    uint32_t experiencia;
+    uint16_t vidaActual;
+    uint16_t manaActual;
+    uint32_t oroMano;
+    uint32_t oroExceso;
+    uint32_t oroBanco;
+    uint32_t oroPerdidoPendiente;
+    std::vector<uint16_t> slotsInventario;
+    uint16_t equipArma;
+    uint16_t equipBaculo;
+    uint16_t equipDefensa;
+    uint16_t equipCasco;
+    uint16_t equipEscudo;
+    std::vector<uint16_t> itemsBanco;
+};
+
 class Jugador{
 public:
     Jugador(uint16_t id,
@@ -67,6 +89,8 @@ public:
             Raza raza,
             Posicion posicion,
             const ConfigJuego& cfg);
+
+    void restaurar(const DatosRestauracion& datos);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);

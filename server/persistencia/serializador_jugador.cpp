@@ -3,9 +3,57 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <string>
 #include <vector>
 
 #include "../game/jugador.h"
+
+Jugador SerializadorJugador::aJugador(uint16_t sessionId,
+                                      const RegistroJugador& reg,
+                                      const ConfigJuego& cfg) {
+    const std::string nombre(reg.nombre);
+    const ClasePersonaje clase = static_cast<ClasePersonaje>(reg.clase);
+    const Raza raza = static_cast<Raza>(reg.raza);
+    const Posicion posicion{reg.posX, reg.posY, reg.mapaId};
+
+    Jugador jugador(sessionId, nombre, clase, raza, posicion, cfg);
+
+    DatosRestauracion datos;
+    datos.idClan = reg.idClan;
+    datos.fundadoClan = (reg.fundadoClan != 0);
+    datos.estado = static_cast<Estado>(reg.estado);
+    datos.nivel = reg.nivel;
+    datos.experiencia = reg.experiencia;
+    datos.vidaActual = reg.vidaActual;
+    datos.manaActual = reg.manaActual;
+    datos.oroMano = reg.oroMano;
+    datos.oroExceso = reg.oroExceso;
+    datos.oroBanco = reg.oroBanco;
+    datos.oroPerdidoPendiente = reg.oroPerdidoPendiente;
+
+    const size_t maxInv = std::size(reg.inventarioSlots);
+    datos.slotsInventario.reserve(maxInv);
+    for (size_t i = 0; i < maxInv; ++i) {
+        datos.slotsInventario.push_back(reg.inventarioSlots[i]);
+    }
+
+    datos.equipArma = reg.equipArma;
+    datos.equipBaculo = reg.equipBaculo;
+    datos.equipDefensa = reg.equipDefensa;
+    datos.equipCasco = reg.equipCasco;
+    datos.equipEscudo = reg.equipEscudo;
+
+    const size_t maxBanco = std::size(reg.itemsBanco);
+    for (size_t i = 0; i < maxBanco; ++i) {
+        if (reg.itemsBanco[i] != 0) {
+            datos.itemsBanco.push_back(reg.itemsBanco[i]);
+        }
+    }
+
+    jugador.restaurar(datos);
+
+    return jugador;
+}
 
 RegistroJugador SerializadorJugador::aRegistro(const Jugador& jugador) {
     RegistroJugador reg{};

@@ -77,6 +77,31 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
     manaActual = manaMax;
 }
 
+void Jugador::restaurar(const DatosRestauracion& datos) {
+    idClan = datos.idClan;
+    fundadoClan = datos.fundadoClan;
+    estado = datos.estado;
+    nivel = datos.nivel;
+    experiencia = datos.experiencia;
+
+    vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
+    manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
+
+    vidaActual = std::min(datos.vidaActual, vidaMax);
+    manaActual = std::min(datos.manaActual, manaMax);
+
+    oroMano = datos.oroMano;
+    oroExceso = datos.oroExceso;
+    oroBanco = datos.oroBanco;
+    oroPerdidoPendiente = datos.oroPerdidoPendiente;
+
+    inventario.restaurar(datos.slotsInventario,
+                         datos.equipArma, datos.equipBaculo,
+                         datos.equipDefensa, datos.equipCasco, datos.equipEscudo);
+
+    idItemsBanco = datos.itemsBanco;
+}
+
 void Jugador::recibir_danio(uint16_t cantidad) {
     if (cfg.invulnerable || !estaVivo()) {
         return;
