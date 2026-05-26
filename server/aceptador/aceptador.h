@@ -11,21 +11,24 @@
 #include "../cliente/cliente.h"
 #include "../gameloop/comando_cliente.h"
 #include "../gameloop/monitor_clientes.h"
+#include "server/gameloop/evento_sesion.h"
 
 class Aceptador: public Thread {
 private:
     Socket& skt_aceptador;
-    Queue<ComandoJugador>& colaComandos;
+    Queue<ComandoCliente>& colaComandos;
     MonitorClientes& monitorClientes;
     std::vector<Cliente*> clientes;
+    Queue<EventoSesion>& colaEventos;
     //uint16_t proximoId;
     std::atomic<bool> running {true};
 
 
 public:
     Aceptador(Socket& skt,
-              Queue<ComandoJugador>& colaComandos,
-              MonitorClientes& monitorClientes);
+              Queue<ComandoCliente>& colaComandos,
+              MonitorClientes& monitorClientes,
+              Queue<EventoSesion>& colaEventos);
 
     void run() override;
     void stop() override;

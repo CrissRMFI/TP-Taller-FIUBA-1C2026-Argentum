@@ -9,11 +9,13 @@
 #include "common/socket/liberror.h"
 
 Aceptador::Aceptador(Socket& skt,
-                     Queue<ComandoJugador>& colaComandos,
-                     MonitorClientes& monitorClientes)
+                     Queue<ComandoCliente>& colaComandos,
+                     MonitorClientes& monitorClientes,
+                      Queue<EventoSesion>& colaEventos)
     : skt_aceptador(skt),
       colaComandos(colaComandos),
-      monitorClientes(monitorClientes)
+      monitorClientes(monitorClientes),
+      colaEventos(colaEventos)
       {}
 
 void Aceptador::run() {
@@ -23,7 +25,8 @@ void Aceptador::run() {
             std::cout << "cliente aceptado" << std::endl;
             // se almacena un id por cliente
             const uint16_t clienteID = monitorClientes.almacenarID();
-            auto *cliente = new Cliente (clienteID, std::move(peer), colaComandos, monitorClientes);
+            auto *cliente = new Cliente (clienteID, std::move(peer), colaComandos,
+                monitorClientes, colaEventos);
             // monitor asocia id_cliente con su cola de salida
             monitorClientes.agregarCliente(clienteID, cliente->obtenerColaSalida());
             cliente->start();

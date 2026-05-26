@@ -9,6 +9,7 @@
 #include "../gameloop/comando_cliente.h"
 #include "../protocolo/protocolo_servidor.h"
 #include "common/thread/thread.h"
+#include "server/gameloop/evento_sesion.h"
 #include "server/gameloop/monitor_clientes.h"
 
 class Cliente : public Thread{
@@ -16,15 +17,17 @@ private:
     uint16_t idCliente;
     ProtocoloServidor protocolo_servidor;
     Queue<MensajeServidor> colaSalida;
-    Queue<ComandoJugador>& colaComandos;
+    Queue<ComandoCliente>& colaComandos;
     MonitorClientes& monitorClientes;
+    Queue<EventoSesion>& colaEventos;
     std::atomic<bool> estaActivo{true};
 
 public:
     Cliente(uint16_t id,
         Socket&& skt,
-        Queue<ComandoJugador>& colaComandos,
-        MonitorClientes& monitor);
+        Queue<ComandoCliente>& colaComandos,
+        MonitorClientes& monitor,
+         Queue<EventoSesion>& colaEventos);
 
     uint16_t id() const;
 

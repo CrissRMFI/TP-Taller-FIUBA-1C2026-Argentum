@@ -26,7 +26,8 @@ message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
 # HEY TODO XXX: change the name to something that you like
-add_library(taller_common STATIC)
+add_library(taller_common STATIC
+        common/protocolo/dato_sesion_cliente.h)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
@@ -109,6 +110,12 @@ if(TALLER_CLIENT)
             client/protocolo/protocolo_cliente_comando.h
             client/protocolo/protocolo_cliente_mensaje.cpp
             client/protocolo/protocolo_cliente_mensaje.h
+            client/assets/players.cpp
+            client/assets/players.h
+            client/client_loop.cpp
+            client/client_loop.h
+            client/pantallaLogin.h
+            client/pantallaLogin.cpp
     )
 
     # Make them depend on taller_common lib

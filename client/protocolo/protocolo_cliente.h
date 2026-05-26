@@ -2,11 +2,14 @@
 #define PROTOCOLO_CLIENTE_H
 
 #include <cstdint>
+#include <unordered_set>
+#include <vector>
 
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/protocolo/protocolo.h"
+#include "common/protocolo/dato_sesion_cliente.h"
 
 class ProtocoloCliente : public Protocolo {
 public:
@@ -15,6 +18,7 @@ public:
     void enviarComando(const ComandoJugador& comando);
 
     MensajeServidor recibirMensaje();
+    void enviarUsuario(const handshakeInicial &dataJugador);
 
     void cerrarConexion();
 
@@ -22,7 +26,7 @@ private:
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
     static constexpr uint16_t MAX_CLAN = 32;
-    static constexpr uint8_t MAX_DIRECCION = 3;
+    static const std::unordered_set<uint8_t> DIRECCIONES_VALIDAS;
 
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESTADO_ENTIDAD =
@@ -65,6 +69,8 @@ private:
     void enviarComandoClanBan(const ComandoGestionMiembreClan& comando);
     void enviarComandoClanKick(const ComandoGestionMiembreClan& comando);
     void enviarComandoDejarClan(const ComandoDejarClan& comando);
+
+
 
     MensajeServidor recibirEstadoPersonaje();
     MensajeServidor recibirPosicionEntidad();
