@@ -24,11 +24,9 @@ int ConnectionController::run(int argc, char* argv[]){
 				cuentaNoEncontrada = true;
 			} else if (errorMsg.find("Nick ya existente") != std::string::npos) {
 				nickYaExistente = true;
-			} else if (errorMsg.find("socket construction failed") != std::string::npos || errorMsg.find("Temporary failure in name resolution") != std::string::npos) {
-				puertoHostInvalidos = true;
 			} else {
-				std::cerr << "Error desconocido: " << errorMsg << std::endl;
-				return 1;
+				// Error desconocido, se asume que es un error de conexión (puerto/host inválidos)
+				puertoHostInvalidos = true;
 			}
 		}
 		if (cuentaNoEncontrada) {
