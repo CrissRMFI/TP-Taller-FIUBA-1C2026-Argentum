@@ -1,6 +1,9 @@
 #include "comerciante.h"
 
-void Comerciante::agregarItemCatalogo(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta) {
+Comerciante::Comerciante(uint16_t id, Posicion posicion) : Npc(id, TipoNpc::Comerciante, posicion), itemsDisponibles({}) {}
+
+void Comerciante::agregarItemCatalogo(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta)
+{
     itemsDisponibles[idItem] = {precioCompra, precioVenta};
 }
 

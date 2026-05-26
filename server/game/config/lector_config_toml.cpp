@@ -8,8 +8,6 @@
 
 #include <toml++/toml.hpp>
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
 static std::string rutaToml(std::string_view seccion, std::string_view clave) {
     std::string ruta(seccion);
     ruta += ".";
@@ -294,8 +292,6 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
         }
     }
 }
-
-// ─── LectorConfigToml ────────────────────────────────────────────────────────
 
 ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     auto tbl = toml::parse_file(ruta);

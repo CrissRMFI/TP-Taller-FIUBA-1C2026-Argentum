@@ -11,24 +11,31 @@ target_sources(taller_server
     game/jugador.cpp
     game/juego.cpp
     game/clan.cpp
-    game/aleatorio.cpp
 
     # Objetos
     game/objeto/inventario.cpp
     game/objeto/equipamiento.cpp
     game/objeto/catalogo_items.cpp
 
+    # Reglas
+    game/reglas/reglas_juego.cpp
+
     # Gameloop
     gameloop/gameloop.cpp
     gameloop/monitor_clientes.cpp
     gameloop/traductor_protocolo.cpp
+
+    # Persistencia de jugadores
+    persistencia/escritor_jugadores.cpp
+    persistencia/indice_jugadores.cpp
+    persistencia/lector_jugadores.cpp
+    persistencia/serializador_jugador.cpp
 
     # Protocolo servidor
     protocolo/protocolo_servidor.cpp
 
     PUBLIC
     # Modelos planos
-    game/modelo/posicion.h
     game/modelo/raza.h
     game/modelo/clase_personaje.h
 
@@ -46,13 +53,11 @@ target_sources(taller_server
 
     # Juego
     game/clan.h
-    game/criatura.h
     game/jugador.h
     game/juego.h
-    game/aleatorio.h
 
     # Reglas
-    game/reglas/reglas_juego.cpp
+    game/reglas/reglas_juego.h
 
     # Gameloop
     gameloop/comando_cliente.h
@@ -61,17 +66,12 @@ target_sources(taller_server
     gameloop/mensaje_salida.h
     gameloop/monitor_clientes.h
 
+    # Persistencia de jugadores
+    persistencia/escritor_jugadores.h
+    persistencia/indice_jugadores.h
+    persistencia/lector_jugadores.h
+    persistencia/serializador_jugador.h
+
     # Protocolo servidor
     protocolo/protocolo_servidor.h
-
-    # Mapa
-    game/mapa/mapa.cpp
-    game/npc/npc.cpp
-    game/npc/sacerdote.cpp
-    game/npc/comerciante.cpp
-    game/npc/banquero.cpp
-
-    # Criatura
-    game/criatura.cpp
-
 )
