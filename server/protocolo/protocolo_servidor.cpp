@@ -24,6 +24,7 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
 }
 
 void ProtocoloServidor::enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::ESTADO_USUARIO));
     enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(mensaje.error));
 }

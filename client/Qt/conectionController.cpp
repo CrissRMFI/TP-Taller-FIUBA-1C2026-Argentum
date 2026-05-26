@@ -30,7 +30,6 @@ int ConnectionController::run(int argc, char* argv[]){
 					break;
 				case ErrorUsuario::UsuarioYaConectado:
 					usuarioYaConectado = true;
-					return 0;
 				case ErrorUsuario::Ninguno:
 					break;
 			}
