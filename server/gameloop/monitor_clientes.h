@@ -17,7 +17,8 @@
 class MonitorClientes {
 private:
     // agrego un mapa que asocia id del usuario con su nombre
-    std::unordered_map<uint16_t, std::string> nombresUsuarios;
+    std::unordered_map<uint16_t, std::string> nombresUsuariosConectados;
+    std::unordered_map<uint16_t, std::string> nombresUsuariosDesconectados;
 
     // cambio nombre a colasClientes para que se mas explicito
 
@@ -31,6 +32,8 @@ public:
 
     void agregarCliente(uint16_t idCliente, Queue<MensajeServidor>& colaSalida);
     void removerCliente(uint16_t idCliente);
+    bool estaConectado(uint16_t idCliente);
+    uint16_t idCliente(const std::string& nombre);
 
     uint16_t almacenarID();
     Queue<MensajeServidor>* getColasClientes(uint16_t idCliente);

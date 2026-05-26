@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include <sys/socket.h>
@@ -22,13 +23,32 @@ void Aceptador::run() {
     while (running) {
         try {
             Socket peer = skt_aceptador.accept();
+            handshakeInicial handshake;
+            auto protocolo_servidor = std::make_unique<ProtocoloServidor>(std::move(peer));
+            bool conexionValida = false;
+            uint16_t idCliente = 0;
+            try{
+
+                handshake = protocolo_servidor->recibirUsuario();
+                idCliente = monitorClientes.idCliente(handshake.nombre);
+                conexionValida = verificarConexionCliente(idCliente, handshake, *protocolo_servidor);
+
+            }catch (const std::exception& e) {
+
+                std::cerr << "Error al recibir procesar conexión: " << e.what() << '\n';
+                continue;
+            }
+            
+            if (!conexionValida) {
+                continue;
+            }
+            
             std::cout << "cliente aceptado" << std::endl;
-            // se almacena un id por cliente
-            const uint16_t clienteID = monitorClientes.almacenarID();
-            auto *cliente = new Cliente (clienteID, std::move(peer), colaComandos,
-                monitorClientes, colaEventos);
+            auto *cliente = new Cliente(idCliente, std::move(protocolo_servidor), colaComandos,
+                monitorClientes, colaEventos, handshake);
+
             // monitor asocia id_cliente con su cola de salida
-            monitorClientes.agregarCliente(clienteID, cliente->obtenerColaSalida());
+            monitorClientes.agregarCliente(idCliente, cliente->obtenerColaSalida());
             cliente->start();
             clientes.push_back(cliente);
 
@@ -40,6 +60,46 @@ void Aceptador::run() {
         reap();
     }
     cleanup();
+}
+
+bool Aceptador::verificarConexionCliente(uint16_t& idCliente, const handshakeInicial& handshake, ProtocoloServidor& protocolo_servidor) {
+    if (!handshake.crearPersonaje) {
+        // checkear si el cliente existe
+            if (idCliente == 0) {
+                protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .nick = handshake.nombre,
+                        .error = ErrorUsuario::CuentaNoEncontrada
+                });
+                return false;
+            } else if (monitorClientes.estaConectado(idCliente)) {
+                protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .nick = handshake.nombre,
+                        .error = ErrorUsuario::UsuarioYaConectado
+                });
+                return false;
+            }
+            protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                    .nick = handshake.nombre,
+                    .error = ErrorUsuario::Ninguno
+            });     
+    } else {
+        // checkear si el el nick no esta en uso
+        if (idCliente != 0) {
+                protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .nick = handshake.nombre,
+                        .error = ErrorUsuario::NickYaExistente
+                });
+                return false;
+        }
+        protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                .nick = handshake.nombre,
+                .error = ErrorUsuario::Ninguno
+        });
+    }
+    if (idCliente == 0) {
+        idCliente = monitorClientes.almacenarID();
+    }
+    return true;
 }
 
 void Aceptador::stop() {

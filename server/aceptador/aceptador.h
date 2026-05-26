@@ -12,6 +12,8 @@
 #include "../gameloop/comando_cliente.h"
 #include "../gameloop/monitor_clientes.h"
 #include "server/gameloop/evento_sesion.h"
+#include "server/protocolo/protocolo_servidor.h"
+#include "../../common/protocolo/dato_sesion_cliente.h"
 
 class Aceptador: public Thread {
 private:
@@ -29,6 +31,8 @@ public:
               Queue<ComandoCliente>& colaComandos,
               MonitorClientes& monitorClientes,
               Queue<EventoSesion>& colaEventos);
+    
+    bool verificarConexionCliente(uint16_t& idCliente, const handshakeInicial& handshake, ProtocoloServidor& protocolo_servidor);
 
     void run() override;
     void stop() override;

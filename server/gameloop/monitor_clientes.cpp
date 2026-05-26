@@ -25,7 +25,28 @@ void MonitorClientes::removerCliente(const uint16_t idCliente) {
         it->second->close();
         colasClientes.erase(it);
     }
-    nombresUsuarios.erase(idCliente);
+    nombresUsuariosDesconectados[idCliente] = nombresUsuariosConectados[idCliente];
+    nombresUsuariosConectados.erase(idCliente);
+}
+
+bool MonitorClientes::estaConectado(const uint16_t idCliente) {
+    std::lock_guard<std::mutex> lock(mtx);
+    return nombresUsuariosConectados.find(idCliente) != nombresUsuariosConectados.end();
+}
+
+uint16_t MonitorClientes::idCliente(const std::string& nombre) {
+    std::lock_guard<std::mutex> lock(mtx);
+    for (const auto& [idCliente, nombreCliente] : nombresUsuariosConectados) {
+        if (nombreCliente == nombre) {
+            return idCliente;
+        }
+    }
+    for (const auto& [idCliente, nombreCliente] : nombresUsuariosDesconectados) {
+        if (nombreCliente == nombre) {
+            return idCliente;
+        }
+    }
+    return 0;
 }
 
 Queue<MensajeServidor>* MonitorClientes::getColasClientes(const uint16_t idCliente) {
@@ -39,8 +60,8 @@ Queue<MensajeServidor>* MonitorClientes::getColasClientes(const uint16_t idClien
 
 std::string MonitorClientes::nombreCliente(const uint16_t idCliente) {
     std::lock_guard<std::mutex> lock(mtx);
-    const auto it = nombresUsuarios.find(idCliente);
-    if (it == nombresUsuarios.end()) {
+    const auto it = nombresUsuariosConectados.find(idCliente);
+    if (it == nombresUsuariosConectados.end()) {
         return "" ;
     }
     return it->second;
@@ -48,7 +69,10 @@ std::string MonitorClientes::nombreCliente(const uint16_t idCliente) {
 
 void MonitorClientes::setNombreCliente(const uint16_t idCliente, const std::string& nombreCliente) {
     std::lock_guard<std::mutex> lock(mtx);
-    nombresUsuarios[idCliente] = nombreCliente;
+    nombresUsuariosConectados[idCliente] = nombreCliente;
+    if (nombresUsuariosDesconectados.find(idCliente) != nombresUsuariosDesconectados.end()) {
+        nombresUsuariosDesconectados.erase(idCliente);
+    }
 }
 
 void MonitorClientes::enviarA(uint16_t idCliente, const MensajeServidor& mensaje) {

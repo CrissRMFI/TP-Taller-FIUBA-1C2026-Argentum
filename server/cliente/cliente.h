@@ -2,6 +2,7 @@
 #define CLIENTE_H
 
 #include <cstdint>
+#include <memory>
 
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/socket/socket.h"
@@ -11,11 +12,13 @@
 #include "common/thread/thread.h"
 #include "server/gameloop/evento_sesion.h"
 #include "server/gameloop/monitor_clientes.h"
+#include "../../common/protocolo/dato_sesion_cliente.h"
 
 class Cliente : public Thread{
 private:
     uint16_t idCliente;
-    ProtocoloServidor protocolo_servidor;
+    std::unique_ptr<ProtocoloServidor> protocolo_servidor;
+    handshakeInicial dataJugador;
     Queue<MensajeServidor> colaSalida;
     Queue<ComandoCliente>& colaComandos;
     MonitorClientes& monitorClientes;
@@ -24,14 +27,12 @@ private:
 
 public:
     Cliente(uint16_t id,
-        Socket&& skt,
+        std::unique_ptr<ProtocoloServidor> protocolo_servidor,
         Queue<ComandoCliente>& colaComandos,
         MonitorClientes& monitor,
-         Queue<EventoSesion>& colaEventos);
+        Queue<EventoSesion>& colaEventos,
+        handshakeInicial handshake);
 
-    uint16_t id() const;
-
-    uint16_t obtenerId() const;
     Queue<MensajeServidor>& obtenerColaSalida();
 
     Cliente(const Cliente&) = delete;
