@@ -7,12 +7,14 @@
 
 #include "client_manager.h"
 #include "protocolo/protocolo_cliente.h"
+#include "datosConexion.h"
 
 class Client {
 private:
     Socket skt;
+    DatosConexion datos;
 public:
-    explicit Client(const char* hostname, const char* port);
+    explicit Client(const char* hostname, const char* port, DatosConexion& datos);
     void run();
 };
 

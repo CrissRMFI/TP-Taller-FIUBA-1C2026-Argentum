@@ -27,13 +27,14 @@ const std::map<std::string, ClasePersonaje> claseMap = {
 ElegirPersonajeController::ElegirPersonajeController(QObject* parent)
     : QObject(parent) {}
 
-std::pair<bool, DatosNuevoPersonaje> ElegirPersonajeController::ejecutar() {
+void ElegirPersonajeController::run(DatosConexion& datos, ElegirPersonajeResultado& resultado) {
     _volverAlMenu = false;
+    resultado = ElegirPersonajeResultado::FinalizarRegistro;
 
     // Cargar elegirPersonaje.qml
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("personajeController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal elegirPersonajeCompleted
     QEventLoop loop;
@@ -42,12 +43,14 @@ std::pair<bool, DatosNuevoPersonaje> ElegirPersonajeController::ejecutar() {
     // Espero a que el eventLoop termine
     loop.exec();
 
-    DatosNuevoPersonaje datos;
-    datos.raza = selectedRaza;
-    datos.clase = selectedClase;
-    datos.nick = selectedNick.toStdString();
-    datos.password = selectedPassword.toStdString();
-    return {_volverAlMenu, datos};
+    datos.setDatosNuevoPersonaje(
+        selectedNick.toStdString(),
+        selectedPassword.toStdString(),
+        selectedRaza,
+        selectedClase);
+    if (_volverAlMenu) {
+        resultado = ElegirPersonajeResultado::VolverAlMenu;
+    }
 }
 
 void ElegirPersonajeController::volverAlMenu() {

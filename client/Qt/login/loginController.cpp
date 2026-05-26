@@ -7,12 +7,13 @@
 #include <QByteArray>
 #include <utility>
 
-DatosLogin LoginController::ejecutar() {
-
+void LoginController::run(DatosConexion& datos) {
+    errorLogin = datos.tieneErrorLogin();
+    errorLoginMessage = QString::fromStdString(datos.getMensajeError());
     // Cargar login.qml
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("loginController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/login.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/login/login.qml")));
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal formularioCompleto
     QEventLoop loop;
@@ -21,22 +22,24 @@ DatosLogin LoginController::ejecutar() {
     // Espero a que el eventLoop termine
     loop.exec();
 
-    DatosLogin datos;
-    datos.puerto = selectedPuerto.toStdString();
-    datos.host = selectedHost.toStdString();
-    return datos;
+    datos.setDatosLogin(selectedPuerto.toStdString(), selectedHost.toStdString());
 }
 
 LoginController::LoginController(QObject* parent) : QObject(parent) {}
 
 bool LoginController::esPuertoValido(const QString& puerto) const {
-    bool ok = false;
-    const int valor = puerto.toInt(&ok);
-    return valor == 7666;
+    // Verificar que el puerto sea un número y esté en el rango válido
+    bool ok;    
+    int puertoNum = puerto.toInt(&ok);
+    return ok && puertoNum > 0 && puertoNum <= 65535;
 }
 
-bool LoginController::esHostValido(const QString& host) const {
-    return host == "localhost" || host == "127.0.0.1";
+bool LoginController::esHostIpValido(const QString& hostIp) const {
+    return !hostIp.trimmed().isEmpty();
+}
+
+bool LoginController::huboErrorLogin() const {
+    return errorLogin;
 }
 
 void LoginController::setPuerto(const QString& puerto) {
@@ -55,3 +58,4 @@ void LoginController::setHost(const QString& host) {
 
 QString LoginController::getPuerto() const { return selectedPuerto; }
 QString LoginController::getHost() const { return selectedHost; }
+QString LoginController::getErrorLogin() const { return errorLoginMessage; }

@@ -11,7 +11,7 @@
 #include "client_manager.h"
 #include "../common/thread/queue.h"
 
-Client::Client(const char* hostname, const char* port): skt(hostname, port) {
+Client::Client(const char* hostname, const char* port, DatosConexion& datos): skt(hostname, port), datos(datos) {
     std::cout << "[cliente] socket conectado\n" << std::endl;
 }
 
@@ -26,5 +26,4 @@ void Client::run() {
     640, 480, false);
     ClientManager manager(std::move(skt), incoming_queue);
     manager.run();
-
 }

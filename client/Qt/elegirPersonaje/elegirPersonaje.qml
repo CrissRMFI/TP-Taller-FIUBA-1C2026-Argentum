@@ -15,7 +15,7 @@ Window {
 
     Image {
         id: seleccionPersonaje
-        source: "graficos/ElecciónPersonaje.png"
+        source: "../graficos/ElecciónPersonaje.png"
         anchors.fill: parent
     }
 
@@ -23,7 +23,7 @@ Window {
         required property string sourceBaseName
         property bool checked
 
-        source: `graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`
+        source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`
     }
 
     TextField {
@@ -80,7 +80,7 @@ Window {
         y: 420
         width: 205
         height: 50
-        source: "graficos/crearPersonajeButton.png"
+        source: "../graficos/crearPersonajeButton.png"
     }
 
     Image {
@@ -95,7 +95,7 @@ Window {
         y: 420
         width: 210
         height: 47
-        source: "graficos/VolverButton.png"
+        source: "../graficos/VolverButton.png"
     }
 
     SwitchImage {

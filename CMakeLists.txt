@@ -135,16 +135,16 @@ if(TALLER_CLIENT)
         URI QmlCppExample
         VERSION 1.0
         QML_FILES
-            client/Qt/login.qml
-            client/Qt/elegirPersonaje.qml
-            client/Qt/cargarPersonaje.qml
+            client/Qt/login/login.qml
+            client/Qt/elegirPersonaje/elegirPersonaje.qml
+            client/Qt/cargarPersonaje/cargarPersonaje.qml
         SOURCES
-            client/Qt/loginController.cpp
-            client/Qt/loginController.h
-            client/Qt/elegirPersonajeController.cpp
-            client/Qt/elegirPersonajeController.h
-            client/Qt/cargarPersonajeController.cpp
-            client/Qt/cargarPersonajeController.h
+            client/Qt/login/loginController.cpp
+            client/Qt/login/loginController.h
+            client/Qt/elegirPersonaje/elegirPersonajeController.cpp
+            client/Qt/elegirPersonaje/elegirPersonajeController.h
+            client/Qt/cargarPersonaje/cargarPersonajeController.cpp
+            client/Qt/cargarPersonaje/cargarPersonajeController.h
         RESOURCES
             client/Qt/graficos/menu.png
             client/Qt/graficos/LED.png
@@ -168,6 +168,9 @@ if(TALLER_CLIENT)
     # add libSDL2pp's headers
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
     target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/client/Qt)
+    target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/client/Qt/login)
+    target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/client/Qt/elegirPersonaje)
+    target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/client/Qt/cargarPersonaje)
 
     # Link the taller_common lib target
     target_link_libraries(taller_client PRIVATE taller_common SDL2pp::SDL2pp)

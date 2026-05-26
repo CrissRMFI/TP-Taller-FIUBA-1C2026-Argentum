@@ -13,8 +13,17 @@ Window {
 
     Image {
         id: seleccionPersonaje
-        source: "graficos/InicioSesion.png"
+        source: "../graficos/InicioSesion.png"
         anchors.fill: parent
+    }
+
+    component ErrorText: Text {
+        width: 300
+        height: 30
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "red"
+        visible: text !== ""
     }
 
     TextField {
@@ -47,6 +56,20 @@ Window {
         text: ""
     }
 
+    ErrorText {
+        id: errorMessageNick
+        x: (nickInput.x + nickInput.width / 2) - (width / 2)
+        y: nickInput.y + nickInput.height
+        text: ""
+    }
+
+    ErrorText {
+        id: errorMessagePassword
+        x: (passwordInput.x + passwordInput.width / 2) - (width / 2)
+        y: passwordInput.y + passwordInput.height
+        text: ""
+    }
+
     Image {
         TapHandler {
             onTapped: {
@@ -59,7 +82,8 @@ Window {
                     cargarPersonajeController.setPassword(passwordInput.text);
                     console.log("Verificando existencia de cuenta...");
                 } else {
-                    console.log("Por favor, complete todos los campos");
+                    errorMessageNick.text = nickInput.text === "" ? "Por favor, ingrese su nick" : "";
+                    errorMessagePassword.text = passwordInput.text === "" ? "Por favor, ingrese su contraseña" : "";
                 }
             }
         }
@@ -68,7 +92,7 @@ Window {
         y: 420
         width: 205
         height: 50
-        source: "graficos/jugarButton.png"
+        source: "../graficos/jugarButton.png"
     }
 
     Image {
@@ -83,7 +107,7 @@ Window {
         y: 420
         width: 210
         height: 47
-        source: "graficos/VolverButton.png"
+        source: "../graficos/VolverButton.png"
     }
 
     Image {
@@ -98,6 +122,6 @@ Window {
         y: parent.height / 9 * 7 - height / 4
         width: 215
         height: 57
-        source: "graficos/crearPersonajeButton.png"
+        source: "../graficos/crearPersonajeButton.png"
     }
 }

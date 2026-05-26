@@ -7,6 +7,12 @@
 
 #include "datosConexion.h"
 
+enum class CargarPersonajeResultado {
+    VolverAlMenu,
+    CrearPersonaje,
+    ContinuarConPersonajeExistente,
+};
+
 class CargarPersonajeController : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString nick READ getNick)
@@ -15,7 +21,8 @@ class CargarPersonajeController : public QObject {
 
 public:
     explicit CargarPersonajeController(QObject* parent = nullptr);
-    std::pair<DatosPersonaje, std::pair<bool, bool>> ejecutar();
+    void run(DatosConexion& datos, CargarPersonajeResultado& resultado);
+
 public slots:
     void setNick(const QString& nick);
     void setPassword(const QString& password);

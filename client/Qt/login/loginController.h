@@ -14,17 +14,19 @@ class LoginController : public QObject {
     QML_ELEMENT
 public:
     explicit LoginController(QObject* parent = nullptr);
-    DatosLogin ejecutar();
+    void run(DatosConexion& datos);
 
 public slots:
     void setPuerto(const QString& puerto);
     void setHost(const QString& host);
 
     bool esPuertoValido(const QString& puerto) const;
-    bool esHostValido(const QString& host) const;
+    bool esHostIpValido(const QString& hostIp) const;
+    bool huboErrorLogin() const;
 
     QString getPuerto() const;
     QString getHost() const;
+    QString getErrorLogin() const;
 
 signals:
     void loginCompleted();
@@ -32,6 +34,8 @@ signals:
 private:
 QString selectedPuerto;
 QString selectedHost;
+bool errorLogin = false;
+QString errorLoginMessage;
 
 };
 

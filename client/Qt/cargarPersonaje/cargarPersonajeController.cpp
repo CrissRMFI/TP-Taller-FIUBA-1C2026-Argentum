@@ -10,14 +10,15 @@
 CargarPersonajeController::CargarPersonajeController(QObject* parent)
     : QObject(parent){}
 
-std::pair<DatosPersonaje, std::pair<bool, bool>> CargarPersonajeController::ejecutar() {
+void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResultado& resultado) {
     _volverAlMenu = false;
     _volverACrearPersonaje = false;
+    resultado = CargarPersonajeResultado::ContinuarConPersonajeExistente;
 
     // Cargar cargarPersonaje.qml
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("cargarPersonajeController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/cargarPersonaje.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/cargarPersonaje/cargarPersonaje.qml")));
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal cargarPersonajeCompleted
     QEventLoop loop;
@@ -26,10 +27,12 @@ std::pair<DatosPersonaje, std::pair<bool, bool>> CargarPersonajeController::ejec
     // Espero a que el eventLoop termine
     loop.exec();
 
-    DatosPersonaje datos;
-    datos.nick = datosPersonaje.nick;
-    datos.password = datosPersonaje.password;
-    return {datos, {_volverAlMenu, _volverACrearPersonaje}};
+    datos.setDatosPersonaje(datosPersonaje.nick, datosPersonaje.password);
+    if (_volverAlMenu) {
+        resultado = CargarPersonajeResultado::VolverAlMenu;
+    } else if (_volverACrearPersonaje) {
+        resultado = CargarPersonajeResultado::CrearPersonaje;
+    }
 }
 
 void CargarPersonajeController::volverAlMenu() {

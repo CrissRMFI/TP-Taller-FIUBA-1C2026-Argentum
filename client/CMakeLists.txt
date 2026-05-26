@@ -7,6 +7,9 @@ target_sources(taller_client
         client_manager.cpp
         client_receiver.cpp
         client_sender.cpp
-        Qt/loginController.cpp
-        Qt/elegirPersonajeController.cpp
+        Qt/conectionController.cpp
+        Qt/menuController.cpp   
+        Qt/login/loginController.cpp
+        Qt/elegirPersonaje/elegirPersonajeController.cpp
+        Qt/cargarPersonaje/cargarPersonajeController.cpp
 )
