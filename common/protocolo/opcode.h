@@ -51,6 +51,7 @@ enum class Opcode : uint8_t {
     ERROR_ACCION            = 41,
     ORO_EN_SUELO            = 42,
     ORO_DESAPARECIO_SUELO   = 43,
+    ESTADO_USUARIO          = 44
 };
 
 #endif

@@ -74,7 +74,19 @@ struct MensajeOroDesaparecioSuelo {
 };
 
 struct MensajeActualizarInventario {
-  std::vector<uint16_t> slots;
+  std::vector<uint16_t> slots_;
+};
+
+enum class ErrorUsuario : uint8_t {
+    CuentaNoEncontrada = 0,
+    NickYaExistente = 1,
+    UsuarioYaConectado = 2,
+    Ninguno = 3,
+};
+
+struct MensajeEstadoUsuario {
+  std::string nick;
+  ErrorUsuario error;
 };
 
 struct MensajeActualizarEquipamiento {
@@ -140,7 +152,8 @@ using PayloadMensajeServidor = std::variant<
         MensajeClan,
         MensajeResucitado,
         MensajeErrorAccion,
-        MensajeListaItems>;
+        MensajeListaItems,
+        MensajeEstadoUsuario>;
 
 
 struct MensajeServidor {

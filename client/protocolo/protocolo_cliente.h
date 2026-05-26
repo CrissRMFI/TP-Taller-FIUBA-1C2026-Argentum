@@ -19,6 +19,7 @@ public:
 
     MensajeServidor recibirMensaje();
     void enviarUsuario(const handshakeInicial &dataJugador);
+    MensajeServidor recibirEstadoUsuario();
 
     void cerrarConexion();
 

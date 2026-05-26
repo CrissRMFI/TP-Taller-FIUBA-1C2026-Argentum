@@ -23,6 +23,11 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
     return dataJugador;
 }
 
+void ProtocoloServidor::enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje) {
+    enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
+    enviarUnByte(static_cast<uint8_t>(mensaje.error));
+}
+
 void ProtocoloServidor::cerrarConexion() {
     if (!cerrado) {
         try {
@@ -537,13 +542,13 @@ void ProtocoloServidor::enviarItemDesaparecioSuelo(const MensajeItemDesaparecioS
 }
 
 void ProtocoloServidor::enviarActualizarInventario(const MensajeActualizarInventario& mensaje) {
-    validarCantidad((uint16_t)(mensaje.slots.size()));
+    validarCantidad((uint16_t)(mensaje.slots_.size()));
 
     enviarUnByte((uint8_t)(Opcode::ACTUALIZAR_INVENTARIO));
 
-    enviarUnByte((uint8_t)(mensaje.slots.size()));
+    enviarUnByte((uint8_t)(mensaje.slots_.size()));
 
-    for (uint16_t idItem: mensaje.slots) {
+    for (uint16_t idItem: mensaje.slots_) {
         enviarDosBytes(idItem);
     }
 }

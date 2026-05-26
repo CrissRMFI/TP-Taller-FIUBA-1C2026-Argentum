@@ -20,6 +20,20 @@ void ProtocoloCliente::enviarUsuario(const handshakeInicial& dataJugador) {
     enviarUnByte(static_cast<uint8_t>(dataJugador.clasePersonaje));
     enviarUnByte(static_cast<uint8_t>(dataJugador.raza));
 }
+
+MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
+    auto const opcode_recibido = recibirUnByte();
+    const auto opcode = Opcode(opcode_recibido);
+    if (opcode != Opcode::ESTADO_USUARIO) {
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(
+                        CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
+    }
+    MensajeEstadoUsuario estado;
+    estado.nick = recibirCadenaConMaximo(MAX_NICK);
+    estado.error = static_cast<ErrorUsuario>(recibirUnByte());
+    return MensajeServidor{.opcode = opcode, .payload = estado};
+}
 void ProtocoloCliente::validarDireccion(uint8_t direccion) const {
     if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(

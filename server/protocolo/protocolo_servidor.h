@@ -19,6 +19,7 @@ class ProtocoloServidor : public Protocolo {
 
      void enviarMensaje(const MensajeServidor& mensaje);
     handshakeInicial recibirUsuario();
+    void enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje);
 
     void cerrarConexion();
 
