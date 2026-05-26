@@ -7,11 +7,11 @@
 MenuController::MenuController(){}
 
 void MenuController::run(DatosConexion& datos) {
-	bool terminoRegistro = false;
 
 	while (!terminoRegistro) {
 		LoginController login;
 		login.run(datos);
+		datos.clearError();
 
 		while (true) {
 			CargarPersonajeController cargarPersonaje;
@@ -39,13 +39,13 @@ void MenuController::run(DatosConexion& datos) {
 			break;
 		}
 	}
+	terminoRegistro = false;
     return;
 }
 
 DatosConexion MenuController::cuentaNoEncontrada() {
     DatosConexion datos;
     datos.setErrorLogin(MensajeError::CuentaNoEncontrada);
-	LoginController login;
     run(datos);
 	return datos;
 }
@@ -53,7 +53,6 @@ DatosConexion MenuController::cuentaNoEncontrada() {
 DatosConexion MenuController::nickYaExistente() {
     DatosConexion datos;
     datos.setErrorLogin(MensajeError::NickYaExistente);
-	LoginController login;
 	run(datos);
 	return datos;
 }
@@ -61,7 +60,6 @@ DatosConexion MenuController::nickYaExistente() {
 DatosConexion MenuController::puertoHostInvalidos() {
     DatosConexion datos;
     datos.setErrorLogin(MensajeError::PuertoHostInvalidos);
-	LoginController login;
     run(datos);
 	return datos;
 }

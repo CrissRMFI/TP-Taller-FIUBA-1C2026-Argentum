@@ -12,9 +12,10 @@ int ConnectionController::run(int argc, char* argv[]){
 	QGuiApplication app(argc, argv);
 	menu.run(datos);
 
-	while(pedirDatos) {
+	while(true) {
 		try{		
 			Client client(datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str(), datos);
+			printf("Conexión exitosa al servidor en %s:%s\n Corriendo el cliente...", datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str());
 			client.run();
 			return 0;
 			
@@ -26,6 +27,7 @@ int ConnectionController::run(int argc, char* argv[]){
 				nickYaExistente = true;
 			} else {
 				// Error desconocido, se asume que es un error de conexión (puerto/host inválidos)
+				printf("Error de conexión: %s\n", errorMsg.c_str());
 				puertoHostInvalidos = true;
 			}
 		}

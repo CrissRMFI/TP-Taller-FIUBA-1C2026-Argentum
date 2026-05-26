@@ -72,6 +72,11 @@ public:
         }
     }
 
+    void clearError() {
+        errorLogin = false;
+        mensajeError = "";
+    }
+
     const DatosLogin& getDatosLogin() const {
         return datosLogin;
     }

@@ -155,6 +155,7 @@ if(TALLER_CLIENT)
             client/Qt/graficos/crearButton.png
             client/Qt/graficos/ventanalauncher.png
             client/Qt/graficos/VolverButton.png
+            client/Qt/graficos/emptybutton.png
             client/Qt/graficos/crearPersonajeButton.png
             client/Qt/graficos/ElecciónPersonaje.png
             client/Qt/graficos/InicioSesion.png

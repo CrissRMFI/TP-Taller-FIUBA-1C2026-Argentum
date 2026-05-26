@@ -26,6 +26,22 @@ Window {
         visible: text !== ""
     }
 
+    component ButtonText: Text {
+        width: 205
+        height: 50
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "white"
+    }
+
+    component TitleText: Text {
+        width: 205
+        height: 50
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "white"
+    }
+
     TextField {
         id: nickInput
         x: parent.width / 2 - width / 2
@@ -54,6 +70,18 @@ Window {
             border.color: "white"
         }
         text: ""
+    }
+
+    TitleText {
+        text: qsTr("NICKNAME")
+        x: parent.width / 2 - width / 2
+        y: nickInput.y - height * 1.5
+    }
+
+    TitleText {
+        text: qsTr("CONTRASEÑA")
+        x: parent.width / 2 - width / 2
+        y: passwordInput.y - height * 1.5
     }
 
     ErrorText {
@@ -87,12 +115,12 @@ Window {
                 }
             }
         }
-        id: jugarButton
-        x: 369
-        y: 420
-        width: 205
+        id: iniciarSesionButton
+        x: parent.width - width
+        y: parent.height - height
+        width: 208
         height: 50
-        source: "../graficos/jugarButton.png"
+        source: "../graficos/emptybutton.png"
     }
 
     Image {
@@ -103,25 +131,40 @@ Window {
             }
         }
         id: volverButton
-        x: jugarButton.x - parent.width / 2 + 2
-        y: 420
-        width: 210
-        height: 47
-        source: "../graficos/VolverButton.png"
+        x: 4
+        y: parent.height - height
+        width: 208
+        height: 50
+        source: "../graficos/emptybutton.png"
     }
 
     Image {
         TapHandler {
             onTapped: {
-                console.log("Rediriguiendo a la pantalla de creación de personaje");
-                cargarPersonajeController.volverACrearPersonaje();
+                console.log("Rediriguiendo a la pantalla de creación de cuenta");
+                cargarPersonajeController.volverACrearCuenta();
             }
         }
-        id: crearPersonajeButton
-        x: nickInput.x
-        y: parent.height / 9 * 7 - height / 4
-        width: 215
-        height: 57
-        source: "../graficos/crearPersonajeButton.png"
+        id: crearCuentaButton
+        x: (parent.width / 2) - width / 2 
+        y: parent.height - height
+        width: 208
+        height: 50
+        source: "../graficos/emptybutton.png"
+    }
+
+    ButtonText {
+        text: qsTr("INICIAR SESIÓN")
+        anchors.centerIn: iniciarSesionButton
+    }
+
+    ButtonText {
+        text: qsTr("VOLVER")
+        anchors.centerIn: volverButton
+    }
+
+    ButtonText {
+        text: qsTr("CREAR CUENTA")
+        anchors.centerIn: crearCuentaButton
     }
 }

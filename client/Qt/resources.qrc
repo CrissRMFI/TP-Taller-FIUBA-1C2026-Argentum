@@ -11,5 +11,6 @@
         <file>graficos/unirseButton.png</file>
         <file>graficos/ventanalauncher.png</file>
         <file>graficos/VolverButton.png</file>
+        <file>graficos/emptybutton.png</file>
     </qresource>
 </RCC>

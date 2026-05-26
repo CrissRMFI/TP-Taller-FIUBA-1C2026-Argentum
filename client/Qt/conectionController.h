@@ -11,7 +11,6 @@ public:
 private:
     MenuController menu;
     DatosConexion datos;
-    bool pedirDatos = true;
     bool cuentaNoEncontrada = false;
     bool nickYaExistente = false;
     bool puertoHostInvalidos = false;

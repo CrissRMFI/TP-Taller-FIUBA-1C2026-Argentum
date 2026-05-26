@@ -12,7 +12,7 @@ CargarPersonajeController::CargarPersonajeController(QObject* parent)
 
 void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResultado& resultado) {
     _volverAlMenu = false;
-    _volverACrearPersonaje = false;
+    _volverACrearCuenta = false;
     resultado = CargarPersonajeResultado::ContinuarConPersonajeExistente;
 
     // Cargar cargarPersonaje.qml
@@ -30,8 +30,8 @@ void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResulta
     datos.setDatosPersonaje(datosPersonaje.nick, datosPersonaje.password);
     if (_volverAlMenu) {
         resultado = CargarPersonajeResultado::VolverAlMenu;
-    } else if (_volverACrearPersonaje) {
-        resultado = CargarPersonajeResultado::CrearPersonaje;
+    } else if (_volverACrearCuenta) {
+        resultado = CargarPersonajeResultado::CrearCuenta;
     }
 }
 
@@ -40,8 +40,8 @@ void CargarPersonajeController::volverAlMenu() {
     emit cargarPersonajeCompleted();
 }
 
-void CargarPersonajeController::volverACrearPersonaje() {
-    _volverACrearPersonaje = true;
+void CargarPersonajeController::volverACrearCuenta() {
+    _volverACrearCuenta = true;
     emit cargarPersonajeCompleted();
 }
 

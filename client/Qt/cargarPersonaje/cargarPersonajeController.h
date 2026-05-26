@@ -9,7 +9,7 @@
 
 enum class CargarPersonajeResultado {
     VolverAlMenu,
-    CrearPersonaje,
+    CrearCuenta,
     ContinuarConPersonajeExistente,
 };
 
@@ -28,7 +28,7 @@ public slots:
     void setPassword(const QString& password);
     bool esTextoValido(const QString& texto) const;
     void volverAlMenu();
-    void volverACrearPersonaje();
+    void volverACrearCuenta();
 
     QString getNick() const;
     QString getPassword() const;
@@ -39,7 +39,7 @@ signals:
 private:
     DatosPersonaje datosPersonaje;
     bool _volverAlMenu = false;
-    bool _volverACrearPersonaje = false;
+    bool _volverACrearCuenta = false;
 };
 
 #endif

@@ -26,10 +26,19 @@ Window {
         source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`
     }
 
+    component ErrorText: Text {
+        width: 300
+        height: 30
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "red"
+        visible: text !== ""
+    }
+
     TextField {
         id: nickInput
         x: parent.width / 2 - width / 2
-        y: parent.height / 8.5
+        y: parent.height / 10
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su nick")
@@ -44,7 +53,7 @@ Window {
     TextField {
         id: passwordInput
         x: nickInput.x
-        y: nickInput.y * 2.6 - height / 2
+        y: nickInput.y * 2.9 - height / 2
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su contraseña")
@@ -56,13 +65,38 @@ Window {
         text: ""
     }
 
+    ErrorText {
+        id: nickErrorText
+        x: nickInput.x + nickInput.width / 2 - width / 2
+        y: nickInput.y + nickInput.height - 2
+        text: ""
+    }
+
+    ErrorText {
+        id: passwordErrorText
+        x: passwordInput.x + passwordInput.width / 2 - width / 2
+        y: passwordInput.y + passwordInput.height
+        text: ""
+    }
+
+    ErrorText {
+        id: generalErrorText
+        x: parent.width / 2 - width / 2
+        y: crearPersonajeButton.y - height - 5
+        text: ""
+    }
+
 
     Image {
         TapHandler {
             onTapped: {
                 if (nickInput.text !== "" && raza != "" && clase != "") {
-                    if (!personajeController.esTextoValido(nickInput.text) || !personajeController.esTextoValido(passwordInput.text)) {
-                        console.log("El nick/contraseña no debe tener espacios y tiene que ser menor o igual a 32 bytes.");
+                    const esNickValido = personajeController.esTextoValido(nickInput.text);
+                    const esPasswordValido = personajeController.esTextoValido(passwordInput.text);
+
+                    nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : "";
+                    passwordErrorText.text = !esPasswordValido ? "La contraseña no puede tener espacios y debe ser menor o igual a 32 bytes." : "";
+                    if (!esNickValido || !esPasswordValido) {
                         return;
                     }
                     personajeController.setRaza(raza);
@@ -71,7 +105,7 @@ Window {
                     personajeController.setPassword(passwordInput.text);
                     console.log("Personaje creado con éxito, entrando a la partida");
                 } else {
-                    console.log("Por favor, complete todos los campos para crear el personaje");
+                    generalErrorText.text = "Por favor, complete todos los campos para crear el personaje";
                 }
             }
         }
@@ -110,7 +144,7 @@ Window {
         }
         id: switchHumano
         x: 110
-        y: 262
+        y: 242
         sourceBaseName: "LED"
         checked: false
     }
@@ -174,7 +208,7 @@ Window {
         }
         id: switchMago
         x: switchHumano.x
-        y: switchHumano.y * 1.5 - 10
+        y: switchHumano.y * 1.5
         sourceBaseName: "LED"
         checked: false
     }
