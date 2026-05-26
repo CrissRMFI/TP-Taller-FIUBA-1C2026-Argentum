@@ -26,8 +26,7 @@ message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
 # HEY TODO XXX: change the name to something that you like
-add_library(taller_common STATIC
-        common/protocolo/dato_sesion_cliente.h)
+add_library(taller_common STATIC)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
@@ -107,34 +106,7 @@ if(TALLER_CLIENT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-    add_executable(taller_client
-            client/protocolo/protocolo_cliente.h
-            client/protocolo/protocolo_cliente.cpp
-            client/handlers/client_input_handler.h
-            client/handlers/client_input_handler.cpp
-            client/client__.h
-            client/client__.cpp
-            client/client_business.h
-            client/client_business.cpp
-            client/client_manager.h
-            client/client_manager.cpp
-            client/client_receiver.h
-            client/client_receiver.cpp
-            client/client_sender.h
-            client/client_sender.cpp
-            client/client_game_loop.h
-            client/client_game_loop.cpp
-            client/protocolo/protocolo_cliente_comando.cpp
-            client/protocolo/protocolo_cliente_comando.h
-            client/protocolo/protocolo_cliente_mensaje.cpp
-            client/protocolo/protocolo_cliente_mensaje.h
-            client/assets/players.cpp
-            client/assets/players.h
-            client/client_loop.cpp
-            client/client_loop.h
-            client/pantallaLogin.h
-            client/pantallaLogin.cpp
-    )
+        add_executable(taller_client)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)

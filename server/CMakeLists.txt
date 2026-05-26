@@ -75,15 +75,7 @@ target_sources(taller_server
     # Protocolo servidor
     protocolo/protocolo_servidor.h
 
-    # Mapa
-    game/mapa/mapa.cpp
-    game/npc/npc.cpp
-    game/npc/sacerdote.cpp
-    game/npc/comerciante.cpp
-    game/npc/banquero.cpp
 
-    # Criatura
-    game/criatura.cpp
 
 
 )

@@ -12,4 +12,24 @@ target_sources(taller_client
         Qt/login/loginController.cpp
         Qt/elegirPersonaje/elegirPersonajeController.cpp
         Qt/cargarPersonaje/cargarPersonajeController.cpp
+        handlers/client_input_handler.cpp
+        protocolo/protocolo_cliente.cpp
+        # .h
+        client__.h
+        client_business.h
+        client_game_loop.h
+        client_manager.h
+        client_receiver.h
+        client_sender.h
+        Qt/conectionController.h
+        Qt/menuController.h
+        Qt/login/loginController.h
+        Qt/elegirPersonaje/elegirPersonajeController.h
+        Qt/cargarPersonaje/cargarPersonajeController.h
+        handlers/client_input_handler.h
+        protocolo/protocolo_cliente.h
+    PUBLIC
+        Qt/login/login.qml
+        Qt/elegirPersonaje/elegirPersonaje.qml
+        Qt/cargarPersonaje/cargarPersonaje.qml
 )
