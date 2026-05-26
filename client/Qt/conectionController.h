@@ -14,6 +14,7 @@ private:
     bool cuentaNoEncontrada = false;
     bool nickYaExistente = false;
     bool puertoHostInvalidos = false;
+    bool usuarioYaConectado = false;
 };
 
 #endif

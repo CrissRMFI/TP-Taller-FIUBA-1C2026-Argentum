@@ -11,6 +11,7 @@ public:
     DatosConexion cuentaNoEncontrada();
     DatosConexion nickYaExistente();
     DatosConexion puertoHostInvalidos();
+    DatosConexion usuarioYaConectado();
 private:
     bool terminoRegistro = false;
 };

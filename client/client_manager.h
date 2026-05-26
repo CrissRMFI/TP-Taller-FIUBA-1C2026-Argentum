@@ -7,7 +7,9 @@
 
 #include "../common/thread/thread.h"
 #include "../common/thread/queue.h"
+#include "handshake_error.h"
 #include "protocolo/protocolo_cliente.h"
+#include "Qt/datosConexion.h"
 
 class ClientManager : public Thread {
 private:
@@ -19,7 +21,8 @@ private:
 
 public:
     ClientManager(Socket&& skt,
-        Queue<ComandoJugador>& incoming_events);
+        Queue<ComandoJugador>& incoming_events,
+        DatosConexion& datos);
 
     ClientManager(const ClientManager&) = delete;
     ClientManager& operator=(const ClientManager&) = delete;
@@ -27,6 +30,9 @@ public:
     Queue<MensajeServidor>& get_outgoing_events();
     void run() override;
     void stop() override;
+
+    void handleHandshake();
+
     ~ClientManager() override = default;
 };
 

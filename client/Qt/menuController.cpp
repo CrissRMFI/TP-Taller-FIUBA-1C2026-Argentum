@@ -63,3 +63,10 @@ DatosConexion MenuController::puertoHostInvalidos() {
     run(datos);
 	return datos;
 }
+
+DatosConexion MenuController::usuarioYaConectado() {
+    DatosConexion datos;
+    datos.setErrorLogin(MensajeError::UsuarioYaConectado);
+    run(datos);
+    return datos;
+}

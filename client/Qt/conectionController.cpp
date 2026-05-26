@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../client__.h"
+#include "../handshake_error.h"
 
 ConnectionController::ConnectionController() {}
 
@@ -19,17 +20,25 @@ int ConnectionController::run(int argc, char* argv[]){
 			client.run();
 			return 0;
 			
+		} catch (const HandshakeError& e) {
+			switch (e.getCode()) {
+				case ErrorUsuario::CuentaNoEncontrada:
+					cuentaNoEncontrada = true;
+					break;
+				case ErrorUsuario::NickYaExistente:
+					nickYaExistente = true;
+					break;
+				case ErrorUsuario::UsuarioYaConectado:
+					usuarioYaConectado = true;
+					return 0;
+				case ErrorUsuario::Ninguno:
+					break;
+			}
 		} catch (const std::exception& e) {
 			std::string errorMsg = e.what();
-			if (errorMsg.find("Cuenta no encontrada") != std::string::npos) {
-				cuentaNoEncontrada = true;
-			} else if (errorMsg.find("Nick ya existente") != std::string::npos) {
-				nickYaExistente = true;
-			} else {
-				// Error desconocido, se asume que es un error de conexión (puerto/host inválidos)
-				printf("Error de conexión: %s\n", errorMsg.c_str());
-				puertoHostInvalidos = true;
-			}
+			// Error desconocido, se asume que es un error de conexión (puerto/host inválidos)
+			printf("Error de conexión: %s\n", errorMsg.c_str());
+			puertoHostInvalidos = true;
 		}
 		if (cuentaNoEncontrada) {
 			datos = menu.cuentaNoEncontrada();
@@ -40,6 +49,9 @@ int ConnectionController::run(int argc, char* argv[]){
 		} else if (puertoHostInvalidos) {
 			datos = menu.puertoHostInvalidos();
 			puertoHostInvalidos = false;
+		} else if (usuarioYaConectado) {
+			datos = menu.usuarioYaConectado();
+			usuarioYaConectado = false;
 		}
 	}
 

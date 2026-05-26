@@ -8,7 +8,8 @@
 enum class MensajeError {
     CuentaNoEncontrada,
     NickYaExistente,
-    PuertoHostInvalidos
+    PuertoHostInvalidos,
+    UsuarioYaConectado
 };
 
 struct DatosLogin {
@@ -65,6 +66,9 @@ public:
                 break;
             case MensajeError::PuertoHostInvalidos:
                 mensajeError = "Puerto o host invalidos. Por favor, vuelva a iniciar sesion.";
+                break;
+            case MensajeError::UsuarioYaConectado:
+                mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
                 break;
             default:
                 mensajeError = "Error desconocido. Por favor, vuelva a iniciar sesion.";

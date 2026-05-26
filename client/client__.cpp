@@ -9,7 +9,6 @@
 
 #include "client_game_loop.h"
 #include "client_manager.h"
-#include "pantallaLogin.h"
 #include "../common/thread/queue.h"
 
 Client::Client(const char* hostname, const char* port, DatosConexion& datos): skt(hostname, port), datos(datos) {
@@ -21,7 +20,7 @@ void Client::run() {
 
     // Initialize SDL library
     Queue<ComandoJugador> incoming_queue;
-    ClientManager manager(std::move(skt), incoming_queue);
+    ClientManager manager(std::move(skt), incoming_queue, datos);
     manager.start();
 
     ClientGameLoop game_loop(incoming_queue);
