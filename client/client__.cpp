@@ -4,7 +4,6 @@
 
 #include "client__.h"
 
-#include <iostream>
 #include <utility>
 
 #include "client_game_loop.h"
@@ -16,11 +15,10 @@ Client::Client(const char* hostname, const char* port, DatosConexion& datos): sk
 }
 
 void Client::run() {
-    std::cout << "Bienvenido" << std::endl;
-
     // Initialize SDL library
     Queue<ComandoJugador> incoming_queue;
     ClientManager manager(std::move(skt), incoming_queue, datos);
+    manager.handleHandshake();
     manager.start();
 
     ClientGameLoop game_loop(incoming_queue);

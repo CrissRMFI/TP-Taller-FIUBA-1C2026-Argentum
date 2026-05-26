@@ -65,7 +65,7 @@ public:
                 mensajeError = "El nick ingresado ya existe. Por favor, vuelva a iniciar sesion.";
                 break;
             case MensajeError::PuertoHostInvalidos:
-                mensajeError = "Puerto o host invalidos. Por favor, vuelva a iniciar sesion.";
+                mensajeError = "Puerto o host invalidos. Pruebe con IP/HOST: localhost  PUERTO: 7666.";
                 break;
             case MensajeError::UsuarioYaConectado:
                 mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
