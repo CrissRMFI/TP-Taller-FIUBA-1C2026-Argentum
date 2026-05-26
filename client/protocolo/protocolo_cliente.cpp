@@ -6,16 +6,22 @@
 
 #include "../../common/mensajes/codigo_error_protocolo.h"
 #include "../../common/mensajes/mensajes_error_protocolo.h"
-
+#include "common/protocolo/dato_sesion_cliente.h"
+const std::unordered_set<uint8_t> ProtocoloCliente::DIRECCIONES_VALIDAS = {0, 1, 2, 3};
 ProtocoloCliente::ProtocoloCliente(Socket&& skt) : Protocolo(std::move(skt)) {}
 
 void ProtocoloCliente::cerrarConexion() {
     cerrado = true;
     skt.close();
 }
-
+void ProtocoloCliente::enviarUsuario(const handshakeInicial& dataJugador) {
+    enviarUnByte(dataJugador.crearPersonaje ? 1 : 0);
+    enviarCadenaConMaximo(dataJugador.nombre, MAX_NICK);
+    enviarUnByte(static_cast<uint8_t>(dataJugador.clasePersonaje));
+    enviarUnByte(static_cast<uint8_t>(dataJugador.raza));
+}
 void ProtocoloCliente::validarDireccion(uint8_t direccion) const {
-    if (direccion > MAX_DIRECCION) {
+    if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(
                 MensajesErrorProtocolo::mensaje(
                         CodigoErrorProtocolo::DIRECCION_INVALIDA));
@@ -267,6 +273,10 @@ void ProtocoloCliente::enviarComandoClanKick(const ComandoGestionMiembreClan& co
 void ProtocoloCliente::enviarComandoDejarClan(const ComandoDejarClan&) {
     enviarUnByte(static_cast<uint8_t>(Opcode::DEJAR_CLAN));
 }
+
+
+//----------------------------------------------------------------
+
 
 MensajeServidor ProtocoloCliente::recibirMensaje() {
     uint8_t opcodeRecibido = recibirUnByte();

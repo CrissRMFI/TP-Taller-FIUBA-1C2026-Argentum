@@ -8,8 +8,20 @@
 #include "../../common/mensajes/codigo_error_accion.h"
 #include "../../common/mensajes/codigo_error_protocolo.h"
 #include "../../common/mensajes/mensajes_error_protocolo.h"
-
+#include "common/protocolo/dato_sesion_cliente.h"
+const std::unordered_set<uint8_t> ProtocoloServidor::DIRECCIONES_VALIDAS = {0, 1, 2, 3};
 ProtocoloServidor::ProtocoloServidor(Socket&& skt) : Protocolo(std::move(skt)) {}
+
+handshakeInicial ProtocoloServidor::recibirUsuario() {
+    handshakeInicial dataJugador;
+    if (recibirUnByte() != 0) {
+        dataJugador.crearPersonaje = true;
+    } else {dataJugador.crearPersonaje = false;}
+    dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
+    dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
+    dataJugador.raza = static_cast<Raza>(recibirUnByte());
+    return dataJugador;
+}
 
 void ProtocoloServidor::cerrarConexion() {
     if (!cerrado) {
@@ -26,11 +38,9 @@ void ProtocoloServidor::cerrarConexion() {
 }
 
 ComandoJugador ProtocoloServidor::recibirComando() {
-    
-    uint8_t opcode_recibido = recibirUnByte();
 
-    Opcode opcode = (Opcode)(opcode_recibido);
-
+    auto const opcode_recibido = recibirUnByte();
+    const auto opcode = Opcode(opcode_recibido);
     switch (opcode) {
         case Opcode::MOVER:
             return recibirComandoMover();
@@ -115,7 +125,7 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 }
 
 void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
-    if (direccion > MAX_DIRECCION) {
+    if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(
                 MensajesErrorProtocolo::mensaje(
                         CodigoErrorProtocolo::DIRECCION_INVALIDA));
@@ -377,6 +387,7 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
       ComandoDejarClan{},
     };
 }
+
 
 void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
     switch (mensaje.opcode) {

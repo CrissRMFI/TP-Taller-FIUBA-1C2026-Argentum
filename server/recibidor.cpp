@@ -5,7 +5,7 @@
 #include "recibidor.h"
 
 Recibidor::Recibidor(ProtocoloServidor &protocolo,
-    Queue<ComandoJugador> &colaComando,
+    Queue<ComandoCliente> &colaComando,
     MonitorClientes &monitor, uint16_t idCliente):
     proto(protocolo), colaComando(colaComando),
     monitor(monitor), idCliente(idCliente)
@@ -13,19 +13,21 @@ Recibidor::Recibidor(ProtocoloServidor &protocolo,
 
 
 void Recibidor::run() {
+    std::cout << "Recibidor corriendo \n";
     try {
         while (running) {
-            // habria que chequear que el comando recibido es valido
-            // de no serlo cortar el loop
-
             ComandoJugador comando = proto.recibirComando();
-            colaComando.push(comando);
+            std::cout << "[opcode " << static_cast<int>(comando.opcode) << "] recibido \n";
+            colaComando.push(ComandoCliente{idCliente, comando});
         }
     } catch (std::exception &e) {
         std::cout << "Recibidor::run() EXCEPTION: " << e.what() << std::endl;
     }
+    running = false;
+
     monitor.removerCliente(idCliente);
     std::cout << "[cliente " << idCliente << "] removido \n";
+    proto.cerrarConexion();
 }
 
 bool Recibidor::is_running() const {
@@ -34,6 +36,7 @@ bool Recibidor::is_running() const {
 
 void Recibidor::stop() {
     running = false;
+    proto.cerrarConexion();
 }
 
 // si no hay mas comandos por recibir, la idea es salir del loop

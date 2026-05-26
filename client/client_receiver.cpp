@@ -13,15 +13,16 @@ ClientReceiver::ClientReceiver(ProtocoloCliente& protocol, Queue<MensajeServidor
 void ClientReceiver::run() {
     // std::cout << "Receptor has started" << std::endl;
     try {
-        while (running)
-        {
+        while (running) {
             // obtener los mensajes del servidor
+
             MensajeServidor message = protocol.recibirMensaje();
             queue.push(message);
+            std::cout << "recibidor push comando"<< static_cast<int>(message.opcode)<< std::endl;
 
         }
     } catch (const std::exception&) {
-        std::cout << "Receiver has stopped" << std::endl;
+        std::cout << "Receiver has stopped!" << std::endl;
     }
 }
 void ClientReceiver::stop() { running = false; }

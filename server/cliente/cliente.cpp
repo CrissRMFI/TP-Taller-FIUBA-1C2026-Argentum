@@ -11,13 +11,13 @@
 
 Cliente::Cliente(uint16_t idCliente,
                  Socket&& skt,
-                 Queue<ComandoJugador>& colaComandos,
-                 MonitorClientes& monitor)
+                 Queue<ComandoCliente>& colaComandos,
+                 MonitorClientes& monitor, Queue<EventoSesion>& colaEventos)
     : idCliente(idCliente),
       protocolo_servidor(std::move(skt)),
       colaComandos(colaComandos),
-      monitorClientes(monitor) {
-}
+      monitorClientes(monitor),
+      colaEventos(colaEventos){}
 
 uint16_t Cliente::id() const {
     return idCliente;
@@ -29,8 +29,15 @@ Queue<MensajeServidor>& Cliente::obtenerColaSalida(){
 
 void Cliente::run() {
     std::cout << "[cliente " << idCliente << "] conectado\n";
-
-    //ProtocoloServidor protocolo_servidor(protocolo_servidor);
+    const handshakeInicial dataJugador = protocolo_servidor.recibirUsuario();
+    colaEventos.push(EventoSesion{
+    TipoEventoSesion::Conectar, idCliente,
+        DatosSesion{
+            dataJugador.nombre,
+            dataJugador.clasePersonaje,
+            dataJugador.raza,
+            Posicion{0,1,1}}});
+    monitorClientes.setNombreCliente(idCliente,dataJugador.nombre);
 
     Enviador enviador(protocolo_servidor, colaSalida);
     Recibidor recibidor(protocolo_servidor, colaComandos, monitorClientes, idCliente);

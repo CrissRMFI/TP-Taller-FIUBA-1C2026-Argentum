@@ -14,14 +14,14 @@
 class Recibidor: public  Thread {
 private:
     ProtocoloServidor& proto;
-    Queue<ComandoJugador>& colaComando;
+    Queue<ComandoCliente>& colaComando;
     MonitorClientes& monitor;
     uint16_t idCliente;
     std::atomic<bool> running{true};
 
 public:
     Recibidor(ProtocoloServidor& protocolo,
-        Queue<ComandoJugador>& colaComando, MonitorClientes& monitor,
+        Queue<ComandoCliente>& colaComando, MonitorClientes& monitor,
         uint16_t idCliente);
 
     void run() override;

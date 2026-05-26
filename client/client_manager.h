@@ -12,6 +12,7 @@
 class ClientManager : public Thread {
 private:
     ProtocoloCliente protocol;
+    handshakeInicial handshake;
     Queue<ComandoJugador>& incoming_data;
     Queue<MensajeServidor> outgoing_data;
     std::atomic<bool> running{true};
