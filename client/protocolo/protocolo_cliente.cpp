@@ -268,9 +268,6 @@ void ProtocoloCliente::enviarComandoDejarClan(const ComandoDejarClan&) {
     enviarUnByte(static_cast<uint8_t>(Opcode::DEJAR_CLAN));
 }
 
-//----------------------------------------------------------------
-
-
 MensajeServidor ProtocoloCliente::recibirMensaje() {
     uint8_t opcodeRecibido = recibirUnByte();
 
@@ -332,7 +329,6 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
     }
 }
 
-//----------------------------------------------------------------
 
 MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
     uint16_t vidaActual = recibirDosBytes();
@@ -446,8 +442,6 @@ MensajeServidor ProtocoloCliente::recibirItemDesaparecioSuelo() {
     };
 }
 
-//---------------
-
 MensajeServidor ProtocoloCliente::recibirActualizarInventario() {
     uint8_t cantidad = recibirUnByte();
 
@@ -479,14 +473,6 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
             MensajeListaItems{ids},
     };
 }
-
-// MensajeServidor ProtocoloCliente::recibirErrorAccion() {
-//     uint8_t codigoError = recibirUnByte();
-//     return MensajeServidor{Opcode::ERROR_ACCION, codigoError};
-//
-// }
-
-//-------------
 
 MensajeServidor ProtocoloCliente::recibirActualizarEquipamiento() {
     uint16_t arma = recibirDosBytes();
@@ -538,8 +524,6 @@ MensajeServidor ProtocoloCliente::recibirResucitado() {
             MensajeResucitado{x, y},
     };
 }
-
-//---------------------
 
 void ProtocoloCliente::validarTipoEntidad(uint8_t tipo) const {
     if (tipo > MAX_TIPO_ENTIDAD) {

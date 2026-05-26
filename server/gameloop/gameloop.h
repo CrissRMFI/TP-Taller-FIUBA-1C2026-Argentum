@@ -1,6 +1,7 @@
 #ifndef GAMELOOP_H
 #define GAMELOOP_H
 
+#include <atomic>
 #include <list>
 
 #include "../../common/thread/queue.h"
@@ -19,6 +20,8 @@ private:
     MonitorClientes& monitor;
     Juego juego;
     int tickMs;
+    std::atomic_bool colaComandosCerrada;
+    std::atomic_bool colaEventosSesionCerrada;
 
     void procesarEventosSesion();
     void procesarComandos();

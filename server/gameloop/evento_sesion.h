@@ -5,7 +5,7 @@
 #include <string>
 
 #include "../game/modelo/clase_personaje.h"
-#include "../game/modelo/posicion.h"
+#include "../../common/game/modelo/posicion.h"
 #include "../game/modelo/raza.h"
 
 enum class TipoEventoSesion { Conectar, Desconectar };

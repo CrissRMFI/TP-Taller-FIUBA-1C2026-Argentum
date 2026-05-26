@@ -1,5 +1,6 @@
 #include "inventario.h"
 
+#include <algorithm>
 #include <cstddef>
 
 static constexpr uint16_t ITEM_VACIO = 0;
@@ -87,6 +88,10 @@ bool Inventario::tieneItem(uint16_t idItem) const {
     }
 
     return false;
+}
+
+bool Inventario::tieneEspacioLibre() const {
+    return cantidadSlotsLibres() > 0;
 }
 
 uint16_t Inventario::getIdEnSlot(uint8_t indice) const {
@@ -318,4 +323,24 @@ uint16_t Inventario::getCascoEquipado() const {
 
 uint16_t Inventario::getEscudoEquipado() const {
     return equipamiento.getEscudo();
+}
+
+void Inventario::restaurar(const std::vector<uint16_t>& slotsNuevos,
+                           uint16_t arma,
+                           uint16_t baculo,
+                           uint16_t defensa,
+                           uint16_t casco,
+                           uint16_t escudo) {
+    const size_t n = std::min(slotsNuevos.size(), slots.size());
+    for (size_t i = 0; i < n; ++i) {
+        slots[i] = slotsNuevos[i];
+    }
+    for (size_t i = n; i < slots.size(); ++i) {
+        slots[i] = ITEM_VACIO;
+    }
+    equipamiento.equiparArma(arma);
+    equipamiento.equiparBaculo(baculo);
+    equipamiento.equiparDefensa(defensa);
+    equipamiento.equiparCasco(casco);
+    equipamiento.equiparEscudo(escudo);
 }

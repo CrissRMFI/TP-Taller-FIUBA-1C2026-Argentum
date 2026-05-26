@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../../common/protocolo/comando_jugador.h"
+#include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/protocolo/protocolo.h"
 
@@ -24,9 +25,10 @@ private:
     static constexpr uint8_t MAX_DIRECCION = 3;
 
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
-    static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
+    static constexpr uint8_t MAX_ESTADO_ENTIDAD =
+            static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
-    static constexpr uint8_t MAX_TIPO_CLAN = 4;
+    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Abandono);
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
 
     void validarDireccion(uint8_t direccion) const;
@@ -79,7 +81,6 @@ private:
     MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
-    //MensajeServidor recibirErrorAccion();
 };
 
 #endif

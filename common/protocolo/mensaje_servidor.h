@@ -62,6 +62,17 @@ struct MensajeItemDesaparecioSuelo {
   uint16_t y;
 };
 
+struct MensajeOroEnSuelo {
+  uint32_t cantidad;
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeOroDesaparecioSuelo {
+  uint16_t x;
+  uint16_t y;
+};
+
 struct MensajeActualizarInventario {
   std::vector<uint16_t> slots;
 };
@@ -87,6 +98,10 @@ enum class TipoMensajeClan : uint8_t {
     Rechazado        = 4,
     Baneado          = 5,
     Kickeado         = 6,
+    Conectado        = 7,
+    Desconectado     = 8,
+    BajoAtaque       = 9,
+    Abandono         = 10,
 };
 
 struct MensajeClan {
@@ -117,6 +132,8 @@ using PayloadMensajeServidor = std::variant<
         MensajeMuerteEntidad,
         MensajeItemEnSuelo,
         MensajeItemDesaparecioSuelo,
+        MensajeOroEnSuelo,
+        MensajeOroDesaparecioSuelo,
         MensajeActualizarInventario,
         MensajeActualizarEquipamiento,
         MensajeChat,
