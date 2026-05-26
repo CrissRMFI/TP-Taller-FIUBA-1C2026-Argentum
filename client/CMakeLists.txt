@@ -21,6 +21,7 @@ target_sources(taller_client
         client_manager.h
         client_receiver.h
         client_sender.h
+        handshake_error.h
         Qt/conectionController.h
         Qt/menuController.h
         Qt/login/loginController.h

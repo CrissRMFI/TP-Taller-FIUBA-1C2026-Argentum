@@ -39,6 +39,7 @@ target_sources(taller_common
     mensajes/mensajes_error_protocolo.h
 
     protocolo/comando_jugador.h
+    protocolo/dato_sesion_cliente.h
     protocolo/mensaje_servidor.h
     protocolo/opcode.h
     protocolo/protocolo.h
