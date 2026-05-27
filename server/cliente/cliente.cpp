@@ -44,6 +44,13 @@ void Cliente::run() {
     recibidor.start();
     enviador.start();
     recibidor.join();
+
+    // El recibidor termino: el socket esta cerrado y el cliente se fue. Avisamos al dominio para que Juego mueva al jugador de jugadoresConectados a jugadoresDesconectados, despida la sesion activa en indiceNicksConectados (no la cuenta: el Jugador con su progreso sigue vivo en jugadoresDesconectados) y notifique al clan (regla 10.5). Si el gameloop ya cerro sus colas (shutdown del servidor), el push se ignora.
+    try {
+        colaEventos.push(EventoSesion{
+                TipoEventoSesion::Desconectar, idCliente, DatosSesion{}});
+    } catch (const ClosedQueue&) {}
+
     enviador.stop();
     enviador.join();
 }
