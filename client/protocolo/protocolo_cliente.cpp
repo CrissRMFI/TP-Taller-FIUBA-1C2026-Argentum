@@ -17,6 +17,7 @@ void ProtocoloCliente::cerrarConexion() {
 void ProtocoloCliente::enviarUsuario(const handshakeInicial& dataJugador) {
     enviarUnByte(dataJugador.crearPersonaje ? 1 : 0);
     enviarCadenaConMaximo(dataJugador.nombre, MAX_NICK);
+    enviarCadenaConMaximo(dataJugador.password, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(dataJugador.clasePersonaje));
     enviarUnByte(static_cast<uint8_t>(dataJugador.raza));
 }

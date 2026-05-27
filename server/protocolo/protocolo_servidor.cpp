@@ -18,6 +18,7 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
         dataJugador.crearPersonaje = true;
     } else {dataJugador.crearPersonaje = false;}
     dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
+    dataJugador.password = recibirCadenaConMaximo(MAX_NICK);
     dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
     dataJugador.raza = static_cast<Raza>(recibirUnByte());
     return dataJugador;

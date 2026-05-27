@@ -14,6 +14,7 @@
 
 ClientManager::ClientManager(Socket&& skt, Queue<ComandoJugador>& incoming_events, DatosConexion& datos): protocol(std::move(skt)), incoming_data(incoming_events) {
     handshake.nombre = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick : datos.getDatosPersonaje().nick;
+    handshake.password = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().password : datos.getDatosPersonaje().password;
     handshake.crearPersonaje = datos.esConexionNuevoPersonaje();
     if (datos.esConexionNuevoPersonaje()) {
         handshake.clasePersonaje = datos.getDatosNuevoPersonaje().clase;
@@ -51,12 +52,14 @@ uint16_t ClientManager::handleHandshake() {
     if (mensaje.opcode == Opcode::ESTADO_USUARIO) {
         MensajeEstadoUsuario estado = std::get<MensajeEstadoUsuario>(mensaje.payload);
         switch (estado.error) {
-            case ErrorUsuario::CuentaNoEncontrada:
-                throw HandshakeError(ErrorUsuario::CuentaNoEncontrada);
+            case ErrorUsuario::NombreUsuarioNoEncontrado:
+                throw HandshakeError(ErrorUsuario::NombreUsuarioNoEncontrado);
             case ErrorUsuario::NickYaExistente: 
                 throw HandshakeError(ErrorUsuario::NickYaExistente);
             case ErrorUsuario::UsuarioYaConectado:
                 throw HandshakeError(ErrorUsuario::UsuarioYaConectado);
+            case ErrorUsuario::PasswordIncorrecto:
+                throw HandshakeError(ErrorUsuario::PasswordIncorrecto);
             case ErrorUsuario::Ninguno:
                 idCliente = estado.id;
                 break;

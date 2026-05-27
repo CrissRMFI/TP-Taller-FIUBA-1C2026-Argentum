@@ -9,7 +9,7 @@
 #include "server/recibidor.h"
 #include "server/gameloop/monitor_clientes.h"
 
-Cliente::Cliente(uint16_t idCliente,
+Cliente::Cliente(uint16_t idCliente, 
                                  std::unique_ptr<ProtocoloServidor> protocolo_servidor,
                                  Queue<ComandoCliente>& colaComandos,
                                  MonitorClientes& monitor, Queue<EventoSesion>& colaEventos,
@@ -37,7 +37,7 @@ void Cliente::run() {
             dataJugador.nombre,
             dataJugador.clasePersonaje,
             dataJugador.raza}});
-    monitorClientes.setNombreCliente(idCliente,dataJugador.nombre);
+    monitorClientes.setCliente(idCliente, dataJugador.nombre, dataJugador.password);
 
     Enviador enviador(*protocolo_servidor, colaSalida);
     Recibidor recibidor(*protocolo_servidor, colaComandos, monitorClientes, idCliente);
