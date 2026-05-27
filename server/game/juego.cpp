@@ -1580,7 +1580,7 @@ std::list<EventoSalida> Juego::actualizarCriaturas() {
 
         std::optional<Jugador> jugadorCercano = buscarJugadorCercano(*criatura);
 
-        if (jugadorCercano.has_value()) {
+        if (jugadorCercano.has_value() && jugadorCercano->estaVivo()) {
             std::list<EventoSalida> mensajesAtaque =
                     moverCriaturaHacia(*criatura, jugadorCercano->getPosicion());
 
