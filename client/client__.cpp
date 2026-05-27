@@ -21,7 +21,7 @@ void Client::run() {
     manager.handleHandshake();
     manager.start();
 
-    ClientGameLoop game_loop(incoming_queue);
+    ClientGameLoop game_loop(incoming_queue, manager.get_outgoing_events());
     game_loop.init("Argentum - Parte I",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
