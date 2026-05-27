@@ -293,6 +293,23 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
     }
 }
 
+void LectorConfigToml::cargarSpawn(const toml::table& tbl, ConfigJuego& cfg) {
+    const toml::table& spawn = leerSubtablaObligatoria(tbl, "mapa", "spawn");
+
+    cfg.spawnInicial = Posicion{
+        leerUint16EnTabla(spawn, "x",       rutaToml("mapa", "spawn", "x"),       true),
+        leerUint16EnTabla(spawn, "y",       rutaToml("mapa", "spawn", "y"),       true),
+        leerUint16EnTabla(spawn, "mapa_id", rutaToml("mapa", "spawn", "mapa_id"), true),
+    };
+
+    if (cfg.spawnInicial.x >= cfg.mapaAncho || cfg.spawnInicial.y >= cfg.mapaAlto) {
+        throw std::runtime_error(
+                "mapa.spawn fuera de las dimensiones del mapa (ancho=" +
+                std::to_string(cfg.mapaAncho) + ", alto=" +
+                std::to_string(cfg.mapaAlto) + ")");
+    }
+}
+
 ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     auto tbl = toml::parse_file(ruta);
 
@@ -347,6 +364,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
+    cargarSpawn(tbl, cfg);
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
     cfg.rangoVisionAtaque = leerUint16Obligatorio(tbl, "combate", "rango_vision_ataque");

@@ -5,16 +5,15 @@
 #include <string>
 
 #include "../game/modelo/clase_personaje.h"
-#include "../../common/game/modelo/posicion.h"
 #include "../game/modelo/raza.h"
 
 enum class TipoEventoSesion { Conectar, Desconectar };
 
+// Datos que la capa de red entrega al dominio al abrir una sesion. No incluye Posicion: la spawn la decide Juego leyendo su ConfigJuego.
 struct DatosSesion {
     std::string nombre;
     ClasePersonaje clase;
     Raza raza;
-    Posicion posicion;
 };
 
 struct EventoSesion {

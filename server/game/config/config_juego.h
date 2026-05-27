@@ -3,6 +3,7 @@
 
 #include "../modelo/clase_personaje.h"
 #include "../modelo/raza.h"
+#include "../../../common/game/modelo/posicion.h"
 #include <cstdint>
 
 // Stats base de una raza: valores absolutos y factores multiplicadores
@@ -93,6 +94,9 @@ struct ConfigJuego {
     // ---- Mapa ----
     uint16_t mapaAncho;
     uint16_t mapaAlto;
+
+    // Posicion ancla donde aparecen los jugadores al conectarse. La celda real la resuelve Juego al conectar (puede ser una vecina si esta ocupada).
+    Posicion spawnInicial;
 
     // ---- NPCs ----
     uint16_t rangoInteraccionNpc;

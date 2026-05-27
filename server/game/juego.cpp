@@ -25,7 +25,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         aleatorio() {}
 
 
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
@@ -52,7 +52,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         if (existeIdPersonaje(id)) {
             return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
         }
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, cfg.spawnInicial, cfg));
     }
 
     indiceNicksConectados[nombre] = id;

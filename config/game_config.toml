@@ -278,6 +278,15 @@ poblacion_max = 200          # Tope global de NPCs vivos
 ancho = 100
 alto  = 100
 
+# Posicion ancla del spawn de jugadores. Al conectar, el servidor intenta
+# ubicar al jugador en esta celda; si ya esta ocupada, busca la celda libre
+# mas cercana mediante BFS. Esto permite N jugadores sin pre-declarar
+# posiciones por cabeza.
+[mapa.spawn]
+x       = 50
+y       = 50
+mapa_id = 0
+
 # ------------------------------------------------------------
 [npcs]
 # Distancia Manhattan maxima para interactuar con NPCs ciudadanos.

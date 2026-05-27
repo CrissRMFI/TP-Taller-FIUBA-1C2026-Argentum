@@ -36,8 +36,7 @@ void Cliente::run() {
         DatosSesion{
             dataJugador.nombre,
             dataJugador.clasePersonaje,
-            dataJugador.raza,
-            Posicion{0,1,1}}});
+            dataJugador.raza}});
     monitorClientes.setNombreCliente(idCliente,dataJugador.nombre);
 
     Enviador enviador(*protocolo_servidor, colaSalida);
