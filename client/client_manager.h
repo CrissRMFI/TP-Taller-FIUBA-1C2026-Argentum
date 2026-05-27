@@ -18,6 +18,7 @@ private:
     Queue<ComandoJugador>& incoming_data;
     Queue<MensajeServidor> outgoing_data;
     std::atomic<bool> running{true};
+    uint16_t idCliente;
 
 public:
     ClientManager(Socket&& skt,
@@ -31,7 +32,7 @@ public:
     void run() override;
     void stop() override;
 
-    void handleHandshake();
+    uint16_t handleHandshake();
 
     ~ClientManager() override = default;
 };

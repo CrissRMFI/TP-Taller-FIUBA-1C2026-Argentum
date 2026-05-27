@@ -32,11 +32,13 @@ private:
     ClientInputHandler handler;
     ClientBusiness business;
     std::unordered_map<uint16_t, EntidadRenderizable> entidades;
+    uint16_t idCliente;
     bool is_running;
 
 public:
     ClientGameLoop(Queue<ComandoJugador>& commands_queue,
-                   Queue<MensajeServidor>& server_messages);
+                   Queue<MensajeServidor>& server_messages,
+                   uint16_t idCliente);
     ~ClientGameLoop();
 
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
@@ -50,4 +52,4 @@ public:
 };
 
 
-#endif //TALLER_TP_CLIENT_GAME_LOOP_H
+#endif

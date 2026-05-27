@@ -18,10 +18,10 @@ void Client::run() {
     // Initialize SDL library
     Queue<ComandoJugador> incoming_queue;
     ClientManager manager(std::move(skt), incoming_queue, datos);
-    manager.handleHandshake();
+    uint16_t id = manager.handleHandshake();
     manager.start();
 
-    ClientGameLoop game_loop(incoming_queue, manager.get_outgoing_events());
+    ClientGameLoop game_loop(incoming_queue, manager.get_outgoing_events(), id);
     game_loop.init("Argentum - Parte I",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,

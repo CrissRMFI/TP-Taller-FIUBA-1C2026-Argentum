@@ -12,10 +12,12 @@
 using namespace SDL2pp;
 
 ClientGameLoop::ClientGameLoop(Queue<ComandoJugador>& outgoing_commands,
-                               Queue<MensajeServidor>& server_messages):
+                               Queue<MensajeServidor>& server_messages,
+                               uint16_t idCliente):
     commands_queue(outgoing_commands),
     server_messages(server_messages),
     business(outgoing_commands),
+    idCliente(idCliente),
     is_running(false) {}
 
 ClientGameLoop::~ClientGameLoop() = default;

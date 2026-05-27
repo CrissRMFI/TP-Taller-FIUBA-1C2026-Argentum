@@ -30,6 +30,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
                         CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
     MensajeEstadoUsuario estado;
+    estado.id = recibirUnByte();
     estado.nick = recibirCadenaConMaximo(MAX_NICK);
     estado.error = static_cast<ErrorUsuario>(recibirUnByte());
     return MensajeServidor{.opcode = opcode, .payload = estado};

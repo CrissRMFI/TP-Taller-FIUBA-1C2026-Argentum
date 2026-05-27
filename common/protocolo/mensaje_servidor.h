@@ -85,6 +85,7 @@ enum class ErrorUsuario : uint8_t {
 };
 
 struct MensajeEstadoUsuario {
+  uint16_t id;
   std::string nick;
   ErrorUsuario error;
 };

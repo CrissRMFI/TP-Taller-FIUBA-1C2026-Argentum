@@ -67,18 +67,21 @@ bool Aceptador::verificarConexionCliente(uint16_t& idCliente, const handshakeIni
         // checkear si el cliente existe
             if (idCliente == 0) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .id = idCliente,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::CuentaNoEncontrada
                 });
                 return false;
             } else if (monitorClientes.estaConectado(idCliente)) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .id = idCliente,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::UsuarioYaConectado
                 });
                 return false;
             }
             protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                    .id = idCliente,
                     .nick = handshake.nombre,
                     .error = ErrorUsuario::Ninguno
             });     
@@ -86,18 +89,18 @@ bool Aceptador::verificarConexionCliente(uint16_t& idCliente, const handshakeIni
         // checkear si el el nick no esta en uso
         if (idCliente != 0) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                        .id = idCliente,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::NickYaExistente
                 });
                 return false;
         }
+        idCliente = monitorClientes.almacenarID();
         protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
+                .id = idCliente,
                 .nick = handshake.nombre,
                 .error = ErrorUsuario::Ninguno
         });
-    }
-    if (idCliente == 0) {
-        idCliente = monitorClientes.almacenarID();
     }
     return true;
 }
