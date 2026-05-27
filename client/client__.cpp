@@ -15,10 +15,9 @@ Client::Client(const char* hostname, const char* port, DatosConexion& datos): sk
 }
 
 void Client::run() {
-    // Initialize SDL library
     Queue<ComandoJugador> incoming_queue;
     ClientManager manager(std::move(skt), incoming_queue, datos);
-    uint16_t id = manager.handleHandshake();
+    const uint16_t id = manager.handleHandshake();
     manager.start();
 
     ClientGameLoop game_loop(incoming_queue, manager.get_outgoing_events(), id);
