@@ -103,7 +103,7 @@ class Juego {
     std::optional<uint16_t> buscarIdJugadorEn(
             const Posicion& posicion,
             std::optional<uint16_t> idExcluido = std::nullopt) const;
-    std::optional<Posicion> buscarPosicionLibreParaResurreccion(
+    std::optional<Posicion> buscarPosicionLibreCercaDe(
             const Posicion& origen,
             std::optional<uint16_t> idJugadorExcluido = std::nullopt) const;
     size_t contarAliadosClanCercanos(const Jugador& jugador) const;
