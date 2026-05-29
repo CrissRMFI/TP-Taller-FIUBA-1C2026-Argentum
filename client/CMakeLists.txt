@@ -1,3 +1,12 @@
+target_include_directories(taller_client PRIVATE
+        ${sdl2_image_SOURCE_DIR}/include
+        ${sdl2_SOURCE_DIR}/include
+)
+
+target_compile_definitions(taller_client PRIVATE
+        CLIENT_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets"
+)
+
 target_sources(taller_client
     PRIVATE
         main.cpp
