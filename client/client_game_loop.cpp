@@ -1,52 +1,43 @@
-//
-// Created by victoria zubieta on 17/05/2026.
-//
 
 #include "client_game_loop.h"
 
 #include <SDL.h>
 
-#include <iostream>
-#include <variant>
+#define FRAME_DELAY_MS 10
 
-using namespace SDL2pp;
-
-ClientGameLoop::ClientGameLoop(Queue<ComandoJugador>& outgoing_commands):
-    commands_queue(outgoing_commands),
-    business(outgoing_commands),
+ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
+                               ClientBusiness& business,
+                               const uint16_t idCliente):
+    server_messages(server_messages),
+    business(business),
+    object_state(idCliente),
     is_running(false) {}
 
 ClientGameLoop::~ClientGameLoop() = default;
 
-void ClientGameLoop::init(const char* title, int xpos,
-    int ypos, int width, int height, bool fullscreen) {
-    uint32_t flags = SDL_WINDOW_SHOWN;
-    if (fullscreen) {
-        flags |= SDL_WINDOW_FULLSCREEN;
-    }
-    SDL sdl(SDL_INIT_VIDEO);
-    Window window(title, xpos, ypos, width, height, flags);
-    Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
-    window.Raise();
+void ClientGameLoop::init(const char* title,
+                          const int xpos,
+                          const int ypos,
+                          const int width,
+                          const int height,
+                          const bool fullscreen) {
+    object_renderer.init(title, xpos, ypos, width, height, fullscreen);
+
     is_running = true;
     while (is_running) {
         handleEvents();
         update();
+        render();
+        SDL_Delay(FRAME_DELAY_MS);
     }
-    renderer.SetDrawColor(30,30,30,255);
-    // Clear screen
-    renderer.Clear();
-
-    // Show rendered frame
-    renderer.Present();
-    SDL_Delay(3000);
-
 }
 
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (auto action = handler.handle_event(event)) {
+            object_animation.on_action(*action);
+            object_state.notify_move_requested(SDL_GetTicks());
             business.save_command(*action);
         }
     }
@@ -56,19 +47,17 @@ void ClientGameLoop::handleEvents() {
     }
 }
 
-// ver como se actualizan los comandos
 void ClientGameLoop::update() {
-    ComandoJugador command;
-    while (commands_queue.try_pop(command)) {
-        if (command.opcode == Opcode::MOVER) {
-            const auto move = std::get<ComandoMover>(command.payload);
-            std::cout << "Move command queued. direction=" << static_cast<int>(move.direccion)
-                      << std::endl;
-        }
-    }
+    const uint32_t current_tick = SDL_GetTicks();
+    object_state.upload_server_msg(server_messages, current_tick);
+    object_renderer.update_animation(current_tick, object_state, object_animation);
 }
 
+void ClientGameLoop::render() {
+    object_renderer.render(object_state, object_animation);
+}
 
+void ClientGameLoop::clean() {}
 
 bool ClientGameLoop::isRunning() const {
     return is_running;

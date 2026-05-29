@@ -18,6 +18,7 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
         dataJugador.crearPersonaje = true;
     } else {dataJugador.crearPersonaje = false;}
     dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
+    dataJugador.password = recibirCadenaConMaximo(MAX_NICK);
     dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
     dataJugador.raza = static_cast<Raza>(recibirUnByte());
     return dataJugador;
@@ -25,6 +26,7 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
 
 void ProtocoloServidor::enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje) {
     enviarUnByte(static_cast<uint8_t>(Opcode::ESTADO_USUARIO));
+    enviarUnByte(mensaje.id);
     enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(mensaje.error));
 }

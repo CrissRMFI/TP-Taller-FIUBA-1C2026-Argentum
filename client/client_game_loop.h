@@ -5,24 +5,30 @@
 #ifndef TALLER_TP_CLIENT_GAME_LOOP_H
 #define TALLER_TP_CLIENT_GAME_LOOP_H
 
-#include <memory>
+#include <cstdint>
 
+#include "../common/protocolo/mensaje_servidor.h"
+#include "../common/thread/queue.h"
+#include "assets/client_game_world.h"
+#include "assets/client_renderer.h"
+#include "assets/object_animation.h"
 #include "client_business.h"
 #include "handlers/client_input_handler.h"
-#include "../common/thread/queue.h"
-#include "SDL2pp/Renderer.hh"
-#include "SDL2pp/SDL.hh"
-#include "SDL2pp/Window.hh"
 
 class ClientGameLoop {
 private:
-    Queue<ComandoJugador>& commands_queue;
+    Queue<MensajeServidor>& server_messages;
     ClientInputHandler handler;
-    ClientBusiness business;
+    ClientBusiness& business;
+    ObjectGameWorld object_state;
+    ObjectAnimation object_animation;
+    ObjectRenderer object_renderer;
     bool is_running;
 
 public:
-    explicit ClientGameLoop(Queue<ComandoJugador>& commands_queue);
+    ClientGameLoop(Queue<MensajeServidor>& server_messages,
+                   ClientBusiness& business,
+                   uint16_t idCliente);
     ~ClientGameLoop();
 
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
@@ -36,4 +42,4 @@ public:
 };
 
 
-#endif //TALLER_TP_CLIENT_GAME_LOOP_H
+#endif

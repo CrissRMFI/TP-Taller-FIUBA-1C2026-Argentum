@@ -25,7 +25,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         aleatorio() {}
 
 
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
@@ -45,14 +45,25 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
+    // Reconexion: la posicion deseada es la ultima conocida. Conexion nueva: el ancla del TOML. En ambos casos delegamos al BFS para garantizar colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
+    const Posicion posicionDeseada = (itDesconectado != jugadoresDesconectados.end())
+                                             ? itDesconectado->second.getPosicion()
+                                             : cfg.spawnInicial;
+
+    const std::optional<Posicion> posicionResuelta = buscarPosicionLibreCercaDe(posicionDeseada);
+    if (!posicionResuelta.has_value()) {
+        return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+
     if (itDesconectado != jugadoresDesconectados.end()) {
         jugadoresConectados.emplace(id, std::move(itDesconectado->second));
         jugadoresDesconectados.erase(itDesconectado);
+        jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
     } else {
         if (existeIdPersonaje(id)) {
             return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
         }
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, posicion, cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, *posicionResuelta, cfg));
     }
 
     indiceNicksConectados[nombre] = id;
@@ -176,7 +187,7 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::
     return std::nullopt;
 }
 
-std::optional<Posicion> Juego::buscarPosicionLibreParaResurreccion(
+std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
         const Posicion& origen, std::optional<uint16_t> idJugadorExcluido) const {
     if (!mapa.posicionValida(origen)) {
         return std::nullopt;
@@ -606,7 +617,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         } else if (estabaInmovilizado && !jugador.estaInmovilizado()) {
             Posicion posicionResurreccion = jugador.getPosicionResurreccion();
             std::optional<Posicion> posicionResurreccionCercana =
-                    buscarPosicionLibreParaResurreccion(posicionResurreccion, id);
+                    buscarPosicionLibreCercaDe(posicionResurreccion, id);
             if (!posicionResurreccionCercana.has_value()) {
                 // Intentar revivirlo en el proximo tick, manteniendolo inmovilizado
                 jugador.inmovilizar(posicionResurreccion.x, posicionResurreccion.y, deltaSegundos);
@@ -943,7 +954,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     // En ciudad la resurrección es inmediata. Fuera de ciudad se aplica la mecánica remota: espera proporcional a la distancia al sacerdote.
     if (mapa.esCiudad(posicionJugador)) {
         std::optional<Posicion> posicionResurreccion =
-                buscarPosicionLibreParaResurreccion(posicionJugador, idCliente);
+                buscarPosicionLibreCercaDe(posicionJugador, idCliente);
         if (!posicionResurreccion.has_value()) {
             return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
         }
@@ -969,7 +980,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     }
 
     std::optional<Posicion> posicionResurreccion =
-            buscarPosicionLibreParaResurreccion(sacerdote->getPosicion(), idCliente);
+            buscarPosicionLibreCercaDe(sacerdote->getPosicion(), idCliente);
     if (!posicionResurreccion.has_value()) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
@@ -1569,7 +1580,7 @@ std::list<EventoSalida> Juego::actualizarCriaturas() {
 
         std::optional<Jugador> jugadorCercano = buscarJugadorCercano(*criatura);
 
-        if (jugadorCercano.has_value()) {
+        if (jugadorCercano.has_value() && jugadorCercano->estaVivo()) {
             std::list<EventoSalida> mensajesAtaque =
                     moverCriaturaHacia(*criatura, jugadorCercano->getPosicion());
 

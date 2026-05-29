@@ -24,7 +24,8 @@ class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
 
-    std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion);
+    // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
+    std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza);
     std::list<EventoSalida> desconectarJugador(uint16_t id);
 
     std::list<EventoSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
@@ -102,7 +103,7 @@ class Juego {
     std::optional<uint16_t> buscarIdJugadorEn(
             const Posicion& posicion,
             std::optional<uint16_t> idExcluido = std::nullopt) const;
-    std::optional<Posicion> buscarPosicionLibreParaResurreccion(
+    std::optional<Posicion> buscarPosicionLibreCercaDe(
             const Posicion& origen,
             std::optional<uint16_t> idJugadorExcluido = std::nullopt) const;
     size_t contarAliadosClanCercanos(const Jugador& jugador) const;

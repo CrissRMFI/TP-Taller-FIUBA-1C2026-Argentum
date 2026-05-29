@@ -21,6 +21,12 @@ Window {
         visible: text !== ""
     }
 
+    component ImageButton: Image {
+    HoverHandler {
+        cursorShape: Qt.PointingHandCursor
+    }
+    }
+
     component TextField_: TextField {
         width: 230
         height: 30
@@ -108,14 +114,7 @@ Window {
         text: ""
     }
 
-    ErrorText {
-        id: errorMessageConexion
-        x: (unirseButton.x + unirseButton.width / 2) - (width / 2)
-        y: unirseButton.y + unirseButton.height + 10
-        text: ""
-    }
-
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 errorLogin = false;

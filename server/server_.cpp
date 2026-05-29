@@ -20,7 +20,8 @@ void Server::run() {
     ConfigCompleta config_completa = lector_config.cargar("config/game_config.toml");
 
     Gameloop gameloop(monitor_clientes, (std::move(config_completa)));
-    Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,gameloop.getColaEventosSesion());
+    Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,
+                        gameloop.getColaEventosSesion());
     aceptador.start();
     gameloop.start();
 

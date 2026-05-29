@@ -16,6 +16,7 @@ project(taller_tp
     LANGUAGES CXX
     )
 
+set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -106,7 +107,16 @@ if(TALLER_CLIENT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-        add_executable(taller_client)
+        add_executable(taller_client
+                client/assets/sprite_manager.cpp
+                client/assets/client_game_world.cpp
+                client/assets/client_game_world.h
+                client/assets/client_renderer.cpp
+                client/assets/client_renderer.h
+                client/assets/object_animation.cpp
+                client/assets/object_animation.h
+                client/client_game_loop.cpp
+                client/client_game_loop.cpp)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)

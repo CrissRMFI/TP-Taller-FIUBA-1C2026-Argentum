@@ -78,13 +78,15 @@ struct MensajeActualizarInventario {
 };
 
 enum class ErrorUsuario : uint8_t {
-    CuentaNoEncontrada = 0,
+    NombreUsuarioNoEncontrado = 0,
     NickYaExistente = 1,
     UsuarioYaConectado = 2,
-    Ninguno = 3,
+    PasswordIncorrecto = 3,
+    Ninguno = 4,
 };
 
 struct MensajeEstadoUsuario {
+  uint16_t id;
   std::string nick;
   ErrorUsuario error;
 };

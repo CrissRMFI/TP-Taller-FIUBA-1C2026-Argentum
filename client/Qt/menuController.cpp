@@ -1,18 +1,28 @@
 #include "menuController.h"
-#include "datosConexion.h"
 #include "cargarPersonaje/cargarPersonajeController.h"
 #include "login/loginController.h"
 #include "elegirPersonaje/elegirPersonajeController.h"
+
+#include "../../common/socket/socket.h"
+#include "../../common/socket/liberror.h"
 
 MenuController::MenuController(){}
 
 void MenuController::run(DatosConexion& datos) {
 
 	while (!terminoRegistro) {
-		LoginController login;
-		login.run(datos);
-		datos.clearError();
-
+		if (!loginYaRealizado) {
+			LoginController login;
+			login.run(datos);
+			try {
+				Socket preflight(datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str());
+				preflight.close();
+			} catch (...) {
+				datos = puertoHostInvalidos();
+				return;
+			}
+			datos.clearError();
+		}
 		while (true) {
 			CargarPersonajeController cargarPersonaje;
 			CargarPersonajeResultado cargarResultado;
@@ -43,17 +53,23 @@ void MenuController::run(DatosConexion& datos) {
     return;
 }
 
-DatosConexion MenuController::cuentaNoEncontrada() {
+DatosConexion MenuController::nombreUsuarioNoEncontrado(const DatosLogin& datosLogin) {
     DatosConexion datos;
-    datos.setErrorLogin(MensajeError::CuentaNoEncontrada);
+    datos.setErrorLogin(MensajeError::NombreUsuarioNoEncontrado);
+	loginYaRealizado = true;
     run(datos);
+	loginYaRealizado = false;
+	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
 	return datos;
 }
 
-DatosConexion MenuController::nickYaExistente() {
+DatosConexion MenuController::nickYaExistente(const DatosLogin& datosLogin) {
     DatosConexion datos;
     datos.setErrorLogin(MensajeError::NickYaExistente);
+	loginYaRealizado = true;
 	run(datos);
+	loginYaRealizado = false;
+	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
 	return datos;
 }
 
@@ -64,9 +80,22 @@ DatosConexion MenuController::puertoHostInvalidos() {
 	return datos;
 }
 
-DatosConexion MenuController::usuarioYaConectado() {
+DatosConexion MenuController::usuarioYaConectado(const DatosLogin& datosLogin) {
     DatosConexion datos;
     datos.setErrorLogin(MensajeError::UsuarioYaConectado);
+	loginYaRealizado = true;
     run(datos);
+	loginYaRealizado = false;
+	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
+    return datos;
+}
+
+DatosConexion MenuController::passwordIncorrecto(const DatosLogin& datosLogin) {
+    DatosConexion datos;
+    datos.setErrorLogin(MensajeError::PasswordIncorrecto);
+	loginYaRealizado = true;
+    run(datos);
+	loginYaRealizado = false;
+	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
     return datos;
 }
