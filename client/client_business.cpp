@@ -6,24 +6,10 @@
 
 ClientBusiness::ClientBusiness(Queue<ComandoJugador>& incoming_data): incoming_data(incoming_data) {}
 
-ComandoJugador ClientBusiness::process_action(GameAction action) const {
-    switch (action) {
-        case GameAction::MoveUp:
-            return {Opcode::MOVER, ComandoMover{0}};
-
-        case GameAction::MoveDown:
-            return {Opcode::MOVER, ComandoMover{1}};
-
-        case GameAction::MoveLeft:
-            return {Opcode::MOVER, ComandoMover{2}};
-
-        case GameAction::MoveRight:
-            return {Opcode::MOVER, ComandoMover{3}};
-    }
-
-    throw std::runtime_error("accion de cliente invalida");
+ComandoJugador ClientBusiness::process_action(const GameAction action) const {
+    return {Opcode::MOVER, ComandoMover{direction_for_protocol(action)}};
 }
 
-void ClientBusiness::save_command(GameAction action) {
+void ClientBusiness::save_command(const GameAction action) {
     incoming_data.push(process_action(action));
 }

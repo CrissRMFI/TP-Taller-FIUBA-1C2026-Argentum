@@ -26,6 +26,9 @@ std::optional<GameAction> ClientInputHandler::handle_event(const SDL_Event &even
         quit_requested = true;
     }
     if (event.type == SDL_KEYDOWN) {
+        if (event.key.repeat != 0) {
+            return std::nullopt;
+        }
         return handle_keyboard(event.key.keysym.sym);
     }
     return std::nullopt;
