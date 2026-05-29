@@ -3,7 +3,10 @@
 //
 
 #include "client_receiver.h"
+
+#include "../common/socket/liberror.h"
 #include "../common/thread/queue.h"
+
 
 ClientReceiver::ClientReceiver(ProtocoloCliente& protocol, Queue<MensajeServidor>& message_queue):
     protocol(protocol),
@@ -11,18 +14,17 @@ ClientReceiver::ClientReceiver(ProtocoloCliente& protocol, Queue<MensajeServidor
 {}
 
 void ClientReceiver::run() {
-    // std::cout << "Receptor has started" << std::endl;
     try {
         while (running) {
-            // obtener los mensajes del servidor
-
             MensajeServidor message = protocol.recibirMensaje();
             queue.push(message);
-            std::cout << "recibidor push comando"<< static_cast<int>(message.opcode)<< std::endl;
-
         }
-    } catch (const std::exception&) {
-        std::cout << "Receiver has stopped!" << std::endl;
+    } catch (const ClosedQueue& e) {
+        std::cout << "[receiver] stopped: queue closed: " << e.what() << std::endl;
+    } catch (const LibError& e) {
+        std::cout << "[receiver] stopped: socket/protocol error: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "[receiver] stopped: " << e.what() << std::endl;
     }
 }
 void ClientReceiver::stop() { running = false; }

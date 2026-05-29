@@ -15,20 +15,20 @@ class ClientManager : public Thread {
 private:
     ProtocoloCliente protocol;
     handshakeInicial handshake;
-    Queue<ComandoJugador>& incoming_data;
-    Queue<MensajeServidor> outgoing_data;
+    Queue<ComandoJugador>& outbound_commands;
+    Queue<MensajeServidor>& inbound_messages;
     std::atomic<bool> running{true};
     uint16_t idCliente;
 
 public:
     ClientManager(Socket&& skt,
-        Queue<ComandoJugador>& incoming_events,
+        Queue<ComandoJugador>& outbound_commands,
+        Queue<MensajeServidor>& inbound_messages,
         DatosConexion& datos);
 
     ClientManager(const ClientManager&) = delete;
     ClientManager& operator=(const ClientManager&) = delete;
 
-    Queue<MensajeServidor>& get_outgoing_events();
     void run() override;
     void stop() override;
 
