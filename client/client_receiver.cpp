@@ -18,7 +18,6 @@ void ClientReceiver::run() {
 
             MensajeServidor message = protocol.recibirMensaje();
             queue.push(message);
-            std::cout << "recibidor push comando"<< static_cast<int>(message.opcode)<< std::endl;
 
         }
     } catch (const std::exception&) {

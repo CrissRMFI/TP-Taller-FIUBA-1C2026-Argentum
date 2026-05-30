@@ -37,8 +37,6 @@ void Aceptador::run() {
                 conexionValida = verificarConexionCliente(idCliente, passwordValido, handshake, *protocolo_servidor);
 
             }catch (const std::exception& e) {
-
-                std::cerr << "Error al recibir procesar conexión: " << e.what() << '\n';
                 continue;
             }
             
