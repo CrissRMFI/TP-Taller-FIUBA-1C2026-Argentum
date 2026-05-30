@@ -12,7 +12,13 @@
 #include "../common/socket/liberror.h"
 #include "../common/thread/queue.h"
 
-ClientManager::ClientManager(Socket&& skt, Queue<ComandoJugador>& incoming_events, DatosConexion& datos): protocol(std::move(skt)), incoming_data(incoming_events) {
+ClientManager::ClientManager(Socket&& skt,
+                             Queue<ComandoJugador>& outbound_commands,
+                             Queue<MensajeServidor>& inbound_messages,
+                             DatosConexion& datos):
+        protocol(std::move(skt)),
+        outbound_commands(outbound_commands),
+        inbound_messages(inbound_messages) {
     handshake.nombre = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick : datos.getDatosPersonaje().nick;
     handshake.password = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().password : datos.getDatosPersonaje().password;
     handshake.crearPersonaje = datos.esConexionNuevoPersonaje();
@@ -21,13 +27,10 @@ ClientManager::ClientManager(Socket&& skt, Queue<ComandoJugador>& incoming_event
         handshake.raza = datos.getDatosNuevoPersonaje().raza;
     }
 }
-
-
-Queue<MensajeServidor>& ClientManager::get_outgoing_events() { return this->outgoing_data; }
 void ClientManager::run() {
     std::cout << "Conectado como: " << handshake.nombre << "\n";
-    ClientSender sender(protocol, incoming_data);
-    ClientReceiver receiver(protocol, outgoing_data);
+    ClientSender sender(protocol, outbound_commands);
+    ClientReceiver receiver(protocol, inbound_messages);
     receiver.start();
     sender.start();
     sender.join();
@@ -38,8 +41,8 @@ void ClientManager::stop() {
     running = false;
     try {
         protocol.cerrarConexion();
-        incoming_data.close();
-        outgoing_data.close();
+        outbound_commands.close();
+        inbound_messages.close();
 
     } catch (const LibError&) {
         // socket cerrado ignoramos

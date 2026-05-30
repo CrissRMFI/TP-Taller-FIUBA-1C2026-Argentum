@@ -3,19 +3,22 @@
 //
 
 #include "client_sender.h"
+#include "client_data.h"
 #include "../common/thread/queue.h"
+
 ClientSender::ClientSender(ProtocoloCliente& protocol, Queue<ComandoJugador>& incoming_queue):
         protocol(protocol), command_queue(incoming_queue) {}
 
 void ClientSender::run() {
     try {
         while (running) {
-            // mandar los comandos al servidor
             ComandoJugador comando = command_queue.pop();
             protocol.enviarComando(comando);
         }
-    } catch (const std::runtime_error&) {
-        // std::cout << "Sender has stopped" << std::endl;
+    } catch (const ClosedQueue&) {
+        std::cout << "[sender] stopped: command queue closed" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "[sender] stopped: " << e.what() << std::endl;
     }
 }
 

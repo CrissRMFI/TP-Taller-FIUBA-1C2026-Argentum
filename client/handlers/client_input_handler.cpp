@@ -32,6 +32,9 @@ std::optional<ComandoJugador> ClientInputHandler::handle_event(const SDL_Event &
         quit_requested = true;
     }
     if (event.type == SDL_KEYDOWN) {
+        if (event.key.repeat != 0) {
+            return std::nullopt;
+        }
         return handle_keyboard(event.key.keysym.sym);
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
