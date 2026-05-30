@@ -34,19 +34,23 @@ bool MonitorClientes::estaConectado(const uint16_t idCliente) {
     return nombresUsuariosConectados.find(idCliente) != nombresUsuariosConectados.end();
 }
 
-uint16_t MonitorClientes::idCliente(const std::string& nombre) {
+
+// se asocia el nombre con el password del cliente
+std::pair<bool, uint16_t> MonitorClientes::idCliente(
+        const std::string& nombre,
+        const std::string& password) {
     std::lock_guard<std::mutex> lock(mtx);
-    for (const auto& [idCliente, nombreCliente] : nombresUsuariosConectados) {
-        if (nombreCliente == nombre) {
-            return idCliente;
+    for (const auto& [idCliente, clienteData] : nombresUsuariosConectados) {
+        if (clienteData.first == nombre) {
+            return std::make_pair(clienteData.second == password, idCliente);
         }
     }
-    for (const auto& [idCliente, nombreCliente] : nombresUsuariosDesconectados) {
-        if (nombreCliente == nombre) {
-            return idCliente;
+    for (const auto& [idCliente, clienteData] : nombresUsuariosDesconectados) {
+        if (clienteData.first == nombre) {
+            return std::make_pair(clienteData.second == password, idCliente);
         }
     }
-    return 0;
+    return std::make_pair(false, 0);
 }
 
 Queue<MensajeServidor>* MonitorClientes::getColasClientes(const uint16_t idCliente) {
@@ -64,12 +68,14 @@ std::string MonitorClientes::nombreCliente(const uint16_t idCliente) {
     if (it == nombresUsuariosConectados.end()) {
         return "" ;
     }
-    return it->second;
+    return it->second.first;
 }
 
-void MonitorClientes::setNombreCliente(const uint16_t idCliente, const std::string& nombreCliente) {
+void MonitorClientes::setCliente(const uint16_t idCliente,
+                                 const std::string& nombreCliente,
+                                 const std::string& password) {
     std::lock_guard<std::mutex> lock(mtx);
-    nombresUsuariosConectados[idCliente] = nombreCliente;
+    nombresUsuariosConectados[idCliente] = std::make_pair(nombreCliente, password);
     if (nombresUsuariosDesconectados.find(idCliente) != nombresUsuariosDesconectados.end()) {
         nombresUsuariosDesconectados.erase(idCliente);
     }

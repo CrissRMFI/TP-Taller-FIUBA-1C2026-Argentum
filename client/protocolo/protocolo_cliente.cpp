@@ -17,6 +17,7 @@ void ProtocoloCliente::cerrarConexion() {
 void ProtocoloCliente::enviarUsuario(const handshakeInicial& dataJugador) {
     enviarUnByte(dataJugador.crearPersonaje ? 1 : 0);
     enviarCadenaConMaximo(dataJugador.nombre, MAX_NICK);
+    enviarCadenaConMaximo(dataJugador.password, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(dataJugador.clasePersonaje));
     enviarUnByte(static_cast<uint8_t>(dataJugador.raza));
 }
@@ -344,8 +345,8 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::LISTA_ITEMS:
             return recibirListaItems();
 
-        // case Opcode::ERROR_ACCION:
-        //     return recibirErrorAccion();
+        case Opcode::ERROR_ACCION:
+            return recibirErrorAccion();
 
         default:
             throw std::runtime_error(
@@ -496,6 +497,15 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
     return MensajeServidor{
             Opcode::LISTA_ITEMS,
             MensajeListaItems{ids},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirErrorAccion() {
+    const CodigoErrorAccion codigo = static_cast<CodigoErrorAccion>(recibirUnByte());
+
+    return MensajeServidor{
+            Opcode::ERROR_ACCION,
+            MensajeErrorAccion{codigo},
     };
 }
 
