@@ -17,7 +17,6 @@ void Recibidor::run() {
     try {
         while (running) {
             ComandoJugador comando = proto.recibirComando();
-            std::cout << "[opcode " << static_cast<int>(comando.opcode) << "] recibido \n";
             colaComando.push(ComandoCliente{idCliente, comando});
         }
     } catch (std::exception &e) {

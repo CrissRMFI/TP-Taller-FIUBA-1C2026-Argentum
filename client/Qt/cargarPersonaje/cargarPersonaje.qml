@@ -10,11 +10,19 @@ Window {
     maximumHeight: minimumHeight
     visible: true
     title: qsTr("Inicia Sesión")
+    property bool errorLogin: cargarPersonajeController.huboErrorLogin()
 
     Image {
         id: seleccionPersonaje
         source: "../graficos/InicioSesion.png"
         anchors.fill: parent
+        z: 0
+    }
+
+    component ImageButton: Image {
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
     }
 
     component ErrorText: Text {
@@ -98,20 +106,43 @@ Window {
         text: ""
     }
 
-    Image {
+    ErrorText {
+        id: errorLoginMessage
+        x: parent.width / 2 - width / 2
+        y: crearCuentaButton.y - height * 1.5
+        z: 2
+        visible: errorLogin && text !== ""
+        text: cargarPersonajeController.getErrorLoginMessage()
+    }
+
+    ErrorText {
+        id: errorUnirseMessage
+        x: parent.width / 2 - width / 2
+        y: crearCuentaButton.y - height * 1.5
+        text: ""
+    }
+
+    ImageButton {
         TapHandler {
             onTapped: {
-                if (nickInput.text !== "" && passwordInput.text !== "") {
-                    if (!cargarPersonajeController.esTextoValido(nickInput.text) || !cargarPersonajeController.esTextoValido(passwordInput.text)) {
-                        console.log("El nick/contraseña no debe tener espacios y tiene que ser menor o igual a 32 bytes.");
-                        return;
-                    }
-                    cargarPersonajeController.setNick(nickInput.text);
-                    cargarPersonajeController.setPassword(passwordInput.text);
-                    console.log("Verificando existencia de cuenta...");
+                errorLogin = false;
+                if (nickInput.text === "" || passwordInput.text === "") {
+                    errorMessageNick.text = "";
+                    errorMessagePassword.text = "";
+                    errorUnirseMessage.text = "Por favor, complete todos los campos";
                 } else {
-                    errorMessageNick.text = nickInput.text === "" ? "Por favor, ingrese su nick" : "";
-                    errorMessagePassword.text = passwordInput.text === "" ? "Por favor, ingrese su contraseña" : "";
+                    errorUnirseMessage.text = "";
+                    const nickValido = cargarPersonajeController.esTextoValido(nickInput.text);
+                    const passwordValido = cargarPersonajeController.esTextoValido(passwordInput.text);
+
+                    errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
+                    errorMessagePassword.text = !passwordValido ? "La contraseña no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
+
+                    if (nickValido && passwordValido) {
+                        cargarPersonajeController.setNick(nickInput.text);
+                        cargarPersonajeController.setPassword(passwordInput.text);
+                        console.log("Intentando unirse a la partida...");
+                    }
                 }
             }
         }
@@ -123,7 +154,7 @@ Window {
         source: "../graficos/emptybutton.png"
     }
 
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 console.log("Volviendo al menú principal");
@@ -138,7 +169,7 @@ Window {
         source: "../graficos/emptybutton.png"
     }
 
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 console.log("Rediriguiendo a la pantalla de creación de cuenta");

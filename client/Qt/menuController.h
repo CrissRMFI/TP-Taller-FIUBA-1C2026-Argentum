@@ -8,12 +8,14 @@ class MenuController{
 public:
     MenuController();
     void run(DatosConexion& datos);
-    DatosConexion cuentaNoEncontrada();
-    DatosConexion nickYaExistente();
+    DatosConexion nombreUsuarioNoEncontrado(const DatosLogin& datosLogin);
+    DatosConexion nickYaExistente(const DatosLogin& datosLogin);
     DatosConexion puertoHostInvalidos();
-    DatosConexion usuarioYaConectado();
+    DatosConexion usuarioYaConectado(const DatosLogin& datosLogin);
+    DatosConexion passwordIncorrecto(const DatosLogin& datosLogin);
 private:
     bool terminoRegistro = false;
+    bool loginYaRealizado = false;
 };
 
 #endif
