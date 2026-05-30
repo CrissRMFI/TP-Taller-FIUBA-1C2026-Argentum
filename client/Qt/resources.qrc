@@ -7,22 +7,22 @@
         <file>graficos/ventanalauncher.png</file>
         <file>graficos/VolverButton.png</file>
         <file>graficos/emptybutton.png</file>
-        <file>../assets/imags/cabezas/Elfo/2010.png</file>
-        <file>../assets/imags/cabezas/Elfo/2011.png</file>
-        <file>../assets/imags/cabezas/Elfo/2012.png</file>
-        <file>../assets/imags/cabezas/Enano/2020.png</file>
-        <file>../assets/imags/cabezas/Enano/2021.png</file>
-        <file>../assets/imags/cabezas/Enano/2022.png</file>
-        <file>../assets/imags/cabezas/Gnomo/2030.png</file>
-        <file>../assets/imags/cabezas/Gnomo/2031.png</file>
-        <file>../assets/imags/cabezas/Humano/2000.png</file>
-        <file>../assets/imags/cabezas/Humano/2002.png</file>
-        <file>../assets/imags/cabezas/Humano/2001.png</file>
+        <file>../assets/imgs/cabezas/Elfo/2010.png</file>
+        <file>../assets/imgs/cabezas/Elfo/2011.png</file>
+        <file>../assets/imgs/cabezas/Elfo/2012.png</file>
+        <file>../assets/imgs/cabezas/Enano/2020.png</file>
+        <file>../assets/imgs/cabezas/Enano/2021.png</file>
+        <file>../assets/imgs/cabezas/Enano/2022.png</file>
+        <file>../assets/imgs/cabezas/Gnomo/2030.png</file>
+        <file>../assets/imgs/cabezas/Gnomo/2031.png</file>
+        <file>../assets/imgs/cabezas/Humano/2000.png</file>
+        <file>../assets/imgs/cabezas/Humano/2002.png</file>
+        <file>../assets/imgs/cabezas/Humano/2001.png</file>
         <file>graficos/leftArrow.png</file>
         <file>graficos/rightArrow.png</file>
-        <file>../assets/imags/cuerpos/Humano/2100.png</file>
-        <file>../assets/imags/cuerpos/Elfo/2110.png</file>
-        <file>../assets/imags/cuerpos/Enano/2120.png</file>
-        <file>../assets/imags/cuerpos/Gnomo/2130.png</file>
+        <file>../assets/imgs/cuerpos/Humano/2100.png</file>
+        <file>../assets/imgs/cuerpos/Elfo/2110.png</file>
+        <file>../assets/imgs/cuerpos/Enano/2120.png</file>
+        <file>../assets/imgs/cuerpos/Gnomo/2130.png</file>
     </qresource>
 </RCC>

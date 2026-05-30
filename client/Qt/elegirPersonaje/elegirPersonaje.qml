@@ -171,11 +171,11 @@ Window {
         y: razaDesplegable.y
         source: {
             switch (raza) {
-                case "Elfo": return `../../assets/imags/cabezas/Elfo/${pngCabezaIndexElfo}.png`;
-                case "Enano": return `../../assets/imags/cabezas/Enano/${pngCabezaIndexEnano}.png`;
-                case "Gnomo": return `../../assets/imags/cabezas/Gnomo/${pngCabezaIndexGnomo}.png`;
+                case "Elfo": return `../../assets/imgs/cabezas/Elfo/${pngCabezaIndexElfo}.png`;
+                case "Enano": return `../../assets/imgs/cabezas/Enano/${pngCabezaIndexEnano}.png`;
+                case "Gnomo": return `../../assets/imgs/cabezas/Gnomo/${pngCabezaIndexGnomo}.png`;
                 case "Humano":
-                default: return `../../assets/imags/cabezas/Humano/${pngCabezaIndexHumano}.png`;
+                default: return `../../assets/imgs/cabezas/Humano/${pngCabezaIndexHumano}.png`;
             }
         }
         sourceClipRect: Qt.rect(0, 0, 16, 15)
@@ -246,11 +246,11 @@ Window {
         y: characterHead.y + characterHead.height
         source: {
             switch (raza) {
-                case "Elfo": return `../../assets/imags/cuerpos/Elfo/${pngCuerpoIndexElfo}.png`;
-                case "Enano": return `../../assets/imags/cuerpos/Enano/${pngCuerpoIndexEnano}.png`;
-                case "Gnomo": return `../../assets/imags/cuerpos/Gnomo/${pngCuerpoIndexGnomo}.png`;
+                case "Elfo": return `../../assets/imgs/cuerpos/Elfo/${pngCuerpoIndexElfo}.png`;
+                case "Enano": return `../../assets/imgs/cuerpos/Enano/${pngCuerpoIndexEnano}.png`;
+                case "Gnomo": return `../../assets/imgs/cuerpos/Gnomo/${pngCuerpoIndexGnomo}.png`;
                 case "Humano":
-                default: return `../../assets/imags/cuerpos/Humano/${pngCuerpoIndexHumano}.png`;
+                default: return `../../assets/imgs/cuerpos/Humano/${pngCuerpoIndexHumano}.png`;
             }
         }
         sourceClipRect: raza == "Enano" || raza == "Gnomo" ? Qt.rect(0, 15, 25, 28) : Qt.rect(0, 7, 25, 38)
