@@ -82,6 +82,8 @@ class ProtocoloServidor : public Protocolo {
     void enviarMuerteEntidad(const MensajeMuerteEntidad& mensaje);
     void enviarItemEnSuelo(const MensajeItemEnSuelo& mensaje);
     void enviarItemDesaparecioSuelo(const MensajeItemDesaparecioSuelo& mensaje);
+    void enviarOroEnSuelo(const MensajeOroEnSuelo& mensaje);
+    void enviarOroDesaparecioSuelo(const MensajeOroDesaparecioSuelo& mensaje);
     void enviarActualizarInventario(const MensajeActualizarInventario& mensaje);
     void enviarActualizarEquipamiento(const MensajeActualizarEquipamiento& mensaje);
     void enviarMensajeChat(const MensajeChat& mensaje);

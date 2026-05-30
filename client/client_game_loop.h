@@ -6,6 +6,7 @@
 #define TALLER_TP_CLIENT_GAME_LOOP_H
 
 #include <cstdint>
+#include <optional>
 
 #include "../common/protocolo/mensaje_servidor.h"
 #include "../common/thread/queue.h"
@@ -37,7 +38,7 @@ public:
     void render();
     void clean();
     bool isRunning() const;
-
+    std::optional<GameAction> animation_action_for_command(const ComandoJugador& command) const;
 
 };
 

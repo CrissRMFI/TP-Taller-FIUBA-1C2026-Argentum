@@ -31,7 +31,6 @@ public slots:
     void volverACrearCuenta();
 
     bool huboErrorLogin() const;
-
     QString getNick() const;
     QString getPassword() const;
     QString getErrorLoginMessage() const;

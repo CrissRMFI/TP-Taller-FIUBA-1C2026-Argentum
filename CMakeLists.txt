@@ -116,7 +116,9 @@ if(TALLER_CLIENT)
                 client/assets/object_animation.cpp
                 client/assets/object_animation.h
                 client/client_game_loop.cpp
-                client/client_game_loop.cpp)
+                client/client_game_loop.cpp
+                client/client_game_loop.h
+                )
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)

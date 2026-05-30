@@ -35,9 +35,20 @@ void ObjectRenderer::init(const char* title,
     }
 
     sdl = std::make_unique<SDL2pp::SDL>(SDL_INIT_VIDEO);
-    SDL2pp::SDLImage image_init(IMG_INIT_PNG);
+    image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
     renderer = std::make_unique<SDL2pp::Renderer>(*window, -1, SDL_RENDERER_ACCELERATED);
+    window_width = width;
+    window_height = height;
+
+    try {
+        const std::string background_path =
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/pasto.png";
+        SDL2pp::Surface background_surface(background_path);
+        background_texture = std::make_unique<SDL2pp::Texture>(*renderer, background_surface);
+    } catch (const std::exception& e) {
+        std::cerr << "Error al cargar el fondo: " << e.what() << std::endl;
+    }
 
     try {
         const std::string sprite_path = std::string(CLIENT_ASSETS_DIR) + "/imgs/1071.png";
@@ -61,7 +72,7 @@ void ObjectRenderer::init(const char* title,
                 SPRITE_TOP_PADDING + 3 * (SPRITE_FRAME_HEIGHT + SPRITE_ROW_GAP),
                 SPRITE_FRAME_STEP_X);
     } catch (const std::exception& e) {
-        std::cerr << "Error al cargar la imagen: " << e.what() << std::endl;
+        std::cerr << "Error al cargar el sprite del jugador: " << e.what() << std::endl;
     }
 
     window->Raise();
@@ -92,21 +103,69 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         return;
     }
 
-    renderer->SetDrawColor(30, 30, 30, 255);
-    renderer->Clear();
+    if (background_texture) {
+        renderer->Clear();
+        renderer->Copy(*background_texture, SDL2pp::NullOpt,
+                       SDL2pp::Rect(0, 0, window_width, window_height));
+    } else {
+        renderer->SetDrawColor(0, 255, 0, 255);
+        renderer->Clear();
+    }
 
     for (const auto& [id, entity] : state_object.entities()) {
-        if (id == state_object.client_id() && sprite_manager) {
-            sprite_manager->render(*renderer, state_object.player_x(), state_object.player_y(),
-                                   animation.current_animation_row(), 2.0f);
-           // continue;
+        const int cell_width = std::max(1, window_width / 100);
+        const int cell_height = std::max(1, window_height / 100);
+        const int entity_x = entity.x * window_width / 100;
+        const int entity_y = entity.y * window_height / 100;
+
+        if (entity.tipo == 0 && sprite_manager) {
+            const int sprite_width = SPRITE_FRAME_WIDTH * 2;
+            const int sprite_height = SPRITE_FRAME_HEIGHT * 2;
+            const int sprite_x = entity_x - (sprite_width - cell_width) / 2;
+            const int sprite_y = entity_y - (sprite_height - cell_height) / 2;
+            const int animation_row =
+                    (id == state_object.client_id()) ? animation.current_animation_row() : 0;
+
+            if (entity.estado == 1 && texture) {
+                SDL_SetTextureBlendMode(texture->Get(), SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(texture->Get(), 128);
+            } else if (texture) {
+                SDL_SetTextureAlphaMod(texture->Get(), 255);
+            }
+
+            sprite_manager->render(*renderer, sprite_x, sprite_y,
+                                   animation_row, 0.75f);
+
+            if (texture) {
+                SDL_SetTextureAlphaMod(texture->Get(), 255);
+            }
+            continue;
         }
 
-        // otras entidades del juego (de momento son mini rectangulos)
-        // renderer->SetDrawColor(100, 50, 50, 255);
-        // SDL_Rect rect = {static_cast<int>(entity.x), static_cast<int>(entity.y), 2, 2};
-        // renderer->FillRect(rect);
+        const SDL_Color color = elegircolor(entity.tipo, entity.estado);
+        renderer->SetDrawColor(color.r, color.g, color.b, color.a);
+        renderer->FillRect(SDL2pp::Rect(entity_x, entity_y, cell_width, cell_height));
     }
 
     renderer->Present();
+}
+SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
+    if (tipo == 0) {
+        switch (estado) {
+            case 0:
+                return {0, 0, 255, 255};
+            case 1:
+                return {128, 128, 128, 255};
+            case 2:
+                return {255, 255, 0, 255};
+            default:
+                break;
+        }
+    } else if (tipo == 1) {
+        return {255, 0, 0, 255};
+    } else if (tipo == 2) {
+        return {0, 180, 0, 255};
+    }
+
+    return {255, 255, 255, 255};
 }

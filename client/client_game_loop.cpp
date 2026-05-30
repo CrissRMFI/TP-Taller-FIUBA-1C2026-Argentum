@@ -22,6 +22,8 @@ void ClientGameLoop::init(const char* title,
                           const int height,
                           const bool fullscreen) {
     object_renderer.init(title, xpos, ypos, width, height, fullscreen);
+    handler.set_window_dimensions(width, height);
+    handler.setIdCliente(object_state.client_id());
 
     is_running = true;
     while (is_running) {
@@ -35,10 +37,12 @@ void ClientGameLoop::init(const char* title,
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (auto action = handler.handle_event(event)) {
-            object_animation.on_action(*action);
-            object_state.notify_move_requested(SDL_GetTicks());
-            business.save_command(*action);
+        if (auto command = handler.handle_event(event, object_state.entities())) {
+            if (auto action = animation_action_for_command(*command)) {
+                object_animation.on_action(*action);
+                object_state.notify_move_requested(SDL_GetTicks());
+            }
+            business.save_command(*command);
         }
     }
 
@@ -61,4 +65,29 @@ void ClientGameLoop::clean() {}
 
 bool ClientGameLoop::isRunning() const {
     return is_running;
+}
+
+std::optional<GameAction> ClientGameLoop::animation_action_for_command(
+        const ComandoJugador& command) const {
+    if (command.opcode != Opcode::MOVER) {
+        return std::nullopt;
+    }
+
+    const auto* move = std::get_if<ComandoMover>(&command.payload);
+    if (move == nullptr) {
+        return std::nullopt;
+    }
+
+    switch (move->direccion) {
+        case 0:
+            return GameAction::MoveUp;
+        case 1:
+            return GameAction::MoveDown;
+        case 2:
+            return GameAction::MoveLeft;
+        case 3:
+            return GameAction::MoveRight;
+        default:
+            return std::nullopt;
+    }
 }

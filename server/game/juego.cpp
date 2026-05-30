@@ -1,5 +1,6 @@
 #include "juego.h"
 
+#include <iostream>
 #include <array>
 #include <cstdlib>
 #include <limits>
@@ -777,8 +778,8 @@ std::list<EventoSalida> Juego::ejecutarUnirseClan(uint16_t idCliente,
     // Notificar al fundador si está conectado
     std::list<EventoSalida> mensajes;
     uint16_t idClan = clan->getId();
-    for (auto& [id, jugador] : jugadoresConectados) {
-        if (jugador.fundo_clan() && jugador.getClan() == idClan) {
+    for (auto& [id, jugador_] : jugadoresConectados) {
+        if (jugador_.fundo_clan() && jugador_.getClan() == idClan) {
             mensajes.push_back({TipoDestino::UNO, id,
                                 EventoClan{TipoEventoClan::MiembroPendiente, nickSolicitante}});
         }
@@ -1131,7 +1132,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
     const std::optional<uint16_t> idClienteObjetivo =
             buscarIdClienteDeJugador(cmd.idObjetivo);
-
+    std::cout << "El jugador con id " << atacante->getId() << " ataca al jugador con id " << cmd.idObjetivo << std::endl;
     if (!objetivo || !idClienteObjetivo.has_value() || !objetivo->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1140,14 +1141,17 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const Posicion posicionObjetivo = objetivo->getPosicion();
 
     if (!posicionAtacante.mismaMapa(posicionObjetivo)) {
+        std::cout << "Atacante y objetivo no están en el mismo mapa" << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionObjetivo)) {
+        std::cout << "Atacante o objetivo están en zona segura" << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     if (atacante->es_newbie() || objetivo->es_newbie()) {
+        std::cout << "Atacante o objetivo son nuevos" << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -1155,11 +1159,13 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                          static_cast<int>(objetivo->getNivel()));
 
     if (diferenciaNivel > cfg.maxDiffNivel) {
+        std::cout << "La diferencia de nivel entre atacante y objetivo es demasiado grande: " << diferenciaNivel << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     if (atacante->tieneClan() && objetivo->tieneClan() &&
         atacante->getClan() == objetivo->getClan()) {
+        std::cout << "Atacante y objetivo pertenecen al mismo clan" << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -1168,17 +1174,21 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
+        std::cout << "El atacante intenta usar un hechizo no ofensivo" << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     const int distanciaAlObjetivo = posicionAtacante.distanciaManhattan(posicionObjetivo);
     if (distanciaAlObjetivo > descriptorAtaque.alcanceMaximo) {
+        std::cout << "El objetivo está fuera del alcance del ataque: distancia " << distanciaAlObjetivo
+                  << ", alcance máximo " << descriptorAtaque.alcanceMaximo << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     bool atacanteConsumioMana = false;
     if (descriptorAtaque.costoMana > 0) {
         if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
+            std::cout << "El atacante no tiene mana suficiente" << std::endl;
             return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
         }
         atacanteConsumioMana = true;
@@ -1208,6 +1218,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
     } else {
         const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
+        std::cout << "El atacante con id " << atacante->getId() << " ataca al jugador con id " << objetivo->getId() << " y causa " << danioAplicado << " de daño" << std::endl;
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoDanioProducido{danioAplicado, objetivo->getId()}});
@@ -1245,6 +1256,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             atacanteGanoXp = true;
         }
 
+        std::cout << "El jugador con id " << objetivo->getId() << " ha muerto" << std::endl;
         mensajes.splice(mensajes.end(), emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
     }
 
@@ -1734,6 +1746,10 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
             danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio,
             multiplicadorClan(*jugador));
 
+    // Jugador sale de estado de meditando al ser atacado, si estaba meditanto.
+    jugador->cancelarMeditacion();
+    mensajes.push_back(armarEstado(idJugador, *jugador));
+
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
                                         EventoEsquive{idJugador, /*esquivador=*/1}});
@@ -1998,10 +2014,12 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const Posicion posicionCriatura = criatura.getPos();
 
     if (!posicionAtacante.mismaMapa(posicionCriatura)) {
+        std::cerr << "Error: atacante y criatura no están en el mismo mapa." << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionCriatura)) {
+        std::cerr << "Error: atacante o criatura están en zona segura." << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -2010,17 +2028,20 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
+        std::cerr << "Error: el atacante intenta usar un hechizo no ofensivo." << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     const int distanciaACriatura = posicionAtacante.distanciaManhattan(posicionCriatura);
     if (distanciaACriatura > descriptorAtaque.alcanceMaximo) {
+        std::cerr << "Error: el objetivo está fuera del alcance del ataque." << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     bool atacanteConsumioMana = false;
     if (descriptorAtaque.costoMana > 0) {
         if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
+            std::cerr << "Error: el atacante no tiene mana suficiente." << std::endl;
             return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
         }
         atacanteConsumioMana = true;
@@ -2058,6 +2079,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t danioAplicado =
             static_cast<uint16_t>(std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);
+    std::cout << "El jugador con id " << atacante->getId() << " ataca a criatura con id " << criatura.getId() << std::endl;
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                     EventoDanioProducido{danioAplicado, criatura.getId()}});
@@ -2093,6 +2115,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
         // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
         mapa.removerCriatura(idCriatura);
+        std::cout << "La criatura con id " << idCriatura << " ha muerto" << std::endl;
 
         if (cantidadOro > 0) {
             Posicion celdaDrop = posicionCriatura;
