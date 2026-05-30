@@ -32,7 +32,10 @@ public:
               MonitorClientes& monitorClientes,
               Queue<EventoSesion>& colaEventos);
     
-    bool verificarConexionCliente(uint16_t& idCliente, const handshakeInicial& handshake, ProtocoloServidor& protocolo_servidor);
+    bool verificarConexionCliente(uint16_t& idCliente,
+                                  bool passwordValido,
+                                  const handshakeInicial& handshake,
+                                  ProtocoloServidor& protocolo_servidor);
 
     void run() override;
     void stop() override;

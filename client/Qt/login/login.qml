@@ -21,6 +21,12 @@ Window {
         visible: text !== ""
     }
 
+    component ImageButton: Image {
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+    }
+
     component TextField_: TextField {
         width: 230
         height: 30
@@ -115,7 +121,7 @@ Window {
         text: ""
     }
 
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 errorLogin = false;
@@ -148,5 +154,4 @@ Window {
     }
 
 }
-
 

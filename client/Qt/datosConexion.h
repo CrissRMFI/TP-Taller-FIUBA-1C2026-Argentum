@@ -6,10 +6,11 @@
 #include "server/game/modelo/raza.h"
 
 enum class MensajeError {
-    CuentaNoEncontrada,
+    NombreUsuarioNoEncontrado,
     NickYaExistente,
     PuertoHostInvalidos,
-    UsuarioYaConectado
+    UsuarioYaConectado,
+    PasswordIncorrecto
 };
 
 struct DatosLogin {
@@ -34,7 +35,6 @@ public:
     void setDatosLogin(const std::string& puerto, const std::string& host) {
         datosLogin.puerto = puerto;
         datosLogin.host = host;
-        esNuevoPersonaje = false;
     }
 
     void setDatosNuevoPersonaje(const std::string& nick, const std::string& password, Raza raza, ClasePersonaje clase) {
@@ -58,8 +58,8 @@ public:
     void setErrorLogin(MensajeError mensaje) {
         errorLogin = true;
         switch (mensaje) {
-            case MensajeError::CuentaNoEncontrada:
-                mensajeError = "Cuenta no encontrada. Por favor, verifique su nick/contraseña y vuelva a iniciar sesion.";
+            case MensajeError::NombreUsuarioNoEncontrado:
+                mensajeError = "Nombre de usuario no encontrado. Por favor, vuelva a iniciar sesion.";
                 break;
             case MensajeError::NickYaExistente:
                 mensajeError = "El nick ingresado ya existe. Por favor, vuelva a iniciar sesion.";
@@ -69,6 +69,9 @@ public:
                 break;
             case MensajeError::UsuarioYaConectado:
                 mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
+                break;
+            case MensajeError::PasswordIncorrecto:
+                mensajeError = "Contraseña incorrecta. Por favor, vuelva a iniciar sesion.";
                 break;
             default:
                 mensajeError = "Error desconocido. Por favor, vuelva a iniciar sesion.";

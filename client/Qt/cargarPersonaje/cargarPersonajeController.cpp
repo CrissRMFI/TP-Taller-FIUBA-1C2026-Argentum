@@ -14,6 +14,8 @@ void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResulta
     _volverAlMenu = false;
     _volverACrearCuenta = false;
     resultado = CargarPersonajeResultado::ContinuarConPersonajeExistente;
+    errorLoginMessage = datos.getMensajeError();
+    errorLogin = datos.tieneErrorLogin();
 
     // Cargar cargarPersonaje.qml
     QQmlApplicationEngine engine;
@@ -63,5 +65,12 @@ bool CargarPersonajeController::esTextoValido(const QString& texto) const {
     return texto.toUtf8().size() <= 32 && !texto.contains(' ');
 }
 
+bool CargarPersonajeController::huboErrorLogin() const {
+    return errorLogin;
+}
+
 QString CargarPersonajeController::getNick() const { return QString::fromStdString(datosPersonaje.nick); }
 QString CargarPersonajeController::getPassword() const { return QString::fromStdString(datosPersonaje.password); }
+QString CargarPersonajeController::getErrorLoginMessage() const {
+    return QString::fromStdString(errorLoginMessage);
+}

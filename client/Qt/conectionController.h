@@ -1,6 +1,8 @@
 #ifndef CONNECTIONCONTROLLER_H
 #define CONNECTIONCONTROLLER_H
 
+#include "../client__.h"
+#include "../handshake_error.h"
 #include "datosConexion.h"
 #include "menuController.h"
 
@@ -11,10 +13,11 @@ public:
 private:
     MenuController menu;
     DatosConexion datos;
-    bool cuentaNoEncontrada = false;
+    bool nombreUsuarioNoEncontrado = false;
     bool nickYaExistente = false;
     bool puertoHostInvalidos = false;
     bool usuarioYaConectado = false;
+    bool passwordIncorrecto = false;
 };
 
 #endif

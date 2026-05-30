@@ -19,8 +19,17 @@ Window {
         anchors.fill: parent
     }
 
+    component ImageButton: Image {
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+    }
+
     component SwitchImage: Image {
         required property string sourceBaseName
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
         property bool checked
 
         source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`
@@ -87,7 +96,7 @@ Window {
     }
 
 
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 if (nickInput.text !== "" && raza != "" && clase != "") {
@@ -117,7 +126,7 @@ Window {
         source: "../graficos/crearPersonajeButton.png"
     }
 
-    Image {
+    ImageButton {
         TapHandler {
             onTapped: {
                 console.log("Volviendo al menú principal");
