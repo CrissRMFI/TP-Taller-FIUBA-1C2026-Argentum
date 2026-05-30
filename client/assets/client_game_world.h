@@ -7,16 +7,9 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "client/entidad_renderizable.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
-
-// actualiza la posicion del personaje/objeto en el juego
-struct EntidadRenderizable {
-    uint16_t x;
-    uint16_t y;
-    uint8_t tipo;
-    uint8_t estado;
-};
 
 
 class ObjectGameWorld {
