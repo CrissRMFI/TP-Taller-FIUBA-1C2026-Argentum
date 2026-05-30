@@ -42,7 +42,11 @@ std::optional<ComandoJugador> ClientInputHandler::handle_event(const SDL_Event &
 }
 
 std::optional<ComandoJugador> ClientInputHandler::handle_mouse_click(int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) {
-    return ComandoJugador{Opcode::ATACAR, ComandoAtacar{buscar_id_objetivo(x, y, entidades)}}; // TODO: calcular idObjetivo a partir de x e y
+    uint16_t idObjetivo = buscar_id_objetivo(x, y, entidades);
+    if (idObjetivo == 0) {
+        return std::nullopt;
+    }
+    return ComandoJugador{Opcode::ATACAR, ComandoAtacar{idObjetivo}}; // TODO: calcular idObjetivo a partir de x e y
 }
 
 uint16_t ClientInputHandler::buscar_id_objetivo(int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) {
@@ -73,7 +77,9 @@ uint16_t ClientInputHandler::buscar_id_objetivo(int x, int y, const std::unorder
             idObjetivo = id;
         }
     }
-    std::cout << "Click en (" << x << ", " << y << ") -> id objetivo seleccionado: " << idObjetivo << std::endl;
+    if (idObjetivo != 0) {
+        std::cout << "Click en (" << x << ", " << y << ") -> id objetivo seleccionado: " << idObjetivo << std::endl;
+    }
     return idObjetivo;
 }
 
