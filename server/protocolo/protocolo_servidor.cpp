@@ -432,8 +432,16 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarItemEnSuelo(std::get<MensajeItemEnSuelo>(mensaje.payload));
             break;
 
+        case Opcode::ORO_EN_SUELO:
+            enviarOroEnSuelo(std::get<MensajeOroEnSuelo>(mensaje.payload));
+            break;
+
         case Opcode::ITEM_DESAPARECIO_SUELO:
             enviarItemDesaparecioSuelo(std::get<MensajeItemDesaparecioSuelo>(mensaje.payload));
+            break;
+
+        case Opcode::ORO_DESAPARECIO_SUELO:
+            enviarOroDesaparecioSuelo(std::get<MensajeOroDesaparecioSuelo>(mensaje.payload));
             break;
 
         case Opcode::ACTUALIZAR_INVENTARIO:
@@ -539,6 +547,21 @@ void ProtocoloServidor::enviarItemEnSuelo(const MensajeItemEnSuelo& mensaje) {
 
 void ProtocoloServidor::enviarItemDesaparecioSuelo(const MensajeItemDesaparecioSuelo& mensaje) {
     enviarUnByte((uint8_t)(Opcode::ITEM_DESAPARECIO_SUELO));
+
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarOroEnSuelo(const MensajeOroEnSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ORO_EN_SUELO));
+
+    enviarCuatroBytes(mensaje.cantidad);
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarOroDesaparecioSuelo(const MensajeOroDesaparecioSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ORO_DESAPARECIO_SUELO));
 
     enviarDosBytes(mensaje.x);
     enviarDosBytes(mensaje.y);

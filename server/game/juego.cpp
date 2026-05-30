@@ -1132,9 +1132,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
     const std::optional<uint16_t> idClienteObjetivo =
             buscarIdClienteDeJugador(cmd.idObjetivo);
-    std::cout << "El jugador con id " << atacante->getId() << " ataca al jugador con id "
-              << cmd.idObjetivo << std::endl;
-
+    std::cout << "El jugador con id " << atacante->getId() << " ataca al jugador con id " << cmd.idObjetivo << std::endl;
     if (!objetivo || !idClienteObjetivo.has_value() || !objetivo->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1161,8 +1159,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                          static_cast<int>(objetivo->getNivel()));
 
     if (diferenciaNivel > cfg.maxDiffNivel) {
-        std::cout << "La diferencia de nivel entre atacante y objetivo es demasiado grande: "
-                  << diferenciaNivel << std::endl;
+        std::cout << "La diferencia de nivel entre atacante y objetivo es demasiado grande: " << diferenciaNivel << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -1183,9 +1180,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
     const int distanciaAlObjetivo = posicionAtacante.distanciaManhattan(posicionObjetivo);
     if (distanciaAlObjetivo > descriptorAtaque.alcanceMaximo) {
-        std::cout << "El objetivo está fuera del alcance del ataque: distancia "
-                  << distanciaAlObjetivo << ", alcance máximo "
-                  << descriptorAtaque.alcanceMaximo << std::endl;
+        std::cout << "El objetivo está fuera del alcance del ataque: distancia " << distanciaAlObjetivo
+                  << ", alcance máximo " << descriptorAtaque.alcanceMaximo << std::endl;
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
@@ -1222,9 +1218,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
     } else {
         const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
-        std::cout << "El atacante con id " << atacante->getId()
-                  << " ataca al jugador con id " << objetivo->getId() << " y causa "
-                  << danioAplicado << " de daño" << std::endl;
+        std::cout << "El atacante con id " << atacante->getId() << " ataca al jugador con id " << objetivo->getId() << " y causa " << danioAplicado << " de daño" << std::endl;
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoDanioProducido{danioAplicado, objetivo->getId()}});
@@ -1748,13 +1742,13 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     // Las criaturas no tienen crítico
     // Pasamos esCritico=false explícito para que el defensor pueda evaluar evasión normalmente.
     const uint16_t danioBrutoCriatura = criatura.calcularDanio(aleatorio);
-
-    jugador->cancelarMeditacion();
-    mensajes.push_back(armarEstado(idJugador, *jugador));
-
     const ResultadoDefensa resultadoDefensa = jugador->recibir_ataque_fisico(
             danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio,
             multiplicadorClan(*jugador));
+
+    // Jugador sale de estado de meditando al ser atacado, si estaba meditanto.
+    jugador->cancelarMeditacion();
+    mensajes.push_back(armarEstado(idJugador, *jugador));
 
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
@@ -2085,8 +2079,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t danioAplicado =
             static_cast<uint16_t>(std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);
-    std::cout << "El jugador con id " << atacante->getId()
-              << " ataca a criatura con id " << criatura.getId() << std::endl;
+    std::cout << "El jugador con id " << atacante->getId() << " ataca a criatura con id " << criatura.getId() << std::endl;
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                     EventoDanioProducido{danioAplicado, criatura.getId()}});
