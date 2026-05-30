@@ -1,16 +1,24 @@
 <RCC>
     <qresource prefix="/">
-        <file>login.qml</file>
         <file>graficos/crearButton.png</file>
-        <file>graficos/LED@2x.png</file>
         <file>graficos/ElecciónPersonaje.png</file>
-        <file>graficos/LED-Checked.png</file>
-        <file>graficos/LED.png</file>
-        <file>graficos/LED-Checked@2x.png</file>
         <file>graficos/menu.png</file>
         <file>graficos/unirseButton.png</file>
         <file>graficos/ventanalauncher.png</file>
         <file>graficos/VolverButton.png</file>
         <file>graficos/emptybutton.png</file>
+        <file>graficos/cabezas/Elfo/2020.png</file>
+        <file>graficos/cabezas/Elfo/2022.png</file>
+        <file>graficos/cabezas/Elfo/2021.png</file>
+        <file>graficos/cabezas/Enano/2040.png</file>
+        <file>graficos/cabezas/Enano/2042.png</file>
+        <file>graficos/cabezas/Enano/2041.png</file>
+        <file>graficos/cabezas/Gnomo/2061.png</file>
+        <file>graficos/cabezas/Gnomo/2060.png</file>
+        <file>graficos/cabezas/Humano/2000.png</file>
+        <file>graficos/cabezas/Humano/2002.png</file>
+        <file>graficos/cabezas/Humano/2001.png</file>
+        <file>graficos/leftArrow.png</file>
+        <file>graficos/rightArrow.png</file>
     </qresource>
 </RCC>

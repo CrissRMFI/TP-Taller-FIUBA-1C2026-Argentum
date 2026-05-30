@@ -16,6 +16,7 @@ project(taller_tp
     LANGUAGES CXX
     )
 
+set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -106,7 +107,16 @@ if(TALLER_CLIENT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-        add_executable(taller_client)
+        add_executable(taller_client
+                client/assets/sprite_manager.cpp
+                client/assets/client_game_world.cpp
+                client/assets/client_game_world.h
+                client/assets/client_renderer.cpp
+                client/assets/client_renderer.h
+                client/assets/object_animation.cpp
+                client/assets/object_animation.h
+                client/client_game_loop.cpp
+                client/client_game_loop.cpp)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
@@ -130,10 +140,6 @@ if(TALLER_CLIENT)
             client/Qt/cargarPersonaje/cargarPersonajeController.h
         RESOURCES
             client/Qt/graficos/menu.png
-            client/Qt/graficos/LED.png
-            client/Qt/graficos/LED@2x.png
-            client/Qt/graficos/LED-Checked.png
-            client/Qt/graficos/LED-Checked@2x.png
             client/Qt/graficos/unirseButton.png
             client/Qt/graficos/crearButton.png
             client/Qt/graficos/ventanalauncher.png
@@ -143,6 +149,23 @@ if(TALLER_CLIENT)
             client/Qt/graficos/ElecciónPersonaje.png
             client/Qt/graficos/InicioSesion.png
             client/Qt/graficos/jugarButton.png
+            client/Qt/graficos/rightArrow.png
+            client/Qt/graficos/leftArrow.png
+            client/Qt/graficos/cabezas/Elfo/2010.png
+            client/Qt/graficos/cabezas/Elfo/2011.png
+            client/Qt/graficos/cabezas/Elfo/2012.png
+            client/Qt/graficos/cabezas/Enano/2020.png
+            client/Qt/graficos/cabezas/Enano/2021.png
+            client/Qt/graficos/cabezas/Enano/2022.png
+            client/Qt/graficos/cabezas/Gnomo/2030.png
+            client/Qt/graficos/cabezas/Gnomo/2031.png
+            client/Qt/graficos/cabezas/Humano/2000.png
+            client/Qt/graficos/cabezas/Humano/2001.png
+            client/Qt/graficos/cabezas/Humano/2002.png
+            client/Qt/graficos/cuerpos/Humano/2100.png
+            client/Qt/graficos/cuerpos/Elfo/2110.png
+            client/Qt/graficos/cuerpos/Enano/2120.png
+            client/Qt/graficos/cuerpos/Gnomo/2130.png
     )
 
     target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)

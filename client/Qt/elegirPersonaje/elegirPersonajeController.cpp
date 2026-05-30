@@ -47,7 +47,10 @@ void ElegirPersonajeController::run(DatosConexion& datos, ElegirPersonajeResulta
         selectedNick.toStdString(),
         selectedPassword.toStdString(),
         selectedRaza,
-        selectedClase);
+        selectedClase,
+        selectedCabeza,
+        selectedCuerpo
+    );
     if (_volverAlMenu) {
         resultado = ElegirPersonajeResultado::VolverAlMenu;
     }
@@ -64,7 +67,7 @@ void ElegirPersonajeController::setRaza(const QString& raza) {
         selectedRaza = it->second;
     }
     razaSeleccionada = true;
-    if (razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty()) {
+    if (camposCompletos()) {
         emit elegirPersonajeCompleted();
     }
 }
@@ -75,27 +78,47 @@ void ElegirPersonajeController::setClase(const QString& clase) {
         selectedClase = it->second;
     }
     claseSeleccionada = true;
-    if (razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty()) {
+    if (camposCompletos()) {
         emit elegirPersonajeCompleted();
     }
 }
 
 void ElegirPersonajeController::setNick(const QString& nick) {
     selectedNick = nick;
-    if (razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty()) {
+    if (camposCompletos()) {
         emit elegirPersonajeCompleted();
     }
 }
 
 void ElegirPersonajeController::setPassword(const QString& password) {
     selectedPassword = password;
-    if (razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty()) {
+    if (camposCompletos()) {
+        emit elegirPersonajeCompleted();
+    }
+}
+
+void ElegirPersonajeController::setCabeza(int cabezaIndex) {
+    selectedCabeza = cabezaIndex;
+    cabezaSeleccionada = true;
+    if (camposCompletos()) {
+        emit elegirPersonajeCompleted();
+    }
+}
+
+void ElegirPersonajeController::setCuerpo(int cuerpoIndex) {
+    selectedCuerpo = cuerpoIndex;
+    cuerpoSeleccionado = true;
+    if (camposCompletos()) {
         emit elegirPersonajeCompleted();
     }
 }
 
 bool ElegirPersonajeController::esTextoValido(const QString& text) const {
     return text.toUtf8().size() <= 32 && !text.contains(' ');
+}
+
+bool ElegirPersonajeController::camposCompletos() const {
+    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
 }
 
 Raza ElegirPersonajeController::getRaza() const { return selectedRaza; }

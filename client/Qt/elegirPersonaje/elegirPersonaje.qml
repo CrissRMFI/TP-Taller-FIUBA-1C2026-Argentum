@@ -10,8 +10,26 @@ Window {
     maximumHeight: minimumHeight
     visible: true
     title: qsTr("Seleccion de Personaje")
-    property string raza: ""
-    property string clase: ""
+    property string raza: "Humano"
+    property string clase: "Mago"
+    // {2000, 2001, 2002} para Humano
+    property int pngCabezaIndexHumano: 2000
+    // {2010, 2011, 2012} para Elfo
+    property int pngCabezaIndexElfo: 2010
+    // {2020, 2021, 2022} para Enano
+    property int pngCabezaIndexEnano: 2020
+    // {2030, 2031} para Gnomo
+    property int pngCabezaIndexGnomo: 2030
+
+    // {2100} para Humano
+    property int pngCuerpoIndexHumano: 2100
+    // {2110} para Elfo
+    property int pngCuerpoIndexElfo: 2110
+    // {2120} para Enano
+    property int pngCuerpoIndexEnano: 2120
+    // {2130} para Gnomo
+    property int pngCuerpoIndexGnomo: 2130
+
 
     Image {
         id: seleccionPersonaje
@@ -30,9 +48,9 @@ Window {
         HoverHandler {
             cursorShape: Qt.PointingHandCursor
         }
-        property bool checked
-
-        source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`    }
+        // property bool checked
+        // source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`    }
+        source: `../graficos/${sourceBaseName}.png`    }
 
     component ErrorText: Text {
         width: 300
@@ -58,6 +76,14 @@ Window {
         text: ""
     }
 
+    Text {
+        id: nombreLabel
+        x: nickInput.x - width / 2 + nickInput.width / 2
+        y: nickInput.y - height - 5
+        text: qsTr("NUEVO NOMBRE:")
+        color: "white"
+    }
+
     TextField {
         id: passwordInput
         x: nickInput.x
@@ -72,6 +98,148 @@ Window {
         }
         text: ""
     }
+
+    Text {
+        id: passwordLabel
+        x: passwordInput.x - width / 2 + passwordInput.width / 2
+        y: passwordInput.y - height - 5
+        text: qsTr("NUEVA CONTRASEÑA:")
+        color: "white"
+    }
+
+    Text {
+        id: razaLabel
+        x: parent.width / 4 - width / 2
+        y: passwordInput.y + (passwordInput.y - nickInput.y)
+        text: qsTr("RAZA:")
+        color: "white"
+    }
+
+    // Menu desplegable para seleccionar la raza
+    ComboBox {
+        id: razaDesplegable
+        x: razaLabel.x + razaLabel.width / 2 - width / 2
+        y: razaLabel.y + razaLabel.height + 5
+        width: 150
+        model: ["Humano", "Elfo", "Enano", "Gnomo"]
+        onCurrentTextChanged: {
+            raza = currentText;
+        }
+    }
+
+    Text {
+        id: claseLabel
+        x: parent.width / 4 - width / 2
+        y: razaLabel.y + (razaLabel.y - passwordInput.y)
+        text: qsTr("CLASE:")
+        color: "white"
+    }
+
+    // Menu desplegable para seleccionar la clase
+    ComboBox {
+        id: claseDesplegable
+        x: claseLabel.x + claseLabel.width / 2 - width / 2
+        y: claseLabel.y + claseLabel.height + 5
+        width: 150
+        model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
+        onCurrentTextChanged: {
+            clase = currentText;
+        }
+    }
+
+    Image {
+        id: characterHead
+        x: parent.width / 4 * 3 - width / 2 - 1
+        y: razaDesplegable.y
+        source: {
+            switch (raza) {
+                case "Elfo": return `../graficos/cabezas/Elfo/${pngCabezaIndexElfo}.png`;
+                case "Enano": return `../graficos/cabezas/Enano/${pngCabezaIndexEnano}.png`;
+                case "Gnomo": return `../graficos/cabezas/Gnomo/${pngCabezaIndexGnomo}.png`;
+                case "Humano":
+                default: return `../graficos/cabezas/Humano/${pngCabezaIndexHumano}.png`;
+            }
+        }
+        sourceClipRect: Qt.rect(0, 0, 16, 15)
+        width: 32
+        height: 30
+        smooth: false
+    }
+
+    ImageButton {
+        id: headLeftButton
+        x: characterHead.x - 30
+        y: characterHead.y + characterHead.height / 2 - 15
+        width: 20
+        height: 30
+        source: "../graficos/leftArrow.png"
+        TapHandler {
+            onTapped: {
+                switch (raza) {
+                    case "Elfo":
+                        pngCabezaIndexElfo = pngCabezaIndexElfo > 2010 ? pngCabezaIndexElfo - 1 : 2012;
+                        break;
+                    case "Enano":
+                        pngCabezaIndexEnano = pngCabezaIndexEnano > 2020 ? pngCabezaIndexEnano - 1 : 2022;
+                        break;
+                    case "Gnomo":
+                        pngCabezaIndexGnomo = pngCabezaIndexGnomo > 2030 ? pngCabezaIndexGnomo - 1 : 2031;
+                        break;
+                    case "Humano":
+                    default:
+                        pngCabezaIndexHumano = pngCabezaIndexHumano > 2000 ? pngCabezaIndexHumano - 1 : 2002;
+                        break;
+                }
+            }
+        }
+    }
+
+    ImageButton {
+        id: headRightButton
+        x: characterHead.x + characterHead.width + 10
+        y: characterHead.y + characterHead.height / 2 - 15
+        width: 20
+        height: 30
+        source: "../graficos/rightArrow.png"
+        TapHandler {
+            onTapped: {
+                switch (raza) {
+                    case "Elfo":
+                        pngCabezaIndexElfo = pngCabezaIndexElfo < 2012 ? pngCabezaIndexElfo + 1 : 2010;
+                        break;
+                    case "Enano":
+                        pngCabezaIndexEnano = pngCabezaIndexEnano < 2022 ? pngCabezaIndexEnano + 1 : 2020;
+                        break;
+                    case "Gnomo":
+                        pngCabezaIndexGnomo = pngCabezaIndexGnomo < 2031 ? pngCabezaIndexGnomo + 1 : 2030;
+                        break;
+                    case "Humano":
+                    default:
+                        pngCabezaIndexHumano = pngCabezaIndexHumano < 2002 ? pngCabezaIndexHumano + 1 : 2000;
+                        break;
+                }
+            }
+        }
+    }
+
+    Image {
+        id: characterBody
+        x: parent.width / 4 * 3 - width / 2
+        y: characterHead.y + characterHead.height
+        source: {
+            switch (raza) {
+                case "Elfo": return `../graficos/cuerpos/Elfo/${pngCuerpoIndexElfo}.png`;
+                case "Enano": return `../graficos/cuerpos/Enano/${pngCuerpoIndexEnano}.png`;
+                case "Gnomo": return `../graficos/cuerpos/Gnomo/${pngCuerpoIndexGnomo}.png`;
+                case "Humano":
+                default: return `../graficos/cuerpos/Humano/${pngCuerpoIndexHumano}.png`;
+            }
+        }
+        sourceClipRect: raza == "Enano" || raza == "Gnomo" ? Qt.rect(0, 15, 25, 28) : Qt.rect(0, 7, 25, 38)
+        width: 50
+        height: raza == "Enano" || raza == "Gnomo" ? 50 : 64
+        smooth: false
+}
 
     ErrorText {
         id: nickErrorText
@@ -111,6 +279,8 @@ Window {
                     personajeController.setClase(clase);
                     personajeController.setNick(nickInput.text);
                     personajeController.setPassword(passwordInput.text);
+                    personajeController.setCabeza(pngCabezaIndexHumano);
+                    personajeController.setCuerpo(pngCuerpoIndex);
                     console.log("Personaje creado con éxito, entrando a la partida");
                 } else {
                     generalErrorText.text = "Por favor, complete todos los campos para crear el personaje";
@@ -123,149 +293,5 @@ Window {
         width: 205
         height: 50
         source: "../graficos/crearPersonajeButton.png"
-    }
-
-    ImageButton {
-        TapHandler {
-            onTapped: {
-                console.log("Volviendo al menú principal");
-                personajeController.volverAlMenu();
-            }
-        }
-        id: volverButton
-        x: crearPersonajeButton.x - parent.width / 2 + 2
-        y: 420
-        width: 210
-        height: 47
-        source: "../graficos/VolverButton.png"
-    }
-
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchHumano.checked = true;
-                switchElfo.checked = false;
-                switchEnano.checked = false;
-                switchGnomo.checked = false;
-                raza = "HUMANO";
-            }
-        }
-        id: switchHumano
-        x: 110
-        y: 242
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchHumano.checked = false;
-                switchElfo.checked = true;
-                switchEnano.checked = false;
-                switchGnomo.checked = false;
-                raza = "ELFO";
-            }
-        }
-        id: switchElfo
-        x: switchHumano.x + 130
-        y: switchHumano.y
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchHumano.checked = false;
-                switchElfo.checked = false;
-                switchEnano.checked = true;
-                switchGnomo.checked = false;
-                raza = "ENANO";
-            }
-        }
-        id: switchEnano
-        x: switchElfo.x + 130
-        y: switchElfo.y
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchHumano.checked = false;
-                switchElfo.checked = false;
-                switchEnano.checked = false;
-                switchGnomo.checked = true;
-                raza = "GNOMO";
-            }
-        }
-        id: switchGnomo
-        x: switchEnano.x + 130
-        y: switchEnano.y
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {        
-        TapHandler {
-            onTapped: {
-                switchMago.checked = true;
-                switchPaladin.checked = false;
-                switchClerigo.checked = false;
-                switchGuerrero.checked = false;
-                clase = "MAGO";
-            }
-        }
-        id: switchMago
-        x: switchHumano.x
-        y: switchHumano.y * 1.5
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchMago.checked = false;
-                switchPaladin.checked = true;
-                switchClerigo.checked = false;
-                switchGuerrero.checked = false;
-                clase = "PALADIN";
-            }
-        }
-        id: switchPaladin
-        x: switchMago.x + 130
-        y: switchMago.y
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchMago.checked = false;
-                switchPaladin.checked = false;
-                switchClerigo.checked = true;
-                switchGuerrero.checked = false;
-                clase = "CLERIGO";
-            }
-        }
-        id: switchClerigo
-        x: switchPaladin.x + 130
-        y: switchPaladin.y
-        sourceBaseName: "LED"
-        checked: false
-    }
-    SwitchImage {
-        TapHandler {
-            onTapped: {
-                switchMago.checked = false;
-                switchPaladin.checked = false;
-                switchClerigo.checked = false;
-                switchGuerrero.checked = true;
-                clase = "GUERRERO";
-            }
-        }
-        id: switchGuerrero
-        x: switchClerigo.x + 130
-        y: switchClerigo.y
-        sourceBaseName: "LED"
-        checked: false
     }
 }
