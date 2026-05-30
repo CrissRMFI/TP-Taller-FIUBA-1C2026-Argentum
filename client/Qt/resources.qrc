@@ -1,16 +1,28 @@
 <RCC>
     <qresource prefix="/">
-        <file>login.qml</file>
         <file>graficos/crearButton.png</file>
-        <file>graficos/LED@2x.png</file>
         <file>graficos/ElecciónPersonaje.png</file>
-        <file>graficos/LED-Checked.png</file>
-        <file>graficos/LED.png</file>
-        <file>graficos/LED-Checked@2x.png</file>
         <file>graficos/menu.png</file>
         <file>graficos/unirseButton.png</file>
         <file>graficos/ventanalauncher.png</file>
         <file>graficos/VolverButton.png</file>
         <file>graficos/emptybutton.png</file>
+        <file>../assets/imags/cabezas/Elfo/2010.png</file>
+        <file>../assets/imags/cabezas/Elfo/2011.png</file>
+        <file>../assets/imags/cabezas/Elfo/2012.png</file>
+        <file>../assets/imags/cabezas/Enano/2020.png</file>
+        <file>../assets/imags/cabezas/Enano/2021.png</file>
+        <file>../assets/imags/cabezas/Enano/2022.png</file>
+        <file>../assets/imags/cabezas/Gnomo/2030.png</file>
+        <file>../assets/imags/cabezas/Gnomo/2031.png</file>
+        <file>../assets/imags/cabezas/Humano/2000.png</file>
+        <file>../assets/imags/cabezas/Humano/2002.png</file>
+        <file>../assets/imags/cabezas/Humano/2001.png</file>
+        <file>graficos/leftArrow.png</file>
+        <file>graficos/rightArrow.png</file>
+        <file>../assets/imags/cuerpos/Humano/2100.png</file>
+        <file>../assets/imags/cuerpos/Elfo/2110.png</file>
+        <file>../assets/imags/cuerpos/Enano/2120.png</file>
+        <file>../assets/imags/cuerpos/Gnomo/2130.png</file>
     </qresource>
 </RCC>

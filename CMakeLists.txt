@@ -140,10 +140,6 @@ if(TALLER_CLIENT)
             client/Qt/cargarPersonaje/cargarPersonajeController.h
         RESOURCES
             client/Qt/graficos/menu.png
-            client/Qt/graficos/LED.png
-            client/Qt/graficos/LED@2x.png
-            client/Qt/graficos/LED-Checked.png
-            client/Qt/graficos/LED-Checked@2x.png
             client/Qt/graficos/unirseButton.png
             client/Qt/graficos/crearButton.png
             client/Qt/graficos/ventanalauncher.png
@@ -153,6 +149,23 @@ if(TALLER_CLIENT)
             client/Qt/graficos/ElecciónPersonaje.png
             client/Qt/graficos/InicioSesion.png
             client/Qt/graficos/jugarButton.png
+            client/Qt/graficos/rightArrow.png
+            client/Qt/graficos/leftArrow.png
+                client/assets/imags/cabezas/Elfo/2010.png
+                client/assets/imags/cabezas/Elfo/2011.png
+                client/assets/imags/cabezas/Elfo/2012.png
+                client/assets/imags/cabezas/Enano/2020.png
+                client/assets/imags/cabezas/Enano/2021.png
+                client/assets/imags/cabezas/Enano/2022.png
+                client/assets/imags/cabezas/Gnomo/2030.png
+                client/assets/imags/cabezas/Gnomo/2031.png
+                client/assets/imags/cabezas/Humano/2000.png
+                client/assets/imags/cabezas/Humano/2001.png
+                client/assets/imags/cabezas/Humano/2002.png
+                client/assets/imags/cuerpos/Humano/2100.png
+                client/assets/imags/cuerpos/Elfo/2110.png
+                client/assets/imags/cuerpos/Enano/2120.png
+                client/assets/imags/cuerpos/Gnomo/2130.png
     )
 
     target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)
