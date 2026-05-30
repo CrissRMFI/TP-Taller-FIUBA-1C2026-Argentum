@@ -155,6 +155,23 @@ if(TALLER_CLIENT)
             client/Qt/graficos/ElecciónPersonaje.png
             client/Qt/graficos/InicioSesion.png
             client/Qt/graficos/jugarButton.png
+            client/Qt/graficos/leftArrow.png
+            client/Qt/graficos/rightArrow.png
+            client/assets/imgs/2000.png
+            client/assets/imgs/2001.png
+            client/assets/imgs/2002.png
+            client/assets/imgs/2010.png
+            client/assets/imgs/2011.png
+            client/assets/imgs/2012.png
+            client/assets/imgs/2020.png
+            client/assets/imgs/2021.png
+            client/assets/imgs/2022.png
+            client/assets/imgs/2030.png
+            client/assets/imgs/2031.png
+            client/assets/imgs/2100.png
+            client/assets/imgs/2110.png
+            client/assets/imgs/2120.png
+            client/assets/imgs/2130.png
     )
 
     target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)

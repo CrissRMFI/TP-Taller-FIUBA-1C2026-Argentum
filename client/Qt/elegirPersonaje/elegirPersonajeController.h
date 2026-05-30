@@ -30,6 +30,8 @@ public slots:
     void setClase(const QString& clase);
     void setNick(const QString& nick);
     void setPassword(const QString& password);
+    void setCabeza(int cabezaIndex);
+    void setCuerpo(int cuerpoIndex);
     void volverAlMenu();
     bool esTextoValido(const QString& texto) const;
 
@@ -46,9 +48,15 @@ private:
     ClasePersonaje selectedClase;
     QString selectedNick;
     QString selectedPassword;
+    int selectedCabeza = 2000;
+    int selectedCuerpo = 2100;
     bool razaSeleccionada = false;
     bool claseSeleccionada = false;
     bool _volverAlMenu = false;
+    bool cabezaSeleccionada = false;
+    bool cuerpoSeleccionado = false;
+
+    bool camposCompletos() const;
 };
 
 #endif
