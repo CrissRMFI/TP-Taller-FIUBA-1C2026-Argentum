@@ -6,7 +6,7 @@
 #define TALLER_TP_OBJECT_ANIMATION_H
 #include <cstdint>
 
-#include "client/client_data.h"
+#include "../../common/protocolo/comando_jugador.h"
 
 // animar el frame, creando la idea de movimiento
 
@@ -16,7 +16,7 @@ private:
     uint8_t last_direction = 1;
 
 public:
-    void on_action(GameAction action);
+    void on_action(const ComandoJugador& action);
     int current_animation_row() const;
     uint8_t current_direction() const;
 };
