@@ -1734,6 +1734,10 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
             danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio,
             multiplicadorClan(*jugador));
 
+    // Jugador sale de estado de meditando al ser atacado, si estaba meditanto.
+    jugador->cancelarMeditacion();
+    mensajes.push_back(armarEstado(idJugador, *jugador));
+
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idJugador,
                                         EventoEsquive{idJugador, /*esquivador=*/1}});
