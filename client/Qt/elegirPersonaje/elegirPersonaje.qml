@@ -14,61 +14,84 @@ Window {
     property string raza: "Humano"
     property string clase: "Mago"
 
-    property int pngCabezaIndexHumano: 2000
-    property int pngCabezaIndexElfo: 2010
-    property int pngCabezaIndexEnano: 2020
-    property int pngCabezaIndexGnomo: 2030
-
-    property int pngCuerpoIndexHumano: 2100
-    property int pngCuerpoIndexElfo: 2110
-    property int pngCuerpoIndexEnano: 2120
-    property int pngCuerpoIndexGnomo: 2130
-
-    property int pngCabezaIndex: {
-        switch (raza) {
-            case "Elfo": return pngCabezaIndexElfo
-            case "Enano": return pngCabezaIndexEnano
-            case "Gnomo": return pngCabezaIndexGnomo
-            case "Humano":
-            default: return pngCabezaIndexHumano
+    property var skinCatalog: [
+        {
+            raza: "Humano",
+            cabezaInicio: 2000,
+            cabezaFin: 2002,
+            cuerpoInicio: 2100,
+            cuerpoFin: 2100,
+            cuerpoClipRect: Qt.rect(0, 7, 25, 38),
+            cuerpoHeight: 64
+        },
+        {
+            raza: "Elfo",
+            cabezaInicio: 2010,
+            cabezaFin: 2012,
+            cuerpoInicio: 2110,
+            cuerpoFin: 2110,
+            cuerpoClipRect: Qt.rect(0, 7, 25, 38),
+            cuerpoHeight: 64
+        },
+        {
+            raza: "Enano",
+            cabezaInicio: 2020,
+            cabezaFin: 2022,
+            cuerpoInicio: 2120,
+            cuerpoFin: 2120,
+            cuerpoClipRect: Qt.rect(0, 15, 25, 28),
+            cuerpoHeight: 50
+        },
+        {
+            raza: "Gnomo",
+            cabezaInicio: 2030,
+            cabezaFin: 2031,
+            cuerpoInicio: 2130,
+            cuerpoFin: 2130,
+            cuerpoClipRect: Qt.rect(0, 15, 25, 28),
+            cuerpoHeight: 50
         }
+    ]
+
+    property int cabezaIndex: 2000
+    property int cuerpoIndex: 2100
+
+    function skinParaRaza(nombreRaza) {
+        for (let i = 0; i < skinCatalog.length; ++i) {
+            if (skinCatalog[i].raza === nombreRaza) {
+                return skinCatalog[i]
+            }
+        }
+
+        return skinCatalog[0]
     }
 
-    property int pngCuerpoIndex: {
-        switch (raza) {
-            case "Elfo": return pngCuerpoIndexElfo
-            case "Enano": return pngCuerpoIndexEnano
-            case "Gnomo": return pngCuerpoIndexGnomo
-            case "Humano":
-            default: return pngCuerpoIndexHumano
+    function circularIndex(actual, inicio, fin, delta) {
+        if (delta < 0) {
+            return actual > inicio ? actual - 1 : fin
         }
+
+        return actual < fin ? actual + 1 : inicio
+    }
+
+    function resetSkinSeleccionada() {
+        const skin = skinParaRaza(raza)
+        cabezaIndex = skin.cabezaInicio
+        cuerpoIndex = skin.cuerpoInicio
     }
 
     function rotarCabeza(delta) {
-        switch (raza) {
-            case "Elfo":
-                pngCabezaIndexElfo = delta < 0 ?
-                        (pngCabezaIndexElfo > 2010 ? pngCabezaIndexElfo - 1 : 2012) :
-                        (pngCabezaIndexElfo < 2012 ? pngCabezaIndexElfo + 1 : 2010)
-                break
-            case "Enano":
-                pngCabezaIndexEnano = delta < 0 ?
-                        (pngCabezaIndexEnano > 2020 ? pngCabezaIndexEnano - 1 : 2022) :
-                        (pngCabezaIndexEnano < 2022 ? pngCabezaIndexEnano + 1 : 2020)
-                break
-            case "Gnomo":
-                pngCabezaIndexGnomo = delta < 0 ?
-                        (pngCabezaIndexGnomo > 2030 ? pngCabezaIndexGnomo - 1 : 2031) :
-                        (pngCabezaIndexGnomo < 2031 ? pngCabezaIndexGnomo + 1 : 2030)
-                break
-            case "Humano":
-            default:
-                pngCabezaIndexHumano = delta < 0 ?
-                        (pngCabezaIndexHumano > 2000 ? pngCabezaIndexHumano - 1 : 2002) :
-                        (pngCabezaIndexHumano < 2002 ? pngCabezaIndexHumano + 1 : 2000)
-                break
-        }
+        const skin = skinParaRaza(raza)
+        cabezaIndex = circularIndex(cabezaIndex, skin.cabezaInicio, skin.cabezaFin, delta)
     }
+
+    function rotarCuerpo(delta) {
+        const skin = skinParaRaza(raza)
+        cuerpoIndex = circularIndex(cuerpoIndex, skin.cuerpoInicio, skin.cuerpoFin, delta)
+    }
+
+    Component.onCompleted: resetSkinSeleccionada()
+    onRazaChanged: resetSkinSeleccionada()
 
     Image {
         id: background
@@ -161,7 +184,7 @@ Window {
         height: 30
         smooth: false
         sourceClipRect: Qt.rect(0, 0, 16, 15)
-        source: `../../assets/imgs/${pngCabezaIndex}.png`
+        source: "../../assets/imgs/" + cabezaIndex + ".png"
     }
 
     ImageButton {
@@ -193,12 +216,34 @@ Window {
         x: 449
         y: characterHead.y + characterHead.height
         width: 50
-        height: raza === "Enano" || raza === "Gnomo" ? 50 : 64
+        height: skinParaRaza(raza).cuerpoHeight
         smooth: false
-        sourceClipRect: raza === "Enano" || raza === "Gnomo" ?
-                            Qt.rect(0, 15, 25, 28) :
-                            Qt.rect(0, 7, 25, 38)
-        source: `../../assets/imgs/${pngCuerpoIndex}.png`
+        sourceClipRect: skinParaRaza(raza).cuerpoClipRect
+        source: "../../assets/imgs/" + cuerpoIndex + ".png"
+    }
+
+    ImageButton {
+        id: bodyLeftButton
+        x: headLeftButton.x
+        y: characterBody.y + 12
+        width: 20
+        height: 30
+        source: "../graficos/leftArrow.png"
+        TapHandler {
+            onTapped: rotarCuerpo(-1)
+        }
+    }
+
+    ImageButton {
+        id: bodyRightButton
+        x: headRightButton.x
+        y: characterBody.y + 12
+        width: 20
+        height: 30
+        source: "../graficos/rightArrow.png"
+        TapHandler {
+            onTapped: rotarCuerpo(1)
+        }
     }
 
     ErrorText {
@@ -237,8 +282,8 @@ Window {
                     personajeController.setRaza(raza)
                     personajeController.setClase(clase)
                     personajeController.setNick(nickInput.text)
-                    personajeController.setCabeza(pngCabezaIndex)
-                    personajeController.setCuerpo(pngCuerpoIndex)
+                    personajeController.setCabeza(cabezaIndex)
+                    personajeController.setCuerpo(cuerpoIndex)
                 } else {
                     generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
                 }
