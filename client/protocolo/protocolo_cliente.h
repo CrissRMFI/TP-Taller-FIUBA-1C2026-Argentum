@@ -88,6 +88,7 @@ private:
     MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
+    MensajeServidor recibirErrorAccion();
 };
 
 #endif

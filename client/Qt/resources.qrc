@@ -12,5 +12,22 @@
         <file>graficos/ventanalauncher.png</file>
         <file>graficos/VolverButton.png</file>
         <file>graficos/emptybutton.png</file>
+        <file>graficos/leftArrow.png</file>
+        <file>graficos/rightArrow.png</file>
+        <file>../assets/imgs/2000.png</file>
+        <file>../assets/imgs/2001.png</file>
+        <file>../assets/imgs/2002.png</file>
+        <file>../assets/imgs/2010.png</file>
+        <file>../assets/imgs/2011.png</file>
+        <file>../assets/imgs/2012.png</file>
+        <file>../assets/imgs/2020.png</file>
+        <file>../assets/imgs/2021.png</file>
+        <file>../assets/imgs/2022.png</file>
+        <file>../assets/imgs/2030.png</file>
+        <file>../assets/imgs/2031.png</file>
+        <file>../assets/imgs/2100.png</file>
+        <file>../assets/imgs/2110.png</file>
+        <file>../assets/imgs/2120.png</file>
+        <file>../assets/imgs/2130.png</file>
     </qresource>
 </RCC>

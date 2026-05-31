@@ -8,6 +8,7 @@
 
 #include "SDL2pp/Renderer.hh"
 #include "SDL2pp/SDL.hh"
+#include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Texture.hh"
 #include "SDL2pp/Window.hh"
 #include "client_game_world.h"
@@ -18,11 +19,17 @@
 class ObjectRenderer {
 private:
     std::unique_ptr<SDL2pp::SDL> sdl;
+    std::unique_ptr<SDL2pp::SDLImage> image_context;
     std::unique_ptr<SDL2pp::Window> window;
     std::unique_ptr<SDL2pp::Renderer> renderer;
     std::unique_ptr<SDL2pp::Texture> texture;
+    std::unique_ptr<SDL2pp::Texture> background_texture;
     std::unique_ptr<SpriteManager> sprite_manager;
     int last_animation_row = -1;
+    int window_width = 0;
+    int window_height = 0;
+
+    SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
 
 public:
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
@@ -30,6 +37,7 @@ public:
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);
+    void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 
 

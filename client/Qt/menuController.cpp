@@ -4,7 +4,6 @@
 #include "elegirPersonaje/elegirPersonajeController.h"
 
 #include "../../common/socket/socket.h"
-#include "../../common/socket/liberror.h"
 
 MenuController::MenuController(){}
 
@@ -15,7 +14,8 @@ void MenuController::run(DatosConexion& datos) {
 			LoginController login;
 			login.run(datos);
 			try {
-				Socket preflight(datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str());
+				Socket preflight(datos.getDatosLogin().host.c_str(),
+				                 datos.getDatosLogin().puerto.c_str());
 				preflight.close();
 			} catch (...) {
 				datos = puertoHostInvalidos();
@@ -23,6 +23,7 @@ void MenuController::run(DatosConexion& datos) {
 			}
 			datos.clearError();
 		}
+
 		while (true) {
 			CargarPersonajeController cargarPersonaje;
 			CargarPersonajeResultado cargarResultado;

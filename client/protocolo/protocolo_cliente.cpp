@@ -345,8 +345,8 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::LISTA_ITEMS:
             return recibirListaItems();
 
-        // case Opcode::ERROR_ACCION:
-        //     return recibirErrorAccion();
+        case Opcode::ERROR_ACCION:
+            return recibirErrorAccion();
 
         default:
             throw std::runtime_error(
@@ -497,6 +497,15 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
     return MensajeServidor{
             Opcode::LISTA_ITEMS,
             MensajeListaItems{ids},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirErrorAccion() {
+    const CodigoErrorAccion codigo = static_cast<CodigoErrorAccion>(recibirUnByte());
+
+    return MensajeServidor{
+            Opcode::ERROR_ACCION,
+            MensajeErrorAccion{codigo},
     };
 }
 
