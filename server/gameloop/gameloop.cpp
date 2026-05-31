@@ -16,9 +16,9 @@ static void cerrarColaSiCorresponde(Queue<T>& cola, std::atomic_bool& cerrada) {
     cola.close();
 }
 
-Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
+Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mapa&& mapa)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
-      juego(config.juego, std::move(config.items)),
+      juego(config.juego, std::move(config.items), std::move(mapa)),
       tickMs(config.juego.tickMs),
       colaComandosCerrada(false),
       colaEventosSesionCerrada(false) {

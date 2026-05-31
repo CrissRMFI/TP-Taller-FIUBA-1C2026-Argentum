@@ -10,6 +10,7 @@
 #include "server/aceptador/aceptador.h"
 #include "server/gameloop/comando_cliente.h"
 #include "server/gameloop/monitor_clientes.h"
+#include "../editor/mapaCreator.h"
 
 
 Server::Server(const char* servname) : skt(servname) {}
@@ -18,8 +19,9 @@ void Server::run() {
     MonitorClientes monitor_clientes;
     LectorConfigToml lector_config;
     ConfigCompleta config_completa = lector_config.cargar("config/game_config.toml");
+    MapaCreator mapaCreator;
 
-    Gameloop gameloop(monitor_clientes, (std::move(config_completa)));
+    Gameloop gameloop(monitor_clientes, (std::move(config_completa)), std::move(mapaCreator.crearMapaGenerico(config_completa.juego.mapaAncho, config_completa.juego.mapaAlto)));
     Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,
                         gameloop.getColaEventosSesion());
     aceptador.start();

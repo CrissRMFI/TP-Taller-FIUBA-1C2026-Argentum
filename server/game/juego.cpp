@@ -16,14 +16,14 @@
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
         cfg(cfg),
         catalogo(std::move(cat)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
-        mapa(cfg.mapaAncho, cfg.mapaAlto),
+        mapa(std::move(mapa)),
         ticksTranscurridos(0),
-        aleatorio() {}
+        aleatorio(){}
 
 
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {

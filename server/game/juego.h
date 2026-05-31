@@ -22,7 +22,7 @@
 
 class Juego {
   public:
-    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
+    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, Mapa&& mapa);
 
     // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
     std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo);
