@@ -33,7 +33,6 @@ public:
               Queue<EventoSesion>& colaEventos);
     
     bool verificarConexionCliente(uint16_t& idCliente,
-                                  bool passwordValido,
                                   const handshakeInicial& handshake,
                                   ProtocoloServidor& protocolo_servidor);
 

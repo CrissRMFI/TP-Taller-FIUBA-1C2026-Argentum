@@ -97,8 +97,8 @@ Window {
 
     TextField {
         id: nickInput
-        x: 86
-        y: 56
+        x: parent.width / 5 * 2 - width / 2
+        y: parent.height / 4 - height / 2
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su nick")
@@ -113,26 +113,6 @@ Window {
         x: nickInput.x
         y: nickInput.y - 24
         text: qsTr("NUEVO NOMBRE:")
-    }
-
-    TextField {
-        id: passwordInput
-        x: nickInput.x
-        y: 132
-        width: 230
-        height: 30
-        placeholderText: qsTr("Ingrese su contraseña")
-        background: Rectangle {
-            color: "transparent"
-            border.color: "white"
-        }
-        text: ""
-    }
-
-    LabelText {
-        x: passwordInput.x
-        y: passwordInput.y - 24
-        text: qsTr("NUEVA CONTRASEÑA:")
     }
 
     LabelText {
@@ -175,7 +155,7 @@ Window {
 
     Image {
         id: characterHead
-        x: 458
+        x: 457
         y: 236
         width: 32
         height: 30
@@ -229,13 +209,6 @@ Window {
     }
 
     ErrorText {
-        id: passwordErrorText
-        x: passwordInput.x + passwordInput.width / 2 - width / 2
-        y: passwordInput.y + passwordInput.height
-        text: ""
-    }
-
-    ErrorText {
         id: generalErrorText
         x: parent.width / 2 - width / 2
         y: crearPersonajeButton.y - height - 5
@@ -252,12 +225,11 @@ Window {
         TapHandler {
             onTapped: {
                 if (nickInput.text !== "" && raza !== "" && clase !== "") {
-                    const esNickValido = personajeController.esTextoValido(nickInput.text)
-                    const esPasswordValido = personajeController.esTextoValido(passwordInput.text)
+                    const esNickValido = personajeController.esNickValido(nickInput.text)
 
                     nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
-                    passwordErrorText.text = !esPasswordValido ? "La contraseña no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
-                    if (!esNickValido || !esPasswordValido) {
+    
+                    if (!esNickValido) {
                         return
                     }
 
@@ -265,7 +237,6 @@ Window {
                     personajeController.setRaza(raza)
                     personajeController.setClase(clase)
                     personajeController.setNick(nickInput.text)
-                    personajeController.setPassword(passwordInput.text)
                     personajeController.setCabeza(pngCabezaIndex)
                     personajeController.setCuerpo(pngCuerpoIndex)
                 } else {

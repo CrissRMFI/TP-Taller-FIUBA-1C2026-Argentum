@@ -90,13 +90,3 @@ DatosConexion MenuController::usuarioYaConectado(const DatosLogin& datosLogin) {
 	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
     return datos;
 }
-
-DatosConexion MenuController::passwordIncorrecto(const DatosLogin& datosLogin) {
-    DatosConexion datos;
-    datos.setErrorLogin(MensajeError::PasswordIncorrecto);
-	loginYaRealizado = true;
-    run(datos);
-	loginYaRealizado = false;
-	datos.setDatosLogin(datosLogin.puerto, datosLogin.host);
-    return datos;
-}

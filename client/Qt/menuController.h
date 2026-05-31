@@ -12,7 +12,6 @@ public:
     DatosConexion nickYaExistente(const DatosLogin& datosLogin);
     DatosConexion puertoHostInvalidos();
     DatosConexion usuarioYaConectado(const DatosLogin& datosLogin);
-    DatosConexion passwordIncorrecto(const DatosLogin& datosLogin);
 private:
     bool terminoRegistro = false;
     bool loginYaRealizado = false;

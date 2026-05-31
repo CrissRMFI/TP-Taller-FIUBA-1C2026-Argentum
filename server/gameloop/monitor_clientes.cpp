@@ -25,8 +25,7 @@ void MonitorClientes::removerCliente(const uint16_t idCliente) {
         it->second->close();
         colasClientes.erase(it);
     }
-    nombresUsuariosDesconectados[idCliente].first = nombresUsuariosConectados[idCliente].first;
-    nombresUsuariosDesconectados[idCliente].second = nombresUsuariosConectados[idCliente].second;
+    nombresUsuariosDesconectados[idCliente] = nombresUsuariosConectados[idCliente];
     nombresUsuariosConectados.erase(idCliente);
 }
 
@@ -35,27 +34,19 @@ bool MonitorClientes::estaConectado(const uint16_t idCliente) {
     return nombresUsuariosConectados.find(idCliente) != nombresUsuariosConectados.end();
 }
 
-std::pair<bool, uint16_t> MonitorClientes::idCliente(const std::string& nombre, const std::string& password) {
+uint16_t MonitorClientes::idCliente(const std::string& nombre) {
     std::lock_guard<std::mutex> lock(mtx);
     for (const auto& [idCliente, clienteData] : nombresUsuariosConectados) {
-        if (clienteData.first == nombre) {
-            if (clienteData.second == password) {
-                return std::make_pair(true, idCliente);
-            } else {
-                return std::make_pair(false, idCliente);
-            }
+        if (clienteData == nombre) {
+            return idCliente;
         }
     }
     for (const auto& [idCliente, clienteData] : nombresUsuariosDesconectados) {
-        if (clienteData.first == nombre) {
-            if (clienteData.second == password) {
-                return std::make_pair(true, idCliente);
-            } else {
-                return std::make_pair(false, idCliente);
-            }
+        if (clienteData == nombre) {
+            return idCliente;
         }
     }
-    return std::make_pair(false, 0);
+    return 0;
 }
 
 Queue<MensajeServidor>* MonitorClientes::getColasClientes(const uint16_t idCliente) {
@@ -71,14 +62,14 @@ std::string MonitorClientes::nombreCliente(const uint16_t idCliente) {
     std::lock_guard<std::mutex> lock(mtx);
     const auto it = nombresUsuariosConectados.find(idCliente);
     if (it == nombresUsuariosConectados.end()) {
-        return "" ;
+        return "";
     }
-    return it->second.first;
+    return it->second;
 }
 
-void MonitorClientes::setCliente(const uint16_t idCliente, const std::string& nombreCliente, const std::string& password) {
+void MonitorClientes::setCliente(const uint16_t idCliente, const std::string& nombreCliente) {
     std::lock_guard<std::mutex> lock(mtx);
-    nombresUsuariosConectados[idCliente] = std::make_pair(nombreCliente, password);
+    nombresUsuariosConectados[idCliente] = nombreCliente;
     if (nombresUsuariosDesconectados.find(idCliente) != nombresUsuariosDesconectados.end()) {
         nombresUsuariosDesconectados.erase(idCliente);
     }

@@ -27,14 +27,11 @@ void Aceptador::run() {
             auto protocolo_servidor = std::make_unique<ProtocoloServidor>(std::move(peer));
             bool conexionValida = false;
             uint16_t idCliente = 0;
-            bool passwordValido = false;
             try{
 
                 handshake = protocolo_servidor->recibirUsuario();
-                auto validacion = monitorClientes.idCliente(handshake.nombre, handshake.password);
-                passwordValido = validacion.first;
-                idCliente = validacion.second;
-                conexionValida = verificarConexionCliente(idCliente, passwordValido, handshake,
+                idCliente = monitorClientes.idCliente(handshake.nombre);
+                conexionValida = verificarConexionCliente(idCliente, handshake,
                                                           *protocolo_servidor);
 
             }catch (const std::exception& e) {
@@ -65,7 +62,6 @@ void Aceptador::run() {
 }
 
 bool Aceptador::verificarConexionCliente(uint16_t& idCliente,
-                                         bool passwordValido,
                                          const handshakeInicial& handshake,
                                          ProtocoloServidor& protocolo_servidor) {
     if (!handshake.crearPersonaje) {
@@ -75,13 +71,6 @@ bool Aceptador::verificarConexionCliente(uint16_t& idCliente,
                         .id = idCliente,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::NombreUsuarioNoEncontrado
-                });
-                return false;
-            } else if (!passwordValido) {
-                protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
-                        .id = idCliente,
-                        .nick = handshake.nombre,
-                        .error = ErrorUsuario::PasswordIncorrecto
                 });
                 return false;
             } else if (monitorClientes.estaConectado(idCliente)) {

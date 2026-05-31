@@ -81,8 +81,7 @@ enum class ErrorUsuario : uint8_t {
     NombreUsuarioNoEncontrado = 0,
     NickYaExistente = 1,
     UsuarioYaConectado = 2,
-    PasswordIncorrecto = 3,
-    Ninguno = 4,
+    Ninguno = 3,
 };
 
 struct MensajeEstadoUsuario {

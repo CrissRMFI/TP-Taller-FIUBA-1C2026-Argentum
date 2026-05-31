@@ -16,7 +16,6 @@ enum class CargarPersonajeResultado {
 class CargarPersonajeController : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString nick READ getNick)
-    Q_PROPERTY(QString password READ getPassword)
     QML_ELEMENT
 
 public:
@@ -25,14 +24,12 @@ public:
 
 public slots:
     void setNick(const QString& nick);
-    void setPassword(const QString& password);
-    bool esTextoValido(const QString& texto) const;
+    bool esNickValido(const QString& texto) const;
     void volverAlMenu();
     void volverACrearCuenta();
 
     bool huboErrorLogin() const;
     QString getNick() const;
-    QString getPassword() const;
     QString getErrorLoginMessage() const;
 
 signals:

@@ -9,8 +9,7 @@ enum class MensajeError {
     NombreUsuarioNoEncontrado,
     NickYaExistente,
     PuertoHostInvalidos,
-    UsuarioYaConectado,
-    PasswordIncorrecto
+    UsuarioYaConectado
 };
 
 struct DatosLogin {
@@ -20,7 +19,6 @@ struct DatosLogin {
 
 struct DatosNuevoPersonaje {
     std::string nick;
-    std::string password;
     Raza raza;
     ClasePersonaje clase;
     int cabeza;
@@ -29,7 +27,6 @@ struct DatosNuevoPersonaje {
 
 struct DatosPersonaje {
     std::string nick;
-    std::string password;
 };
 
 class DatosConexion {
@@ -39,10 +36,9 @@ public:
         datosLogin.host = host;
     }
 
-    void setDatosNuevoPersonaje(const std::string& nick, const std::string& password, Raza raza,
+    void setDatosNuevoPersonaje(const std::string& nick,  Raza raza,
                                 ClasePersonaje clase, int cabeza, int cuerpo) {
         datosNuevoPersonaje.nick = nick;
-        datosNuevoPersonaje.password = password;
         datosNuevoPersonaje.raza = raza;
         datosNuevoPersonaje.clase = clase;
         datosNuevoPersonaje.cabeza = cabeza;
@@ -50,9 +46,8 @@ public:
         esNuevoPersonaje = true;
     }
 
-    void setDatosPersonaje(const std::string& nick, const std::string& password) {
+    void setDatosPersonaje(const std::string& nick) {
         datosPersonaje.nick = nick;
-        datosPersonaje.password = password;
         esNuevoPersonaje = false;
     }
 
@@ -74,9 +69,6 @@ public:
                 break;
             case MensajeError::UsuarioYaConectado:
                 mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
-                break;
-            case MensajeError::PasswordIncorrecto:
-                mensajeError = "Contraseña incorrecta. Por favor, vuelva a iniciar sesion.";
                 break;
             default:
                 mensajeError = "Error desconocido. Por favor, vuelva a iniciar sesion.";

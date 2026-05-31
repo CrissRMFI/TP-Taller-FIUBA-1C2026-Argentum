@@ -17,7 +17,6 @@ private:
     bool nickYaExistente = false;
     bool puertoHostInvalidos = false;
     bool usuarioYaConectado = false;
-    bool passwordIncorrecto = false;
 };
 
 #endif

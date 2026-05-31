@@ -44,7 +44,7 @@ ClasePersonaje parseClase(const QString& clase) {
     }
     return ClasePersonaje::GUERRERO;
 }
-}  // namespace
+}
 
 ElegirPersonajeController::ElegirPersonajeController(QObject* parent)
     : QObject(parent) {}
@@ -67,7 +67,6 @@ void ElegirPersonajeController::run(DatosConexion& datos, ElegirPersonajeResulta
 
     datos.setDatosNuevoPersonaje(
         selectedNick.toStdString(),
-        selectedPassword.toStdString(),
         selectedRaza,
         selectedClase,
         selectedCabeza,
@@ -105,13 +104,6 @@ void ElegirPersonajeController::setNick(const QString& nick) {
     }
 }
 
-void ElegirPersonajeController::setPassword(const QString& password) {
-    selectedPassword = password;
-    if (camposCompletos()) {
-        emit elegirPersonajeCompleted();
-    }
-}
-
 void ElegirPersonajeController::setCabeza(int cabezaIndex) {
     selectedCabeza = cabezaIndex;
     cabezaSeleccionada = true;
@@ -128,16 +120,14 @@ void ElegirPersonajeController::setCuerpo(int cuerpoIndex) {
     }
 }
 
-bool ElegirPersonajeController::esTextoValido(const QString& text) const {
-    return text.toUtf8().size() <= 32 && !text.contains(' ');
+bool ElegirPersonajeController::esNickValido(const QString& nick) const {
+    return nick.toUtf8().size() <= 32 && !nick.contains(' ');
 }
 
 bool ElegirPersonajeController::camposCompletos() const {
-    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() &&
-           !selectedPassword.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
+    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
 }
 
 Raza ElegirPersonajeController::getRaza() const { return selectedRaza; }
 ClasePersonaje ElegirPersonajeController::getClase() const { return selectedClase; }
 QString ElegirPersonajeController::getNick() const { return selectedNick; }
-QString ElegirPersonajeController::getPassword() const { return selectedPassword; }

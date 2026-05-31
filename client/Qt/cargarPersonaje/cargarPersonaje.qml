@@ -53,25 +53,10 @@ Window {
     TextField {
         id: nickInput
         x: parent.width / 2 - width / 2
-        y: parent.height / 3 - height / 2
+        y: parent.height / 2 - height / 2
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su nick")
-        // Fondo transparente
-        background: Rectangle {
-            color: "transparent"
-            border.color: "white"
-        }
-        text: ""
-    }
-
-    TextField {
-        id: passwordInput
-        x: nickInput.x
-        y: parent.height / 4 * 2.5 - height / 2
-        width: 230
-        height: 30
-        placeholderText: qsTr("Ingrese su contraseña")
         // Fondo transparente
         background: Rectangle {
             color: "transparent"
@@ -86,23 +71,10 @@ Window {
         y: nickInput.y - height * 1.5
     }
 
-    TitleText {
-        text: qsTr("CONTRASEÑA")
-        x: parent.width / 2 - width / 2
-        y: passwordInput.y - height * 1.5
-    }
-
     ErrorText {
         id: errorMessageNick
         x: (nickInput.x + nickInput.width / 2) - (width / 2)
         y: nickInput.y + nickInput.height
-        text: ""
-    }
-
-    ErrorText {
-        id: errorMessagePassword
-        x: (passwordInput.x + passwordInput.width / 2) - (width / 2)
-        y: passwordInput.y + passwordInput.height
         text: ""
     }
 
@@ -126,21 +98,17 @@ Window {
         TapHandler {
             onTapped: {
                 errorLogin = false;
-                if (nickInput.text === "" || passwordInput.text === "") {
+                if (nickInput.text === "") {
                     errorMessageNick.text = "";
-                    errorMessagePassword.text = "";
-                    errorUnirseMessage.text = "Por favor, complete todos los campos";
+                    errorUnirseMessage.text = "Por favor, complete el campo de nick.";
                 } else {
                     errorUnirseMessage.text = "";
-                    const nickValido = cargarPersonajeController.esTextoValido(nickInput.text);
-                    const passwordValido = cargarPersonajeController.esTextoValido(passwordInput.text);
+                    const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
 
                     errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
-                    errorMessagePassword.text = !passwordValido ? "La contraseña no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
 
-                    if (nickValido && passwordValido) {
+                    if (nickValido) {
                         cargarPersonajeController.setNick(nickInput.text);
-                        cargarPersonajeController.setPassword(passwordInput.text);
                         console.log("Intentando unirse a la partida...");
                     }
                 }

@@ -19,7 +19,6 @@ class ElegirPersonajeController : public QObject {
     Q_PROPERTY(Raza raza READ getRaza)
     Q_PROPERTY(ClasePersonaje clase READ getClase)
     Q_PROPERTY(QString nick READ getNick)
-    Q_PROPERTY(QString password READ getPassword)
     QML_ELEMENT
 public:
     explicit ElegirPersonajeController(QObject* parent = nullptr);
@@ -29,16 +28,14 @@ public slots:
     void setRaza(const QString& raza);
     void setClase(const QString& clase);
     void setNick(const QString& nick);
-    void setPassword(const QString& password);
     void setCabeza(int cabezaIndex);
     void setCuerpo(int cuerpoIndex);
     void volverAlMenu();
-    bool esTextoValido(const QString& texto) const;
+    bool esNickValido(const QString& texto) const;
 
     Raza getRaza() const;
     ClasePersonaje getClase() const;
     QString getNick() const;
-    QString getPassword() const;
 
 signals:
     void elegirPersonajeCompleted();
@@ -47,7 +44,6 @@ private:
     Raza selectedRaza;
     ClasePersonaje selectedClase;
     QString selectedNick;
-    QString selectedPassword;
     int selectedCabeza = 2000;
     int selectedCuerpo = 2100;
     bool razaSeleccionada = false;
