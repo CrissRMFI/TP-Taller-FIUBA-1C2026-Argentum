@@ -14,6 +14,8 @@ struct DatosSesion {
     std::string nombre;
     ClasePersonaje clase;
     Raza raza;
+    uint16_t cabeza;
+    uint16_t cuerpo;
 };
 
 struct EventoSesion {

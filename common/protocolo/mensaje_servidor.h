@@ -26,6 +26,8 @@ struct MensajePosicionEntidad {
     uint16_t y;
     uint8_t tipo;
     uint8_t estado;
+    uint16_t cabeza;
+    uint16_t cuerpo;
 };
 
 struct MensajeEntidadDesaparecio {

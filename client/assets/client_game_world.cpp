@@ -28,7 +28,9 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             entidades[entity_position->id] = EntidadRenderizable{entity_position->x,
                                                                  entity_position->y,
                                                                  entity_position->tipo,
-                                                                 entity_position->estado};
+                                                                 entity_position->estado,
+                                                                 entity_position->cabeza,
+                                                                 entity_position->cuerpo};
 
             if (entity_position->id == idCliente) {
                 received_own_position = true;

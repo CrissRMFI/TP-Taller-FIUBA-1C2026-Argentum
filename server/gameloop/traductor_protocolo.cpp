@@ -17,7 +17,7 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     }
     if (auto* e = std::get_if<EventoPosicionEntidad>(&evento)) {
         return { Opcode::POSICION_ENTIDAD,
-                 MensajePosicionEntidad{ e->id, e->x, e->y, e->tipo, e->estado } };
+                 MensajePosicionEntidad{ e->id, e->x, e->y, e->tipo, e->estado, e->cabeza, e->cuerpo } };
     }
     if (auto* e = std::get_if<EventoEntidadDesaparecio>(&evento)) {
         return { Opcode::ENTIDAD_DESAPARECIO,

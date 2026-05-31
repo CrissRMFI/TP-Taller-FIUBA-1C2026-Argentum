@@ -27,7 +27,8 @@ public:
              Posicion posicion,
              uint8_t rangoAggro,
              uint8_t danioMin,
-             uint8_t danioMax);
+             uint8_t danioMax,
+             uint16_t cuerpo);
 
     uint16_t getId() const;
     TipoCriatura getTipo() const;
@@ -37,6 +38,7 @@ public:
     uint8_t getAgilidad() const;
     uint16_t getVidaActual() const;
     uint16_t getVidaMaxima() const;
+    uint16_t getCuerpo() const;
     uint16_t calcularDanio(Aleatorio& aleatorio) const;
 
     void recibir_danio(uint32_t danio);
@@ -56,6 +58,7 @@ private:
     uint8_t rangoAggro;
     uint8_t danioMin;
     uint8_t danioMax;
+    uint16_t cuerpo;
 };
 
 #endif

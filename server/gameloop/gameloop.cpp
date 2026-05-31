@@ -83,7 +83,9 @@ void Gameloop::procesarEventosSesion() {
                 despachar(juego.conectarJugador(evento.idCliente,
                                                 evento.datos.nombre,
                                                 evento.datos.clase,
-                                                evento.datos.raza));
+                                                evento.datos.raza,
+                                                evento.datos.cabeza,
+                                                evento.datos.cuerpo));
             } else {
                 despachar(juego.desconectarJugador(evento.idCliente));
             }

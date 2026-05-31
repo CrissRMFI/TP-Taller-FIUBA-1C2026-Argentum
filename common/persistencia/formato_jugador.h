@@ -20,6 +20,8 @@ struct RegistroJugador {
     uint8_t  estado;
     uint8_t  _pad1; // relleno con esto para no depender de padding automático del compilador
 
+    uint16_t skinCabeza;
+    uint16_t skinCuerpo;
     uint16_t vidaActual;
     uint16_t manaActual;
     uint32_t experiencia;
@@ -45,7 +47,7 @@ struct RegistroJugador {
     uint16_t itemsBanco[64];
 };
 
-static_assert(sizeof(RegistroJugador) == 252);
+static_assert(sizeof(RegistroJugador) == 256);
 
 struct IndiceEntrada {
     char     nombre[32];

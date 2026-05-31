@@ -29,7 +29,7 @@ static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t max
     }
 }
 
-Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, Posicion posicion, const ConfigJuego& config) :
+Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo, Posicion posicion, const ConfigJuego& config) :
         idJugador(id),
         idClan(0),
         nombre(nombre),
@@ -58,6 +58,8 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         clase(clase),
         estado(Estado::Vivo),
         raza(raza),
+        cabeza(cabeza),
+        cuerpo(cuerpo),
         fundadoClan(false),
         tiempoRestanteInmovilizado(0.0f) {
     const StatsRaza& sr = cfg.statsRaza(raza);
@@ -83,6 +85,8 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     estado = datos.estado;
     nivel = datos.nivel;
     experiencia = datos.experiencia;
+    cabeza = datos.skinCabeza;
+    cuerpo = datos.skinCuerpo;
 
     vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
     manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
@@ -650,6 +654,14 @@ ClasePersonaje Jugador::getClase() const {
 
 Raza Jugador::getRaza() const {
     return raza;
+}
+
+uint16_t Jugador::getCabeza() const {
+    return cabeza;
+}
+
+uint16_t Jugador::getCuerpo() const {
+    return cuerpo;
 }
 
 bool Jugador::estaInmovilizado() const {

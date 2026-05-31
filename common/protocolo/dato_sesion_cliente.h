@@ -10,6 +10,8 @@ struct handshakeInicial {
     std::string nombre;
     ClasePersonaje clasePersonaje = ClasePersonaje::GUERRERO;
     Raza raza = Raza::HUMANO;
+    uint16_t cabeza = 0;
+    uint16_t cuerpo = 0;
 };
 
 #endif

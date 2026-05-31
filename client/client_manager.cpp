@@ -24,6 +24,8 @@ ClientManager::ClientManager(Socket&& skt,
     if (datos.esConexionNuevoPersonaje()) {
         handshake.clasePersonaje = datos.getDatosNuevoPersonaje().clase;
         handshake.raza = datos.getDatosNuevoPersonaje().raza;
+        handshake.cabeza = datos.getDatosNuevoPersonaje().cabeza;
+        handshake.cuerpo = datos.getDatosNuevoPersonaje().cuerpo;
     }
 }
 void ClientManager::run() {
