@@ -8,8 +8,8 @@
 struct handshakeInicial {
     bool crearPersonaje = false;
     std::string nombre;
-    ClasePersonaje clasePersonaje = ClasePersonaje::GUERRERO;
-    Raza raza = Raza::HUMANO;
+    ClasePersonaje clasePersonaje;
+    Raza raza;
     uint16_t cabeza = 0;
     uint16_t cuerpo = 0;
 };

@@ -1,0 +1,117 @@
+# Presets de seleccion de personaje
+[skins.humano_default]
+head_ids = [2000, 2001, 2002]
+body_ids = [2100]
+
+[skins.elfo_default]
+head_ids = [2010, 2011, 2012]
+body_ids = [2110]
+
+[skins.enano_default]
+head_ids = [2020, 2021, 2022]
+body_ids = [2120]
+
+[skins.gnomo_default]
+head_ids = [2030, 2031]
+body_ids = [2130]
+
+
+# Catalogo de partes de personaje por id de protocolo
+[character_parts.heads.2000]
+path = "imgs/personajes/cabezas/2000.png"
+
+[character_parts.heads.2001]
+path = "imgs/personajes/cabezas/2001.png"
+
+[character_parts.heads.2002]
+path = "imgs/personajes/cabezas/2002.png"
+
+[character_parts.heads.2010]
+path = "imgs/personajes/cabezas/2010.png"
+
+[character_parts.heads.2011]
+path = "imgs/personajes/cabezas/2011.png"
+
+[character_parts.heads.2012]
+path = "imgs/personajes/cabezas/2012.png"
+
+[character_parts.heads.2020]
+path = "imgs/personajes/cabezas/2020.png"
+
+[character_parts.heads.2021]
+path = "imgs/personajes/cabezas/2021.png"
+
+[character_parts.heads.2022]
+path = "imgs/personajes/cabezas/2022.png"
+
+[character_parts.heads.2030]
+path = "imgs/personajes/cabezas/2030.png"
+
+[character_parts.heads.2031]
+path = "imgs/personajes/cabezas/2031.png"
+
+[character_parts.bodies.2100]
+path = "imgs/personajes/cuerpos/2100.png"
+
+[character_parts.bodies.2110]
+path = "imgs/personajes/cuerpos/2110.png"
+
+[character_parts.bodies.2120]
+path = "imgs/personajes/cuerpos/2120.png"
+
+[character_parts.bodies.2130]
+path = "imgs/personajes/cuerpos/2130.png"
+
+
+# Overrides por estado
+[states.fantasma]
+body_path = "imgs/fantasma.png"
+
+
+# Catalogo de criaturas
+[creatures.arana]
+part = "body"
+path = "imgs/criaturas/araña.png"
+src = [0, 0, 32, 40]
+size = [65, 40]
+offset = [0, 0]
+
+[creatures.goblin]
+part = "body"
+path = "imgs/criaturas/goblin.png"
+src = [0, 0, 32, 40]
+size = [65, 40]
+offset = [0, 0]
+
+[creatures.golem]
+part = "body"
+path = "imgs/criaturas/golem.png"
+src = [0, 0, 32, 40]
+size = [65, 40]
+offset = [0, 0]
+
+[creatures.orco]
+part = "body"
+path = "imgs/criaturas/orco.png"
+src = [0, 0, 32, 40]
+size = [65, 40]
+offset = [0, 0]
+
+[creatures.zombie]
+part = "body"
+path = "imgs/criaturas/zombie.png"
+src = [0, 0, 32, 40]
+size = [65, 40]
+offset = [0, 0]
+
+
+# Catalogo de NPCs
+[npcs.comerciante]
+body_path = "imgs/npc/comerciantes/4071.png"
+
+[npcs.sacerdote]
+head_path = "imgs/npc/sacerdotes/2000.png"
+body_path = "imgs/npc/sacerdotes/1243.png"
+
+[npcs.banquero]
+body_path = "imgs/npc/banqueros/4057.png"

@@ -40,5 +40,4 @@ public:
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 
-
 #endif  // TALLER_TP_CLIENT_RENDERER_H
