@@ -10,19 +10,41 @@
 #include "server/game/modelo/clase_personaje.h"
 #include "server/game/modelo/raza.h"
 
-const std::map<std::string, Raza> razaMap = {
-    {"HUMANO", Raza::HUMANO},
-    {"ELFO", Raza::ELFO},
-    {"ENANO", Raza::ENANO},
-    {"GNOMO", Raza::GNOMO}
-};
+namespace {
+Raza parseRaza(const QString& raza) {
+    if (raza.compare("Humano", Qt::CaseInsensitive) == 0 ||
+        raza.compare("HUMANO", Qt::CaseInsensitive) == 0) {
+        return Raza::HUMANO;
+    }
+    if (raza.compare("Elfo", Qt::CaseInsensitive) == 0 ||
+        raza.compare("ELFO", Qt::CaseInsensitive) == 0) {
+        return Raza::ELFO;
+    }
+    if (raza.compare("Enano", Qt::CaseInsensitive) == 0 ||
+        raza.compare("ENANO", Qt::CaseInsensitive) == 0) {
+        return Raza::ENANO;
+    }
+    return Raza::GNOMO;
+}
 
-const std::map<std::string, ClasePersonaje> claseMap = {
-    {"GUERRERO", ClasePersonaje::GUERRERO},
-    {"CLERIGO", ClasePersonaje::CLERIGO},
-    {"MAGO", ClasePersonaje::MAGO},
-    {"PALADIN", ClasePersonaje::PALADIN}
-};
+ClasePersonaje parseClase(const QString& clase) {
+    if (clase.compare("Mago", Qt::CaseInsensitive) == 0 ||
+        clase.compare("MAGO", Qt::CaseInsensitive) == 0) {
+        return ClasePersonaje::MAGO;
+    }
+    if (clase.compare("Paladín", Qt::CaseInsensitive) == 0 ||
+        clase.compare("Paladin", Qt::CaseInsensitive) == 0 ||
+        clase.compare("PALADIN", Qt::CaseInsensitive) == 0) {
+        return ClasePersonaje::PALADIN;
+    }
+    if (clase.compare("Clérigo", Qt::CaseInsensitive) == 0 ||
+        clase.compare("Clerigo", Qt::CaseInsensitive) == 0 ||
+        clase.compare("CLERIGO", Qt::CaseInsensitive) == 0) {
+        return ClasePersonaje::CLERIGO;
+    }
+    return ClasePersonaje::GUERRERO;
+}
+}  // namespace
 
 ElegirPersonajeController::ElegirPersonajeController(QObject* parent)
     : QObject(parent) {}
@@ -49,8 +71,7 @@ void ElegirPersonajeController::run(DatosConexion& datos, ElegirPersonajeResulta
         selectedRaza,
         selectedClase,
         selectedCabeza,
-        selectedCuerpo
-    );
+        selectedCuerpo);
     if (_volverAlMenu) {
         resultado = ElegirPersonajeResultado::VolverAlMenu;
     }
@@ -62,10 +83,7 @@ void ElegirPersonajeController::volverAlMenu() {
 }
 
 void ElegirPersonajeController::setRaza(const QString& raza) {
-    auto it = razaMap.find(raza.toStdString());
-    if (it != razaMap.end()) {
-        selectedRaza = it->second;
-    }
+    selectedRaza = parseRaza(raza);
     razaSeleccionada = true;
     if (camposCompletos()) {
         emit elegirPersonajeCompleted();
@@ -73,10 +91,7 @@ void ElegirPersonajeController::setRaza(const QString& raza) {
 }
 
 void ElegirPersonajeController::setClase(const QString& clase) {
-    auto it = claseMap.find(clase.toStdString());
-    if (it != claseMap.end()) {
-        selectedClase = it->second;
-    }
+    selectedClase = parseClase(clase);
     claseSeleccionada = true;
     if (camposCompletos()) {
         emit elegirPersonajeCompleted();
@@ -118,7 +133,8 @@ bool ElegirPersonajeController::esTextoValido(const QString& text) const {
 }
 
 bool ElegirPersonajeController::camposCompletos() const {
-    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && !selectedPassword.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
+    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() &&
+           !selectedPassword.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
 }
 
 Raza ElegirPersonajeController::getRaza() const { return selectedRaza; }

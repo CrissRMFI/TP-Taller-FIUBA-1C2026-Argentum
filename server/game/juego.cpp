@@ -778,8 +778,8 @@ std::list<EventoSalida> Juego::ejecutarUnirseClan(uint16_t idCliente,
     // Notificar al fundador si está conectado
     std::list<EventoSalida> mensajes;
     uint16_t idClan = clan->getId();
-    for (auto& [id, jugador] : jugadoresConectados) {
-        if (jugador.fundo_clan() && jugador.getClan() == idClan) {
+    for (auto& [id, jugador_] : jugadoresConectados) {
+        if (jugador_.fundo_clan() && jugador_.getClan() == idClan) {
             mensajes.push_back({TipoDestino::UNO, id,
                                 EventoClan{TipoEventoClan::MiembroPendiente, nickSolicitante}});
         }
@@ -2079,7 +2079,6 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t danioAplicado =
             static_cast<uint16_t>(std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);
-
     std::cout << "El jugador con id " << atacante->getId() << " ataca a criatura con id " << criatura.getId() << std::endl;
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
@@ -2116,7 +2115,6 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
         // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
         mapa.removerCriatura(idCriatura);
-
         std::cout << "La criatura con id " << idCriatura << " ha muerto" << std::endl;
 
         if (cantidadOro > 0) {

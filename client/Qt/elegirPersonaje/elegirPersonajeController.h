@@ -48,8 +48,8 @@ private:
     ClasePersonaje selectedClase;
     QString selectedNick;
     QString selectedPassword;
-    int selectedCabeza;
-    int selectedCuerpo;
+    int selectedCabeza = 2000;
+    int selectedCuerpo = 2100;
     bool razaSeleccionada = false;
     bool claseSeleccionada = false;
     bool _volverAlMenu = false;

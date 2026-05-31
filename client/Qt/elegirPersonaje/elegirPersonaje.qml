@@ -10,29 +10,68 @@ Window {
     maximumHeight: minimumHeight
     visible: true
     title: qsTr("Seleccion de Personaje")
+
     property string raza: "Humano"
     property string clase: "Mago"
-    // {2000, 2001, 2002} para Humano
+
     property int pngCabezaIndexHumano: 2000
-    // {2010, 2011, 2012} para Elfo
     property int pngCabezaIndexElfo: 2010
-    // {2020, 2021, 2022} para Enano
     property int pngCabezaIndexEnano: 2020
-    // {2030, 2031} para Gnomo
     property int pngCabezaIndexGnomo: 2030
 
-    // {2100} para Humano
     property int pngCuerpoIndexHumano: 2100
-    // {2110} para Elfo
     property int pngCuerpoIndexElfo: 2110
-    // {2120} para Enano
     property int pngCuerpoIndexEnano: 2120
-    // {2130} para Gnomo
     property int pngCuerpoIndexGnomo: 2130
 
+    property int pngCabezaIndex: {
+        switch (raza) {
+            case "Elfo": return pngCabezaIndexElfo
+            case "Enano": return pngCabezaIndexEnano
+            case "Gnomo": return pngCabezaIndexGnomo
+            case "Humano":
+            default: return pngCabezaIndexHumano
+        }
+    }
+
+    property int pngCuerpoIndex: {
+        switch (raza) {
+            case "Elfo": return pngCuerpoIndexElfo
+            case "Enano": return pngCuerpoIndexEnano
+            case "Gnomo": return pngCuerpoIndexGnomo
+            case "Humano":
+            default: return pngCuerpoIndexHumano
+        }
+    }
+
+    function rotarCabeza(delta) {
+        switch (raza) {
+            case "Elfo":
+                pngCabezaIndexElfo = delta < 0 ?
+                        (pngCabezaIndexElfo > 2010 ? pngCabezaIndexElfo - 1 : 2012) :
+                        (pngCabezaIndexElfo < 2012 ? pngCabezaIndexElfo + 1 : 2010)
+                break
+            case "Enano":
+                pngCabezaIndexEnano = delta < 0 ?
+                        (pngCabezaIndexEnano > 2020 ? pngCabezaIndexEnano - 1 : 2022) :
+                        (pngCabezaIndexEnano < 2022 ? pngCabezaIndexEnano + 1 : 2020)
+                break
+            case "Gnomo":
+                pngCabezaIndexGnomo = delta < 0 ?
+                        (pngCabezaIndexGnomo > 2030 ? pngCabezaIndexGnomo - 1 : 2031) :
+                        (pngCabezaIndexGnomo < 2031 ? pngCabezaIndexGnomo + 1 : 2030)
+                break
+            case "Humano":
+            default:
+                pngCabezaIndexHumano = delta < 0 ?
+                        (pngCabezaIndexHumano > 2000 ? pngCabezaIndexHumano - 1 : 2002) :
+                        (pngCabezaIndexHumano < 2002 ? pngCabezaIndexHumano + 1 : 2000)
+                break
+        }
+    }
 
     Image {
-        id: seleccionPersonaje
+        id: background
         source: "../graficos/ElecciónPersonaje.png"
         anchors.fill: parent
     }
@@ -43,15 +82,6 @@ Window {
         }
     }
 
-    component SwitchImage: Image {
-        required property string sourceBaseName
-        HoverHandler {
-            cursorShape: Qt.PointingHandCursor
-        }
-        // property bool checked
-        // source: `../graficos/${sourceBaseName}${checked ? "-Checked" : "@2x"}.png`    }
-        source: `../graficos/${sourceBaseName}.png`    }
-
     component ErrorText: Text {
         width: 300
         height: 30
@@ -61,14 +91,17 @@ Window {
         visible: text !== ""
     }
 
+    component LabelText: Text {
+        color: "white"
+    }
+
     TextField {
         id: nickInput
-        x: parent.width / 2 - width / 2
-        y: parent.height / 10
+        x: 86
+        y: 56
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su nick")
-        // Fondo transparente
         background: Rectangle {
             color: "transparent"
             border.color: "white"
@@ -76,22 +109,19 @@ Window {
         text: ""
     }
 
-    Text {
-        id: nombreLabel
-        x: nickInput.x - width / 2 + nickInput.width / 2
-        y: nickInput.y - height - 5
+    LabelText {
+        x: nickInput.x
+        y: nickInput.y - 24
         text: qsTr("NUEVO NOMBRE:")
-        color: "white"
     }
 
     TextField {
         id: passwordInput
         x: nickInput.x
-        y: nickInput.y * 2.9 - height / 2
+        y: 132
         width: 230
         height: 30
         placeholderText: qsTr("Ingrese su contraseña")
-        // Fondo transparente
         background: Rectangle {
             color: "transparent"
             border.color: "white"
@@ -99,147 +129,97 @@ Window {
         text: ""
     }
 
-    Text {
-        id: passwordLabel
-        x: passwordInput.x - width / 2 + passwordInput.width / 2
-        y: passwordInput.y - height - 5
+    LabelText {
+        x: passwordInput.x
+        y: passwordInput.y - 24
         text: qsTr("NUEVA CONTRASEÑA:")
-        color: "white"
     }
 
-    Text {
-        id: razaLabel
-        x: parent.width / 4 - width / 2
-        y: passwordInput.y + (passwordInput.y - nickInput.y)
+    LabelText {
+        x: nickInput.x
+        y: 202
         text: qsTr("RAZA:")
-        color: "white"
     }
 
-    // Menu desplegable para seleccionar la raza
     ComboBox {
         id: razaDesplegable
-        x: razaLabel.x + razaLabel.width / 2 - width / 2
-        y: razaLabel.y + razaLabel.height + 5
+        x: nickInput.x
+        y: 226
         width: 150
         model: ["Humano", "Elfo", "Enano", "Gnomo"]
-        onCurrentTextChanged: {
-            raza = currentText;
-        }
+        currentIndex: 0
+        onCurrentTextChanged: raza = currentText
     }
 
-    Text {
-        id: claseLabel
-        x: parent.width / 4 - width / 2
-        y: razaLabel.y + (razaLabel.y - passwordInput.y)
+    LabelText {
+        x: nickInput.x
+        y: 286
         text: qsTr("CLASE:")
-        color: "white"
     }
 
-    // Menu desplegable para seleccionar la clase
     ComboBox {
         id: claseDesplegable
-        x: claseLabel.x + claseLabel.width / 2 - width / 2
-        y: claseLabel.y + claseLabel.height + 5
+        x: nickInput.x
+        y: 310
         width: 150
         model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
-        onCurrentTextChanged: {
-            clase = currentText;
-        }
+        currentIndex: 0
+        onCurrentTextChanged: clase = currentText
+    }
+
+    LabelText {
+        x: 430
+        y: 202
+        text: qsTr("SKIN:")
     }
 
     Image {
         id: characterHead
-        x: parent.width / 4 * 3 - width / 2 - 1
-        y: razaDesplegable.y
-        source: {
-            switch (raza) {
-                case "Elfo": return `../graficos/cabezas/Elfo/${pngCabezaIndexElfo}.png`;
-                case "Enano": return `../graficos/cabezas/Enano/${pngCabezaIndexEnano}.png`;
-                case "Gnomo": return `../graficos/cabezas/Gnomo/${pngCabezaIndexGnomo}.png`;
-                case "Humano":
-                default: return `../graficos/cabezas/Humano/${pngCabezaIndexHumano}.png`;
-            }
-        }
-        sourceClipRect: Qt.rect(0, 0, 16, 15)
+        x: 458
+        y: 236
         width: 32
         height: 30
         smooth: false
+        sourceClipRect: Qt.rect(0, 0, 16, 15)
+        source: `../../assets/imgs/${pngCabezaIndex}.png`
     }
 
     ImageButton {
         id: headLeftButton
         x: characterHead.x - 30
-        y: characterHead.y + characterHead.height / 2 - 15
+        y: characterHead.y
         width: 20
         height: 30
         source: "../graficos/leftArrow.png"
         TapHandler {
-            onTapped: {
-                switch (raza) {
-                    case "Elfo":
-                        pngCabezaIndexElfo = pngCabezaIndexElfo > 2010 ? pngCabezaIndexElfo - 1 : 2012;
-                        break;
-                    case "Enano":
-                        pngCabezaIndexEnano = pngCabezaIndexEnano > 2020 ? pngCabezaIndexEnano - 1 : 2022;
-                        break;
-                    case "Gnomo":
-                        pngCabezaIndexGnomo = pngCabezaIndexGnomo > 2030 ? pngCabezaIndexGnomo - 1 : 2031;
-                        break;
-                    case "Humano":
-                    default:
-                        pngCabezaIndexHumano = pngCabezaIndexHumano > 2000 ? pngCabezaIndexHumano - 1 : 2002;
-                        break;
-                }
-            }
+            onTapped: rotarCabeza(-1)
         }
     }
 
     ImageButton {
         id: headRightButton
         x: characterHead.x + characterHead.width + 10
-        y: characterHead.y + characterHead.height / 2 - 15
+        y: characterHead.y
         width: 20
         height: 30
         source: "../graficos/rightArrow.png"
         TapHandler {
-            onTapped: {
-                switch (raza) {
-                    case "Elfo":
-                        pngCabezaIndexElfo = pngCabezaIndexElfo < 2012 ? pngCabezaIndexElfo + 1 : 2010;
-                        break;
-                    case "Enano":
-                        pngCabezaIndexEnano = pngCabezaIndexEnano < 2022 ? pngCabezaIndexEnano + 1 : 2020;
-                        break;
-                    case "Gnomo":
-                        pngCabezaIndexGnomo = pngCabezaIndexGnomo < 2031 ? pngCabezaIndexGnomo + 1 : 2030;
-                        break;
-                    case "Humano":
-                    default:
-                        pngCabezaIndexHumano = pngCabezaIndexHumano < 2002 ? pngCabezaIndexHumano + 1 : 2000;
-                        break;
-                }
-            }
+            onTapped: rotarCabeza(1)
         }
     }
 
     Image {
         id: characterBody
-        x: parent.width / 4 * 3 - width / 2
+        x: 449
         y: characterHead.y + characterHead.height
-        source: {
-            switch (raza) {
-                case "Elfo": return `../graficos/cuerpos/Elfo/${pngCuerpoIndexElfo}.png`;
-                case "Enano": return `../graficos/cuerpos/Enano/${pngCuerpoIndexEnano}.png`;
-                case "Gnomo": return `../graficos/cuerpos/Gnomo/${pngCuerpoIndexGnomo}.png`;
-                case "Humano":
-                default: return `../graficos/cuerpos/Humano/${pngCuerpoIndexHumano}.png`;
-            }
-        }
-        sourceClipRect: raza == "Enano" || raza == "Gnomo" ? Qt.rect(0, 15, 25, 28) : Qt.rect(0, 7, 25, 38)
         width: 50
-        height: raza == "Enano" || raza == "Gnomo" ? 50 : 64
+        height: raza === "Enano" || raza === "Gnomo" ? 50 : 64
         smooth: false
-}
+        sourceClipRect: raza === "Enano" || raza === "Gnomo" ?
+                            Qt.rect(0, 15, 25, 28) :
+                            Qt.rect(0, 7, 25, 38)
+        source: `../../assets/imgs/${pngCuerpoIndex}.png`
+    }
 
     ErrorText {
         id: nickErrorText
@@ -262,36 +242,48 @@ Window {
         text: ""
     }
 
-
     ImageButton {
-        TapHandler {
-            onTapped: {
-                if (nickInput.text !== "" && raza != "" && clase != "") {
-                    const esNickValido = personajeController.esTextoValido(nickInput.text);
-                    const esPasswordValido = personajeController.esTextoValido(passwordInput.text);
-
-                    nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : "";
-                    passwordErrorText.text = !esPasswordValido ? "La contraseña no puede tener espacios y debe ser menor o igual a 32 bytes." : "";
-                    if (!esNickValido || !esPasswordValido) {
-                        return;
-                    }
-                    personajeController.setRaza(raza);
-                    personajeController.setClase(clase);
-                    personajeController.setNick(nickInput.text);
-                    personajeController.setPassword(passwordInput.text);
-                    personajeController.setCabeza(pngCabezaIndexHumano);
-                    personajeController.setCuerpo(pngCuerpoIndex);
-                    console.log("Personaje creado con éxito, entrando a la partida");
-                } else {
-                    generalErrorText.text = "Por favor, complete todos los campos para crear el personaje";
-                }
-            }
-        }
         id: crearPersonajeButton
         x: 369
         y: 420
         width: 205
         height: 50
         source: "../graficos/crearPersonajeButton.png"
+        TapHandler {
+            onTapped: {
+                if (nickInput.text !== "" && raza !== "" && clase !== "") {
+                    const esNickValido = personajeController.esTextoValido(nickInput.text)
+                    const esPasswordValido = personajeController.esTextoValido(passwordInput.text)
+
+                    nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
+                    passwordErrorText.text = !esPasswordValido ? "La contraseña no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
+                    if (!esNickValido || !esPasswordValido) {
+                        return
+                    }
+
+                    generalErrorText.text = ""
+                    personajeController.setRaza(raza)
+                    personajeController.setClase(clase)
+                    personajeController.setNick(nickInput.text)
+                    personajeController.setPassword(passwordInput.text)
+                    personajeController.setCabeza(pngCabezaIndex)
+                    personajeController.setCuerpo(pngCuerpoIndex)
+                } else {
+                    generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
+                }
+            }
+        }
+    }
+
+    ImageButton {
+        id: volverButton
+        x: crearPersonajeButton.x - parent.width / 2 + 2
+        y: 420
+        width: 210
+        height: 47
+        source: "../graficos/VolverButton.png"
+        TapHandler {
+            onTapped: personajeController.volverAlMenu()
+        }
     }
 }

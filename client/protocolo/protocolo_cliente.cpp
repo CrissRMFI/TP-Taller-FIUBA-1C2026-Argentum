@@ -501,7 +501,7 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
 }
 
 MensajeServidor ProtocoloCliente::recibirErrorAccion() {
-    CodigoErrorAccion codigo = static_cast<CodigoErrorAccion>(recibirUnByte());
+    const CodigoErrorAccion codigo = static_cast<CodigoErrorAccion>(recibirUnByte());
 
     return MensajeServidor{
             Opcode::ERROR_ACCION,

@@ -71,4 +71,6 @@ bool CargarPersonajeController::huboErrorLogin() const {
 
 QString CargarPersonajeController::getNick() const { return QString::fromStdString(datosPersonaje.nick); }
 QString CargarPersonajeController::getPassword() const { return QString::fromStdString(datosPersonaje.password); }
-QString CargarPersonajeController::getErrorLoginMessage() const { return QString::fromStdString(errorLoginMessage); }
+QString CargarPersonajeController::getErrorLoginMessage() const {
+    return QString::fromStdString(errorLoginMessage);
+}

@@ -7,8 +7,6 @@
 
 #include <cstdint>
 
-#include <SDL.h>
-
 #include "../common/protocolo/comando_jugador.h"
 #include "../common/thread/queue.h"
 
@@ -19,7 +17,7 @@ private:
     Queue<ComandoJugador>& incoming_data;
 
 public:
-    explicit ClientBusiness( Queue<ComandoJugador>& incoming_data);
+    explicit ClientBusiness(Queue<ComandoJugador>& incoming_data);
     void save_command(ComandoJugador action);
 };
 

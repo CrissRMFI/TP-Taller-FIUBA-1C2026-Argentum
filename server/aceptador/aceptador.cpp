@@ -31,10 +31,11 @@ void Aceptador::run() {
             try{
 
                 handshake = protocolo_servidor->recibirUsuario();
-                auto [validPassword, id] = monitorClientes.idCliente(handshake.nombre, handshake.password);
-                idCliente = id;
-                passwordValido = validPassword;
-                conexionValida = verificarConexionCliente(idCliente, passwordValido, handshake, *protocolo_servidor);
+                auto validacion = monitorClientes.idCliente(handshake.nombre, handshake.password);
+                passwordValido = validacion.first;
+                idCliente = validacion.second;
+                conexionValida = verificarConexionCliente(idCliente, passwordValido, handshake,
+                                                          *protocolo_servidor);
 
             }catch (const std::exception& e) {
                 continue;
@@ -63,7 +64,10 @@ void Aceptador::run() {
     cleanup();
 }
 
-bool Aceptador::verificarConexionCliente(uint16_t& idCliente, bool passwordValido, const handshakeInicial& handshake, ProtocoloServidor& protocolo_servidor) {
+bool Aceptador::verificarConexionCliente(uint16_t& idCliente,
+                                         bool passwordValido,
+                                         const handshakeInicial& handshake,
+                                         ProtocoloServidor& protocolo_servidor) {
     if (!handshake.crearPersonaje) {
         // checkear si el cliente existe
             if (idCliente == 0) {

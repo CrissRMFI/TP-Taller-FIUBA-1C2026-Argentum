@@ -6,6 +6,7 @@
 #define TALLER_TP_CLIENT_GAME_LOOP_H
 
 #include <cstdint>
+#include <optional>
 
 #include "../common/protocolo/mensaje_servidor.h"
 #include "../common/thread/queue.h"
@@ -24,9 +25,6 @@ private:
     ObjectAnimation object_animation;
     ObjectRenderer object_renderer;
     bool is_running;
-    struct SDL_Texture* background_texture = nullptr;
-    int window_width = 0;
-    int window_height = 0;
 
 public:
     ClientGameLoop(Queue<MensajeServidor>& server_messages,
@@ -40,8 +38,7 @@ public:
     void render();
     void clean();
     bool isRunning() const;
-    SDL_Color elegircolor(uint8_t tipo, uint8_t estado);
-
+    std::optional<GameAction> animation_action_for_command(const ComandoJugador& command) const;
 
 };
 

@@ -20,14 +20,20 @@ private:
     int window_height;
     uint16_t idCliente;
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
-    std::optional<ComandoJugador> handle_mouse_click(int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
-    uint16_t buscar_id_objetivo(int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
+    std::optional<ComandoJugador> handle_mouse_click(
+            int x, int y,
+            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const;
+    uint16_t buscar_id_objetivo(
+            int x, int y,
+            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const;
 
 public:
     ClientInputHandler();
     ~ClientInputHandler();
 
-    std::optional<ComandoJugador> handle_event(const SDL_Event &event, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
+    std::optional<ComandoJugador> handle_event(
+            const SDL_Event& event,
+            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
     bool should_quit() const;
     void setIdCliente(uint16_t id) { idCliente = id; }
     void set_window_dimensions(int width, int height) {

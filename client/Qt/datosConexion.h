@@ -39,7 +39,8 @@ public:
         datosLogin.host = host;
     }
 
-    void setDatosNuevoPersonaje(const std::string& nick, const std::string& password, Raza raza, ClasePersonaje clase, int cabeza, int cuerpo) {
+    void setDatosNuevoPersonaje(const std::string& nick, const std::string& password, Raza raza,
+                                ClasePersonaje clase, int cabeza, int cuerpo) {
         datosNuevoPersonaje.nick = nick;
         datosNuevoPersonaje.password = password;
         datosNuevoPersonaje.raza = raza;
@@ -75,7 +76,7 @@ public:
                 mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
                 break;
             case MensajeError::PasswordIncorrecto:
-                mensajeError = "Contraseña incorrecta. Por favor,  vuelva a iniciar sesion.";
+                mensajeError = "Contraseña incorrecta. Por favor, vuelva a iniciar sesion.";
                 break;
             default:
                 mensajeError = "Error desconocido. Por favor, vuelva a iniciar sesion.";

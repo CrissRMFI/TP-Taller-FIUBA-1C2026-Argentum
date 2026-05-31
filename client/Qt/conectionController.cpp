@@ -27,7 +27,7 @@ int ConnectionController::run(int argc, char* argv[]){
 					break;
 				case ErrorUsuario::UsuarioYaConectado:
 					usuarioYaConectado = true;
-					break;
+			        break;
 				case ErrorUsuario::PasswordIncorrecto:
 					passwordIncorrecto = true;
 					break;
