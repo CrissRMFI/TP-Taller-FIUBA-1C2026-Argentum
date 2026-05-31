@@ -10,6 +10,7 @@
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Surface.hh"
 #include "SDL_image.h"
+#include "../../editor/mapaCreator.h"
 
 #define SPRITE_FRAME_WIDTH 20
 #define SPRITE_FRAME_HEIGHT 40
@@ -23,6 +24,8 @@
 #endif
 
 
+ObjectRenderer::ObjectRenderer() : mapa(MapaCreator().crearMapaGenerico(100, 100)) {}
+
 void ObjectRenderer::init(const char* title,
                           const int xpos,
                           const int ypos,
@@ -33,7 +36,6 @@ void ObjectRenderer::init(const char* title,
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
-
     sdl = std::make_unique<SDL2pp::SDL>(SDL_INIT_VIDEO);
     image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
@@ -111,12 +113,51 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         renderer->SetDrawColor(0, 255, 0, 255);
         renderer->Clear();
     }
+    for (const auto& wall : mapa.getParedes()) {
+        const int cell_width = std::max(1, window_width / mapa.getAncho());
+        const int cell_height = std::max(1, window_height / mapa.getAlto());
+        const int wall_x = wall.x * window_width / mapa.getAncho();
+        const int wall_y = wall.y * window_height / mapa.getAlto();
+
+        renderer->SetDrawColor(0, 0, 0, 255); // color de paredes es negro
+        renderer->FillRect(SDL2pp::Rect(wall_x, wall_y, cell_width, cell_height));
+    }
+
+    for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
+        const int cell_width = window_width / mapa.getAncho();
+        const int cell_height = window_height / mapa.getAlto();
+        const int sacerdote_x = sacerdote.getPosicion().x * window_width / mapa.getAncho();
+        const int sacerdote_y = sacerdote.getPosicion().y * window_height / mapa.getAlto();
+
+        renderer->SetDrawColor(255, 255, 255, 255); // color de sacerdotes es blanco
+        renderer->FillRect(SDL2pp::Rect(sacerdote_x, sacerdote_y, cell_width, cell_height));
+    }
+
+    for (const auto& [id, banquero] : mapa.getBanqueros()) {
+        const int cell_width = window_width / mapa.getAncho();
+        const int cell_height = window_height / mapa.getAlto();
+        const int banquero_x = banquero.getPosicion().x * window_width / mapa.getAncho();
+        const int banquero_y = banquero.getPosicion().y * window_height / mapa.getAlto();
+
+        renderer->SetDrawColor(128, 128, 128, 255); // color de banqueros es gris
+        renderer->FillRect(SDL2pp::Rect(banquero_x, banquero_y, cell_width, cell_height));
+    }
+
+    for (const auto& [id, comerciante] : mapa.getComerciantes()) {
+        const int cell_width = window_width / mapa.getAncho();
+        const int cell_height = window_height / mapa.getAlto();
+        const int comerciante_x = comerciante.getPosicion().x * window_width / mapa.getAncho();
+        const int comerciante_y = comerciante.getPosicion().y * window_height / mapa.getAlto();
+
+        renderer->SetDrawColor(128, 0, 128, 255); // color de comerciantes es violeta
+        renderer->FillRect(SDL2pp::Rect(comerciante_x, comerciante_y, cell_width, cell_height));
+    } 
 
     for (const auto& [id, entity] : state_object.entities()) {
-        const int cell_width = std::max(1, window_width / 100);
-        const int cell_height = std::max(1, window_height / 100);
-        const int entity_x = entity.x * window_width / 100;
-        const int entity_y = entity.y * window_height / 100;
+        const int cell_width = window_width / mapa.getAncho();
+        const int cell_height = window_height / mapa.getAlto();
+        const int entity_x = entity.x * window_width / mapa.getAncho();
+        const int entity_y = entity.y * window_height / mapa.getAlto();
 
         if (entity.tipo == 0 && sprite_manager) {
             const int sprite_width = SPRITE_FRAME_WIDTH * 2;
@@ -126,10 +167,12 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
             const int animation_row =
                     (id == state_object.client_id()) ? animation.current_animation_row() : 0;
 
-            if (entity.estado == 1 && texture) {
+            if ((entity.estado == 1 || entity.estado == 3) && texture) { // fantasma o reviviendo
                 SDL_SetTextureBlendMode(texture->Get(), SDL_BLENDMODE_BLEND);
                 SDL_SetTextureAlphaMod(texture->Get(), 128);
-            } else if (texture) {
+            } else if (entity.estado == 2 && texture) { // meditando
+                SDL_SetTextureAlphaMod(texture->Get(), 128);
+            } else if (texture) { // vivo
                 SDL_SetTextureAlphaMod(texture->Get(), 255);
             }
 

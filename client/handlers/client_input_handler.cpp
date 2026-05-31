@@ -33,6 +33,10 @@ std::optional<ComandoJugador> ClientInputHandler::handle_keyboard(SDL_Keycode ke
             return ComandoJugador{Opcode::RESUCITAR, ComandoResucitar{}};
         case SDLK_m:
             return ComandoJugador{Opcode::MEDITAR, ComandoMeditar{}};
+        case SDLK_l:
+            return ComandoJugador{Opcode::LISTAR, ComandoListar{}};
+        case SDLK_c:
+            return ComandoJugador{Opcode::CURAR, ComandoCurar{}};
         default: return std::nullopt;
     }
 }

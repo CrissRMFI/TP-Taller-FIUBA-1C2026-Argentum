@@ -14,6 +14,7 @@
 #include "client_game_world.h"
 #include "object_animation.h"
 #include "sprite_manager.h"
+#include "../../common/game/mapa/mapa.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
 class ObjectRenderer {
@@ -28,10 +29,11 @@ private:
     int last_animation_row = -1;
     int window_width = 0;
     int window_height = 0;
-
+    Mapa mapa;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
 
 public:
+    ObjectRenderer();
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
     void update_animation(uint32_t current_tick,
                           const ObjectGameWorld& state_object,
