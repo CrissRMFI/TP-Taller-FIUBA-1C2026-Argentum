@@ -20,11 +20,12 @@ ClientManager::ClientManager(Socket&& skt,
         outbound_commands(outbound_commands),
         inbound_messages(inbound_messages) {
     handshake.nombre = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick : datos.getDatosPersonaje().nick;
-    handshake.password = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().password : datos.getDatosPersonaje().password;
     handshake.crearPersonaje = datos.esConexionNuevoPersonaje();
     if (datos.esConexionNuevoPersonaje()) {
         handshake.clasePersonaje = datos.getDatosNuevoPersonaje().clase;
         handshake.raza = datos.getDatosNuevoPersonaje().raza;
+        handshake.cabeza = datos.getDatosNuevoPersonaje().cabeza;
+        handshake.cuerpo = datos.getDatosNuevoPersonaje().cuerpo;
     }
 }
 void ClientManager::run() {
@@ -61,8 +62,6 @@ uint16_t ClientManager::handleHandshake() {
                 throw HandshakeError(ErrorUsuario::NickYaExistente);
             case ErrorUsuario::UsuarioYaConectado:
                 throw HandshakeError(ErrorUsuario::UsuarioYaConectado);
-            case ErrorUsuario::PasswordIncorrecto:
-                throw HandshakeError(ErrorUsuario::PasswordIncorrecto);
             case ErrorUsuario::Ninguno:
                 idCliente = estado.id;
                 break;

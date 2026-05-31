@@ -53,6 +53,8 @@ struct DescriptorAtaque {
 
 struct DatosRestauracion {
     uint16_t idClan;
+    uint16_t skinCabeza;
+    uint16_t skinCuerpo;
     bool     fundadoClan;
     Estado   estado;
     uint8_t  nivel;
@@ -78,6 +80,8 @@ public:
             const std::string& nombre,
             ClasePersonaje clase,
             Raza raza,
+            uint16_t cabeza,
+            uint16_t cuerpo,
             Posicion posicion,
             const ConfigJuego& cfg);
 
@@ -161,6 +165,8 @@ public:
     uint32_t getOroBanco() const;
     uint32_t getOroPerdidoPendiente() const;
     uint16_t getClan() const;
+    uint16_t getCabeza() const;
+    uint16_t getCuerpo() const;
     ClasePersonaje getClase() const;
     Raza getRaza() const;
     bool estaInmovilizado() const;
@@ -217,6 +223,8 @@ private:
     ClasePersonaje clase;
     Estado estado;
     Raza raza;
+    uint16_t cabeza;
+    uint16_t cuerpo;
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
 

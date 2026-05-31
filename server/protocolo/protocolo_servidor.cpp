@@ -18,9 +18,10 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
         dataJugador.crearPersonaje = true;
     } else {dataJugador.crearPersonaje = false;}
     dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
-    dataJugador.password = recibirCadenaConMaximo(MAX_NICK);
     dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
     dataJugador.raza = static_cast<Raza>(recibirUnByte());
+    dataJugador.cabeza = recibirDosBytes();
+    dataJugador.cuerpo = recibirDosBytes();
     return dataJugador;
 }
 
@@ -501,6 +502,8 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     enviarDosBytes(mensaje.y);
     enviarUnByte(mensaje.tipo);
     enviarUnByte(mensaje.estado);
+    enviarDosBytes(mensaje.cabeza);
+    enviarDosBytes(mensaje.cuerpo);
 }
 
 void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {

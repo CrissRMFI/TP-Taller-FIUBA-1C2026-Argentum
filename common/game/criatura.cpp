@@ -14,7 +14,8 @@ Criatura::Criatura(uint16_t idCriatura,
                    Posicion posicion,
                    uint8_t rangoAggro,
                    uint8_t danioMin,
-                   uint8_t danioMax)
+                   uint8_t danioMax,
+                   uint16_t cuerpo)
     : idCriatura(idCriatura),
       tipo(tipo),
       vidaActual(vidaMaxima),
@@ -25,7 +26,8 @@ Criatura::Criatura(uint16_t idCriatura,
       posicion(posicion),
       rangoAggro(rangoAggro),
       danioMin(danioMin),
-      danioMax(danioMax) {}
+      danioMax(danioMax),
+      cuerpo(cuerpo) {}
 
 uint16_t Criatura::getId() const {
     return idCriatura;
@@ -57,6 +59,10 @@ uint16_t Criatura::getVidaActual() const {
 
 uint16_t Criatura::getVidaMaxima() const {
     return vidaMaxima;
+}
+
+uint16_t Criatura::getCuerpo() const {
+    return cuerpo;
 }
 
 uint16_t Criatura::calcularDanio(Aleatorio& aleatorio) const {

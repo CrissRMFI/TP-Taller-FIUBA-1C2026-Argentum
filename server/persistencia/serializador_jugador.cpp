@@ -16,10 +16,12 @@ Jugador SerializadorJugador::aJugador(uint16_t sessionId,
     const Raza raza = static_cast<Raza>(reg.raza);
     const Posicion posicion{reg.posX, reg.posY, reg.mapaId};
 
-    Jugador jugador(sessionId, nombre, clase, raza, posicion, cfg);
+    Jugador jugador(sessionId, nombre, clase, raza, reg.skinCabeza, reg.skinCuerpo, posicion, cfg);
 
     DatosRestauracion datos;
     datos.idClan = reg.idClan;
+    datos.skinCabeza = reg.skinCabeza;
+    datos.skinCuerpo = reg.skinCuerpo;
     datos.fundadoClan = (reg.fundadoClan != 0);
     datos.estado = static_cast<Estado>(reg.estado);
     datos.nivel = reg.nivel;

@@ -28,9 +28,6 @@ int ConnectionController::run(int argc, char* argv[]){
 				case ErrorUsuario::UsuarioYaConectado:
 					usuarioYaConectado = true;
 			        break;
-				case ErrorUsuario::PasswordIncorrecto:
-					passwordIncorrecto = true;
-					break;
 				case ErrorUsuario::Ninguno:
 					break;
 			}
@@ -52,9 +49,6 @@ int ConnectionController::run(int argc, char* argv[]){
 		} else if (usuarioYaConectado) {
 			datos = menu.usuarioYaConectado(datos.getDatosLogin());
 			usuarioYaConectado = false;
-		} else if (passwordIncorrecto) {
-			datos = menu.passwordIncorrecto(datos.getDatosLogin());
-			passwordIncorrecto = false;
 		}
 	}
 

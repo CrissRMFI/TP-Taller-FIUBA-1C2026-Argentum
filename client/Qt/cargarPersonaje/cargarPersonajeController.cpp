@@ -29,7 +29,7 @@ void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResulta
     // Espero a que el eventLoop termine
     loop.exec();
 
-    datos.setDatosPersonaje(datosPersonaje.nick, datosPersonaje.password);
+    datos.setDatosPersonaje(datosPersonaje.nick);
     if (_volverAlMenu) {
         resultado = CargarPersonajeResultado::VolverAlMenu;
     } else if (_volverACrearCuenta) {
@@ -49,20 +49,13 @@ void CargarPersonajeController::volverACrearCuenta() {
 
 void CargarPersonajeController::setNick(const QString& nick) {
     datosPersonaje.nick = nick.toStdString();
-    if (!datosPersonaje.nick.empty() && !datosPersonaje.password.empty()) {
+    if (!datosPersonaje.nick.empty()) {
         emit cargarPersonajeCompleted();
     }
 }
 
-void CargarPersonajeController::setPassword(const QString& password) {
-    datosPersonaje.password = password.toStdString();
-    if (!datosPersonaje.nick.empty() && !datosPersonaje.password.empty()) {
-        emit cargarPersonajeCompleted();
-    }
-}
-
-bool CargarPersonajeController::esTextoValido(const QString& texto) const {
-    return texto.toUtf8().size() <= 32 && !texto.contains(' ');
+bool CargarPersonajeController::esNickValido(const QString& nick) const {
+    return nick.toUtf8().size() <= 32 && !nick.contains(' ');
 }
 
 bool CargarPersonajeController::huboErrorLogin() const {
@@ -70,7 +63,6 @@ bool CargarPersonajeController::huboErrorLogin() const {
 }
 
 QString CargarPersonajeController::getNick() const { return QString::fromStdString(datosPersonaje.nick); }
-QString CargarPersonajeController::getPassword() const { return QString::fromStdString(datosPersonaje.password); }
 QString CargarPersonajeController::getErrorLoginMessage() const {
     return QString::fromStdString(errorLoginMessage);
 }

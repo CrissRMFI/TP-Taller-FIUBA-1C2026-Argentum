@@ -17,9 +17,10 @@ void ProtocoloCliente::cerrarConexion() {
 void ProtocoloCliente::enviarUsuario(const handshakeInicial& dataJugador) {
     enviarUnByte(dataJugador.crearPersonaje ? 1 : 0);
     enviarCadenaConMaximo(dataJugador.nombre, MAX_NICK);
-    enviarCadenaConMaximo(dataJugador.password, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(dataJugador.clasePersonaje));
     enviarUnByte(static_cast<uint8_t>(dataJugador.raza));
+    enviarDosBytes(dataJugador.cabeza);
+    enviarDosBytes(dataJugador.cuerpo);
 }
 
 MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
@@ -387,13 +388,15 @@ MensajeServidor ProtocoloCliente::recibirPosicionEntidad() {
     uint16_t y = recibirDosBytes();
     uint8_t tipo = recibirUnByte();
     uint8_t estado = recibirUnByte();
+    uint16_t cabeza = recibirDosBytes();
+    uint16_t cuerpo = recibirDosBytes();
 
     validarTipoEntidad(tipo);
     validarEstadoEntidad(estado);
 
     return MensajeServidor{
             Opcode::POSICION_ENTIDAD,
-            MensajePosicionEntidad{id, x, y, tipo, estado},
+            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo},
     };
 }
 

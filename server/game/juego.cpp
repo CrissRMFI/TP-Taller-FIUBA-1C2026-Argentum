@@ -26,7 +26,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
         aleatorio() {}
 
 
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
@@ -64,7 +64,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         if (existeIdPersonaje(id)) {
             return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
         }
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, *posicionResuelta, cfg));
+        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, cabeza, cuerpo, *posicionResuelta, cfg));
     }
 
     indiceNicksConectados[nombre] = id;
@@ -309,7 +309,9 @@ EventoSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador
     return {TipoDestino::UNO, idCliente,
             EventoPosicionEntidad{jugador.getId(), posicion.x, posicion.y,
                                   static_cast<uint8_t>(TipoEntidad::Personaje),
-                                  estadoEntidadDe(jugador)}};
+                                  estadoEntidadDe(jugador),
+                                  jugador.getCabeza(), 
+                                  jugador.getCuerpo()}};
 }
 
 EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura) {
@@ -317,7 +319,9 @@ EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura
     return {TipoDestino::UNO, idCliente,
             EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y,
                                   static_cast<uint8_t>(TipoEntidad::Criatura),
-                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)}};
+                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo),
+                                  0, // Cabeza de criatura es 0
+                                  criatura.getCuerpo()}};
 }
 
 uint8_t Juego::estadoEntidadDe(const Jugador& jugador) const {
@@ -1906,11 +1910,12 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
     const uint8_t danioMaximo = cfg.criaturaDanioMaxBase < cfg.criaturaDanioMinBase
                                         ? cfg.criaturaDanioMinBase
                                         : cfg.criaturaDanioMaxBase;
-
+    const uint16_t cuerpoCriatura = getIndiceCuerpoCriatura(tiposCriatura[indiceTipo]);
+    
     Criatura criatura(*idCriatura, tiposCriatura[indiceTipo],
                       cfg.criaturaVidaMaximaBase, cfg.criaturaNivelBase, cfg.criaturaFuerzaBase,
                       cfg.criaturaAgilidadBase, *posicion, cfg.criaturaRangoAggroBase,
-                      cfg.criaturaDanioMinBase, danioMaximo);
+                      cfg.criaturaDanioMinBase, danioMaximo, cuerpoCriatura);
 
     if (!agregarCriatura(criatura)) {
         return mensajes;
@@ -2140,4 +2145,23 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     }
 
     return mensajes;
+}
+
+uint16_t Juego::getIndiceCuerpoCriatura(TipoCriatura tipo) const {
+    switch (tipo) {
+        case TipoCriatura::Goblin:
+            return 2200;
+        case TipoCriatura::Esqueleto:
+            return 2201;
+        case TipoCriatura::Zombie:
+            return 2202;
+        case TipoCriatura::Arania:
+            return 2203;
+        case TipoCriatura::Orco:
+            return 2204;
+        case TipoCriatura::Golem:
+            return 2205;
+        default:
+            return 0;
+    }
 }
