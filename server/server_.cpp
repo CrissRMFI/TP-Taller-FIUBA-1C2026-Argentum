@@ -1,8 +1,7 @@
-//
-// Created by victoria zubieta on 22/05/2026.
-//
-
 #include "server_.h"
+
+#include <iostream>
+#include <string>
 
 #include "common/thread/queue.h"
 #include "game/config/lector_config_toml.h"
@@ -27,8 +26,8 @@ void Server::run() {
     aceptador.start();
     gameloop.start();
 
-    char c;
-    while (std::cin >> c && c != 'q') {}
+    std::string linea;
+    while (std::getline(std::cin, linea) && linea != "q") {}
     aceptador.stop();
     aceptador.join();
 
