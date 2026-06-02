@@ -61,7 +61,8 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         cabeza(cabeza),
         cuerpo(cuerpo),
         fundadoClan(false),
-        tiempoRestanteInmovilizado(0.0f) {
+        tiempoRestanteInmovilizado(0.0f),
+        tiempoDesdeUltimoAtaque(config.cooldownAtaqueSeg) {
     const StatsRaza& sr = cfg.statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
@@ -187,6 +188,8 @@ void Jugador::recuperar_mana(uint16_t cantidad) {
 }
 
 void Jugador::recuperar(float segundos) {
+    tiempoDesdeUltimoAtaque += segundos;
+
     if (estaInmovilizado()) {
         tiempoRestanteInmovilizado -= segundos;
         if (tiempoRestanteInmovilizado < 0.0f) {
@@ -765,6 +768,14 @@ bool Jugador::consumir_mana(uint16_t cantidad) {
 
     manaActual -= cantidad;
     return true;
+}
+
+bool Jugador::puedeAtacar() const {
+    return tiempoDesdeUltimoAtaque >= cfg.cooldownAtaqueSeg;
+}
+
+void Jugador::registrarAtaque() {
+    tiempoDesdeUltimoAtaque = 0.0f;
 }
 
 void Jugador::consumir_item(uint16_t idItem) {

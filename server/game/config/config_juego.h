@@ -57,6 +57,7 @@ struct ConfigJuego {
     // ---- Combate ----
     float probabilidadCritico; // probabilidad entre 0.0 y 1.0
     float esquivarUmbral;     // esquiva si rand(0,1)^Agilidad < esquivarUmbral
+    float cooldownAtaqueSeg;  // segundos minimos entre dos ataques del mismo jugador
 
     // ---- Fair play ----
     int nivelNewbie;      // nivel <= nivelNewbie: no puede atacar ni ser atacado

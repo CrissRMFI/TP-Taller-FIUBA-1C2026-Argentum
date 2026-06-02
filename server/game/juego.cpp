@@ -1118,12 +1118,20 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
+    // Cooldown de ataque
+    if (!atacante->puedeAtacar()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
+    // El cooldown se consume sólo cuando hay una entidad real a la que golpear, para que el spam contra blancos inexistentes no quede limitado ni cause daño.
     if (buscarJugadorPorIdPersonaje(cmd.idObjetivo) != nullptr) {
+        atacante->registrarAtaque();
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
     }
 
     if (Criatura* criaturaObjetivo = mapa.obtenerCriaturaPor(cmd.idObjetivo)) {
+        atacante->registrarAtaque();
         return ejecutarAtaqueACriatura(idCliente, *atacante, *criaturaObjetivo);
     }
 

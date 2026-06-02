@@ -346,6 +346,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.esquivarUmbral = leerFloatObligatorio(tbl, "combate", "esquivar_umbral");
     cfg.probabilidadCritico = leerFloatObligatorio(tbl, "combate", "probabilidad_critico");
+    cfg.cooldownAtaqueSeg = leerFloatObligatorio(tbl, "combate", "cooldown_ataque_seg");
 
     cfg.nivelNewbie = leerIntObligatorio(tbl, "fair_play", "nivel_newbie");
     cfg.maxDiffNivel = leerIntObligatorio(tbl, "fair_play", "max_diff_nivel");

@@ -125,6 +125,11 @@ public:
     // Consume `cantidad` puntos de maná si hay suficiente; devuelve true en ese caso. Útil para que `Juego` cobre el costo de un hechizo de báculo antes de calcular daño.
     bool consumir_mana(uint16_t cantidad);
 
+    // Cooldown de ataque: `puedeAtacar` indica si ya transcurrió el tiempo de enfriamiento (cfg.cooldownAtaqueSeg) desde el último golpe. `registrarAtaque`
+    // reinicia ese contador cuando el jugador efectivamente ejecuta un ataque.
+    bool puedeAtacar() const;
+    void registrarAtaque();
+
     // Inventario
     bool puede_agregar_item(uint16_t idItem) const;
     bool agregar_item(uint16_t idItem);
@@ -227,6 +232,7 @@ private:
     uint16_t cuerpo;
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
+    float tiempoDesdeUltimoAtaque;
 
     void subirNivel();
     void morir();

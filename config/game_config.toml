@@ -94,6 +94,10 @@ oro_max_base = 100.0
 esquivar_umbral = 0.001
 probabilidad_critico = 0.10
 
+# Tiempo minimo de enfriamiento (en segundos) entre dos ataques de un mismo
+# jugador. Limita el ritmo de golpe para evitar el spam de ataques.
+cooldown_ataque_seg = 1.0
+
 # Alcance máximo en celdas (distancia Manhattan) para armas a distancia
 # y hechizos de báculo (regla 5.3). El melee siempre es adyacencia.
 rango_vision_ataque = 8
