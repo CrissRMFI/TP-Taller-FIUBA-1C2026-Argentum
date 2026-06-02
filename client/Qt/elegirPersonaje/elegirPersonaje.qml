@@ -184,7 +184,7 @@ Window {
         height: 30
         smooth: false
         sourceClipRect: Qt.rect(0, 0, 16, 15)
-        source: "../../assets/imgs/" + cabezaIndex + ".png"
+        source: personajeController.rutaCabezaPreview(cabezaIndex)
     }
 
     ImageButton {
@@ -219,7 +219,7 @@ Window {
         height: skinParaRaza(raza).cuerpoHeight
         smooth: false
         sourceClipRect: skinParaRaza(raza).cuerpoClipRect
-        source: "../../assets/imgs/" + cuerpoIndex + ".png"
+        source: personajeController.rutaCuerpoPreview(cuerpoIndex)
     }
 
     ImageButton {

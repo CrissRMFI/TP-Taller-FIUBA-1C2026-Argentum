@@ -32,6 +32,8 @@ public slots:
     void setCuerpo(int cuerpoIndex);
     void volverAlMenu();
     bool esNickValido(const QString& texto) const;
+    QString rutaCabezaPreview(int cabezaIndex) const;
+    QString rutaCuerpoPreview(int cuerpoIndex) const;
 
     Raza getRaza() const;
     ClasePersonaje getClase() const;

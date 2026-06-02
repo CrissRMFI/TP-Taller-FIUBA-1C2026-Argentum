@@ -124,6 +124,16 @@ bool ElegirPersonajeController::esNickValido(const QString& nick) const {
     return nick.toUtf8().size() <= 32 && !nick.contains(' ');
 }
 
+QString ElegirPersonajeController::rutaCabezaPreview(const int cabezaIndex) const {
+    return QString("qrc:/QmlCppExample/client/resources/imgs/personajes/cabezas/%1.png")
+            .arg(cabezaIndex);
+}
+
+QString ElegirPersonajeController::rutaCuerpoPreview(const int cuerpoIndex) const {
+    return QString("qrc:/QmlCppExample/client/resources/imgs/personajes/cuerpos/%1.png")
+            .arg(cuerpoIndex);
+}
+
 bool ElegirPersonajeController::camposCompletos() const {
     return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
 }
