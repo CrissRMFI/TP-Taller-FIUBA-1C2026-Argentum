@@ -23,7 +23,15 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mapa(std::move(mapa)),
         ticksTranscurridos(0),
-        aleatorio(){}
+        aleatorio() {
+    
+    for (const EntradaStockComerciante& e : cfg.stockComerciante) {
+        this->mapa.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
+    }
+    for (const EntradaStockSacerdote& e : cfg.stockSacerdote) {
+        this->mapa.agregarStockSacerdotes(e.id, e.precio);
+    }
+}
 
 
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {

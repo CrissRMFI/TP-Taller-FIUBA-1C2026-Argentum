@@ -6,6 +6,21 @@
 #include "../../../common/game/modelo/posicion.h"
 #include <cstdint>
 #include <string>
+#include <vector>
+
+// Una entrada del stock de un comerciante: que item vende, a que precio lo vende (compra, lo que paga el jugador) y a que precio lo recompra (venta).
+struct EntradaStockComerciante {
+    uint16_t id;
+    uint8_t  precioCompra;
+    uint8_t  precioVenta;
+};
+
+// Una entrada del stock de un sacerdote: que item vende y a que precio (el
+// sacerdote no recompra items).
+struct EntradaStockSacerdote {
+    uint16_t id;
+    uint8_t  precio;
+};
 
 // Stats base de una raza: valores absolutos y factores multiplicadores
 // que se usan en las ecuaciones de vida, mana y recuperación.
@@ -103,6 +118,9 @@ struct ConfigJuego {
 
     // ---- NPCs ----
     uint16_t rangoInteraccionNpc;
+    // Stock por tipo de NPC (todos los comerciantes/sacerdotes venden lo mismo).
+    std::vector<EntradaStockComerciante> stockComerciante;
+    std::vector<EntradaStockSacerdote>   stockSacerdote;
 
     // ---- Rangos de ataque (regla 5.3) ----
     // Alcance máximo en celdas para armas a distancia y hechizos de báculo.
