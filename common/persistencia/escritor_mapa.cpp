@@ -88,8 +88,16 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
         }
 
         escribirBloque(archivo, &header, sizeof(header), pathTmp);
-        escribirBloque(archivo, paredes.data(),
-                       paredes.size() * sizeof(ParedRecord), pathTmp);
+
+        if (!paredes.empty()) {
+            std::vector<ParedRecord> paredesRec;
+            paredesRec.reserve(paredes.size());
+            for (const Posicion& p : paredes) {
+                paredesRec.push_back(ParedRecord{p.x, p.y});
+            }
+            escribirBloque(archivo, paredesRec.data(),
+                           paredesRec.size() * sizeof(ParedRecord), pathTmp);
+        }
 
         if (!ciudades.empty()) {
             std::vector<CiudadRecord> ciudadesRec;

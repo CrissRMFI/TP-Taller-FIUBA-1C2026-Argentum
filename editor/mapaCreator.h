@@ -59,6 +59,13 @@ class MapaCreator {
             mapa.agregarPared(Posicion{45, 46, 0});
             mapa.agregarPared(Posicion{46, 45, 0});
             mapa.agregarPared(Posicion{46, 46, 0});
+
+            // Zonas seguras (ciudades): no se puede atacar dentro de ellas.
+            mapa.agregarCiudad(Ciudad{0, 38, 38, 62, 62});
+            mapa.agregarCiudad(Ciudad{0, 0, 0, 10, 10});
+            mapa.agregarCiudad(Ciudad{0, 90, 0, 99, 9});
+            mapa.agregarCiudad(Ciudad{0, 0, 90, 9, 99});
+            mapa.agregarCiudad(Ciudad{0, 90, 90, 99,99});
             return mapa;
         }
 };

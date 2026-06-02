@@ -365,6 +365,8 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
+    cfg.mapaArchivo = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "mapa"), "archivo", rutaToml("mapa", "archivo"));
     cargarSpawn(tbl, cfg);
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
