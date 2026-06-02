@@ -11,17 +11,11 @@
 #include "SDL2pp/Surface.hh"
 #include "SDL_image.h"
 
-#define SPRITE_FRAME_WIDTH 20
-#define SPRITE_FRAME_HEIGHT 40
-#define SPRITE_TOP_PADDING 5
-#define SPRITE_FRAME_STEP_X 32
-#define SPRITE_ROW_GAP 5
 #define SPRITE_ANIMATION_FPS 8
 
 #ifndef CLIENT_ASSETS_DIR
 #define CLIENT_ASSETS_DIR "client/assets"
 #endif
-
 
 void ObjectRenderer::init(const char* title,
                           const int xpos,
@@ -43,7 +37,7 @@ void ObjectRenderer::init(const char* title,
 
     try {
         const std::string background_path =
-                std::string(CLIENT_ASSETS_DIR) + "/../resources/pasto.png";
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/mapas/pasto.png";
         SDL2pp::Surface background_surface(background_path);
         background_texture = std::make_unique<SDL2pp::Texture>(*renderer, background_surface);
     } catch (const std::exception& e) {
@@ -51,26 +45,41 @@ void ObjectRenderer::init(const char* title,
     }
 
     try {
-        const std::string sprite_path = std::string(CLIENT_ASSETS_DIR) + "/imgs/1071.png";
-        SDL2pp::Surface surface(sprite_path);
-        texture = std::make_unique<SDL2pp::Texture>(*renderer, surface);
-        sprite_manager = std::make_unique<SpriteManager>(*texture, SPRITE_ANIMATION_FPS);
+        const std::string resources_root = std::string(CLIENT_ASSETS_DIR) + "/../resources";
+        const std::string sprites_config_path = resources_root + "/config/sprites.toml";
+        catalog = std::make_unique<SpriteCatalog>(
+                SpriteCatalog::load_from_file(sprites_config_path));
+        cache_texture = std::make_unique<TextureCache>(*renderer, resources_root);
+        resolver_sprite =
+                std::make_unique<CharacterSpriteResolver>(*catalog, *cache_texture);
 
-        sprite_manager->add_animation(
-                0, 6, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT, 0, SPRITE_TOP_PADDING,
-                SPRITE_FRAME_STEP_X);
-        sprite_manager->add_animation(
-                1, 6, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT, 0,
-                SPRITE_TOP_PADDING + (SPRITE_FRAME_HEIGHT + SPRITE_ROW_GAP),
-                SPRITE_FRAME_STEP_X);
-        sprite_manager->add_animation(
-                2, 5, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT, 0,
-                SPRITE_TOP_PADDING + 2 * (SPRITE_FRAME_HEIGHT + SPRITE_ROW_GAP),
-                SPRITE_FRAME_STEP_X);
-        sprite_manager->add_animation(
-                3, 5, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT, 0,
-                SPRITE_TOP_PADDING + 3 * (SPRITE_FRAME_HEIGHT + SPRITE_ROW_GAP),
-                SPRITE_FRAME_STEP_X);
+        character_renderer = std::make_unique<CharacterRenderer>(*resolver_sprite);
+
+        creature_sprite_resolver =
+                std::make_unique<CreatureSpriteResolver>(*catalog, *cache_texture);
+
+        criatura_renderer = std::make_unique<CriaturaRenderer>(*creature_sprite_resolver);
+        npc_sprite_resolver = std::make_unique<NpcSpriteResolver>(*catalog, *cache_texture);
+        npc_renderer = std::make_unique<NPCRenderer>(*npc_sprite_resolver);
+
+        sprite_manager = std::make_unique<SpriteManager>(SPRITE_ANIMATION_FPS);
+
+        const SkinPreset& default_skin = catalog->skin_preset("humano_default");
+
+        if (!default_skin.body_ids.empty()) {
+            const CharacterPartDefinition& body_definition =
+                    catalog->body(default_skin.body_ids.front());
+            const SpriteVec2 frame_size = body_definition.frame_size.value_or(
+                    SpriteVec2{body_definition.visible_size.x, body_definition.visible_size.y});
+            for (int row = 0; row < 4; ++row) {
+                if (!body_definition.rows[row].has_value()) {
+                    continue;
+                }
+                sprite_manager->add_animation(
+                        row, body_definition.rows[row]->frames, frame_size.x, frame_size.y, 0,
+                        body_definition.rows[row]->y, body_definition.rows[row]->step_x);
+            }
+        }
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el sprite del jugador: " << e.what() << std::endl;
     }
@@ -119,26 +128,31 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int entity_y = entity.y * window_height / 100;
 
         if (entity.tipo == 0 && sprite_manager) {
-            const int sprite_width = SPRITE_FRAME_WIDTH * 2;
-            const int sprite_height = SPRITE_FRAME_HEIGHT * 2;
-            const int sprite_x = entity_x - (sprite_width - cell_width) / 2;
-            const int sprite_y = entity_y - (sprite_height - cell_height) / 2;
             const int animation_row =
                     (id == state_object.client_id()) ? animation.current_animation_row() : 0;
-
-            if (entity.estado == 1 && texture) {
-                SDL_SetTextureBlendMode(texture->Get(), SDL_BLENDMODE_BLEND);
-                SDL_SetTextureAlphaMod(texture->Get(), 128);
-            } else if (texture) {
-                SDL_SetTextureAlphaMod(texture->Get(), 255);
+            if (!character_renderer) {
+                continue;
             }
+            character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
+                                       cell_height, animation_row,
+                                       sprite_manager->current_frame_index());
+            continue;
+        }
 
-            sprite_manager->render(*renderer, sprite_x, sprite_y,
-                                   animation_row, 0.75f);
-
-            if (texture) {
-                SDL_SetTextureAlphaMod(texture->Get(), 255);
+        if (entity.tipo == 1) {
+            if (!criatura_renderer) {
+                continue;
             }
+            criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
+                                      cell_height, 0, 0);
+            continue;
+        }
+        if (entity.tipo == 2) {
+            if (!npc_renderer) {
+                continue;
+            }
+            npc_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
+                                 cell_height, 0, 0);
             continue;
         }
 
@@ -161,9 +175,11 @@ SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
             default:
                 break;
         }
-    } else if (tipo == 1) {
+   }
+    if (tipo == 1) {
         return {255, 0, 0, 255};
-    } else if (tipo == 2) {
+    }
+    if (tipo == 2) {
         return {0, 180, 0, 255};
     }
 
