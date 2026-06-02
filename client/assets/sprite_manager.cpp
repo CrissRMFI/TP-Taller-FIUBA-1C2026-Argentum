@@ -4,10 +4,7 @@
 
 #include "sprite_manager.h"
 
-#include "SDL2pp/Renderer.hh"
-
-SpriteManager::SpriteManager(SDL2pp::Texture& textura, int fps):
-        texture(textura),
+SpriteManager::SpriteManager(int fps):
         current_frame(0),
         frame_rate(fps > 0 ? 1000 / fps : 0),
         last_frame_tick(0),
@@ -45,6 +42,7 @@ void SpriteManager::add_animation(const int row_idx, const int frame_count, int 
 }
 
 void SpriteManager::render(SDL2pp::Renderer& renderer,
+                           SDL2pp::Texture& texture,
                            const int x, const int y, const int row,
                            const float scale) const {
     if (row >= static_cast<int>(animaciones.size()) || animaciones[row].empty()) {
@@ -58,6 +56,10 @@ void SpriteManager::render(SDL2pp::Renderer& renderer,
                           static_cast<int>(scale * src_rect.h));
 
     renderer.Copy(texture, src_rect, dst_rect);
+}
+
+int SpriteManager::current_frame_index() const {
+    return current_frame;
 }
 
 void SpriteManager::reset_frame() {

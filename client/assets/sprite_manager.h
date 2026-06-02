@@ -6,12 +6,12 @@
 #define TALLER_TP_SPRITE_MANAGER_H
 #include <SDL_render.h>
 
+#include "SDL2pp/Renderer.hh"
 #include "SDL2pp/Texture.hh"
 
 
 class SpriteManager {
 private:
-    SDL2pp::Texture& texture;  //ref textura cargada
     int current_frame; // donde esta parado actualmente
     uint32_t frame_rate; // velocidad por animacion
     uint32_t last_frame_tick;
@@ -19,14 +19,16 @@ private:
 
 
 public:
-    SpriteManager(SDL2pp::Texture& texture, int fps);
+    explicit SpriteManager(int fps);
 
     void update(uint32_t current_tick, int current_row);
     void add_animation(int row_idx, int frame_count, int frame_width, int frame_height,
                        int x_offset, int y_offset, int x_step, int y_step = 0);
     void render(SDL2pp::Renderer& renderer,
+        SDL2pp::Texture& texture,
         int x, int y, int row = 0, float scale = 1.0f) const;
 
+    int current_frame_index() const;
     void reset_frame();
 };
 

@@ -27,7 +27,8 @@ message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
 # HEY TODO XXX: change the name to something that you like
-add_library(taller_common STATIC)
+add_library(taller_common STATIC
+        common/protocolo/skin_personaje_jugador.h)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
@@ -100,6 +101,17 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
+if(TALLER_CLIENT OR TALLER_SERVER)
+    include(FetchContent)
+    FetchContent_Declare(
+        tomlplusplus
+        GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+        GIT_TAG        v3.4.0
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(tomlplusplus)
+endif()
+
 # Program section
 # ---------------
 if(TALLER_CLIENT)
@@ -115,10 +127,26 @@ if(TALLER_CLIENT)
                 client/assets/client_renderer.h
                 client/assets/object_animation.cpp
                 client/assets/object_animation.h
+                client/assets/sprite_catalog.cpp
+                client/assets/sprite_catalog.h
+                client/assets/texture_cache.cpp
+                client/assets/texture_cache.h
+                client/assets/character_renderer.cpp
+                client/assets/character_renderer.h
                 client/client_game_loop.cpp
                 client/client_game_loop.cpp
                 client/client_game_loop.h
-                )
+                client/assets/character_sprite_resolver.cpp
+                client/assets/character_sprite_resolver.h
+                client/assets/criatura_renderer.cpp
+                client/assets/criatura_renderer.h
+                client/assets/npc_renderer.cpp
+                client/assets/npc_renderer.h
+                client/assets/criatura_sprite_resolver.cpp
+                client/assets/criatura_sprite_resolver.h
+                client/assets/npc_sprite_resolver.cpp
+                client/assets/npc_sprite_resolver.h
+        )
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
@@ -157,21 +185,21 @@ if(TALLER_CLIENT)
             client/Qt/graficos/jugarButton.png
             client/Qt/graficos/leftArrow.png
             client/Qt/graficos/rightArrow.png
-            client/assets/imgs/2000.png
-            client/assets/imgs/2001.png
-            client/assets/imgs/2002.png
-            client/assets/imgs/2010.png
-            client/assets/imgs/2011.png
-            client/assets/imgs/2012.png
-            client/assets/imgs/2020.png
-            client/assets/imgs/2021.png
-            client/assets/imgs/2022.png
-            client/assets/imgs/2030.png
-            client/assets/imgs/2031.png
-            client/assets/imgs/2100.png
-            client/assets/imgs/2110.png
-            client/assets/imgs/2120.png
-            client/assets/imgs/2130.png
+            client/resources/imgs/personajes/cabezas/2000.png
+            client/resources/imgs/personajes/cabezas/2001.png
+            client/resources/imgs/personajes/cabezas/2002.png
+            client/resources/imgs/personajes/cabezas/2010.png
+            client/resources/imgs/personajes/cabezas/2011.png
+            client/resources/imgs/personajes/cabezas/2012.png
+            client/resources/imgs/personajes/cabezas/2020.png
+            client/resources/imgs/personajes/cabezas/2021.png
+            client/resources/imgs/personajes/cabezas/2022.png
+            client/resources/imgs/personajes/cabezas/2030.png
+            client/resources/imgs/personajes/cabezas/2031.png
+            client/resources/imgs/personajes/cuerpos/2100.png
+            client/resources/imgs/personajes/cuerpos/2110.png
+            client/resources/imgs/personajes/cuerpos/2120.png
+            client/resources/imgs/personajes/cuerpos/2130.png
     )
 
     target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)
@@ -186,19 +214,10 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/client/Qt/cargarPersonaje)
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client PRIVATE taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client PRIVATE taller_common SDL2pp::SDL2pp tomlplusplus::tomlplusplus)
 endif()
 
 if(TALLER_SERVER)
-    include(FetchContent)
-    FetchContent_Declare(
-        tomlplusplus
-        GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-        GIT_TAG        v3.4.0
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_MakeAvailable(tomlplusplus)
-
     add_executable(taller_server
             server/server_.cpp
             server/server_.h
