@@ -31,6 +31,9 @@ private:
     int window_height = 0;
     Mapa mapa;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
+    // Carga el mapa desde el .bin compartido. Si falla, devuelve un mapa vacio
+    // valido para que el render no divida por cero ni el cliente crashee.
+    Mapa cargarMapa() const;
 
 public:
     ObjectRenderer();

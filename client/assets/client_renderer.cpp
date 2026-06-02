@@ -10,7 +10,7 @@
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Surface.hh"
 #include "SDL_image.h"
-#include "../../editor/mapaCreator.h"
+#include "../../common/persistencia/lector_mapa.h"
 
 #define SPRITE_FRAME_WIDTH 20
 #define SPRITE_FRAME_HEIGHT 40
@@ -23,8 +23,22 @@
 #define CLIENT_ASSETS_DIR "client/assets"
 #endif
 
+// Ruta del .bin del escenario (formato AOM1). El cliente carga el MISMO mapa que el servidor: es un asset compartido, no viaja por socket.
+#ifndef CLIENT_MAP_PATH
+#define CLIENT_MAP_PATH "config/mapa.bin"
+#endif
 
-ObjectRenderer::ObjectRenderer() : mapa(MapaCreator().crearMapaGenerico(100, 100)) {}
+Mapa ObjectRenderer::cargarMapa() const {
+    try {
+        return LectorMapa::leer(CLIENT_MAP_PATH).mapa;
+    } catch (const std::exception& e) {
+        std::cerr << "Error al cargar el mapa '" << CLIENT_MAP_PATH << "': " << e.what()
+                  << ". Se usa un mapa vacio." << std::endl;
+        return Mapa(100, 100);
+    }
+}
+
+ObjectRenderer::ObjectRenderer() : mapa(cargarMapa()) {}
 
 void ObjectRenderer::init(const char* title,
                           const int xpos,
