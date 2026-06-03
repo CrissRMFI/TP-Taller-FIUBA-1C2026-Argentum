@@ -23,14 +23,14 @@
 #define CLIENT_ASSETS_DIR "client/assets"
 #endif
 
-// Ruta del .bin del escenario (formato AOM1). El cliente carga el MISMO mapa que el servidor: es un asset compartido, no viaja por socket.
 #ifndef CLIENT_MAP_PATH
-#define CLIENT_MAP_PATH "config/mapa.bin"
+#define CLIENT_MAP_PATH "config/mapa.toml"
 #endif
 
 Mapa ObjectRenderer::cargarMapa() const {
     try {
-        return LectorMapa::leer(CLIENT_MAP_PATH).mapa;
+        LectorMapa lector_mapa;
+        return lector_mapa.leer(CLIENT_MAP_PATH).mapa;
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el mapa '" << CLIENT_MAP_PATH << "': " << e.what()
                   << ". Se usa un mapa vacio." << std::endl;

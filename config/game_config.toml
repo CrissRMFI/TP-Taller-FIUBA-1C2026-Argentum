@@ -291,9 +291,8 @@ poblacion_max = 10           # Tope global de NPCs vivos
 ancho = 100
 alto  = 100
 
-# Archivo binario (formato AOM1) del que el servidor carga el escenario
-# (paredes, ciudades/zonas seguras y NPCs) al arrancar. Lo genera el editor.
-archivo = "config/mapa.bin"
+# Archivo TOML del que el servidor carga el escenario (paredes, ciudades/zonas seguras y NPCs) al arrancar. Lo genera el editor y es editable a mano.
+archivo = "config/mapa.toml"
 
 # Posicion ancla del spawn de jugadores. Al conectar, el servidor intenta
 # ubicar al jugador en esta celda; si ya esta ocupada, busca la celda libre

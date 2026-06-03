@@ -1,81 +1,89 @@
 #include "lector_mapa.h"
 
-#include <cstring>
-#include <fstream>
-#include <ios>
-#include <vector>
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
+#include <string>
 
 #include "error_persistencia.h"
-#include "formato_mapa.h"
-#include "../game/npc/npc.h"
 
-void LectorMapa::leerBloque(std::ifstream& archivo, void* destino, std::size_t bytes, const std::string& path) {
-
-    if (bytes == 0) {
-        return;
+uint16_t LectorMapa::leerUint16(
+        const toml::table& tabla, std::string_view clave, const std::string& path) {
+    const auto valor = tabla[clave].value<int64_t>();
+    if (!valor.has_value()) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::CLAVE_FALTANTE,
+                path + " (clave '" + std::string(clave) + "')");
     }
-
-    archivo.read(reinterpret_cast<char*>(destino), static_cast<std::streamsize>(bytes));
-    
-    if (!archivo) {
-        throw ErrorPersistencia(CodigoErrorPersistencia::EOF_PREMATURO, path);
+    if (*valor < 0 || *valor > std::numeric_limits<uint16_t>::max()) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                path + " (clave '" + std::string(clave) + "' fuera de rango)");
     }
+    return static_cast<uint16_t>(*valor);
+}
+
+TipoNpc LectorMapa::tipoNpcDesdeTexto(const std::string& texto, const std::string& path) {
+    if (texto == "banquero")    return TipoNpc::Banquero;
+    if (texto == "comerciante") return TipoNpc::Comerciante;
+    if (texto == "sacerdote")   return TipoNpc::Sacerdote;
+    throw ErrorPersistencia(
+            CodigoErrorPersistencia::NPC_DUPLICADO_O_INVALIDO,
+            path + " (tipo de NPC desconocido: '" + texto + "')");
 }
 
 MapaCargado LectorMapa::leer(const std::string& path) {
-  
-    const char magicEsperado[4] = {'A', 'O', 'M', '1'};
-    const uint16_t versionMaxima = 1;
-
-    std::ifstream archivo(path, std::ios::binary);
-    if (!archivo) {
+    toml::table tbl;
+    try {
+        tbl = toml::parse_file(path);
+    } catch (const toml::parse_error& e) {
         throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, path);
+                CodigoErrorPersistencia::TOML_MAL_FORMADO,
+                path + " (" + std::string(e.description()) + ")");
     }
 
-    HeaderMapa header{};
-    leerBloque(archivo, &header, sizeof(header), path);
+    const uint16_t mapaId = leerUint16(tbl, "mapa_id", path);
+    const uint16_t ancho  = leerUint16(tbl, "ancho", path);
+    const uint16_t alto   = leerUint16(tbl, "alto", path);
 
-    if (std::memcmp(header.magic, magicEsperado, sizeof(header.magic)) != 0) {
-        throw ErrorPersistencia(CodigoErrorPersistencia::MAGIC_INVALIDO, path);
-    }
-
-    if (header.version > versionMaxima) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::VERSION_INCOMPATIBLE,
-                path + " (version=" + std::to_string(header.version) + ")");
-    }
-
-    if (header.ancho == 0 || header.alto == 0) {
+    if (ancho == 0 || alto == 0) {
         throw ErrorPersistencia(
                 CodigoErrorPersistencia::DIMENSIONES_INVALIDAS, path);
     }
 
-    std::vector<ParedRecord> paredes(header.cantParedes);
-    leerBloque(archivo, paredes.data(),
-               paredes.size() * sizeof(ParedRecord), path);
-
-    std::vector<CiudadRecord> ciudades(header.cantCiudades);
-    leerBloque(archivo, ciudades.data(),
-               ciudades.size() * sizeof(CiudadRecord), path);
-
-    std::vector<NpcRecord> npcs(header.cantNpcs);
-    leerBloque(archivo, npcs.data(),
-               npcs.size() * sizeof(NpcRecord), path);
-
-    archivo.peek();
-    if (!archivo.eof()) {
-        throw ErrorPersistencia(CodigoErrorPersistencia::BYTES_EXTRA, path);
-    }
-
-    Mapa mapa(header.ancho, header.alto);
+    Mapa mapa(ancho, alto);
 
     try {
-        for (const ParedRecord& p : paredes) {
-            mapa.agregarPared(Posicion{p.x, p.y, header.mapaId});
+        if (const toml::array* paredes = tbl["paredes"].as_array()) {
+            for (const toml::node& nodo : *paredes) {
+                const toml::table* p = nodo.as_table();
+                if (p == nullptr) {
+                    throw ErrorPersistencia(
+                            CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                            path + " (entrada de 'paredes' invalida)");
+                }
+                mapa.agregarPared(Posicion{
+                        leerUint16(*p, "x", path),
+                        leerUint16(*p, "y", path),
+                        mapaId});
+            }
         }
-        for (const CiudadRecord& c : ciudades) {
-            mapa.agregarCiudad(Ciudad{header.mapaId, c.xMin, c.yMin, c.xMax, c.yMax});
+
+        if (const toml::array* ciudades = tbl["ciudades"].as_array()) {
+            for (const toml::node& nodo : *ciudades) {
+                const toml::table* c = nodo.as_table();
+                if (c == nullptr) {
+                    throw ErrorPersistencia(
+                            CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                            path + " (entrada de 'ciudades' invalida)");
+                }
+                mapa.agregarCiudad(Ciudad{
+                        mapaId,
+                        leerUint16(*c, "x_min", path),
+                        leerUint16(*c, "y_min", path),
+                        leerUint16(*c, "x_max", path),
+                        leerUint16(*c, "y_max", path)});
+            }
         }
     } catch (const std::invalid_argument& e) {
         throw ErrorPersistencia(
@@ -83,18 +91,33 @@ MapaCargado LectorMapa::leer(const std::string& path) {
                 path + " (" + e.what() + ")");
     }
 
-    for (const NpcRecord& n : npcs) {
-        const Npc npc{
-            n.id,
-            static_cast<TipoNpc>(n.tipo),
-            Posicion{n.x, n.y, header.mapaId}
-        };
-        if (!mapa.agregarNpc(npc)) {
-            throw ErrorPersistencia(
-                    CodigoErrorPersistencia::NPC_DUPLICADO_O_INVALIDO,
-                    path + " (id=" + std::to_string(n.id) + ")");
+    if (const toml::array* npcs = tbl["npcs"].as_array()) {
+        for (const toml::node& nodo : *npcs) {
+            const toml::table* n = nodo.as_table();
+            if (n == nullptr) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (entrada de 'npcs' invalida)");
+            }
+            const auto tipoTexto = (*n)["tipo"].value<std::string>();
+            if (!tipoTexto.has_value()) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::CLAVE_FALTANTE,
+                        path + " (NPC sin clave 'tipo')");
+            }
+            const uint16_t id = leerUint16(*n, "id", path);
+            const Npc npc{
+                id,
+                tipoNpcDesdeTexto(*tipoTexto, path),
+                Posicion{leerUint16(*n, "x", path), leerUint16(*n, "y", path), mapaId}
+            };
+            if (!mapa.agregarNpc(npc)) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::NPC_DUPLICADO_O_INVALIDO,
+                        path + " (id=" + std::to_string(id) + ")");
+            }
         }
     }
 
-    return MapaCargado{std::move(mapa), header.mapaId};
+    return MapaCargado{std::move(mapa), mapaId};
 }

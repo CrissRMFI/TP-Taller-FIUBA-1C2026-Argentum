@@ -116,7 +116,7 @@ struct ConfigJuego {
     // ---- Mapa ----
     uint16_t mapaAncho;
     uint16_t mapaAlto;
-    std::string mapaArchivo;  // ruta del .bin (formato AOM1) que carga el servidor
+    std::string mapaArchivo;
 
     // Posicion ancla donde aparecen los jugadores al conectarse. La celda real la resuelve Juego al conectar (puede ser una vecina si esta ocupada).
     Posicion spawnInicial;

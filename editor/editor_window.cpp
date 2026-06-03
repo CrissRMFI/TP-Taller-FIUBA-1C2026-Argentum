@@ -14,7 +14,7 @@
 #include "common/persistencia/escritor_mapa.h"
 #include "common/persistencia/lector_mapa.h"
 
-#define EDITOR_MAPA_DEFAULT "config/mapa.bin"
+#define EDITOR_MAPA_DEFAULT "config/mapa.toml"
 #define EDITOR_ANCHO_DEFAULT 100
 #define EDITOR_ALTO_DEFAULT 100
 
@@ -78,7 +78,8 @@ void EditorWindow::crearMenu() {
 
 void EditorWindow::intentarCargar(const QString& ruta) {
     try {
-        MapaCargado cargado = LectorMapa::leer(ruta.toStdString());
+        LectorMapa lectorMapa;
+        MapaCargado cargado = lectorMapa.leer(ruta.toStdString());
         modelo.cargarDesde(cargado.mapa, cargado.mapaId);
         canvas->update();
         statusBar()->showMessage("Mapa cargado: " + ruta, 4000);
@@ -95,12 +96,13 @@ void EditorWindow::nuevoMapa() {
 
 void EditorWindow::abrirMapa() {
     const QString ruta = QFileDialog::getOpenFileName(
-            this, "Abrir mapa", "config", "Mapas (*.bin)");
+            this, "Abrir mapa", "config", "Mapas (*.toml)");
     if (ruta.isEmpty()) {
         return;
     }
     try {
-        MapaCargado cargado = LectorMapa::leer(ruta.toStdString());
+        LectorMapa lectorMapa;
+        MapaCargado cargado = lectorMapa.leer(ruta.toStdString());
         modelo.cargarDesde(cargado.mapa, cargado.mapaId);
         canvas->update();
         statusBar()->showMessage("Mapa cargado: " + ruta, 4000);
@@ -111,13 +113,14 @@ void EditorWindow::abrirMapa() {
 
 void EditorWindow::guardarMapa() {
     const QString ruta = QFileDialog::getSaveFileName(
-            this, "Guardar mapa", EDITOR_MAPA_DEFAULT, "Mapas (*.bin)");
+            this, "Guardar mapa", EDITOR_MAPA_DEFAULT, "Mapas (*.toml)");
     if (ruta.isEmpty()) {
         return;
     }
     try {
         Mapa mapa = modelo.construirMapa();
-        EscritorMapa::escribir(mapa, modelo.getMapaId(), ruta.toStdString());
+        EscritorMapa escritorMapa;
+        escritorMapa.escribir(mapa, modelo.getMapaId(), ruta.toStdString());
         statusBar()->showMessage("Mapa guardado en " + ruta, 4000);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error al guardar", e.what());
