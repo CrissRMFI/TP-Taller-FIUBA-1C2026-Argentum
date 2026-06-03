@@ -219,23 +219,26 @@ if(TALLER_SERVER)
 endif()
 
 if(TALLER_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
+    # El editor de mapas usa Qt Widgets (grilla + dialogos de archivo).
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+
     add_executable(taller_editor)
+    # AUTOMOC procesa los Q_OBJECT (EditorWindow, MapaCanvas).
+    set_target_properties(taller_editor PROPERTIES AUTOMOC ON)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common SDL2pp::SDL2pp)
+    add_dependencies(taller_editor taller_common)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(editor)
 
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
-    # add libSDL2pp's headers
-    target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
+    # Headers propios del editor (para los includes entre clases y el moc).
+    target_include_directories(taller_editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/editor)
 
-    # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    # Link the taller_common lib target + Qt
+    target_link_libraries(taller_editor taller_common Qt6::Core Qt6::Gui Qt6::Widgets)
 endif()
 
 # Testing section
