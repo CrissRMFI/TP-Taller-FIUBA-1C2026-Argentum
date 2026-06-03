@@ -82,7 +82,8 @@ class Juego {
     std::list<EventoSalida> ejecutarTomar(uint16_t idCliente);
     std::list<EventoSalida> ejecutarRevisarClan(uint16_t idCliente);
     std::list<EventoSalida> ejecutarDejarClan(uint16_t idCliente);
-    std::list<EventoSalida> ejecutarMover(uint16_t idCliente, const ComandoMover& comando);
+    std::list<EventoSalida> ejecutarEmpezarMover(uint16_t idCliente, const ComandoEmpezarMover& comando);
+    std::list<EventoSalida> ejecutarDetenerMover(uint16_t idCliente);
     std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
     std::list<EventoSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
@@ -134,6 +135,9 @@ class Juego {
     Comerciante* obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador);
     Sacerdote*   obtenerSacerdoteParaInteraccion  (uint16_t idNpc, const Jugador& jugador);
     Banquero*    obtenerBanqueroParaInteraccion   (uint16_t idNpc, const Jugador& jugador);
+
+    // Helper para avanzar una celda al jugador en la dirección dada. Devuelve true si se movió.
+    bool intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion);
     };
 
 #endif

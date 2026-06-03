@@ -13,9 +13,10 @@ struct ComandoResucitar   {};
 struct ComandoTomar       {};
 struct ComandoRevisarClan {};
 struct ComandoDejarClan   {};
+struct ComandoDetenerMover {};
 
 // Comandos con payload
-struct ComandoMover { 
+struct ComandoEmpezarMover {
   uint8_t direccion;
 };
 
@@ -96,7 +97,8 @@ using PayloadComando = std::variant<
     ComandoTomar,
     ComandoRevisarClan,
     ComandoDejarClan,
-    ComandoMover,
+    ComandoEmpezarMover,
+    ComandoDetenerMover,
     ComandoAtacar,
     ComandoTirar,
     ComandoEquipar,

@@ -14,13 +14,13 @@
 class ClientInputHandler {
 private:
     bool quit_requested;
-    std::optional<GameAction> handle_keyboard(SDL_Keycode key);
+    std::optional<GameAction> direction_for_key(SDL_Keycode key);
 
 public:
     ClientInputHandler();
     ~ClientInputHandler();
 
-    std::optional<GameAction>  handle_event(const SDL_Event &event);
+    std::optional<MovementInput> handle_event(const SDL_Event& event);
     bool should_quit() const;
 };
 

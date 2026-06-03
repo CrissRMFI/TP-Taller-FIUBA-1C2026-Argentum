@@ -54,8 +54,12 @@ void ProtocoloCliente::validarCantidad(uint16_t cantidad) const {
 
 void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
     switch (comando.opcode) {
-        case Opcode::MOVER:
-            enviarComandoMover(std::get<ComandoMover>(comando.payload));
+        case Opcode::EMPEZAR_MOVER:
+            enviarComandoEmpezarMover(std::get<ComandoEmpezarMover>(comando.payload));
+            break;
+
+        case Opcode::DETENER_MOVER:
+            enviarComandoDetenerMover(std::get<ComandoDetenerMover>(comando.payload));
             break;
 
         case Opcode::ATACAR:
@@ -161,11 +165,15 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
     }
 }
 
-void ProtocoloCliente::enviarComandoMover(const ComandoMover& comando) {
+void ProtocoloCliente::enviarComandoEmpezarMover(const ComandoEmpezarMover& comando) {
     validarDireccion(comando.direccion);
 
-    enviarUnByte(static_cast<uint8_t>(Opcode::MOVER));
+    enviarUnByte(static_cast<uint8_t>(Opcode::EMPEZAR_MOVER));
     enviarUnByte(comando.direccion);
+}
+
+void ProtocoloCliente::enviarComandoDetenerMover(const ComandoDetenerMover&) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::DETENER_MOVER));
 }
 
 void ProtocoloCliente::enviarComandoAtacar(const ComandoAtacar& comando) {

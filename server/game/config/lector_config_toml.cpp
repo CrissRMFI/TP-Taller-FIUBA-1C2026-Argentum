@@ -361,6 +361,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
             leerFloatObligatorio(tbl, "experiencia", "exp_perdida_muerte_pct");
 
     cfg.tickMs = leerIntObligatorio(tbl, "servidor", "tick_ms");
+    cfg.movimientoJugadorTicks = leerUint16Obligatorio(tbl, "servidor", "movimiento_jugador_ticks");
 
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");

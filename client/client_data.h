@@ -49,4 +49,9 @@ constexpr uint8_t direction_for_protocol(const GameAction action) {
     return 0;
 }
 
+struct MovementInput {
+    GameAction direction;
+    bool start;
+};
+
 #endif //TALLER_TP_CLIENT_DATA_H

@@ -15,15 +15,13 @@
 
 
 class ClientBusiness {
+    
+public:
+    explicit ClientBusiness(Queue<ComandoJugador>& incoming_data);
+    void save_movement(const MovementInput& input);
 
 private:
     Queue<ComandoJugador>& incoming_data;
-
-    ComandoJugador process_action(GameAction action) const;
-
-public:
-    explicit ClientBusiness( Queue<ComandoJugador>& incoming_data);
-    void save_command(GameAction action);
 };
 
 #endif //TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H

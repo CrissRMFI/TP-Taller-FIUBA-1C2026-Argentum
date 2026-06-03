@@ -446,7 +446,7 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
 
     auto finalizar = [&](std::list<EventoSalida> mensajes,
                          bool emitirPosicionSiEsMover = false) {
-        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::MOVER)) {
+        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::EMPEZAR_MOVER)) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
                 std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
                 mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -489,11 +489,13 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
         case Opcode::DEJAR_CLAN:
             return ejecutarSinPayload(std::holds_alternative<ComandoDejarClan>(comando.payload),
                                       [&]() { return ejecutarDejarClan(idCliente); });
-        case Opcode::MOVER:
-            return ejecutarConPayload(std::get_if<ComandoMover>(&comando.payload),
-                                      [&](const ComandoMover& payload) {
-                                          return ejecutarMover(idCliente, payload);
-                                      });
+        case Opcode::EMPEZAR_MOVER:
+            return finalizar(ejecutarEmpezarMover(
+                                  idCliente, std::get<ComandoEmpezarMover>(comando.payload)),
+                             false);
+
+        case Opcode::DETENER_MOVER:
+            return finalizar(ejecutarDetenerMover(idCliente), true);
         case Opcode::ATACAR:
             return ejecutarConPayload(std::get_if<ComandoAtacar>(&comando.payload),
                                       [&](const ComandoAtacar& payload) {
@@ -637,6 +639,15 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
 
             if (!cambioEstado) {
                 mensajes.push_back(armarEstado(id, jugador));
+            }
+        }
+        
+        //si el jugador "está moviéndose", intentar avanzar una celda en su dirección cada N ticks.
+        if (jugador.estaMoviendose() && jugador.estaVivo() &&
+            !jugador.estaInmovilizado() && !jugador.enMeditacion() &&
+            jugador.debeAvanzar(cfg.movimientoJugadorTicks)) {
+            if (intentarPaso(id, jugador, jugador.getDireccionMov())) {
+                mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
             }
         }
     }
@@ -1050,58 +1061,64 @@ std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
+std::list<EventoSalida> Juego::ejecutarEmpezarMover(uint16_t idCliente, const ComandoEmpezarMover& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma()) ||
         jugador->estaInmovilizado()) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    Posicion destino = jugador->getPosicion();
+    jugador->empezarMover(cmd.direccion);
 
-    switch (cmd.direccion) {
-        case 0:
-            if (destino.y == 0) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-            destino.y--;
-            break;
-
-        case 1:
-            destino.y++;
-            break;
-
-        case 2:
-            if (destino.x == 0) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-            destino.x--;
-            break;
-
-        case 3:
-            destino.x++;
-            break;
-
-        default:
-            return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    if (intentarPaso(idCliente, *jugador, cmd.direccion)) {
+        return armarPosicionParaMapa(*jugador);
     }
 
-    // Colisión absoluta: una celda no puede ser compartida por dos entidades.
-    // Aplica tanto a jugadores vivos como a fantasmas — el enunciado no diferencia el modelo de colisión por estado del personaje.
-    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayNpcEn(destino) ||
-        mapa.hayCriaturaEn(destino)) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
-
-    if (buscarIdJugadorEn(destino, idCliente).has_value()) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
-
-    jugador->mover_a(destino.x, destino.y);
-
-    return armarPosicionParaMapa(*jugador);
+    return {};
 }
 
+std::list<EventoSalida> Juego::ejecutarDetenerMover(uint16_t idCliente) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador) {
+        return {};
+    }
+
+    jugador->detenerMover();
+    return {};
+}
+
+bool Juego::intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion) {
+    Posicion destino = jugador.getPosicion();
+    switch (direccion) {
+        case 0:  // Norte
+            if (destino.y == 0) return false;
+            destino.y--;
+            break;
+        case 1:  // Sur
+            destino.y++;
+            break;
+        case 2:  // Oeste
+            if (destino.x == 0) return false;
+            destino.x--;
+            break;
+        case 3:  // Este
+            destino.x++;
+            break;
+        default:
+            return false;
+    }
+
+    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) ||
+        mapa.hayNpcEn(destino) || mapa.hayCriaturaEn(destino)) {
+        return false;
+    }
+    if (buscarIdJugadorEn(destino, idCliente).has_value()) {
+        return false;
+    }
+
+    jugador.mover_a(destino.x, destino.y);
+    return true;
+}
 std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& cmd) {
     Jugador* atacante = buscarJugador(idCliente);
 

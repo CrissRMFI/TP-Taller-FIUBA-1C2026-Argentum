@@ -75,6 +75,9 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
 
     vidaActual = vidaMax;
     manaActual = manaMax;
+    moviendose = false;
+    direccionMov = 0;
+    ticksAcumuladosMov = 0;
 }
 
 void Jugador::restaurar(const DatosRestauracion& datos) {
@@ -83,6 +86,9 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     estado = datos.estado;
     nivel = datos.nivel;
     experiencia = datos.experiencia;
+    moviendose = false;
+    direccionMov = 0;
+    ticksAcumuladosMov = 0;
 
     vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
     manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
@@ -318,6 +324,35 @@ void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.y = y;
 }
 
+void Jugador::empezarMover(uint8_t direccion) {
+    moviendose = true;
+    direccionMov = direccion;
+    ticksAcumuladosMov = 0;
+}
+
+void Jugador::detenerMover() {
+    moviendose = false;
+    ticksAcumuladosMov = 0;
+}
+
+bool Jugador::estaMoviendose() const {
+    return moviendose;
+}
+
+uint8_t Jugador::getDireccionMov() const {
+    return direccionMov;
+}
+
+bool Jugador::debeAvanzar(uint16_t ticksPorCelda) {
+    if (ticksPorCelda == 0) ticksPorCelda = 1;
+    ticksAcumuladosMov++;
+    if (ticksAcumuladosMov >= ticksPorCelda) {
+        ticksAcumuladosMov = 0;
+        return true;
+    }
+    return false;
+}
+
 void Jugador::resucitar(uint16_t x, uint16_t y) {
     estado = Estado::Vivo;
     posicion.x = x;
@@ -331,10 +366,14 @@ void Jugador::inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segund
     posicionResurreccion.x = resucitarX;
     posicionResurreccion.y = resucitarY;
     estado = Estado::Resucitando;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 }
 
 void Jugador::meditar() {
     estado = Estado::Meditando;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 }
 
 void Jugador::cancelarMeditacion() {
@@ -728,6 +767,8 @@ void Jugador::subirNivel() {
 void Jugador::morir() {
     estado = Estado::Fantasma;
     vidaActual = 0;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 
     if (!es_newbie()) {
         uint32_t experienciaAPerder =

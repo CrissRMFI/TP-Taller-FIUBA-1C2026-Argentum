@@ -108,6 +108,11 @@ public:
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
+    void empezarMover(uint8_t direccion);
+    void detenerMover();
+    bool estaMoviendose() const;
+    uint8_t getDireccionMov() const;
+    bool debeAvanzar(uint16_t ticksPorCelda);
     void resucitar(uint16_t x, uint16_t y);
     void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
@@ -206,6 +211,10 @@ private:
     uint8_t agilidad;
     uint8_t inteligencia;
     uint8_t constitucion;
+
+    bool moviendose;
+    uint8_t direccionMov;
+    uint16_t ticksAcumuladosMov;
 
     Posicion posicion;
     Posicion posicionResurreccion;

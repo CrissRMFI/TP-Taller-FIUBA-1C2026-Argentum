@@ -35,10 +35,12 @@ void ClientGameLoop::init(const char* title,
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (auto action = handler.handle_event(event)) {
-            object_animation.on_action(*action);
-            object_state.notify_move_requested(SDL_GetTicks());
-            business.save_command(*action);
+        if (auto input = handler.handle_event(event)) {
+            if (input->start) {
+                object_animation.on_action(input->direction);
+                object_state.notify_move_requested(SDL_GetTicks());
+            }
+            business.save_movement(*input);
         }
     }
 

@@ -6,7 +6,8 @@
 enum class Opcode : uint8_t {
 
     // Cliente → Servidor
-    MOVER           = 1,
+    EMPEZAR_MOVER   = 45,
+    DETENER_MOVER   = 46,
     ATACAR          = 2,
     MEDITAR         = 3,
     RESUCITAR       = 4,

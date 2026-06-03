@@ -9,6 +9,7 @@
 tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
 #max_jugadores   = 300
 #guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
+movimiento_jugador_ticks   = 1
 
 # ------------------------------------------------------------
 [vida]
