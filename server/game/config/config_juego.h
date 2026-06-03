@@ -108,6 +108,11 @@ struct ConfigJuego {
     // ---- Servidor ----
     int tickMs;         // duración de cada tick en ms (también define TICK_SEGUNDOS)
 
+    // ---- Persistencia de jugadores ----
+    std::string rutaJugadores;        // archivo binario de datos (RegistroJugador)
+    std::string rutaIndiceJugadores;  // archivo binario del indice nombre -> offset
+    int         guardadoSeg;          // cada cuantos segundos se persiste (0 = off)
+
     // ---- Mapa ----
     uint16_t mapaAncho;
     uint16_t mapaAlto;

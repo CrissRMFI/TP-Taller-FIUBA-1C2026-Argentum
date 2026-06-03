@@ -19,6 +19,9 @@
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
 #include "objeto/catalogo_items.h"
+#include "../persistencia/indice_jugadores.h"
+#include "../persistencia/lector_jugadores.h"
+#include "../persistencia/escritor_jugadores.h"
 
 class Juego {
   public:
@@ -30,6 +33,11 @@ class Juego {
 
     std::list<EventoSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
     std::list<EventoSalida> actualizar(float deltaSegundos);
+
+    // Persiste a disco a los jugadores conectados (guardado periodico).
+    void persistirConectados();
+    // Persiste a todos (conectados y desconectados-en-RAM); se usa al apagar.
+    void persistirTodos();
 
   private:
     ConfigJuego   cfg;
@@ -43,6 +51,16 @@ class Juego {
     Mapa mapa;
     uint64_t ticksTranscurridos;
     Aleatorio aleatorio;
+
+    // Persistencia: indice nombre->offset en RAM + lector/escritor de los
+    // RegistroJugador en disco. El indice debe declararse antes que lector y
+    // escritor porque ambos lo referencian.
+    IndiceJugadores   indiceJugadores;
+    LectorJugadores   lectorJugadores;
+    EscritorJugadores escritorJugadores;
+
+    // Serializa y persiste un jugador a disco (swallow + log si falla).
+    void guardarJugador(const Jugador& jugador);
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);

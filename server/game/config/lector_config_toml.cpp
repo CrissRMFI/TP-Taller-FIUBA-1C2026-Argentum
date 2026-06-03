@@ -396,6 +396,14 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.tickMs = leerIntObligatorio(tbl, "servidor", "tick_ms");
 
+    cfg.rutaJugadores = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "persistencia"), "archivo_jugadores",
+            rutaToml("persistencia", "archivo_jugadores"));
+    cfg.rutaIndiceJugadores = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "persistencia"), "archivo_indice",
+            rutaToml("persistencia", "archivo_indice"));
+    cfg.guardadoSeg = leerIntObligatorio(tbl, "persistencia", "guardado_seg");
+
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
     cfg.mapaArchivo = leerStringEnTabla(

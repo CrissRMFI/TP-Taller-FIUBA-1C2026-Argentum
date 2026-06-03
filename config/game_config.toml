@@ -8,7 +8,16 @@
 #puerto          = 7666
 tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
 #max_jugadores   = 300
-#guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
+
+# ------------------------------------------------------------
+[persistencia]
+# Persistencia de jugadores: dos archivos binarios. 'archivo_jugadores' guarda
+# los RegistroJugador (struct de tamaño fijo) y 'archivo_indice' el diccionario
+# nombre -> offset. El servidor carga el progreso al conectar y lo guarda al
+# desconectar, periodicamente y al apagarse.
+archivo_jugadores = "config/jugadores.bin"
+archivo_indice    = "config/jugadores_indice.bin"
+guardado_seg      = 60         # Cada cuántos segundos se persiste a los conectados (0 = desactivado)
 
 # ------------------------------------------------------------
 [vida]

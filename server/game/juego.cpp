@@ -15,6 +15,8 @@
 #include "../../common/protocolo/tipo_entidad.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
+#include "../persistencia/serializador_jugador.h"
+#include "../../common/persistencia/error_persistencia.h"
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
         cfg(cfg),
@@ -23,7 +25,10 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mapa(std::move(mapa)),
         ticksTranscurridos(0),
-        aleatorio() {
+        aleatorio(),
+        indiceJugadores(cfg.rutaIndiceJugadores),
+        lectorJugadores(cfg.rutaJugadores, indiceJugadores),
+        escritorJugadores(cfg.rutaJugadores, indiceJugadores) {
     
     for (const EntradaStockComerciante& e : cfg.stockComerciante) {
         this->mapa.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
@@ -54,10 +59,32 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
-    // Reconexion: la posicion deseada es la ultima conocida. Conexion nueva: el ancla del TOML. En ambos casos delegamos al BFS para garantizar colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
-    const Posicion posicionDeseada = (itDesconectado != jugadoresDesconectados.end())
-                                             ? itDesconectado->second.getPosicion()
-                                             : cfg.spawnInicial;
+    // Si no es una reconexion de esta misma corrida (no esta en RAM), intentamos
+    // cargar su progreso del disco. Los clanes no se persisten, asi que si el
+    // registro traia un clan lo limpiamos para no dejar una referencia colgada.
+    std::optional<Jugador> jugadorDisco;
+    if (itDesconectado == jugadoresDesconectados.end()) {
+        try {
+            std::optional<RegistroJugador> registro = lectorJugadores.cargar(nombre);
+            if (registro.has_value()) {
+                jugadorDisco.emplace(SerializadorJugador::aJugador(id, *registro, cfg));
+                if (jugadorDisco->tieneClan()) {
+                    jugadorDisco->salirClan();
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "[persistencia] error cargando " << nombre << ": " << e.what()
+                      << std::endl;
+        }
+    }
+
+    // Reconexion: la posicion deseada es la ultima conocida (RAM o disco). Conexion
+    // nueva: el ancla del TOML. En todos los casos delegamos al BFS para garantizar
+    // colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
+    const Posicion posicionDeseada =
+            (itDesconectado != jugadoresDesconectados.end()) ? itDesconectado->second.getPosicion()
+            : jugadorDisco.has_value()                       ? jugadorDisco->getPosicion()
+                                                             : cfg.spawnInicial;
 
     const std::optional<Posicion> posicionResuelta = buscarPosicionLibreCercaDe(posicionDeseada);
     if (!posicionResuelta.has_value()) {
@@ -67,6 +94,12 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     if (itDesconectado != jugadoresDesconectados.end()) {
         jugadoresConectados.emplace(id, std::move(itDesconectado->second));
         jugadoresDesconectados.erase(itDesconectado);
+        jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
+    } else if (jugadorDisco.has_value()) {
+        if (existeIdPersonaje(id)) {
+            return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        }
+        jugadoresConectados.emplace(id, std::move(*jugadorDisco));
         jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
     } else {
         if (existeIdPersonaje(id)) {
@@ -135,10 +168,39 @@ std::list<EventoSalida> Juego::desconectarJugador(uint16_t id) {
     const std::string nombre = it->second.getNombre();
     indiceNicksConectados.erase(nombre);
 
+    // Persistimos el progreso a disco (cross-restart) y ademas lo mantenemos en
+    // RAM para reconexion rapida y operaciones de clan sobre miembros offline.
+    guardarJugador(it->second);
+
     jugadoresDesconectados.emplace(id, std::move(it->second));
     jugadoresConectados.erase(it);
 
     return mensajes;
+}
+
+void Juego::guardarJugador(const Jugador& jugador) {
+    try {
+        const RegistroJugador registro = SerializadorJugador::aRegistro(jugador);
+        escritorJugadores.guardar(registro);
+    } catch (const std::exception& e) {
+        std::cerr << "[persistencia] error guardando " << jugador.getNombre() << ": "
+                  << e.what() << std::endl;
+    }
+}
+
+void Juego::persistirConectados() {
+    for (const auto& [id, jugador] : jugadoresConectados) {
+        guardarJugador(jugador);
+    }
+}
+
+void Juego::persistirTodos() {
+    for (const auto& [id, jugador] : jugadoresConectados) {
+        guardarJugador(jugador);
+    }
+    for (const auto& [id, jugador] : jugadoresDesconectados) {
+        guardarJugador(jugador);
+    }
 }
 
 Jugador* Juego::buscarJugador(uint16_t id) {

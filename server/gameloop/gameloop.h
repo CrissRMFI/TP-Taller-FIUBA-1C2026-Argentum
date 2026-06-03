@@ -20,6 +20,7 @@ private:
     MonitorClientes& monitor;
     Juego juego;
     int tickMs;
+    int guardadoSeg;  // intervalo de persistencia periodica en segundos (0 = off)
     std::atomic_bool colaComandosCerrada;
     std::atomic_bool colaEventosSesionCerrada;
 
