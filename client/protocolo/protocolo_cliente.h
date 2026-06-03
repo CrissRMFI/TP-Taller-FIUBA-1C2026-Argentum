@@ -82,6 +82,8 @@ private:
     MensajeServidor recibirMuerteEntidad();
     MensajeServidor recibirItemEnSuelo();
     MensajeServidor recibirItemDesaparecioSuelo();
+    MensajeServidor recibirOroEnSuelo();
+    MensajeServidor recibirOroDesaparecioSuelo();
     MensajeServidor recibirActualizarInventario();
     MensajeServidor recibirActualizarEquipamiento();
     MensajeServidor recibirMensajeChat();

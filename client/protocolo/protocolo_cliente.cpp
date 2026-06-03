@@ -328,6 +328,12 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::ITEM_DESAPARECIO_SUELO:
             return recibirItemDesaparecioSuelo();
 
+        case Opcode::ORO_EN_SUELO:
+            return recibirOroEnSuelo();
+
+        case Opcode::ORO_DESAPARECIO_SUELO:
+            return recibirOroDesaparecioSuelo();
+
         case Opcode::ACTUALIZAR_INVENTARIO:
             return recibirActualizarInventario();
 
@@ -468,6 +474,27 @@ MensajeServidor ProtocoloCliente::recibirItemDesaparecioSuelo() {
     return MensajeServidor{
             Opcode::ITEM_DESAPARECIO_SUELO,
             MensajeItemDesaparecioSuelo{x, y},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirOroEnSuelo() {
+    uint32_t cantidad = recibirCuatroBytes();
+    uint16_t x = recibirDosBytes();
+    uint16_t y = recibirDosBytes();
+
+    return MensajeServidor{
+            Opcode::ORO_EN_SUELO,
+            MensajeOroEnSuelo{cantidad, x, y},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirOroDesaparecioSuelo() {
+    uint16_t x = recibirDosBytes();
+    uint16_t y = recibirDosBytes();
+
+    return MensajeServidor{
+            Opcode::ORO_DESAPARECIO_SUELO,
+            MensajeOroDesaparecioSuelo{x, y},
     };
 }
 
