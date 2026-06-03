@@ -45,7 +45,8 @@ void ObjectRenderer::init(const char* title,
                           const int ypos,
                           const int width,
                           const int height,
-                          const bool fullscreen) {
+                          const bool fullscreen,
+                          const bool vsync) {
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -53,7 +54,13 @@ void ObjectRenderer::init(const char* title,
     sdl = std::make_unique<SDL2pp::SDL>(SDL_INIT_VIDEO);
     image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
-    renderer = std::make_unique<SDL2pp::Renderer>(*window, -1, SDL_RENDERER_ACCELERATED);
+
+    
+    uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
+    if (vsync) {
+        renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+    }
+    renderer = std::make_unique<SDL2pp::Renderer>(*window, -1, renderer_flags);
     window_width = width;
     window_height = height;
 

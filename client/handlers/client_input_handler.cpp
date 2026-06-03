@@ -7,8 +7,13 @@
 #include <algorithm>
 #include <cmath>
 
+// Tope de caracteres del mini-chat (nuestro protocolo admite hasta 256).
+
+#define MAX_CHARS_CHAT 200
+
 ClientInputHandler::ClientInputHandler():
-        quit_requested(false), window_width(0), window_height(0), idCliente(0) {}
+        quit_requested(false), window_width(0), window_height(0), idCliente(0),
+        last_move_tick(0), chat_activo(false) {}
 
 ClientInputHandler::~ClientInputHandler() = default;
 
@@ -17,53 +22,132 @@ std::optional<ComandoJugador> ClientInputHandler::handle_keyboard(SDL_Keycode ke
         case SDLK_ESCAPE:
             quit_requested = true;
             return std::nullopt;
-        case SDLK_UP:
-        case SDLK_w:
-            return ComandoJugador{Opcode::MOVER, ComandoMover{0}};
-        case SDLK_DOWN:
-        case SDLK_s:
-            return ComandoJugador{Opcode::MOVER, ComandoMover{1}};
-        case SDLK_LEFT:
-        case SDLK_a:
-            return ComandoJugador{Opcode::MOVER, ComandoMover{2}};
-        case SDLK_RIGHT:
-        case SDLK_d:
-            return ComandoJugador{Opcode::MOVER, ComandoMover{3}};
-        case SDLK_r:
-            return ComandoJugador{Opcode::RESUCITAR, ComandoResucitar{}};
         case SDLK_m:
             return ComandoJugador{Opcode::MEDITAR, ComandoMeditar{}};
-        case SDLK_l:
-            return ComandoJugador{Opcode::LISTAR, ComandoListar{}};
-        case SDLK_c:
-            return ComandoJugador{Opcode::CURAR, ComandoCurar{}};
+        case SDLK_r:
+            return ComandoJugador{Opcode::RESUCITAR, ComandoResucitar{}};
         default: return std::nullopt;
     }
 }
 
-std::optional<ComandoJugador> ClientInputHandler::handle_event(
+void ClientInputHandler::abrir_chat() {
+    chat_activo = true;
+    chat_buffer.clear();
+    SDL_StartTextInput();
+}
+
+void ClientInputHandler::cerrar_chat() {
+    chat_activo = false;
+    chat_buffer.clear();
+    SDL_StopTextInput();
+}
+
+ResultadoInput ClientInputHandler::manejar_texto_chat(const SDL_Event& event) {
+    ResultadoInput resultado;
+
+    if (event.type == SDL_TEXTINPUT) {
+        if (chat_buffer.size() < MAX_CHARS_CHAT) {
+            chat_buffer += event.text.text;
+        }
+        return resultado;
+    }
+
+    if (event.type == SDL_KEYDOWN) {
+        switch (event.key.keysym.sym) {
+            case SDLK_RETURN:
+            case SDLK_KP_ENTER: {
+                std::string linea = chat_buffer;
+                cerrar_chat();
+                if (!linea.empty()) {
+                    resultado.lineaChat = std::move(linea);
+                }
+                break;
+            }
+            case SDLK_ESCAPE:
+                cerrar_chat();
+                break;
+            case SDLK_BACKSPACE:
+                if (!chat_buffer.empty()) {
+                    chat_buffer.pop_back();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    return resultado;
+}
+
+ResultadoInput ClientInputHandler::handle_event(
         const SDL_Event& event,
         const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) {
+    ResultadoInput resultado;
+
     if (event.type == SDL_QUIT) {
         quit_requested = true;
+        return resultado;
     }
-    if (event.type == SDL_KEYDOWN) {
-        return handle_keyboard(event.key.keysym.sym);
+
+    if (chat_activo) {
+        return manejar_texto_chat(event);
+    }
+
+    if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+        const SDL_Keycode key = event.key.keysym.sym;
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            abrir_chat();
+            return resultado;
+        }
+        resultado.comando = handle_keyboard(key);
+        return resultado;
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        return handle_mouse_click(event.button.x, event.button.y, entidades);
+        resultado.comando = handle_mouse_click(event.button.x, event.button.y, entidades);
+        return resultado;
     }
-    return std::nullopt;
+    return resultado;
+}
+
+std::optional<ComandoJugador> ClientInputHandler::sondearMovimiento(
+        uint32_t current_tick, uint32_t intervalo_ms) {
+    const Uint8* teclas = SDL_GetKeyboardState(nullptr);
+
+    std::optional<uint8_t> direccion;
+    if (teclas[SDL_SCANCODE_UP] || teclas[SDL_SCANCODE_W]) {
+        direccion = 0;
+    } else if (teclas[SDL_SCANCODE_DOWN] || teclas[SDL_SCANCODE_S]) {
+        direccion = 1;
+    } else if (teclas[SDL_SCANCODE_LEFT] || teclas[SDL_SCANCODE_A]) {
+        direccion = 2;
+    } else if (teclas[SDL_SCANCODE_RIGHT] || teclas[SDL_SCANCODE_D]) {
+        direccion = 3;
+    }
+
+    if (!direccion.has_value()) {
+        // Sin tecla de direccion: rearmamos para que el proximo paso salga ya.
+        last_move_tick = 0;
+        return std::nullopt;
+    }
+
+    if (last_move_tick != 0 && current_tick - last_move_tick < intervalo_ms) {
+        return std::nullopt;
+    }
+
+    last_move_tick = (current_tick == 0) ? 1 : current_tick;
+    return ComandoJugador{Opcode::MOVER, ComandoMover{*direccion}};
 }
 
 std::optional<ComandoJugador> ClientInputHandler::handle_mouse_click(
         int x, int y,
-        const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const {
+        const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) {
     const uint16_t idObjetivo = buscar_id_objetivo(x, y, entidades);
     if (idObjetivo == 0) {
         return std::nullopt;
     }
 
+    // El click selecciona a la entidad (para comandos de chat dirigidos a NPCs) y a la vez dispara un ataque sobre ella.
+    objetivo_seleccionado = idObjetivo;
     return ComandoJugador{Opcode::ATACAR, ComandoAtacar{idObjetivo}};
 }
 
