@@ -51,8 +51,11 @@ ComandoJugador ProtocoloServidor::recibirComando() {
     auto const opcode_recibido = recibirUnByte();
     const auto opcode = Opcode(opcode_recibido);
     switch (opcode) {
-        case Opcode::MOVER:
-            return recibirComandoMover();
+        case Opcode::EMPEZAR_MOVER:
+            return recibirComandoEmpezarMover();
+
+        case Opcode::DETENER_MOVER:
+            return recibirComandoDetenerMover();
 
         case Opcode::ATACAR:
             return recibirComandoAtacar();
@@ -176,14 +179,21 @@ void ProtocoloServidor::validarTipoClan(uint8_t tipo) const {
     }
 }
 
-ComandoJugador ProtocoloServidor::recibirComandoMover() {
+ComandoJugador ProtocoloServidor::recibirComandoEmpezarMover() {
     uint8_t direccion = recibirUnByte();
 
     validarDireccion(direccion);
 
     return ComandoJugador{
-            Opcode::MOVER,
-            ComandoMover{direccion},
+            Opcode::EMPEZAR_MOVER,
+            ComandoEmpezarMover{direccion},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoDetenerMover() {
+    return ComandoJugador{
+            Opcode::DETENER_MOVER,
+            ComandoDetenerMover{},
     };
 }
 

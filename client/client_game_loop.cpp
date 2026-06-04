@@ -42,7 +42,6 @@ void ClientGameLoop::init(const char* title,
         const uint32_t frame_start = SDL_GetTicks();
 
         handleEvents();
-        procesarMovimiento(frame_start);
         update();
         render();
 
@@ -79,17 +78,6 @@ void ClientGameLoop::procesarLineaChat(const std::string& linea, const uint32_t 
     }
 }
 
-void ClientGameLoop::procesarMovimiento(const uint32_t current_tick) {
-    // Mientras el jugador escribe en el mini-chat, las teclas de direccion
-    // forman parte del texto y no deben mover al personaje.
-    if (handler.chatActivo()) {
-        return;
-    }
-    if (auto command = handler.sondearMovimiento(current_tick, config.intervaloMovimientoMs)) {
-        despacharComando(*command, current_tick);
-    }
-}
-
 void ClientGameLoop::despacharComando(const ComandoJugador& command, const uint32_t current_tick) {
     if (auto action = animation_action_for_command(command)) {
         object_animation.on_action(*action);
@@ -116,11 +104,11 @@ bool ClientGameLoop::isRunning() const {
 
 std::optional<GameAction> ClientGameLoop::animation_action_for_command(
         const ComandoJugador& command) const {
-    if (command.opcode != Opcode::MOVER) {
+    if (command.opcode != Opcode::EMPEZAR_MOVER) {
         return std::nullopt;
     }
 
-    const auto* move = std::get_if<ComandoMover>(&command.payload);
+    const auto* move = std::get_if<ComandoEmpezarMover>(&command.payload);
     if (move == nullptr) {
         return std::nullopt;
     }

@@ -29,12 +29,13 @@ private:
     int window_width;
     int window_height;
     uint16_t idCliente;
-    uint32_t last_move_tick;
     bool chat_activo;
     std::string chat_buffer;
     std::optional<uint16_t> objetivo_seleccionado;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
+    // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
+    std::optional<uint8_t> direccion_de_tecla(SDL_Keycode key) const;
     ResultadoInput manejar_texto_chat(const SDL_Event& event);
     void abrir_chat();
     void cerrar_chat();
@@ -52,8 +53,6 @@ public:
     ResultadoInput handle_event(
             const SDL_Event& event,
             const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
-
-    std::optional<ComandoJugador> sondearMovimiento(uint32_t current_tick, uint32_t intervalo_ms);
 
     bool should_quit() const;
     bool chatActivo() const { return chat_activo; }

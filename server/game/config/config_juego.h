@@ -107,6 +107,7 @@ struct ConfigJuego {
 
     // ---- Servidor ----
     int tickMs;         // duración de cada tick en ms (también define TICK_SEGUNDOS)
+    uint16_t movimientoJugadorTicks; // cada cuántos ticks el jugador avanza una celda
 
     // ---- Persistencia de jugadores ----
     std::string rutaJugadores;        // archivo binario de datos (RegistroJugador)

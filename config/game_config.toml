@@ -7,6 +7,7 @@
 [servidor]
 #puerto          = 7666
 tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
+movimiento_jugador_ticks = 1  # Cada cuántos ticks el jugador avanza una celda mientras se mueve
 #max_jugadores   = 300
 
 # ------------------------------------------------------------

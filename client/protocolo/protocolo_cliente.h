@@ -44,7 +44,8 @@ private:
     void validarEsquivador(uint8_t esquivador) const;
     void validarTipoClan(uint8_t tipo) const;
 
-    void enviarComandoMover(const ComandoMover& comando);
+    void enviarComandoEmpezarMover(const ComandoEmpezarMover& comando);
+    void enviarComandoDetenerMover(const ComandoDetenerMover& comando);
     void enviarComandoAtacar(const ComandoAtacar& comando);
     void enviarComandoMeditar(const ComandoMeditar& comando);
     void enviarComandoResucitar(const ComandoResucitar& comando);

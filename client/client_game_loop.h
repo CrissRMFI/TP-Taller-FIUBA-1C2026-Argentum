@@ -39,7 +39,6 @@ public:
 
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
     void handleEvents();
-    void procesarMovimiento(uint32_t current_tick);
     void update();
     void render();
     void clean();

@@ -13,7 +13,7 @@
 
 ClientInputHandler::ClientInputHandler():
         quit_requested(false), window_width(0), window_height(0), idCliente(0),
-        last_move_tick(0), chat_activo(false) {}
+        chat_activo(false) {}
 
 ClientInputHandler::~ClientInputHandler() = default;
 
@@ -111,9 +111,25 @@ ResultadoInput ClientInputHandler::handle_event(
         const SDL_Keycode key = event.key.keysym.sym;
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             abrir_chat();
+            // Si veniamos moviendonos, frenamos: la tecla de direccion soltada
+            // mientras se tipea no llegaria como DETENER.
+            resultado.comando = ComandoJugador{Opcode::DETENER_MOVER, ComandoDetenerMover{}};
+            return resultado;
+        }
+        // Tecla de direccion presionada: empezar a moverse (el server avanza solo).
+        if (auto direccion = direccion_de_tecla(key)) {
+            resultado.comando =
+                    ComandoJugador{Opcode::EMPEZAR_MOVER, ComandoEmpezarMover{*direccion}};
             return resultado;
         }
         resultado.comando = handle_keyboard(key);
+        return resultado;
+    }
+    if (event.type == SDL_KEYUP) {
+        // Tecla de direccion soltada: detener el movimiento.
+        if (direccion_de_tecla(event.key.keysym.sym)) {
+            resultado.comando = ComandoJugador{Opcode::DETENER_MOVER, ComandoDetenerMover{}};
+        }
         return resultado;
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -123,33 +139,14 @@ ResultadoInput ClientInputHandler::handle_event(
     return resultado;
 }
 
-std::optional<ComandoJugador> ClientInputHandler::sondearMovimiento(
-        uint32_t current_tick, uint32_t intervalo_ms) {
-    const Uint8* teclas = SDL_GetKeyboardState(nullptr);
-
-    std::optional<uint8_t> direccion;
-    if (teclas[SDL_SCANCODE_UP] || teclas[SDL_SCANCODE_W]) {
-        direccion = 0;
-    } else if (teclas[SDL_SCANCODE_DOWN] || teclas[SDL_SCANCODE_S]) {
-        direccion = 1;
-    } else if (teclas[SDL_SCANCODE_LEFT] || teclas[SDL_SCANCODE_A]) {
-        direccion = 2;
-    } else if (teclas[SDL_SCANCODE_RIGHT] || teclas[SDL_SCANCODE_D]) {
-        direccion = 3;
+std::optional<uint8_t> ClientInputHandler::direccion_de_tecla(SDL_Keycode key) const {
+    switch (key) {
+        case SDLK_UP:    case SDLK_w: return 0;  // Norte
+        case SDLK_DOWN:  case SDLK_s: return 1;  // Sur
+        case SDLK_LEFT:  case SDLK_a: return 2;  // Oeste
+        case SDLK_RIGHT: case SDLK_d: return 3;  // Este
+        default: return std::nullopt;
     }
-
-    if (!direccion.has_value()) {
-        // Sin tecla de direccion: rearmamos para que el proximo paso salga ya.
-        last_move_tick = 0;
-        return std::nullopt;
-    }
-
-    if (last_move_tick != 0 && current_tick - last_move_tick < intervalo_ms) {
-        return std::nullopt;
-    }
-
-    last_move_tick = (current_tick == 0) ? 1 : current_tick;
-    return ComandoJugador{Opcode::MOVER, ComandoMover{*direccion}};
 }
 
 std::optional<ComandoJugador> ClientInputHandler::handle_mouse_click(

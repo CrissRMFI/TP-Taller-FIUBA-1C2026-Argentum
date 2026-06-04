@@ -6,7 +6,7 @@
 enum class Opcode : uint8_t {
 
     // Cliente → Servidor
-    MOVER           = 1,
+    EMPEZAR_MOVER   = 1,
     ATACAR          = 2,
     MEDITAR         = 3,
     RESUCITAR       = 4,
@@ -54,7 +54,10 @@ enum class Opcode : uint8_t {
     ESTADO_USUARIO          = 44,
 
     // Cliente → Servidor (cheats de prueba)
-    CHEAT                   = 45
+    CHEAT                   = 45,
+
+    // Cliente → Servidor (movimiento: empezar/detener)
+    DETENER_MOVER           = 46
 };
 
 #endif

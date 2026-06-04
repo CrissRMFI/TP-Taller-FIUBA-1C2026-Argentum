@@ -112,6 +112,13 @@ public:
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
+    // Movimiento continuo server-driven: el cliente avisa empezar/detener y el
+    // servidor avanza una celda cada N ticks mientras el jugador siga moviendose.
+    void empezarMover(uint8_t direccion);
+    void detenerMover();
+    bool estaMoviendose() const;
+    uint8_t getDireccionMov() const;
+    bool debeAvanzar(uint16_t ticksPorCelda);
     void resucitar(uint16_t x, uint16_t y);
     void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
@@ -243,6 +250,11 @@ private:
     // Flags de cheat (transitorios, no se persisten).
     bool vidaInfinita;
     bool manaInfinito;
+
+    // Estado de movimiento continuo (transitorio, no se persiste).
+    bool moviendose;
+    uint8_t direccionMov;
+    uint16_t ticksAcumuladosMov;
 
     void subirNivel();
     void morir();

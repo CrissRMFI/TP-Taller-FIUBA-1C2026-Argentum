@@ -1,0 +1,15 @@
+# ============================================================
+#  Argentum Online — Configuración del cliente gráfico
+#  Valores ajustables sin recompilar.
+# ============================================================
+
+[video]
+# VSync sincroniza el render con el refresco del monitor
+vsync = true
+
+# Tope de FPS usado cuando VSync no está disponible 
+fps_max = 60
+
+[movimiento]
+# Cada cuántos milisegundos se envía un MOVER mientras se mantiene apretada una tecla de dirección.
+intervalo_ms = 130
