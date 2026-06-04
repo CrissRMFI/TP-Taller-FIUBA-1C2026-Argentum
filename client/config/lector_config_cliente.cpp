@@ -29,5 +29,15 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
         cfg.intervaloMovimientoMs = static_cast<uint32_t>(intervalo);
     }
 
+    const int ancho = tbl["video"]["ancho"].value_or(cfg.ancho);
+    const int alto = tbl["video"]["alto"].value_or(cfg.alto);
+    if (ancho > 0) {
+        cfg.ancho = ancho;
+    }
+    if (alto > 0) {
+        cfg.alto = alto;
+    }
+    cfg.fullscreen = tbl["video"]["fullscreen"].value_or(cfg.fullscreen);
+
     return cfg;
 }

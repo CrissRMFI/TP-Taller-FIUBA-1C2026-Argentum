@@ -36,7 +36,7 @@ void Client::run() {
     game_loop.init("Argentum - Parte I",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
-    640, 480, false);
+    config.ancho, config.alto, config.fullscreen);
 
     manager.stop();
     manager.join();
