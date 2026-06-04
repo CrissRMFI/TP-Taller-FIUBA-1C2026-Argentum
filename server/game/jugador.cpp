@@ -62,7 +62,9 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         cuerpo(cuerpo),
         fundadoClan(false),
         tiempoRestanteInmovilizado(0.0f),
-        tiempoDesdeUltimoAtaque(config.cooldownAtaqueSeg) {
+        tiempoDesdeUltimoAtaque(config.cooldownAtaqueSeg),
+        vidaInfinita(false),
+        manaInfinito(false) {
     const StatsRaza& sr = cfg.statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
@@ -108,7 +110,7 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
 }
 
 void Jugador::recibir_danio(uint16_t cantidad) {
-    if (cfg.invulnerable || !estaVivo()) {
+    if (cfg.invulnerable || vidaInfinita || !estaVivo()) {
         return;
     }
 
@@ -127,7 +129,7 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
                                                 float multiplicadorDefensa) {
     // Defensor muerto o flag debug invulnerable: el ataque no impacta pero tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no  confunda este caso con una evasión real.
 
-    if (!estaVivo() || cfg.invulnerable) {
+    if (!estaVivo() || cfg.invulnerable || vidaInfinita) {
         return { ResultadoDefensa::Tipo::Golpeado, 0 };
     }
 
@@ -762,12 +764,40 @@ void Jugador::perder_experiencia(uint32_t cantidad) {
 }
 
 bool Jugador::consumir_mana(uint16_t cantidad) {
+    if (manaInfinito) {
+        return true;
+    }
+
     if (manaActual < cantidad) {
         return false;
     }
 
     manaActual -= cantidad;
     return true;
+}
+
+void Jugador::alternarVidaInfinita() {
+    vidaInfinita = !vidaInfinita;
+    // Al activar el cheat, llenamos la vida para que el efecto se note al toque.
+    if (vidaInfinita && estaVivo()) {
+        vidaActual = vidaMax;
+    }
+}
+
+void Jugador::alternarManaInfinito() {
+    manaInfinito = !manaInfinito;
+    if (manaInfinito) {
+        manaActual = manaMax;
+    }
+}
+
+void Jugador::matar() {
+    // El cheat de morir fuerza la muerte aunque haya vida infinita activa.
+    if (!estaVivo()) {
+        return;
+    }
+    vidaActual = 0;
+    morir();
 }
 
 bool Jugador::puedeAtacar() const {

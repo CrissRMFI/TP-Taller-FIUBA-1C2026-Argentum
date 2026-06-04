@@ -127,6 +127,9 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::DEJAR_CLAN:
             return recibirComandoDejarClan();
 
+        case Opcode::CHEAT:
+            return recibirComandoCheat();
+
 
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
@@ -394,6 +397,15 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
     return ComandoJugador{
       Opcode::DEJAR_CLAN,
       ComandoDejarClan{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoCheat() {
+    uint8_t tipo = recibirUnByte();
+
+    return ComandoJugador{
+      Opcode::CHEAT,
+      ComandoCheat{tipo},
     };
 }
 

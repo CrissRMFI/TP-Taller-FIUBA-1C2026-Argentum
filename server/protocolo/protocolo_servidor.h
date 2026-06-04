@@ -64,6 +64,7 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoClanBan();
     ComandoJugador recibirComandoClanKick();
     ComandoJugador recibirComandoDejarClan();
+    ComandoJugador recibirComandoCheat();
 
 
 

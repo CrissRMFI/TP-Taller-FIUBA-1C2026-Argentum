@@ -70,6 +70,7 @@ private:
     void enviarComandoClanBan(const ComandoGestionMiembreClan& comando);
     void enviarComandoClanKick(const ComandoGestionMiembreClan& comando);
     void enviarComandoDejarClan(const ComandoDejarClan& comando);
+    void enviarComandoCheat(const ComandoCheat& comando);
 
 
 

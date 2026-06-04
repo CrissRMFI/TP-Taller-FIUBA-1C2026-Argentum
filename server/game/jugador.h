@@ -143,6 +143,12 @@ public:
     void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
     std::vector<uint16_t> vaciar_inventario();
 
+    // Cheats de prueba. vida/mana infinitos son toggles; matar fuerza la muerte
+    // al instante ignorando la invulnerabilidad de cheat.
+    void alternarVidaInfinita();
+    void alternarManaInfinito();
+    void matar();
+
     // Clan
     void asignarClan(uint16_t idClan);
     void salirClan();
@@ -233,6 +239,10 @@ private:
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
     float tiempoDesdeUltimoAtaque;
+
+    // Flags de cheat (transitorios, no se persisten).
+    bool vidaInfinita;
+    bool manaInfinito;
 
     void subirNivel();
     void morir();

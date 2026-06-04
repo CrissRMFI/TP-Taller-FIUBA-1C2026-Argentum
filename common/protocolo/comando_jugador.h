@@ -86,8 +86,20 @@ struct ComandoUnirseClan {
   std::string nombreClan; 
 };
 
-struct ComandoGestionMiembreClan { 
-  std::string nick; 
+struct ComandoGestionMiembreClan {
+  std::string nick;
+};
+
+// Cheats de prueba (vida/mana infinitos, morir al instante). El cliente los
+// dispara por teclas; el efecto lo aplica el servidor sobre el Jugador.
+enum class TipoCheat : uint8_t {
+  VidaInfinita = 0,
+  ManaInfinito = 1,
+  MorirAuto    = 2,
+};
+
+struct ComandoCheat {
+  uint8_t tipo;
 };
 
 using PayloadComando = std::variant<
@@ -112,7 +124,8 @@ using PayloadComando = std::variant<
     ComandoChatPrivado,
     ComandoFundarClan,
     ComandoUnirseClan,
-    ComandoGestionMiembreClan
+    ComandoGestionMiembreClan,
+    ComandoCheat
 >;
 
 struct ComandoJugador {

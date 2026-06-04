@@ -118,6 +118,7 @@ class Juego {
     std::list<EventoSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
     std::list<EventoSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
     std::list<EventoSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
+    std::list<EventoSalida> ejecutarCheat(uint16_t idCliente, const ComandoCheat& comando);
 
     std::optional<uint16_t> buscarIdJugadorEn(
             const Posicion& posicion,

@@ -26,6 +26,20 @@ std::optional<ComandoJugador> ClientInputHandler::handle_keyboard(SDL_Keycode ke
             return ComandoJugador{Opcode::MEDITAR, ComandoMeditar{}};
         case SDLK_r:
             return ComandoJugador{Opcode::RESUCITAR, ComandoResucitar{}};
+        // Cheats de prueba (combinaciones de tecla): F1 vida infinita,
+        // F2 mana infinito, F3 morir al instante.
+        case SDLK_F1:
+            return ComandoJugador{
+                    Opcode::CHEAT,
+                    ComandoCheat{static_cast<uint8_t>(TipoCheat::VidaInfinita)}};
+        case SDLK_F2:
+            return ComandoJugador{
+                    Opcode::CHEAT,
+                    ComandoCheat{static_cast<uint8_t>(TipoCheat::ManaInfinito)}};
+        case SDLK_F3:
+            return ComandoJugador{
+                    Opcode::CHEAT,
+                    ComandoCheat{static_cast<uint8_t>(TipoCheat::MorirAuto)}};
         default: return std::nullopt;
     }
 }

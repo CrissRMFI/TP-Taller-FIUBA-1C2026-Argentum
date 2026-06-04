@@ -653,6 +653,11 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
                                           return ejecutarGestionMiembroClan(
                                                   idCliente, payload, comando.opcode);
                                       });
+        case Opcode::CHEAT:
+            return ejecutarConPayload(std::get_if<ComandoCheat>(&comando.payload),
+                                      [&](const ComandoCheat& payload) {
+                                          return ejecutarCheat(idCliente, payload);
+                                      });
         default:
             return comandoInvalido();
     }
@@ -765,7 +770,39 @@ std::list<EventoSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
     return mensajes;
 }
 
-// ─── Chat 
+// ─── Cheats de prueba
+std::list<EventoSalida> Juego::ejecutarCheat(uint16_t idCliente, const ComandoCheat& comando) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador) {
+        return {};
+    }
+
+    switch (static_cast<TipoCheat>(comando.tipo)) {
+        case TipoCheat::VidaInfinita:
+            jugador->alternarVidaInfinita();
+            return {armarEstado(idCliente, *jugador)};
+
+        case TipoCheat::ManaInfinito:
+            jugador->alternarManaInfinito();
+            return {armarEstado(idCliente, *jugador)};
+
+        case TipoCheat::MorirAuto: {
+            if (!jugador->estaVivo()) {
+                return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+            }
+            const Posicion posicionMuerte = jugador->getPosicion();
+            jugador->matar();
+            std::list<EventoSalida> mensajes = {armarEstado(idCliente, *jugador)};
+            mensajes.splice(mensajes.end(), emitirMuerteJugador(*jugador, posicionMuerte));
+            return mensajes;
+        }
+
+        default:
+            return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+}
+
+// ─── Chat
 std::list<EventoSalida> Juego::ejecutarChatGlobal(uint16_t idCliente,
                                                   const ComandoChatGlobal& comando) {
     Jugador* jugador = buscarJugador(idCliente);

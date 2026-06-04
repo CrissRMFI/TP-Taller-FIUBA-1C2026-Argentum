@@ -155,6 +155,10 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoDejarClan(std::get<ComandoDejarClan>(comando.payload));
             break;
 
+        case Opcode::CHEAT:
+            enviarComandoCheat(std::get<ComandoCheat>(comando.payload));
+            break;
+
         default:
             throw std::runtime_error(
                     MensajesErrorProtocolo::mensaje(
@@ -289,6 +293,11 @@ void ProtocoloCliente::enviarComandoClanKick(const ComandoGestionMiembreClan& co
 
 void ProtocoloCliente::enviarComandoDejarClan(const ComandoDejarClan&) {
     enviarUnByte(static_cast<uint8_t>(Opcode::DEJAR_CLAN));
+}
+
+void ProtocoloCliente::enviarComandoCheat(const ComandoCheat& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::CHEAT));
+    enviarUnByte(comando.tipo);
 }
 
 
