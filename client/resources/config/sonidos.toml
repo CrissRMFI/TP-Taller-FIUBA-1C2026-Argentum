@@ -1,0 +1,232 @@
+# ============================================================
+#  Catalogo de audio del cliente
+#  Mismo patron que sprites.toml: los paths son relativos a la
+#  carpeta resources/. Editable sin recompilar.
+# ============================================================
+
+[general]
+volumen_maestro = 90    # 0-100, escala todos los efectos
+volumen_musica  = 55    # 0-100
+radio_audible   = 18    # celdas: mas alla de esto, no suena
+
+# ------------------------------------------------------------
+#  Musica de fondo (loops). Se elige por clave segun el contexto.
+# ------------------------------------------------------------
+[musica.menu]
+path = "sound/musicaMenu.ogg"
+
+[musica.campo]
+path = "sound/ambienteCampo.ogg"
+
+[musica.ciudad]
+path = "sound/ambienteCiudad.ogg"
+
+[musica.combate]
+path = "sound/musicaCombate.ogg"
+
+# ------------------------------------------------------------
+#  Efectos de sonido. 'volumen' es 0-100 (volumen base del efecto).
+# ------------------------------------------------------------
+
+# --- Combate ---
+[efectos.ataqueEspada]
+path = "sound/ataqueEspada.ogg"
+volumen = 100
+
+[efectos.ataqueEspada2]
+path = "sound/ataqueEspada2.ogg"
+volumen = 100
+
+[efectos.ataqueHacha]
+path = "sound/ataqueHacha.ogg"
+volumen = 100
+
+[efectos.ataqueMartillo]
+path = "sound/ataqueMartillo.ogg"
+volumen = 100
+
+[efectos.disparoDistancia]
+path = "sound/disparoDistancia.ogg"
+volumen = 100
+
+[efectos.lanzarHechizo]
+path = "sound/lanzarHechizo.ogg"
+volumen = 100
+
+[efectos.explosion]
+path = "sound/explosion.ogg"
+volumen = 100
+
+[efectos.explosionCola]
+path = "sound/explosionCola.ogg"
+volumen = 80
+
+[efectos.esquive]
+path = "sound/esquive.ogg"
+volumen = 90
+
+[efectos.recibirDanio]
+path = "sound/recibirDanio.ogg"
+volumen = 100
+
+[efectos.criaturaAtacando]
+path = "sound/criaturaAtacando.ogg"
+volumen = 90
+
+# --- Estado del jugador ---
+[efectos.subirNivel]
+path = "sound/subirNivel.ogg"
+volumen = 100
+
+[efectos.meditar]
+path = "sound/meditar.ogg"
+volumen = 80
+
+[efectos.curarVida]
+path = "sound/curarVida.ogg"
+volumen = 90
+
+[efectos.curarMana]
+path = "sound/curarMana.ogg"
+volumen = 90
+
+[efectos.tomarPocion]
+path = "sound/tomarPocion.ogg"
+volumen = 90
+
+[efectos.vidaBaja]
+path = "sound/vidaBaja.ogg"
+volumen = 100
+
+# --- Muerte / resurreccion ---
+[efectos.muerte]
+path = "sound/muerte.ogg"
+volumen = 100
+
+[efectos.muereJugador]
+path = "sound/muereJugador.ogg"
+volumen = 100
+
+[efectos.matar]
+path = "sound/matar.ogg"
+volumen = 100
+
+[efectos.reviviendo]
+path = "sound/reviviendo.ogg"
+volumen = 90
+
+[efectos.sacerdoteResucitar]
+path = "sound/sacerdoteResucitar.ogg"
+volumen = 90
+
+# --- Items / suelo ---
+[efectos.tomarItem]
+path = "sound/tomarItem.ogg"
+volumen = 90
+
+[efectos.itemCae]
+path = "sound/itemCae.ogg"
+volumen = 80
+
+[efectos.itemCaeCerca]
+path = "sound/itemCaeCerca.ogg"
+volumen = 85
+
+# --- Comerciante ---
+[efectos.comercianteBienvenida]
+path = "sound/comercianteBienvenida.ogg"
+volumen = 90
+
+[efectos.comercianteDespedida]
+path = "sound/comercianteDespedida.ogg"
+volumen = 90
+
+[efectos.comercianteComprar]
+path = "sound/comercianteComprar.ogg"
+volumen = 90
+
+[efectos.comercianteVender]
+path = "sound/comercianteVender.ogg"
+volumen = 90
+
+[efectos.comerciantePociones]
+path = "sound/comerciantePociones.ogg"
+volumen = 90
+
+[efectos.comercianteAmbiente]
+path = "sound/comercianteAmbiente.ogg"
+volumen = 70
+
+[efectos.comercianteAmbiente2]
+path = "sound/comercianteAmbiente2.ogg"
+volumen = 70
+
+[efectos.comercianteAmbiente3]
+path = "sound/comercianteAmbiente3.ogg"
+volumen = 70
+
+# --- Banquero ---
+[efectos.banqueroBienvenida]
+path = "sound/banqueroBienvenida.ogg"
+volumen = 90
+
+[efectos.banqueroDespedida]
+path = "sound/banqueroDespedida.ogg"
+volumen = 90
+
+[efectos.banqueroAmbiente]
+path = "sound/banqueroAmbiente.ogg"
+volumen = 70
+
+# --- Sacerdote ---
+[efectos.sacerdoteInteraccion]
+path = "sound/sacerdoteInteraccion.ogg"
+volumen = 90
+
+[efectos.sacerdoteAmbiente]
+path = "sound/sacerdoteAmbiente.ogg"
+volumen = 70
+
+[efectos.sacerdoteAmbiente2]
+path = "sound/sacerdoteAmbiente2.ogg"
+volumen = 70
+
+# --- Criaturas ---
+[efectos.criaturaAparece]
+path = "sound/criaturaAparece.ogg"
+volumen = 85
+
+[efectos.criaturaApareceCerca]
+path = "sound/criaturaApareceCerca.ogg"
+volumen = 90
+
+[efectos.cavernaNpc]
+path = "sound/cavernaNpc.ogg"
+volumen = 85
+
+# --- Mundo / movimiento ---
+[efectos.pasos]
+path = "sound/pasos.ogg"
+volumen = 55
+
+[efectos.entrarCaverna]
+path = "sound/entrarCaverna.ogg"
+volumen = 90
+
+# --- Clan ---
+[efectos.clanMiembroEntra]
+path = "sound/clanMiembroEntra.ogg"
+volumen = 85
+
+# --- UI / menu ---
+[efectos.menuBoton]
+path = "sound/menuBoton.ogg"
+volumen = 80
+
+[efectos.menuSeleccionPersonaje]
+path = "sound/menuSeleccionPersonaje.ogg"
+volumen = 85
+
+[efectos.accionNoPermitida]
+path = "sound/accionNoPermitida.ogg"
+volumen = 80
