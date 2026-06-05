@@ -9,7 +9,7 @@
 #include <string>
 
 #include "SDL2pp/Texture.hh"
-#include "client/entidad_renderizable.h"
+#include "common/game/npc/npc.h"
 #include "sprite_catalog.h"
 #include "texture_cache.h"
 
@@ -33,8 +33,8 @@ private:
 
 public:
     NpcSpriteResolver(const SpriteCatalog& catalog, TextureCache& cache);
-    std::string npc_key_from_entity(const EntidadRenderizable& entidad) const;
-    ResolvedNpcSprite resolve(const EntidadRenderizable& entidad) const;
+    std::string npc_key_from_npc(const Npc& npc) const;
+    ResolvedNpcSprite resolve(const Npc& npc) const;
 };
 
 #endif  // TALLER_TP_NPC_SPRITE_RESOLVER_H

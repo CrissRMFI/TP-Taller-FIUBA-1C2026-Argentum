@@ -11,19 +11,21 @@ NpcSpriteResolver::NpcSpriteResolver(const SpriteCatalog& catalog, TextureCache&
         catalog_(catalog),
         cache_(cache) {}
 
-std::string NpcSpriteResolver::npc_key_from_entity(const EntidadRenderizable& entidad) const {
-    switch (entidad.cuerpo) {
-        case 4071: return "comerciante";
-        case 1243: return "sacerdote";
-        case 4057: return "banquero";
+std::string NpcSpriteResolver::npc_key_from_npc(const Npc& npc) const {
+    switch (npc.getTipo()) {
+        case TipoNpc::Comerciante:
+            return "comerciante";
+        case TipoNpc::Sacerdote:
+            return "sacerdote";
+        case TipoNpc::Banquero:
+            return "banquero";
         default:
-            throw std::runtime_error("NPC desconocido para cuerpo " +
-                                     std::to_string(entidad.cuerpo));
+            throw std::runtime_error("NPC desconocido para tipo");
     }
 }
 
-ResolvedNpcSprite NpcSpriteResolver::resolve(const EntidadRenderizable& entidad) const {
-    const auto& npc_def = catalog_.npc(npc_key_from_entity(entidad));
+ResolvedNpcSprite NpcSpriteResolver::resolve(const Npc& npc) const {
+    const auto& npc_def = catalog_.npc(npc_key_from_npc(npc));
 
     std::optional<ResolvedNpcPart> head;
     if (npc_def.head_path.has_value()) {

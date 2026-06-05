@@ -57,6 +57,7 @@ struct StateOverride {
 };
 
 struct StaticSpriteDefinition {
+    uint16_t id;
     std::string part;
     std::string path;
     SpriteRect src;
@@ -81,6 +82,7 @@ private:
     std::unordered_map<uint16_t, CharacterPartDefinition> bodies_;
     std::unordered_map<std::string, StateOverride> states_;
     std::unordered_map<std::string, StaticSpriteDefinition> creatures_;
+    std::unordered_map<uint16_t, std::string> creatures_by_id_;
     std::unordered_map<std::string, NpcSpriteDefinition> npcs_;
 
 public:
@@ -91,6 +93,7 @@ public:
     const CharacterPartDefinition& body(uint16_t id) const;
     const StateOverride* state_override(const std::string& key) const;
     const StaticSpriteDefinition& creature(const std::string& key) const;
+    const StaticSpriteDefinition& creature(uint16_t id) const;
     const NpcSpriteDefinition& npc(const std::string& key) const;
 
     bool has_skin_preset(const std::string& key) const;
@@ -98,6 +101,7 @@ public:
     bool has_body(uint16_t id) const;
     bool has_state_override(const std::string& key) const;
     bool has_creature(const std::string& key) const;
+    bool has_creature(uint16_t id) const;
     bool has_npc(const std::string& key) const;
 };
 

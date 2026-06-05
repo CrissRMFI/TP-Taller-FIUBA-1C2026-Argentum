@@ -415,6 +415,7 @@ src = [6, 10, 25,45]
 
 # Catalogo de criaturas
 [creatures.arana]
+id = 2203
 part = "body"
 path = "imgs/criaturas/arana.png"
 src = [7, 30, 50, 34]
@@ -422,6 +423,7 @@ size = [50, 34]
 offset = [0, 0]
 
 [creatures.goblin]
+id = 2200
 part = "body"
 path = "imgs/criaturas/goblin.png"
 src = [3, 6, 18, 25]
@@ -429,6 +431,7 @@ size = [18, 25]
 offset = [0, 0]
 
 [creatures.esqueleto]
+id = 2201
 part = "body"
 path = "imgs/criaturas/esqueleto.png"
 src = [10, 19, 12, 29]
@@ -436,6 +439,7 @@ size = [12, 29]
 offset = [0, 0]
 
 [creatures.golem]
+id = 2205
 part = "body"
 path = "imgs/criaturas/golem.png"
 src = [11, 13, 73, 73]
@@ -443,6 +447,7 @@ size = [73, 73]
 offset = [0, 0]
 
 [creatures.orco]
+id = 2204
 part = "body"
 path = "imgs/criaturas/orco.png"
 src = [20, 1, 105, 174]
@@ -450,6 +455,7 @@ size = [105, 174]
 offset = [0, 0]
 
 [creatures.zombie]
+id = 2202
 part = "body"
 path = "imgs/criaturas/zombie.png"
 src = [5, 2, 15, 43]

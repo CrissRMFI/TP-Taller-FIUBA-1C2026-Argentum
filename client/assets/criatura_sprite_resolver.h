@@ -24,7 +24,6 @@ private:
 
 public:
     CreatureSpriteResolver(const SpriteCatalog& catalog, TextureCache& cache);
-    std::string creature_key_from_entity(const EntidadRenderizable& entidad) const;
     ResolvedCreatureSprite resolved_creature(const EntidadRenderizable& entidad) const;
 };
 

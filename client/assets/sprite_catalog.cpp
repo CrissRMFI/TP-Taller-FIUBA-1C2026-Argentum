@@ -371,6 +371,8 @@ std::unordered_map<std::string, StaticSpriteDefinition> parse_creatures(const to
             creatures_map.emplace(
                     creature_name,
                     StaticSpriteDefinition{
+                            .id = static_cast<uint16_t>(
+                                    require_int(*item, "id", join_path(path_prefix, "id"))),
                             .part = require_string(*item, "part", join_path(path_prefix, "part")),
                             .path = require_string(*item, "path", join_path(path_prefix, "path")),
                             .src = require_rect4(*item, "src", join_path(path_prefix, "src")),
@@ -437,6 +439,9 @@ SpriteCatalog SpriteCatalog::load_from_file(const std::string& path) {
     catalog.bodies_ = std::move(bodies);
     catalog.states_ = parse_states(root);
     catalog.creatures_ = parse_creatures(root);
+    for (const auto& [key, creature] : catalog.creatures_) {
+        catalog.creatures_by_id_.emplace(creature.id, key);
+    }
     catalog.npcs_ = parse_npcs(root);
     validate_catalog(catalog.skins_, catalog.heads_, catalog.bodies_);
 
@@ -464,6 +469,10 @@ const StaticSpriteDefinition& SpriteCatalog::creature(const std::string& key) co
     return creatures_.at(key);
 }
 
+const StaticSpriteDefinition& SpriteCatalog::creature(const uint16_t id) const {
+    return creatures_.at(creatures_by_id_.at(id));
+}
+
 const NpcSpriteDefinition& SpriteCatalog::npc(const std::string& key) const {
     return npcs_.at(key);
 }
@@ -486,6 +495,10 @@ bool SpriteCatalog::has_state_override(const std::string& key) const {
 
 bool SpriteCatalog::has_creature(const std::string& key) const {
     return creatures_.contains(key);
+}
+
+bool SpriteCatalog::has_creature(const uint16_t id) const {
+    return creatures_by_id_.contains(id);
 }
 
 bool SpriteCatalog::has_npc(const std::string& key) const {
