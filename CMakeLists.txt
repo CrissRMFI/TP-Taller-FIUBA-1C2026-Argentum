@@ -27,8 +27,7 @@ message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
 # HEY TODO XXX: change the name to something that you like
-add_library(taller_common STATIC
-        common/protocolo/skin_personaje_jugador.h)
+add_library(taller_common)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
