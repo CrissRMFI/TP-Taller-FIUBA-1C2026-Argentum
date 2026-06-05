@@ -192,6 +192,8 @@ CharacterPartDefinition parse_head_part(const toml::key& key, const toml::table&
                                            join_path(path_prefix, "visible_offset")),
             .draw_offset = optional_vec2_or_default(item, "draw_offset", SpriteVec2{0, 0},
                                                     join_path(path_prefix, "draw_offset")),
+            .directions = {},
+            .rows = {},
     };
 
     const toml::table& directions =
@@ -224,7 +226,9 @@ CharacterPartDefinition parse_body_part(const toml::key& key, const toml::table&
             .visible_offset = require_vec2(item, "visible_offset",
                                            join_path(path_prefix, "visible_offset")),
             .draw_offset = optional_vec2_or_default(item, "draw_offset", SpriteVec2{0, 0},
-                                                    join_path(path_prefix, "draw_offset"))
+                                                    join_path(path_prefix, "draw_offset")),
+            .directions = {},
+            .rows = {},
     };
 
     const toml::table& rows = require_subtable(item, "rows", join_path(path_prefix, "rows"));

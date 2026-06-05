@@ -225,6 +225,12 @@ if(TALLER_SERVER)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
+    if(NOT DEFINED ARGENTUM_CONFIG_DIR)
+        set(ARGENTUM_CONFIG_DIR "config")
+    endif()
+    target_compile_definitions(taller_server PRIVATE
+        SERVER_GAME_CONFIG_PATH="${ARGENTUM_CONFIG_DIR}/game_config.toml")
+
     target_link_libraries(taller_server taller_common tomlplusplus::tomlplusplus)
 endif()
 

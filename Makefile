@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server build
+.PHONY: all test clean editor client common server build install uninstall
 
 compile-debug:
 	mkdir -p build/
@@ -9,6 +9,14 @@ run-tests: compile-debug
 	./build/taller_tests
 
 all: clean run-tests
+
+# Instalador: deps + build + tests + copia a ~/.local y ~/.config.
+# Pasar args al script con ARGS, p.ej.: make install ARGS=--no-deps
+install:
+	./install.sh $(ARGS)
+
+uninstall:
+	./uninstall.sh $(ARGS)
 
 clean:
 	rm -Rf build/
