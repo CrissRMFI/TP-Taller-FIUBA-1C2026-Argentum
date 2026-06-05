@@ -11,13 +11,17 @@
 #include "server/gameloop/monitor_clientes.h"
 #include "common/persistencia/lector_mapa.h"
 
+#ifndef SERVER_GAME_CONFIG_PATH
+#define SERVER_GAME_CONFIG_PATH "config/game_config.toml"
+#endif
+
 
 Server::Server(const char* servname) : skt(servname) {}
 
 void Server::run() {
     MonitorClientes monitor_clientes;
     LectorConfigToml lector_config;
-    ConfigCompleta config_completa = lector_config.cargar("config/game_config.toml");
+    ConfigCompleta config_completa = lector_config.cargar(SERVER_GAME_CONFIG_PATH);
 
     LectorMapa lector_mapa;
     MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo);

@@ -329,7 +329,7 @@ size = [17, 40]
 # Catalogo de criaturas
 [creatures.arana]
 part = "body"
-path = "imgs/criaturas/araña.png"
+path = "imgs/criaturas/arana.png"
 src = [7, 30, 50, 34]
 size = [50, 34]
 offset = [0, 0]
