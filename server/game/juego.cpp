@@ -128,6 +128,9 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
+    
+    mensajes.splice(mensajes.end(), armarPosicionesNpcPara(id));
+
     for (const ItemEnSuelo& item : mapa.obtenerItemsEnSuelo()) {
         if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back({TipoDestino::UNO, id,
@@ -392,6 +395,35 @@ EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura
                                   static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo),
                                   0, // Cabeza de criatura es 0
                                   criatura.getCuerpo()}};
+}
+
+EventoSalida Juego::armarPosicionNpcPara(uint16_t idCliente, uint16_t idNpc,
+                                         const Posicion& posicion, uint16_t cuerpo) {
+    return {TipoDestino::UNO, idCliente,
+            EventoPosicionEntidad{idNpc, posicion.x, posicion.y,
+                                  static_cast<uint8_t>(TipoEntidad::Npc),
+                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo),
+                                  0,  // los NPCs no usan cabeza separada
+                                  cuerpo}};
+}
+
+std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
+    // El id de sprite de cuerpo de cada NPC sale del TOML (cfg): es un contrato
+    // con el cliente, que mapea ese numero a su grafico en el NpcSpriteResolver.
+    std::list<EventoSalida> mensajes;
+    for (const auto& [idNpc, sacerdote] : mapa.getSacerdotes()) {
+        mensajes.push_back(
+                armarPosicionNpcPara(idCliente, idNpc, sacerdote.getPosicion(), cfg.cuerpoSacerdote));
+    }
+    for (const auto& [idNpc, comerciante] : mapa.getComerciantes()) {
+        mensajes.push_back(armarPosicionNpcPara(idCliente, idNpc, comerciante.getPosicion(),
+                                                cfg.cuerpoComerciante));
+    }
+    for (const auto& [idNpc, banquero] : mapa.getBanqueros()) {
+        mensajes.push_back(
+                armarPosicionNpcPara(idCliente, idNpc, banquero.getPosicion(), cfg.cuerpoBanquero));
+    }
+    return mensajes;
 }
 
 uint8_t Juego::estadoEntidadDe(const Jugador& jugador) const {

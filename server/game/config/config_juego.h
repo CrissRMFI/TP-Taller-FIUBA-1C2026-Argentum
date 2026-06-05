@@ -124,6 +124,10 @@ struct ConfigJuego {
 
     // ---- NPCs ----
     uint16_t rangoInteraccionNpc;
+    // id de sprite de cuerpo de cada NPC ciudadano
+    uint16_t cuerpoSacerdote;
+    uint16_t cuerpoComerciante;
+    uint16_t cuerpoBanquero;
     // Stock por tipo de NPC (todos los comerciantes/sacerdotes venden lo mismo).
     std::vector<EntradaStockComerciante> stockComerciante;
     std::vector<EntradaStockSacerdote>   stockSacerdote;

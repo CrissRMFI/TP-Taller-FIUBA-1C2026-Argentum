@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "../../common/protocolo/tipo_entidad.h"
+
 // Tope de caracteres del mini-chat (nuestro protocolo admite hasta 256).
 
 #define MAX_CHARS_CHAT 200
@@ -157,8 +159,15 @@ std::optional<ComandoJugador> ClientInputHandler::handle_mouse_click(
         return std::nullopt;
     }
 
-    // El click selecciona a la entidad (para comandos de chat dirigidos a NPCs) y a la vez dispara un ataque sobre ella.
+    // El click siempre selecciona a la entidad (para los comandos de chat dirigidos a un objetivo: comprar, curar, depositar, etc.).
     objetivo_seleccionado = idObjetivo;
+
+    const auto it = entidades.find(idObjetivo);
+    const bool esNpc =
+            it != entidades.end() && it->second.tipo == static_cast<uint8_t>(TipoEntidad::Npc);
+    if (esNpc) {
+        return std::nullopt;
+    }
     return ComandoJugador{Opcode::ATACAR, ComandoAtacar{idObjetivo}};
 }
 

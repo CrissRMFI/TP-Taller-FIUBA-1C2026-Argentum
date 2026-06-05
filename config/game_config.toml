@@ -310,6 +310,13 @@ mapa_id = 0
 # 1 significa celda adyacente.
 rango_interaccion = 1
 
+# id de sprite de cuerpo con que el cliente dibuja cada NPC ciudadano.
+# Deben coincidir con el catalogo de sprites del cliente (npc_sprite_resolver):
+# es un contrato cliente-servidor (ver nota en el codigo).
+cuerpo_sacerdote   = 1243
+cuerpo_comerciante = 4071
+cuerpo_banquero    = 4057
+
 # Stock por TIPO de NPC: todos los comerciantes (y todos los sacerdotes)
 # venden lo mismo. El servidor lo aplica al cargar el mapa. Los id deben existir
 # en [items]. Para el comerciante, 'compra' es lo que paga el jugador al comprar
