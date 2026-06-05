@@ -118,20 +118,31 @@ void ObjectRenderer::update_animation(const uint32_t current_tick,
         return;
     }
 
-    const int current_row = animation.current_animation_row();
+    bool has_moving_character = false;
+    int current_row = animation.current_animation_row();
+    for (const auto& [id, entity] : state_object.entities()) {
+        if (entity.tipo != 0 || !state_object.entity_is_moving(id)) {
+            continue;
+        }
+        current_row = state_object.entity_animation_row(id);
+        has_moving_character = true;
+        break;
+    }
+
     if (current_row != last_animation_row) {
         sprite_manager->reset_frame();
         last_animation_row = current_row;
     }
 
-    if (state_object.player_is_moving()) {
+    if (has_moving_character) {
         sprite_manager->update(current_tick, current_row);
     } else {
         sprite_manager->reset_frame();
     }
 }
 
-void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAnimation& animation) {
+void ObjectRenderer::render(const ObjectGameWorld& state_object,
+                            const ObjectAnimation& /*animation*/) {
     if (!renderer) {
         return;
     }
@@ -139,7 +150,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
     if (background_texture) {
         renderer->Clear();
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
-        SDL_SetTextureColorMod(background_texture->Get(), 185, 185, 185);
+        SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
                        SDL2pp::Rect(0, 0, window_width, window_height));
     } else {
@@ -204,14 +215,14 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int entity_y = entity.y * window_height / mapa.getAlto();
 
         if (entity.tipo == 0 && sprite_manager) {
-            const int animation_row =
-                    (id == state_object.client_id()) ? animation.current_animation_row() : 0;
+            const int animation_row = state_object.entity_animation_row(id);
+            const int frame_index =
+                    state_object.entity_is_moving(id) ? sprite_manager->current_frame_index() : 0;
             if (!character_renderer) {
                 continue;
             }
             character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                       cell_height, animation_row,
-                                       sprite_manager->current_frame_index());
+                                       cell_height, animation_row, frame_index);
             continue;
         }
 

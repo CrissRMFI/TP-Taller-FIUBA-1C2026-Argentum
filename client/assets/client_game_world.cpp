@@ -4,6 +4,7 @@
 
 #include "client_game_world.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <variant>
 
@@ -12,19 +13,42 @@
 // milisegundos de gracia para que la animacion sea menos brusca
 #define MOTION_GRACE_MS 140
 
+namespace {
+
+int animation_row_for_delta(const int delta_x, const int delta_y, const int default_row) {
+    // no cambios en la posicion me quedo en la fila que estaba
+    if (delta_x == 0 && delta_y == 0) {
+        return default_row;
+    }
+    // movimiento lateral --> me muevo sobre x
+    if (std::abs(delta_x) >= std::abs(delta_y)) {
+        return (delta_x > 0) ? 2 : 1;
+    }
+    // me muevo sobre y
+    return (delta_y > 0) ? 0 : 3;
+}
+
+}  // namespace
+
 ObjectGameWorld::ObjectGameWorld(const uint16_t client_id):
-    idCliente(client_id), posX(0), posY(0), isMoving(false), lastMotionTick(0) {}
+    idCliente(client_id), posX(0), posY(0) {}
 
 void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                             const uint32_t current_tick) {
     const int previous_pos_x = posX;
     const int previous_pos_y = posY;
-    bool received_own_position = false;
-    bool own_position_changed = false;
 
     MensajeServidor mensaje;
     while (server_msgs.try_pop(mensaje)) {
         if (auto* entity_position = std::get_if<MensajePosicionEntidad>(&mensaje.payload)) {
+            const auto previous_entity = entidades.find(entity_position->id);
+            const int previous_x =
+                    (previous_entity != entidades.end()) ? previous_entity->second.x : entity_position->x;
+            const int previous_y =
+                    (previous_entity != entidades.end()) ? previous_entity->second.y : entity_position->y;
+            const bool position_changed =
+                    (entity_position->x != previous_x || entity_position->y != previous_y);
+
             entidades[entity_position->id] = EntidadRenderizable{entity_position->x,
                                                                  entity_position->y,
                                                                  entity_position->tipo,
@@ -32,20 +56,28 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                                                  entity_position->cabeza,
                                                                  entity_position->cuerpo};
 
+            EntityAnimationState& animation_state = animation_states[entity_position->id];
+            if (position_changed) {
+                animation_state.animation_row = animation_row_for_delta(
+                        static_cast<int>(entity_position->x) - previous_x,
+                        static_cast<int>(entity_position->y) - previous_y,
+                        animation_state.animation_row);
+                animation_state.last_motion_tick = current_tick;
+            }
+            animation_state.is_moving =
+                    position_changed ||
+                    (current_tick - animation_state.last_motion_tick) < MOTION_GRACE_MS;
+
             if (entity_position->id == idCliente) {
-                received_own_position = true;
-                own_position_changed =
-                        (entity_position->x != posX || entity_position->y != posY);
                 posX = entity_position->x;
                 posY = entity_position->y;
-                if (own_position_changed) {
-                    lastMotionTick = current_tick;
-                }
             }
         } else if (auto* entity_disappeared = std::get_if<MensajeEntidadDesaparecio>(&mensaje.payload)) {
             entidades.erase(entity_disappeared->id);
+            animation_states.erase(entity_disappeared->id);
         } else if (auto* dead_entity = std::get_if<MensajeMuerteEntidad>(&mensaje.payload)) {
             entidades.erase(dead_entity->id);
+            animation_states.erase(dead_entity->id);
             std::cout << "[cliente] entidad muerta: " << dead_entity->id << std::endl;
         } else if (auto* estado = std::get_if<MensajeEstadoPersonaje>(&mensaje.payload)) {
             std::cout << "[cliente] estado personaje: vida " << estado->vidaActual << "/"
@@ -66,7 +98,9 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         } else if (auto* resucitado = std::get_if<MensajeResucitado>(&mensaje.payload)) {
             posX = resucitado->x;
             posY = resucitado->y;
-            lastMotionTick = current_tick;
+            EntityAnimationState& animation_state = animation_states[idCliente];
+            animation_state.is_moving = true;
+            animation_state.last_motion_tick = current_tick;
             std::cout << "[cliente] resucitado en (" << resucitado->x << ", "
                       << resucitado->y << ")" << std::endl;
         } else if (auto* item_suelo = std::get_if<MensajeItemEnSuelo>(&mensaje.payload)) {
@@ -94,19 +128,20 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         }
     }
 
-    if (received_own_position) {
-        isMoving = own_position_changed || (posX != previous_pos_x || posY != previous_pos_y);
-        if (!isMoving) {
-            isMoving = (current_tick - lastMotionTick) < MOTION_GRACE_MS;
+    for (auto& [entity_id, animation_state] : animation_states) {
+        const bool client_position_changed =
+                entity_id == idCliente && (posX != previous_pos_x || posY != previous_pos_y);
+        if (!client_position_changed) {
+            animation_state.is_moving =
+                    (current_tick - animation_state.last_motion_tick) < MOTION_GRACE_MS;
         }
-    } else if (isMoving) {
-        isMoving = (current_tick - lastMotionTick) < MOTION_GRACE_MS;
     }
 }
 
 void ObjectGameWorld::notify_move_requested(const uint32_t current_tick) {
-    isMoving = true;
-    lastMotionTick = current_tick;
+    EntityAnimationState& animation_state = animation_states[idCliente];
+    animation_state.is_moving = true;
+    animation_state.last_motion_tick = current_tick;
 }
 
 const std::unordered_map<uint16_t, EntidadRenderizable>& ObjectGameWorld::entities() const {
@@ -126,5 +161,15 @@ int ObjectGameWorld::player_y() const {
 }
 
 bool ObjectGameWorld::player_is_moving() const {
-    return isMoving;
+    return entity_is_moving(idCliente);
+}
+
+bool ObjectGameWorld::entity_is_moving(const uint16_t entity_id) const {
+    const auto it = animation_states.find(entity_id);
+    return it != animation_states.end() && it->second.is_moving;
+}
+
+int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
+    const auto it = animation_states.find(entity_id);
+    return (it != animation_states.end()) ? it->second.animation_row : 0;
 }

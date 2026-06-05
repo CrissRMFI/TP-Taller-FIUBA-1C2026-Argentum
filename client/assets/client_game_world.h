@@ -11,15 +11,22 @@
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
 
+struct EntityAnimationState {
+    bool is_moving = false;
+    uint32_t last_motion_tick = 0;
+    int animation_row = 0;
+};
 
 class ObjectGameWorld {
 private:
     std::unordered_map<uint16_t, EntidadRenderizable> entidades;
+    // me almaceno las animaciones de las entidades, asi se visualiza correctamente el movimiento
+    // de los personajes
+    std::unordered_map<uint16_t, EntityAnimationState> animation_states;
+
     uint16_t idCliente;
     int posX;
     int posY;
-    bool isMoving;
-    uint32_t lastMotionTick;
 
 public:
     explicit ObjectGameWorld(uint16_t client_id);
@@ -31,6 +38,8 @@ public:
     int player_x() const;
     int player_y() const;
     bool player_is_moving() const;
+    bool entity_is_moving(uint16_t entity_id) const;
+    int entity_animation_row(uint16_t entity_id) const;
 
 };
 
