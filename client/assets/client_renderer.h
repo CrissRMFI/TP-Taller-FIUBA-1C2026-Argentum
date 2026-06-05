@@ -49,8 +49,8 @@ private:
 public:
     ObjectRenderer();
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
-              bool vsync);
-    void update_animation(uint32_t current_tick,
+              bool vsync, int loop_fps);
+    void update_animation(/*uint32_t current_tick*/  int it,
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);

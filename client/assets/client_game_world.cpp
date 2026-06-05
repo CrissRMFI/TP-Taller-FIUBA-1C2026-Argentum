@@ -4,6 +4,7 @@
 
 #include "client_game_world.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <variant>
@@ -57,12 +58,28 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                                                  entity_position->cuerpo};
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
+
+            if (previous_entity == entidades.end()) {
+                animation_state.previous_x = static_cast<float>(entity_position->x);
+                animation_state.previous_y = static_cast<float>(entity_position->y);
+                animation_state.current_x = static_cast<float>(entity_position->x);
+                animation_state.current_y = static_cast<float>(entity_position->y);
+                animation_state.move_start_tick = current_tick;
+            }
             if (position_changed) {
                 animation_state.animation_row = animation_row_for_delta(
                         static_cast<int>(entity_position->x) - previous_x,
                         static_cast<int>(entity_position->y) - previous_y,
                         animation_state.animation_row);
                 animation_state.last_motion_tick = current_tick;
+                animation_state.previous_x = animation_state.current_x;
+                animation_state.previous_y = animation_state.current_y;
+                animation_state.current_x = static_cast<float>(entity_position->x);
+                animation_state.current_y = static_cast<float>(entity_position->y);
+                animation_state.move_start_tick = current_tick;
+            } else if (previous_entity != entidades.end()) {
+                animation_state.current_x = static_cast<float>(entity_position->x);
+                animation_state.current_y = static_cast<float>(entity_position->y);
             }
             animation_state.is_moving =
                     position_changed ||
@@ -172,4 +189,24 @@ bool ObjectGameWorld::entity_is_moving(const uint16_t entity_id) const {
 int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
     const auto it = animation_states.find(entity_id);
     return (it != animation_states.end()) ? it->second.animation_row : 0;
+}
+// devuelvo un punto medio entre la pos actual y vieja evitando movimiento brusco del personaje
+InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_t entity_id,
+                                                                   const uint32_t current_tick) const {
+    const auto state_it = animation_states.find(entity_id);
+    const auto entity_it = entidades.find(entity_id);
+    if (state_it == animation_states.end() || entity_it == entidades.end()) {
+        return {};
+    }
+
+    const EntityAnimationState& animation_state = state_it->second;
+    const float elapsed = static_cast<float>(current_tick - animation_state.move_start_tick);
+    const float alpha = std::clamp(elapsed / static_cast<float>(MOTION_GRACE_MS), 0.0f, 1.0f);
+
+    return InterpolatedPosition{
+            .x = animation_state.previous_x +
+                 (animation_state.current_x - animation_state.previous_x) * alpha,
+            .y = animation_state.previous_y +
+                 (animation_state.current_y - animation_state.previous_y) * alpha,
+    };
 }

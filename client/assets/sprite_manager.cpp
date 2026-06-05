@@ -4,14 +4,16 @@
 
 #include "sprite_manager.h"
 
-SpriteManager::SpriteManager(int fps):
+#include <algorithm>
+
+SpriteManager::SpriteManager(const int animation_fps, const int loop_fps):
         current_frame(0),
-        frame_rate(fps > 0 ? 1000 / fps : 0),
-        last_frame_tick(0),
+        frames_per_animation_step(
+                (animation_fps > 0 && loop_fps > 0) ? std::max(1, loop_fps / animation_fps) : 1),
         animaciones(4) {}
 
-void SpriteManager::update(const uint32_t current_tick, int current_row) {
-    if (frame_rate == 0 || current_row >= static_cast<int>(animaciones.size())) {
+void SpriteManager::update(const uint32_t frame_counter, const int current_row) {
+    if (current_row >= static_cast<int>(animaciones.size())) {
         return;
     }
 
@@ -19,14 +21,12 @@ void SpriteManager::update(const uint32_t current_tick, int current_row) {
     if (frame_count == 0) {
         return;
     }
-    if (current_tick - last_frame_tick >= frame_rate) {
-        current_frame = (current_frame + 1) % frame_count;
-        last_frame_tick = current_tick;
-    }
+
+    current_frame = static_cast<int>((frame_counter / frames_per_animation_step) % frame_count);
 }
 
-void SpriteManager::add_animation(const int row_idx, const int frame_count, int frame_width, int frame_height,
-    const int x_offset, int y_offset,
+void SpriteManager::add_animation(const int row_idx, const int frame_count, const int frame_width,
+                                  const int frame_height, const int x_offset, const int y_offset,
                                   const int x_step, const int y_step) {
     if (row_idx >= static_cast<int>(animaciones.size())) {
         animaciones.resize(row_idx + 1);

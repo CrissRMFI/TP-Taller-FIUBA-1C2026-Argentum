@@ -31,24 +31,37 @@ void ClientGameLoop::init(const char* title,
                           const int width,
                           const int height,
                           const bool fullscreen) {
-    object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync);
+    object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
+                         config.fpsMax);
     handler.set_window_dimensions(width, height);
     handler.setIdCliente(object_state.client_id());
 
     const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
-
+    int it = 0;
+    uint32_t tick = SDL_GetTicks();
     is_running = true;
     while (is_running) {
-        const uint32_t frame_start = SDL_GetTicks();
-
         handleEvents();
-        update();
+        update(it);
         render();
-
-        const uint32_t elapsed = SDL_GetTicks() - frame_start;
-        if (elapsed < frame_target_ms) {
-            SDL_Delay(frame_target_ms - elapsed);
+        const uint32_t tick2 = SDL_GetTicks();
+        int rest = static_cast<int>(frame_target_ms) - static_cast<int>(tick2 - tick);
+        if (rest < 0) {
+            const int behind = -rest;
+            rest = frame_target_ms - (behind % frame_target_ms);
+            const int lost = behind + rest;
+            tick += lost;
+            it += lost / frame_target_ms;
+        } else {
+            SDL_Delay(rest);
         }
+        tick +=  frame_target_ms;
+        it ++;
+
+        // const uint32_t elapsed = SDL_GetTicks() - frame_s;
+        // if (elapsed < frame_target_ms) {
+        //     SDL_Delay(frame_target_ms - elapsed);
+        // }
     }
 }
 
@@ -86,10 +99,11 @@ void ClientGameLoop::despacharComando(const ComandoJugador& command, const uint3
     business.save_command(command);
 }
 
-void ClientGameLoop::update() {
+void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
     object_state.upload_server_msg(server_messages, current_tick);
-    object_renderer.update_animation(current_tick, object_state, object_animation);
+    // object_renderer.update_animation(current_tick, object_state, object_animation);
+    object_renderer.update_animation(it, object_state, object_animation);
 }
 
 void ClientGameLoop::render() {

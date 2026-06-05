@@ -41,7 +41,8 @@ void ObjectRenderer::init(const char* title,
                           const int width,
                           const int height,
                           const bool fullscreen,
-                          const bool vsync) {
+                          const bool vsync,
+                          const int loop_fps) {
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -86,7 +87,7 @@ void ObjectRenderer::init(const char* title,
         npc_sprite_resolver = std::make_unique<NpcSpriteResolver>(*catalog, *cache_texture);
         npc_renderer = std::make_unique<NPCRenderer>(*npc_sprite_resolver);
 
-        sprite_manager = std::make_unique<SpriteManager>(SPRITE_ANIMATION_FPS);
+        sprite_manager = std::make_unique<SpriteManager>(SPRITE_ANIMATION_FPS, loop_fps);
 
         const SkinPreset& default_skin = catalog->skin_preset("humano_default");
 
@@ -111,7 +112,7 @@ void ObjectRenderer::init(const char* title,
     window->Raise();
 }
 
-void ObjectRenderer::update_animation(const uint32_t current_tick,
+void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int it,
                                       const ObjectGameWorld& state_object,
                                       const ObjectAnimation& animation) {
     if (!sprite_manager) {
@@ -135,7 +136,7 @@ void ObjectRenderer::update_animation(const uint32_t current_tick,
     }
 
     if (has_moving_character) {
-        sprite_manager->update(current_tick, current_row);
+        sprite_manager->update(it, current_row);
     } else {
         sprite_manager->reset_frame();
     }
@@ -146,6 +147,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (!renderer) {
         return;
     }
+    const uint32_t current_tick = SDL_GetTicks();
 
     if (background_texture) {
         renderer->Clear();
@@ -211,8 +213,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     for (const auto& [id, entity] : state_object.entities()) {
         const int cell_width = window_width / mapa.getAncho();
         const int cell_height = window_height / mapa.getAlto();
-        const int entity_x = entity.x * window_width / mapa.getAncho();
-        const int entity_y = entity.y * window_height / mapa.getAlto();
+        const InterpolatedPosition interpolated_position =
+                state_object.entity_interpolated_position(id, current_tick);
+        const int entity_x = static_cast<int>(interpolated_position.x * window_width / mapa.getAncho());
+        const int entity_y = static_cast<int>(interpolated_position.y * window_height / mapa.getAlto());
 
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);

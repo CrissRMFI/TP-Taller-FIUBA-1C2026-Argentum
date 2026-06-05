@@ -5,32 +5,29 @@
 #ifndef TALLER_TP_SPRITE_MANAGER_H
 #define TALLER_TP_SPRITE_MANAGER_H
 #include <SDL_render.h>
+#include <vector>
 
 #include "SDL2pp/Renderer.hh"
 #include "SDL2pp/Texture.hh"
 
-
 class SpriteManager {
 private:
-    int current_frame; // donde esta parado actualmente
-    uint32_t frame_rate; // velocidad por animacion
-    uint32_t last_frame_tick;
+    int current_frame;
+    int frames_per_animation_step;
     std::vector<std::vector<SDL2pp::Rect>> animaciones;
 
-
 public:
-    explicit SpriteManager(int fps);
+    SpriteManager(int animation_fps, int loop_fps);
 
-    void update(uint32_t current_tick, int current_row);
+    void update(uint32_t frame_counter, int current_row);
     void add_animation(int row_idx, int frame_count, int frame_width, int frame_height,
                        int x_offset, int y_offset, int x_step, int y_step = 0);
     void render(SDL2pp::Renderer& renderer,
-        SDL2pp::Texture& texture,
-        int x, int y, int row = 0, float scale = 1.0f) const;
+                SDL2pp::Texture& texture,
+                int x, int y, int row = 0, float scale = 1.0f) const;
 
     int current_frame_index() const;
     void reset_frame();
 };
 
-
-#endif //TALLER_TP_SPRITE_MANAGER_H
+#endif  // TALLER_TP_SPRITE_MANAGER_H

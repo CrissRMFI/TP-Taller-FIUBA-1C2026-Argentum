@@ -15,6 +15,19 @@ struct EntityAnimationState {
     bool is_moving = false;
     uint32_t last_motion_tick = 0;
     int animation_row = 0;
+    float previous_x = 0.0f;
+    float previous_y = 0.0f;
+    float current_x = 0.0f;
+    float current_y = 0.0f;
+    uint32_t move_start_tick = 0;
+};
+
+// para que la animacion no quede atada a tiles interpolo posiciones (x,y) del personaje
+// buscando un punto medio entre la pos actual y la anterior
+
+struct InterpolatedPosition {
+    float x = 0.0f;
+    float y = 0.0f;
 };
 
 class ObjectGameWorld {
@@ -40,6 +53,8 @@ public:
     bool player_is_moving() const;
     bool entity_is_moving(uint16_t entity_id) const;
     int entity_animation_row(uint16_t entity_id) const;
+    InterpolatedPosition entity_interpolated_position(uint16_t entity_id,
+                                                      uint32_t current_tick) const;
 
 };
 
