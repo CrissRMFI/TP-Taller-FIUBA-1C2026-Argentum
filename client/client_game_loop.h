@@ -1,7 +1,3 @@
-//
-// Created by victoria zubieta on 17/05/2026.
-//
-
 #ifndef TALLER_TP_CLIENT_GAME_LOOP_H
 #define TALLER_TP_CLIENT_GAME_LOOP_H
 
@@ -14,7 +10,9 @@
 #include "assets/client_renderer.h"
 #include "assets/object_animation.h"
 #include "client_business.h"
+#include "config/config_cliente.h"
 #include "handlers/client_input_handler.h"
+#include "handlers/parser_comando_chat.h"
 
 class ClientGameLoop {
 private:
@@ -24,12 +22,19 @@ private:
     ObjectGameWorld object_state;
     ObjectAnimation object_animation;
     ObjectRenderer object_renderer;
+    ConfigCliente config;
+    ParserComandoChat parser;
     bool is_running;
+
+    void despacharComando(const ComandoJugador& command, uint32_t current_tick);
+    // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
+    void procesarLineaChat(const std::string& linea, uint32_t current_tick);
 
 public:
     ClientGameLoop(Queue<MensajeServidor>& server_messages,
                    ClientBusiness& business,
-                   uint16_t idCliente);
+                   uint16_t idCliente,
+                   const ConfigCliente& config);
     ~ClientGameLoop();
 
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);

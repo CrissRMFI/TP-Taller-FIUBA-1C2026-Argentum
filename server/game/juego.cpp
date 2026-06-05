@@ -15,15 +15,28 @@
 #include "../../common/protocolo/tipo_entidad.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
+#include "../persistencia/serializador_jugador.h"
+#include "../../common/persistencia/error_persistencia.h"
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat) :
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
         cfg(cfg),
         catalogo(std::move(cat)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
-        mapa(cfg.mapaAncho, cfg.mapaAlto),
+        mapa(std::move(mapa)),
         ticksTranscurridos(0),
-        aleatorio() {}
+        aleatorio(),
+        indiceJugadores(cfg.rutaIndiceJugadores),
+        lectorJugadores(cfg.rutaJugadores, indiceJugadores),
+        escritorJugadores(cfg.rutaJugadores, indiceJugadores) {
+    
+    for (const EntradaStockComerciante& e : cfg.stockComerciante) {
+        this->mapa.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
+    }
+    for (const EntradaStockSacerdote& e : cfg.stockSacerdote) {
+        this->mapa.agregarStockSacerdotes(e.id, e.precio);
+    }
+}
 
 
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {
@@ -46,10 +59,32 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
-    // Reconexion: la posicion deseada es la ultima conocida. Conexion nueva: el ancla del TOML. En ambos casos delegamos al BFS para garantizar colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
-    const Posicion posicionDeseada = (itDesconectado != jugadoresDesconectados.end())
-                                             ? itDesconectado->second.getPosicion()
-                                             : cfg.spawnInicial;
+    // Si no es una reconexion de esta misma corrida (no esta en RAM), intentamos
+    // cargar su progreso del disco. Los clanes no se persisten, asi que si el
+    // registro traia un clan lo limpiamos para no dejar una referencia colgada.
+    std::optional<Jugador> jugadorDisco;
+    if (itDesconectado == jugadoresDesconectados.end()) {
+        try {
+            std::optional<RegistroJugador> registro = lectorJugadores.cargar(nombre);
+            if (registro.has_value()) {
+                jugadorDisco.emplace(SerializadorJugador::aJugador(id, *registro, cfg));
+                if (jugadorDisco->tieneClan()) {
+                    jugadorDisco->salirClan();
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "[persistencia] error cargando " << nombre << ": " << e.what()
+                      << std::endl;
+        }
+    }
+
+    // Reconexion: la posicion deseada es la ultima conocida (RAM o disco). Conexion
+    // nueva: el ancla del TOML. En todos los casos delegamos al BFS para garantizar
+    // colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
+    const Posicion posicionDeseada =
+            (itDesconectado != jugadoresDesconectados.end()) ? itDesconectado->second.getPosicion()
+            : jugadorDisco.has_value()                       ? jugadorDisco->getPosicion()
+                                                             : cfg.spawnInicial;
 
     const std::optional<Posicion> posicionResuelta = buscarPosicionLibreCercaDe(posicionDeseada);
     if (!posicionResuelta.has_value()) {
@@ -59,6 +94,12 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     if (itDesconectado != jugadoresDesconectados.end()) {
         jugadoresConectados.emplace(id, std::move(itDesconectado->second));
         jugadoresDesconectados.erase(itDesconectado);
+        jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
+    } else if (jugadorDisco.has_value()) {
+        if (existeIdPersonaje(id)) {
+            return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        }
+        jugadoresConectados.emplace(id, std::move(*jugadorDisco));
         jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
     } else {
         if (existeIdPersonaje(id)) {
@@ -127,10 +168,39 @@ std::list<EventoSalida> Juego::desconectarJugador(uint16_t id) {
     const std::string nombre = it->second.getNombre();
     indiceNicksConectados.erase(nombre);
 
+    // Persistimos el progreso a disco (cross-restart) y ademas lo mantenemos en
+    // RAM para reconexion rapida y operaciones de clan sobre miembros offline.
+    guardarJugador(it->second);
+
     jugadoresDesconectados.emplace(id, std::move(it->second));
     jugadoresConectados.erase(it);
 
     return mensajes;
+}
+
+void Juego::guardarJugador(const Jugador& jugador) {
+    try {
+        const RegistroJugador registro = SerializadorJugador::aRegistro(jugador);
+        escritorJugadores.guardar(registro);
+    } catch (const std::exception& e) {
+        std::cerr << "[persistencia] error guardando " << jugador.getNombre() << ": "
+                  << e.what() << std::endl;
+    }
+}
+
+void Juego::persistirConectados() {
+    for (const auto& [id, jugador] : jugadoresConectados) {
+        guardarJugador(jugador);
+    }
+}
+
+void Juego::persistirTodos() {
+    for (const auto& [id, jugador] : jugadoresConectados) {
+        guardarJugador(jugador);
+    }
+    for (const auto& [id, jugador] : jugadoresDesconectados) {
+        guardarJugador(jugador);
+    }
 }
 
 Jugador* Juego::buscarJugador(uint16_t id) {
@@ -451,7 +521,7 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
 
     auto finalizar = [&](std::list<EventoSalida> mensajes,
                          bool emitirPosicionSiEsMover = false) {
-        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::MOVER)) {
+        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::EMPEZAR_MOVER)) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
                 std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
                 mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -494,11 +564,13 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
         case Opcode::DEJAR_CLAN:
             return ejecutarSinPayload(std::holds_alternative<ComandoDejarClan>(comando.payload),
                                       [&]() { return ejecutarDejarClan(idCliente); });
-        case Opcode::MOVER:
-            return ejecutarConPayload(std::get_if<ComandoMover>(&comando.payload),
-                                      [&](const ComandoMover& payload) {
-                                          return ejecutarMover(idCliente, payload);
-                                      });
+        case Opcode::EMPEZAR_MOVER:
+            if (const auto* payload = std::get_if<ComandoEmpezarMover>(&comando.payload)) {
+                return finalizar(ejecutarEmpezarMover(idCliente, *payload), false);
+            }
+            return comandoInvalido();
+        case Opcode::DETENER_MOVER:
+            return finalizar(ejecutarDetenerMover(idCliente), true);
         case Opcode::ATACAR:
             return ejecutarConPayload(std::get_if<ComandoAtacar>(&comando.payload),
                                       [&](const ComandoAtacar& payload) {
@@ -583,6 +655,11 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
                                           return ejecutarGestionMiembroClan(
                                                   idCliente, payload, comando.opcode);
                                       });
+        case Opcode::CHEAT:
+            return ejecutarConPayload(std::get_if<ComandoCheat>(&comando.payload),
+                                      [&](const ComandoCheat& payload) {
+                                          return ejecutarCheat(idCliente, payload);
+                                      });
         default:
             return comandoInvalido();
     }
@@ -644,6 +721,19 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
                 mensajes.push_back(armarEstado(id, jugador));
             }
         }
+
+        // Movimiento continuo: si el jugador esta "moviendose", el servidor lo
+        // avanza una celda en su direccion cada N ticks hasta que llegue el stop.
+        // Incluye fantasmas, que se mueven como cualquier jugador (el enunciado
+        // no los excluye y colisionan igual).
+        if (jugador.estaMoviendose() &&
+            (jugador.estaVivo() || jugador.esFantasma()) &&
+            !jugador.estaInmovilizado() && !jugador.enMeditacion() &&
+            jugador.debeAvanzar(cfg.movimientoJugadorTicks)) {
+            if (intentarPaso(id, jugador, jugador.getDireccionMov())) {
+                mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
+            }
+        }
     }
 
     if (cfg.movimientoCriaturasTicks > 0 &&
@@ -695,7 +785,39 @@ std::list<EventoSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
     return mensajes;
 }
 
-// ─── Chat 
+// ─── Cheats de prueba
+std::list<EventoSalida> Juego::ejecutarCheat(uint16_t idCliente, const ComandoCheat& comando) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador) {
+        return {};
+    }
+
+    switch (static_cast<TipoCheat>(comando.tipo)) {
+        case TipoCheat::VidaInfinita:
+            jugador->alternarVidaInfinita();
+            return {armarEstado(idCliente, *jugador)};
+
+        case TipoCheat::ManaInfinito:
+            jugador->alternarManaInfinito();
+            return {armarEstado(idCliente, *jugador)};
+
+        case TipoCheat::MorirAuto: {
+            if (!jugador->estaVivo()) {
+                return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+            }
+            const Posicion posicionMuerte = jugador->getPosicion();
+            jugador->matar();
+            std::list<EventoSalida> mensajes = {armarEstado(idCliente, *jugador)};
+            mensajes.splice(mensajes.end(), emitirMuerteJugador(*jugador, posicionMuerte));
+            return mensajes;
+        }
+
+        default:
+            return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+}
+
+// ─── Chat
 std::list<EventoSalida> Juego::ejecutarChatGlobal(uint16_t idCliente,
                                                   const ComandoChatGlobal& comando) {
     Jugador* jugador = buscarJugador(idCliente);
@@ -1055,56 +1177,75 @@ std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::ejecutarMover(uint16_t idCliente, const ComandoMover& cmd) {
+std::list<EventoSalida> Juego::ejecutarEmpezarMover(uint16_t idCliente,
+                                                    const ComandoEmpezarMover& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma()) ||
         jugador->estaInmovilizado()) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    Posicion destino = jugador->getPosicion();
+    // Marca al jugador como "moviendose" y da el primer paso al instante para que
+    // el movimiento se sienta responsivo; los siguientes pasos los da el tick.
+    jugador->empezarMover(cmd.direccion);
 
-    switch (cmd.direccion) {
-        case 0:
+    if (intentarPaso(idCliente, *jugador, cmd.direccion)) {
+        return armarPosicionParaMapa(*jugador);
+    }
+
+    return {};
+}
+
+std::list<EventoSalida> Juego::ejecutarDetenerMover(uint16_t idCliente) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador) {
+        return {};
+    }
+
+    jugador->detenerMover();
+    return {};
+}
+
+bool Juego::intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion) {
+    Posicion destino = jugador.getPosicion();
+
+    switch (direccion) {
+        case 0:  // Norte
             if (destino.y == 0) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+                return false;
             }
             destino.y--;
             break;
-
-        case 1:
+        case 1:  // Sur
             destino.y++;
             break;
-
-        case 2:
+        case 2:  // Oeste
             if (destino.x == 0) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+                return false;
             }
             destino.x--;
             break;
-
-        case 3:
+        case 3:  // Este
             destino.x++;
             break;
-
         default:
-            return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+            return false;
     }
 
     // Colisión absoluta: una celda no puede ser compartida por dos entidades.
-    // Aplica tanto a jugadores vivos como a fantasmas — el enunciado no diferencia el modelo de colisión por estado del personaje.
+    // Aplica tanto a jugadores vivos como a fantasmas — el enunciado no diferencia
+    // el modelo de colisión por estado del personaje.
     if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayNpcEn(destino) ||
         mapa.hayCriaturaEn(destino)) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+        return false;
     }
 
     if (buscarIdJugadorEn(destino, idCliente).has_value()) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+        return false;
     }
 
-    jugador->mover_a(destino.x, destino.y);
-
-    return armarPosicionParaMapa(*jugador);
+    jugador.mover_a(destino.x, destino.y);
+    return true;
 }
 
 std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& cmd) {
@@ -1118,12 +1259,20 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
+    // Cooldown de ataque
+    if (!atacante->puedeAtacar()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
+    // El cooldown se consume sólo cuando hay una entidad real a la que golpear, para que el spam contra blancos inexistentes no quede limitado ni cause daño.
     if (buscarJugadorPorIdPersonaje(cmd.idObjetivo) != nullptr) {
+        atacante->registrarAtaque();
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
     }
 
     if (Criatura* criaturaObjetivo = mapa.obtenerCriaturaPor(cmd.idObjetivo)) {
+        atacante->registrarAtaque();
         return ejecutarAtaqueACriatura(idCliente, *atacante, *criaturaObjetivo);
     }
 

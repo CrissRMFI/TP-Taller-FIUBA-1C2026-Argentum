@@ -16,6 +16,9 @@ target_sources(taller_client
         client_manager.cpp
         client_receiver.cpp
         client_sender.cpp
+        config/lector_config_cliente.cpp
+        config/cargador_nombres_item.cpp
+        handlers/parser_comando_chat.cpp
         Qt/conectionController.cpp
         Qt/menuController.cpp   
         Qt/login/loginController.cpp
@@ -37,7 +40,11 @@ target_sources(taller_client
         Qt/elegirPersonaje/elegirPersonajeController.h
         Qt/cargarPersonaje/cargarPersonajeController.h
         handlers/client_input_handler.h
+        handlers/parser_comando_chat.h
         protocolo/protocolo_cliente.h
+        config/config_cliente.h
+        config/lector_config_cliente.h
+        config/cargador_nombres_item.h
     PUBLIC
         Qt/login/login.qml
         Qt/elegirPersonaje/elegirPersonaje.qml

@@ -17,12 +17,6 @@ const char* MensajesErrorPersistencia::mensaje(CodigoErrorPersistencia codigo) {
         case CodigoErrorPersistencia::BYTES_EXTRA:
             return "Bytes extra despues del ultimo registro";
 
-        case CodigoErrorPersistencia::MAGIC_INVALIDO:
-            return "Magic invalido: no es un .bin de mapa";
-
-        case CodigoErrorPersistencia::VERSION_INCOMPATIBLE:
-            return "Version de archivo no soportada por el lector";
-
         case CodigoErrorPersistencia::DIMENSIONES_INVALIDAS:
             return "Dimensiones de mapa invalidas";
 
@@ -32,8 +26,11 @@ const char* MensajesErrorPersistencia::mensaje(CodigoErrorPersistencia codigo) {
         case CodigoErrorPersistencia::NPC_DUPLICADO_O_INVALIDO:
             return "NPC duplicado o invalido";
 
-        case CodigoErrorPersistencia::CANTIDAD_EXCEDE_UINT32:
-            return "Cantidad de registros excede uint32";
+        case CodigoErrorPersistencia::TOML_MAL_FORMADO:
+            return "TOML mal formado: no se pudo parsear el archivo de mapa";
+
+        case CodigoErrorPersistencia::CLAVE_FALTANTE:
+            return "Falta una clave obligatoria o tiene tipo invalido";
 
         default:
             return "Error de persistencia desconocido";

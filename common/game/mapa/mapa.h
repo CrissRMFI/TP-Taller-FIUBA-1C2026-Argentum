@@ -60,6 +60,12 @@ public:
     bool agregarNpc(const Npc& npc);
     void agregarPared(const Posicion& posicion);
 
+    // Agregan una entrada de stock a TODOS los comerciantes / sacerdotes del
+    // mapa. El stock vive por tipo de NPC (todos venden lo mismo); el servidor
+    // las invoca al cargar el mapa con los datos de configuracion.
+    void agregarStockComerciantes(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta);
+    void agregarStockSacerdotes(uint16_t idItem, uint8_t precio);
+
     uint16_t getAncho() const { return ancho; }
     uint16_t getAlto() const  { return alto; }
     const std::vector<Posicion>& getParedes() const  { return paredes; }

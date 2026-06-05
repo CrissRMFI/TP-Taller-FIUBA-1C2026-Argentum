@@ -67,6 +67,18 @@ bool Mapa::agregarNpc(const Npc& npc) {
     }
 }
 
+void Mapa::agregarStockComerciantes(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta) {
+    for (auto& [id, comerciante] : comerciantes) {
+        comerciante.agregarItemCatalogo(idItem, precioCompra, precioVenta);
+    }
+}
+
+void Mapa::agregarStockSacerdotes(uint16_t idItem, uint8_t precio) {
+    for (auto& [id, sacerdote] : sacerdotes) {
+        sacerdote.agregarItemCatalogo(idItem, precio);
+    }
+}
+
 void Mapa::agregarPared(const Posicion& posicion) {
     if (!posicionValida(posicion)) {
         throw std::invalid_argument("La pared esta fuera de los limites del mapa");

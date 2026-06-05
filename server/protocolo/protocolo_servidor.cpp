@@ -51,8 +51,11 @@ ComandoJugador ProtocoloServidor::recibirComando() {
     auto const opcode_recibido = recibirUnByte();
     const auto opcode = Opcode(opcode_recibido);
     switch (opcode) {
-        case Opcode::MOVER:
-            return recibirComandoMover();
+        case Opcode::EMPEZAR_MOVER:
+            return recibirComandoEmpezarMover();
+
+        case Opcode::DETENER_MOVER:
+            return recibirComandoDetenerMover();
 
         case Opcode::ATACAR:
             return recibirComandoAtacar();
@@ -127,6 +130,9 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::DEJAR_CLAN:
             return recibirComandoDejarClan();
 
+        case Opcode::CHEAT:
+            return recibirComandoCheat();
+
 
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
@@ -173,14 +179,21 @@ void ProtocoloServidor::validarTipoClan(uint8_t tipo) const {
     }
 }
 
-ComandoJugador ProtocoloServidor::recibirComandoMover() {
+ComandoJugador ProtocoloServidor::recibirComandoEmpezarMover() {
     uint8_t direccion = recibirUnByte();
 
     validarDireccion(direccion);
 
     return ComandoJugador{
-            Opcode::MOVER,
-            ComandoMover{direccion},
+            Opcode::EMPEZAR_MOVER,
+            ComandoEmpezarMover{direccion},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoDetenerMover() {
+    return ComandoJugador{
+            Opcode::DETENER_MOVER,
+            ComandoDetenerMover{},
     };
 }
 
@@ -394,6 +407,15 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
     return ComandoJugador{
       Opcode::DEJAR_CLAN,
       ComandoDejarClan{},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoCheat() {
+    uint8_t tipo = recibirUnByte();
+
+    return ComandoJugador{
+      Opcode::CHEAT,
+      ComandoCheat{tipo},
     };
 }
 

@@ -1,111 +1,79 @@
 #include "escritor_mapa.h"
 
 #include <cstdio>
-#include <cstring>
 #include <fstream>
 #include <ios>
-#include <limits>
+#include <ostream>
 
 #include "error_persistencia.h"
 
-uint32_t EscritorMapa::saturarA32(std::size_t valor) {
-    if (valor > std::numeric_limits<uint32_t>::max()) {
-        throw ErrorPersistencia(CodigoErrorPersistencia::CANTIDAD_EXCEDE_UINT32, "");
+const char* EscritorMapa::tipoNpcATexto(TipoNpc tipo) {
+    switch (tipo) {
+        case TipoNpc::Banquero:    return "banquero";
+        case TipoNpc::Comerciante: return "comerciante";
+        case TipoNpc::Sacerdote:   return "sacerdote";
     }
-    return static_cast<uint32_t>(valor);
+    return "desconocido";
 }
 
-void EscritorMapa::escribirBloque(std::ofstream& archivo, const void* datos, std::size_t bytes, const std::string& path) {
-    
-    if (bytes == 0) {
-        return;
-    }
-
-    archivo.write(reinterpret_cast<const char*>(datos), static_cast<std::streamsize>(bytes));
-    
-    if (!archivo) {
-        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, path);
-    }
-}
-
-void EscritorMapa::agregarRegistroNpc(std::vector<NpcRecord>& destino, const Npc& npc) {
-    const Posicion pos = npc.getPosicion();
-    destino.push_back(NpcRecord{
-        npc.getId(),
-        static_cast<uint8_t>(npc.getTipo()),
-        /*_padding=*/0,
-        pos.x,
-        pos.y
-    });
+void EscritorMapa::escribirNpcs(std::ostream& out, const Mapa& mapa) {
+    const auto emitir = [this, &out](const auto& mapaNpcs) {
+        for (const auto& [id, npc] : mapaNpcs) {
+            const Posicion pos = npc.getPosicion();
+            out << "  { id = " << npc.getId()
+                << ", tipo = \"" << tipoNpcATexto(npc.getTipo()) << "\""
+                << ", x = " << pos.x
+                << ", y = " << pos.y << " },\n";
+        }
+    };
+    emitir(mapa.getSacerdotes());
+    emitir(mapa.getComerciantes());
+    emitir(mapa.getBanqueros());
 }
 
 void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path) {
-    const auto& paredes  = mapa.getParedes();
-    const auto& ciudades = mapa.getCiudades();
-
-    std::vector<NpcRecord> npcs;
-    npcs.reserve(mapa.getSacerdotes().size() + mapa.getComerciantes().size() + mapa.getBanqueros().size());
-
-    for (const auto& [id, npc] : mapa.getSacerdotes()) { 
-      agregarRegistroNpc(npcs, npc); 
-    }
-    
-    for (const auto& [id, npc] : mapa.getComerciantes()) { 
-      agregarRegistroNpc(npcs, npc); 
-    }
-    
-    for (const auto& [id, npc] : mapa.getBanqueros()) { 
-      agregarRegistroNpc(npcs, npc); 
-    }
-
-    const char magicEsperado[4] = {
-      'A', 'O', 'M', '1'
-    };
-
-    const uint16_t versionActual = 1;
-
-    HeaderMapa header{};
-    
-    std::memcpy(header.magic, magicEsperado, sizeof(header.magic));
-    header.version = versionActual;
-    header.mapaId = mapaId;
-    header.ancho = mapa.getAncho();
-    header.alto = mapa.getAlto();
-    header.cantParedes = saturarA32(paredes.size());
-    header.cantCiudades = saturarA32(ciudades.size());
-    header.cantNpcs = saturarA32(npcs.size());
-
-    // tmp + rename: si el proceso muere mientras se escribe, el .bin original
+    // tmp + rename: si el proceso muere mientras se escribe, el archivo previo
     // (si existia) queda intacto.
-    
     const std::string pathTmp = path + ".tmp";
 
     {
-        std::ofstream archivo(pathTmp, std::ios::binary | std::ios::trunc);
-        if (!archivo) {
+        std::ofstream out(pathTmp, std::ios::trunc);
+        if (!out) {
             throw ErrorPersistencia(
                     CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, pathTmp);
         }
 
-        escribirBloque(archivo, &header, sizeof(header), pathTmp);
-        escribirBloque(archivo, paredes.data(),
-                       paredes.size() * sizeof(ParedRecord), pathTmp);
+        out << "# config/mapa.toml - escenario de Argentum (paredes, "
+               "ciudades/zonas seguras y NPCs).\n"
+               "# Generado por el editor de mapas. Editable a mano.\n\n";
 
-        if (!ciudades.empty()) {
-            std::vector<CiudadRecord> ciudadesRec;
-            ciudadesRec.reserve(ciudades.size());
-            for (const Ciudad& c : ciudades) {
-                ciudadesRec.push_back(CiudadRecord{c.xMin, c.yMin, c.xMax, c.yMax});
-            }
-            escribirBloque(archivo, ciudadesRec.data(),
-                           ciudadesRec.size() * sizeof(CiudadRecord), pathTmp);
+        out << "mapa_id = " << mapaId << "\n";
+        out << "ancho   = " << mapa.getAncho() << "\n";
+        out << "alto    = " << mapa.getAlto() << "\n\n";
+
+        out << "# Celdas bloqueadas (no transitables).\n";
+        out << "paredes = [\n";
+        for (const Posicion& p : mapa.getParedes()) {
+            out << "  { x = " << p.x << ", y = " << p.y << " },\n";
         }
+        out << "]\n\n";
 
-        escribirBloque(archivo, npcs.data(),
-                       npcs.size() * sizeof(NpcRecord), pathTmp);
+        out << "# Ciudades / zonas seguras: rectangulos "
+               "[x_min..x_max] x [y_min..y_max].\n";
+        out << "ciudades = [\n";
+        for (const Ciudad& c : mapa.getCiudades()) {
+            out << "  { x_min = " << c.xMin << ", y_min = " << c.yMin
+                << ", x_max = " << c.xMax << ", y_max = " << c.yMax << " },\n";
+        }
+        out << "]\n\n";
 
-        archivo.flush();
-        if (!archivo) {
+        out << "# NPCs: tipo = \"banquero\" | \"comerciante\" | \"sacerdote\".\n";
+        out << "npcs = [\n";
+        escribirNpcs(out, mapa);
+        out << "]\n";
+
+        out.flush();
+        if (!out) {
             throw ErrorPersistencia(
                     CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, pathTmp);
         }

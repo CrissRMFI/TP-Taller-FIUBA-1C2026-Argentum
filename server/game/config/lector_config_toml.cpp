@@ -310,6 +310,39 @@ void LectorConfigToml::cargarSpawn(const toml::table& tbl, ConfigJuego& cfg) {
     }
 }
 
+void LectorConfigToml::cargarStockNpcs(const toml::table& tbl, ConfigJuego& cfg) {
+    const toml::array* itemsComerciante =
+            tbl["npcs"]["comerciante"]["items"].as_array();
+    if (itemsComerciante == nullptr) {
+        lanzarFaltaConfig("npcs.comerciante.items");
+    }
+    for (const toml::node& nodo : *itemsComerciante) {
+        const toml::table* item = nodo.as_table();
+        if (item == nullptr) {
+            throw std::runtime_error("npcs.comerciante.items: cada item debe ser una tabla");
+        }
+        cfg.stockComerciante.push_back(EntradaStockComerciante{
+                leerUint16EnTabla(*item, "id", "npcs.comerciante.items.id"),
+                leerUint8EnTabla(*item, "compra", "npcs.comerciante.items.compra", true),
+                leerUint8EnTabla(*item, "venta", "npcs.comerciante.items.venta", true)});
+    }
+
+    const toml::array* itemsSacerdote =
+            tbl["npcs"]["sacerdote"]["items"].as_array();
+    if (itemsSacerdote == nullptr) {
+        lanzarFaltaConfig("npcs.sacerdote.items");
+    }
+    for (const toml::node& nodo : *itemsSacerdote) {
+        const toml::table* item = nodo.as_table();
+        if (item == nullptr) {
+            throw std::runtime_error("npcs.sacerdote.items: cada item debe ser una tabla");
+        }
+        cfg.stockSacerdote.push_back(EntradaStockSacerdote{
+                leerUint16EnTabla(*item, "id", "npcs.sacerdote.items.id"),
+                leerUint8EnTabla(*item, "precio", "npcs.sacerdote.items.precio", true)});
+    }
+}
+
 ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     auto tbl = toml::parse_file(ruta);
 
@@ -346,6 +379,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.esquivarUmbral = leerFloatObligatorio(tbl, "combate", "esquivar_umbral");
     cfg.probabilidadCritico = leerFloatObligatorio(tbl, "combate", "probabilidad_critico");
+    cfg.cooldownAtaqueSeg = leerFloatObligatorio(tbl, "combate", "cooldown_ataque_seg");
 
     cfg.nivelNewbie = leerIntObligatorio(tbl, "fair_play", "nivel_newbie");
     cfg.maxDiffNivel = leerIntObligatorio(tbl, "fair_play", "max_diff_nivel");
@@ -361,12 +395,25 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
             leerFloatObligatorio(tbl, "experiencia", "exp_perdida_muerte_pct");
 
     cfg.tickMs = leerIntObligatorio(tbl, "servidor", "tick_ms");
+    cfg.movimientoJugadorTicks =
+            leerUint16Obligatorio(tbl, "servidor", "movimiento_jugador_ticks");
+
+    cfg.rutaJugadores = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "persistencia"), "archivo_jugadores",
+            rutaToml("persistencia", "archivo_jugadores"));
+    cfg.rutaIndiceJugadores = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "persistencia"), "archivo_indice",
+            rutaToml("persistencia", "archivo_indice"));
+    cfg.guardadoSeg = leerIntObligatorio(tbl, "persistencia", "guardado_seg");
 
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
+    cfg.mapaArchivo = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "mapa"), "archivo", rutaToml("mapa", "archivo"));
     cargarSpawn(tbl, cfg);
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
+    cargarStockNpcs(tbl, cfg);
     cfg.rangoVisionAtaque = leerUint16Obligatorio(tbl, "combate", "rango_vision_ataque");
 
     cfg.vidaInfinita = leerBoolObligatorio(tbl, "cheats", "vida_infinita");

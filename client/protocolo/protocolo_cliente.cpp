@@ -55,8 +55,12 @@ void ProtocoloCliente::validarCantidad(uint16_t cantidad) const {
 
 void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
     switch (comando.opcode) {
-        case Opcode::MOVER:
-            enviarComandoMover(std::get<ComandoMover>(comando.payload));
+        case Opcode::EMPEZAR_MOVER:
+            enviarComandoEmpezarMover(std::get<ComandoEmpezarMover>(comando.payload));
+            break;
+
+        case Opcode::DETENER_MOVER:
+            enviarComandoDetenerMover(std::get<ComandoDetenerMover>(comando.payload));
             break;
 
         case Opcode::ATACAR:
@@ -155,6 +159,10 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoDejarClan(std::get<ComandoDejarClan>(comando.payload));
             break;
 
+        case Opcode::CHEAT:
+            enviarComandoCheat(std::get<ComandoCheat>(comando.payload));
+            break;
+
         default:
             throw std::runtime_error(
                     MensajesErrorProtocolo::mensaje(
@@ -162,11 +170,15 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
     }
 }
 
-void ProtocoloCliente::enviarComandoMover(const ComandoMover& comando) {
+void ProtocoloCliente::enviarComandoEmpezarMover(const ComandoEmpezarMover& comando) {
     validarDireccion(comando.direccion);
 
-    enviarUnByte(static_cast<uint8_t>(Opcode::MOVER));
+    enviarUnByte(static_cast<uint8_t>(Opcode::EMPEZAR_MOVER));
     enviarUnByte(comando.direccion);
+}
+
+void ProtocoloCliente::enviarComandoDetenerMover(const ComandoDetenerMover&) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::DETENER_MOVER));
 }
 
 void ProtocoloCliente::enviarComandoAtacar(const ComandoAtacar& comando) {
@@ -291,6 +303,11 @@ void ProtocoloCliente::enviarComandoDejarClan(const ComandoDejarClan&) {
     enviarUnByte(static_cast<uint8_t>(Opcode::DEJAR_CLAN));
 }
 
+void ProtocoloCliente::enviarComandoCheat(const ComandoCheat& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::CHEAT));
+    enviarUnByte(comando.tipo);
+}
+
 
 //----------------------------------------------------------------
 
@@ -327,6 +344,12 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
 
         case Opcode::ITEM_DESAPARECIO_SUELO:
             return recibirItemDesaparecioSuelo();
+
+        case Opcode::ORO_EN_SUELO:
+            return recibirOroEnSuelo();
+
+        case Opcode::ORO_DESAPARECIO_SUELO:
+            return recibirOroDesaparecioSuelo();
 
         case Opcode::ACTUALIZAR_INVENTARIO:
             return recibirActualizarInventario();
@@ -468,6 +491,27 @@ MensajeServidor ProtocoloCliente::recibirItemDesaparecioSuelo() {
     return MensajeServidor{
             Opcode::ITEM_DESAPARECIO_SUELO,
             MensajeItemDesaparecioSuelo{x, y},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirOroEnSuelo() {
+    uint32_t cantidad = recibirCuatroBytes();
+    uint16_t x = recibirDosBytes();
+    uint16_t y = recibirDosBytes();
+
+    return MensajeServidor{
+            Opcode::ORO_EN_SUELO,
+            MensajeOroEnSuelo{cantidad, x, y},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirOroDesaparecioSuelo() {
+    uint16_t x = recibirDosBytes();
+    uint16_t y = recibirDosBytes();
+
+    return MensajeServidor{
+            Opcode::ORO_DESAPARECIO_SUELO,
+            MensajeOroDesaparecioSuelo{x, y},
     };
 }
 

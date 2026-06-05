@@ -1,8 +1,7 @@
-//
-// Created by victoria zubieta on 22/05/2026.
-//
-
 #include "server_.h"
+
+#include <iostream>
+#include <string>
 
 #include "common/thread/queue.h"
 #include "game/config/lector_config_toml.h"
@@ -10,6 +9,7 @@
 #include "server/aceptador/aceptador.h"
 #include "server/gameloop/comando_cliente.h"
 #include "server/gameloop/monitor_clientes.h"
+#include "common/persistencia/lector_mapa.h"
 
 
 Server::Server(const char* servname) : skt(servname) {}
@@ -19,14 +19,17 @@ void Server::run() {
     LectorConfigToml lector_config;
     ConfigCompleta config_completa = lector_config.cargar("config/game_config.toml");
 
-    Gameloop gameloop(monitor_clientes, (std::move(config_completa)));
+    LectorMapa lector_mapa;
+    MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo);
+
+    Gameloop gameloop(monitor_clientes, std::move(config_completa), std::move(mapaCargado.mapa));
     Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,
                         gameloop.getColaEventosSesion());
     aceptador.start();
     gameloop.start();
 
-    char c;
-    while (std::cin >> c && c != 'q') {}
+    std::string linea;
+    while (std::getline(std::cin, linea) && linea != "q") {}
     aceptador.stop();
     aceptador.join();
 

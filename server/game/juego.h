@@ -19,10 +19,13 @@
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
 #include "objeto/catalogo_items.h"
+#include "../persistencia/indice_jugadores.h"
+#include "../persistencia/lector_jugadores.h"
+#include "../persistencia/escritor_jugadores.h"
 
 class Juego {
   public:
-    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo);
+    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, Mapa&& mapa);
 
     // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
     std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo);
@@ -30,6 +33,11 @@ class Juego {
 
     std::list<EventoSalida> ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando);
     std::list<EventoSalida> actualizar(float deltaSegundos);
+
+    // Persiste a disco a los jugadores conectados (guardado periodico).
+    void persistirConectados();
+    // Persiste a todos (conectados y desconectados-en-RAM); se usa al apagar.
+    void persistirTodos();
 
   private:
     ConfigJuego   cfg;
@@ -43,6 +51,16 @@ class Juego {
     Mapa mapa;
     uint64_t ticksTranscurridos;
     Aleatorio aleatorio;
+
+    // Persistencia: indice nombre->offset en RAM + lector/escritor de los
+    // RegistroJugador en disco. El indice debe declararse antes que lector y
+    // escritor porque ambos lo referencian.
+    IndiceJugadores   indiceJugadores;
+    LectorJugadores   lectorJugadores;
+    EscritorJugadores escritorJugadores;
+
+    // Serializa y persiste un jugador a disco (swallow + log si falla).
+    void guardarJugador(const Jugador& jugador);
 
     // Búsqueda
     Jugador*    buscarJugador(uint16_t id);
@@ -83,7 +101,8 @@ class Juego {
     std::list<EventoSalida> ejecutarTomar(uint16_t idCliente);
     std::list<EventoSalida> ejecutarRevisarClan(uint16_t idCliente);
     std::list<EventoSalida> ejecutarDejarClan(uint16_t idCliente);
-    std::list<EventoSalida> ejecutarMover(uint16_t idCliente, const ComandoMover& comando);
+    std::list<EventoSalida> ejecutarEmpezarMover(uint16_t idCliente, const ComandoEmpezarMover& comando);
+    std::list<EventoSalida> ejecutarDetenerMover(uint16_t idCliente);
     std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
     std::list<EventoSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
@@ -100,6 +119,7 @@ class Juego {
     std::list<EventoSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
     std::list<EventoSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
     std::list<EventoSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
+    std::list<EventoSalida> ejecutarCheat(uint16_t idCliente, const ComandoCheat& comando);
 
     std::optional<uint16_t> buscarIdJugadorEn(
             const Posicion& posicion,
@@ -135,6 +155,10 @@ class Juego {
     Comerciante* obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador);
     Sacerdote*   obtenerSacerdoteParaInteraccion  (uint16_t idNpc, const Jugador& jugador);
     Banquero*    obtenerBanqueroParaInteraccion   (uint16_t idNpc, const Jugador& jugador);
+
+    // Avanza una celda al jugador en la direccion dada. Devuelve true si se movio
+    // (false si la celda destino esta bloqueada o fuera del mapa).
+    bool intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion);
     };
 
 #endif

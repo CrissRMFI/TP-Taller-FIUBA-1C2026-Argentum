@@ -59,8 +59,7 @@ target_sources(taller_common
     game/npc/banquero.h
     game/mapa/mapa.h
 
-    # Persistencia binaria de mapas
-    persistencia/formato_mapa.h
+    # Persistencia de mapas (escenario en TOML)
     persistencia/error_persistencia.h
     persistencia/escritor_mapa.h
     persistencia/lector_mapa.h

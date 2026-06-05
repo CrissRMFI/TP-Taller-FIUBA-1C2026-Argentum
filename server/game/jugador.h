@@ -112,6 +112,13 @@ public:
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
+    // Movimiento continuo server-driven: el cliente avisa empezar/detener y el
+    // servidor avanza una celda cada N ticks mientras el jugador siga moviendose.
+    void empezarMover(uint8_t direccion);
+    void detenerMover();
+    bool estaMoviendose() const;
+    uint8_t getDireccionMov() const;
+    bool debeAvanzar(uint16_t ticksPorCelda);
     void resucitar(uint16_t x, uint16_t y);
     void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
@@ -125,6 +132,11 @@ public:
     // Consume `cantidad` puntos de maná si hay suficiente; devuelve true en ese caso. Útil para que `Juego` cobre el costo de un hechizo de báculo antes de calcular daño.
     bool consumir_mana(uint16_t cantidad);
 
+    // Cooldown de ataque: `puedeAtacar` indica si ya transcurrió el tiempo de enfriamiento (cfg.cooldownAtaqueSeg) desde el último golpe. `registrarAtaque`
+    // reinicia ese contador cuando el jugador efectivamente ejecuta un ataque.
+    bool puedeAtacar() const;
+    void registrarAtaque();
+
     // Inventario
     bool puede_agregar_item(uint16_t idItem) const;
     bool agregar_item(uint16_t idItem);
@@ -137,6 +149,12 @@ public:
     uint16_t quitar_item_de_slot(uint8_t indice);
     void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
     std::vector<uint16_t> vaciar_inventario();
+
+    // Cheats de prueba. vida/mana infinitos son toggles; matar fuerza la muerte
+    // al instante ignorando la invulnerabilidad de cheat.
+    void alternarVidaInfinita();
+    void alternarManaInfinito();
+    void matar();
 
     // Clan
     void asignarClan(uint16_t idClan);
@@ -227,6 +245,16 @@ private:
     uint16_t cuerpo;
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
+    float tiempoDesdeUltimoAtaque;
+
+    // Flags de cheat (transitorios, no se persisten).
+    bool vidaInfinita;
+    bool manaInfinito;
+
+    // Estado de movimiento continuo (transitorio, no se persiste).
+    bool moviendose;
+    uint8_t direccionMov;
+    uint16_t ticksAcumuladosMov;
 
     void subirNivel();
     void morir();

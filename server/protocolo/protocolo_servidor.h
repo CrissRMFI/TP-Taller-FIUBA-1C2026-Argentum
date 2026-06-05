@@ -39,7 +39,8 @@ class ProtocoloServidor : public Protocolo {
 
     void validarDireccion(const uint8_t direccion) const;
 
-    ComandoJugador recibirComandoMover();
+    ComandoJugador recibirComandoEmpezarMover();
+    ComandoJugador recibirComandoDetenerMover();
     ComandoJugador recibirComandoAtacar();
     ComandoJugador recibirComandoMeditar();
     ComandoJugador recibirComandoResucitar();
@@ -64,6 +65,7 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoClanBan();
     ComandoJugador recibirComandoClanKick();
     ComandoJugador recibirComandoDejarClan();
+    ComandoJugador recibirComandoCheat();
 
 
 

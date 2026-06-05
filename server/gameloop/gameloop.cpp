@@ -16,10 +16,11 @@ static void cerrarColaSiCorresponde(Queue<T>& cola, std::atomic_bool& cerrada) {
     cola.close();
 }
 
-Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config)
+Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mapa&& mapa)
     : colaComandos(), colaEventosSesion(), monitor(monitor),
-      juego(config.juego, std::move(config.items)),
+      juego(config.juego, std::move(config.items), std::move(mapa)),
       tickMs(config.juego.tickMs),
+      guardadoSeg(config.juego.guardadoSeg),
       colaComandosCerrada(false),
       colaEventosSesionCerrada(false) {
     if (tickMs <= 0) {
@@ -35,6 +36,7 @@ void Gameloop::run() {
     const float deltaMaxSegundos = std::chrono::duration<float>(duracionTick).count() * 2.0f;
     auto instanteAnterior = Clock::now();
     auto siguienteTick = instanteAnterior + duracionTick;
+    float acumuladorGuardado = 0.0f;
 
     while (should_keep_running()) {
         auto ahora = Clock::now();
@@ -50,6 +52,15 @@ void Gameloop::run() {
         auto mensajes = juego.actualizar(deltaSegundos);
         despachar(mensajes);
 
+        // Guardado periodico de los conectados.
+        if (guardadoSeg > 0) {
+            acumuladorGuardado += deltaSegundos;
+            if (acumuladorGuardado >= static_cast<float>(guardadoSeg)) {
+                juego.persistirConectados();
+                acumuladorGuardado = 0.0f;
+            }
+        }
+
         std::this_thread::sleep_until(siguienteTick);
         siguienteTick += duracionTick;
 
@@ -57,6 +68,10 @@ void Gameloop::run() {
             siguienteTick = Clock::now() + duracionTick;
         }
     }
+
+    // Al apagarse, persistir a todos para no perder progreso (desconexion abrupta
+    // del servidor).
+    juego.persistirTodos();
 }
 
 void Gameloop::detener() {

@@ -61,7 +61,13 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         cabeza(cabeza),
         cuerpo(cuerpo),
         fundadoClan(false),
-        tiempoRestanteInmovilizado(0.0f) {
+        tiempoRestanteInmovilizado(0.0f),
+        tiempoDesdeUltimoAtaque(config.cooldownAtaqueSeg),
+        vidaInfinita(false),
+        manaInfinito(false),
+        moviendose(false),
+        direccionMov(0),
+        ticksAcumuladosMov(0) {
     const StatsRaza& sr = cfg.statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
@@ -88,6 +94,10 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     cabeza = datos.skinCabeza;
     cuerpo = datos.skinCuerpo;
 
+    moviendose = false;
+    direccionMov = 0;
+    ticksAcumuladosMov = 0;
+
     vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
     manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
 
@@ -107,7 +117,7 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
 }
 
 void Jugador::recibir_danio(uint16_t cantidad) {
-    if (cfg.invulnerable || !estaVivo()) {
+    if (cfg.invulnerable || vidaInfinita || !estaVivo()) {
         return;
     }
 
@@ -126,7 +136,7 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
                                                 float multiplicadorDefensa) {
     // Defensor muerto o flag debug invulnerable: el ataque no impacta pero tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no  confunda este caso con una evasión real.
 
-    if (!estaVivo() || cfg.invulnerable) {
+    if (!estaVivo() || cfg.invulnerable || vidaInfinita) {
         return { ResultadoDefensa::Tipo::Golpeado, 0 };
     }
 
@@ -187,6 +197,8 @@ void Jugador::recuperar_mana(uint16_t cantidad) {
 }
 
 void Jugador::recuperar(float segundos) {
+    tiempoDesdeUltimoAtaque += segundos;
+
     if (estaInmovilizado()) {
         tiempoRestanteInmovilizado -= segundos;
         if (tiempoRestanteInmovilizado < 0.0f) {
@@ -322,6 +334,37 @@ void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.y = y;
 }
 
+void Jugador::empezarMover(uint8_t direccion) {
+    moviendose = true;
+    direccionMov = direccion;
+    ticksAcumuladosMov = 0;
+}
+
+void Jugador::detenerMover() {
+    moviendose = false;
+    ticksAcumuladosMov = 0;
+}
+
+bool Jugador::estaMoviendose() const {
+    return moviendose;
+}
+
+uint8_t Jugador::getDireccionMov() const {
+    return direccionMov;
+}
+
+bool Jugador::debeAvanzar(uint16_t ticksPorCelda) {
+    if (ticksPorCelda == 0) {
+        ticksPorCelda = 1;
+    }
+    ticksAcumuladosMov++;
+    if (ticksAcumuladosMov >= ticksPorCelda) {
+        ticksAcumuladosMov = 0;
+        return true;
+    }
+    return false;
+}
+
 void Jugador::resucitar(uint16_t x, uint16_t y) {
     estado = Estado::Vivo;
     posicion.x = x;
@@ -335,10 +378,14 @@ void Jugador::inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segund
     posicionResurreccion.x = resucitarX;
     posicionResurreccion.y = resucitarY;
     estado = Estado::Resucitando;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 }
 
 void Jugador::meditar() {
     estado = Estado::Meditando;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 }
 
 void Jugador::cancelarMeditacion() {
@@ -740,6 +787,8 @@ void Jugador::subirNivel() {
 void Jugador::morir() {
     estado = Estado::Fantasma;
     vidaActual = 0;
+    moviendose = false;
+    ticksAcumuladosMov = 0;
 
     if (!es_newbie()) {
         uint32_t experienciaAPerder =
@@ -759,12 +808,48 @@ void Jugador::perder_experiencia(uint32_t cantidad) {
 }
 
 bool Jugador::consumir_mana(uint16_t cantidad) {
+    if (manaInfinito) {
+        return true;
+    }
+
     if (manaActual < cantidad) {
         return false;
     }
 
     manaActual -= cantidad;
     return true;
+}
+
+void Jugador::alternarVidaInfinita() {
+    vidaInfinita = !vidaInfinita;
+    // Al activar el cheat, llenamos la vida para que el efecto se note al toque.
+    if (vidaInfinita && estaVivo()) {
+        vidaActual = vidaMax;
+    }
+}
+
+void Jugador::alternarManaInfinito() {
+    manaInfinito = !manaInfinito;
+    if (manaInfinito) {
+        manaActual = manaMax;
+    }
+}
+
+void Jugador::matar() {
+    // El cheat de morir fuerza la muerte aunque haya vida infinita activa.
+    if (!estaVivo()) {
+        return;
+    }
+    vidaActual = 0;
+    morir();
+}
+
+bool Jugador::puedeAtacar() const {
+    return tiempoDesdeUltimoAtaque >= cfg.cooldownAtaqueSeg;
+}
+
+void Jugador::registrarAtaque() {
+    tiempoDesdeUltimoAtaque = 0.0f;
 }
 
 void Jugador::consumir_item(uint16_t idItem) {

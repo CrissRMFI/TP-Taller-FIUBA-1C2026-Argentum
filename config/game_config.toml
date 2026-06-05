@@ -7,8 +7,18 @@
 [servidor]
 #puerto          = 7666
 tick_ms          = 200        # Cada cuántos ms se actualiza el mundo
+movimiento_jugador_ticks = 1  # Cada cuántos ticks el jugador avanza una celda mientras se mueve
 #max_jugadores   = 300
-#guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
+
+# ------------------------------------------------------------
+[persistencia]
+# Persistencia de jugadores: dos archivos binarios. 'archivo_jugadores' guarda
+# los RegistroJugador (struct de tamaño fijo) y 'archivo_indice' el diccionario
+# nombre -> offset. El servidor carga el progreso al conectar y lo guarda al
+# desconectar, periodicamente y al apagarse.
+archivo_jugadores = "config/jugadores.bin"
+archivo_indice    = "config/jugadores_indice.bin"
+guardado_seg      = 60         # Cada cuántos segundos se persiste a los conectados (0 = desactivado)
 
 # ------------------------------------------------------------
 [vida]
@@ -93,6 +103,10 @@ oro_max_base = 100.0
 # Esquivar: rand(0,1)^agilidad < umbral
 esquivar_umbral = 0.001
 probabilidad_critico = 0.10
+
+# Tiempo minimo de enfriamiento (en segundos) entre dos ataques de un mismo
+# jugador. Limita el ritmo de golpe para evitar el spam de ataques.
+cooldown_ataque_seg = 1.0
 
 # Alcance máximo en celdas (distancia Manhattan) para armas a distancia
 # y hechizos de báculo (regla 5.3). El melee siempre es adyacencia.
@@ -268,8 +282,8 @@ danio_max_base = 4
 movimiento_ticks = 5
 
 # Cada cuántos ticks spawnea una criatura nueva
-spawn_ticks   = 50
-poblacion_max = 200          # Tope global de NPCs vivos
+spawn_ticks   = 100
+poblacion_max = 10           # Tope global de NPCs vivos
 
 # ------------------------------------------------------------
 [mapa]
@@ -277,6 +291,9 @@ poblacion_max = 200          # Tope global de NPCs vivos
 # El terreno/tiles reales podrán cargarse luego desde archivo binario.
 ancho = 100
 alto  = 100
+
+# Archivo TOML del que el servidor carga el escenario (paredes, ciudades/zonas seguras y NPCs) al arrancar. Lo genera el editor y es editable a mano.
+archivo = "config/mapa.toml"
 
 # Posicion ancla del spawn de jugadores. Al conectar, el servidor intenta
 # ubicar al jugador en esta celda; si ya esta ocupada, busca la celda libre
@@ -292,6 +309,45 @@ mapa_id = 0
 # Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
 # 1 significa celda adyacente.
 rango_interaccion = 1
+
+# Stock por TIPO de NPC: todos los comerciantes (y todos los sacerdotes)
+# venden lo mismo. El servidor lo aplica al cargar el mapa. Los id deben existir
+# en [items]. Para el comerciante, 'compra' es lo que paga el jugador al comprar
+# y 'venta' lo que recibe al vender (compra > venta para que no sea un exploit).
+[npcs.comerciante]
+items = [
+  { id = 1,  compra = 40,  venta = 15 },   # espada
+  { id = 2,  compra = 55,  venta = 20 },   # hacha
+  { id = 3,  compra = 70,  venta = 25 },   # martillo
+  { id = 4,  compra = 40,  venta = 15 },   # arco simple
+  { id = 5,  compra = 110, venta = 45 },   # arco compuesto
+  { id = 10, compra = 50,  venta = 18 },   # armadura de cuero
+  { id = 11, compra = 160, venta = 60 },   # armadura de placas
+  { id = 12, compra = 80,  venta = 30 },   # tunica azul
+  { id = 13, compra = 25,  venta = 9 },    # capucha
+  { id = 14, compra = 60,  venta = 22 },   # casco de hierro
+  { id = 15, compra = 120, venta = 45 },   # sombrero magico
+  { id = 16, compra = 25,  venta = 9 },    # escudo de tortuga
+  { id = 17, compra = 50,  venta = 18 },   # escudo de hierro
+  { id = 18, compra = 12,  venta = 4 },    # pocion de vida chica
+  { id = 19, compra = 30,  venta = 11 },   # pocion de vida grande
+  { id = 20, compra = 12,  venta = 4 },    # pocion de mana chica
+  { id = 21, compra = 30,  venta = 11 },   # pocion de mana grande
+]
+
+# El sacerdote vende baculos/varas (hechizos) y pociones. 'precio' es lo que
+# paga el jugador (el sacerdote no compra items).
+[npcs.sacerdote]
+items = [
+  { id = 6,  precio = 60 },    # vara de fresno
+  { id = 7,  precio = 90 },    # baculo nudoso
+  { id = 8,  precio = 180 },   # baculo engarzado
+  { id = 9,  precio = 120 },   # flauta elfica
+  { id = 18, precio = 12 },    # pocion de vida chica
+  { id = 19, precio = 30 },    # pocion de vida grande
+  { id = 20, precio = 12 },    # pocion de mana chica
+  { id = 21, precio = 30 },    # pocion de mana grande
+]
 
 # ------------------------------------------------------------
 [fair_play]

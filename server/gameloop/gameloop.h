@@ -20,6 +20,7 @@ private:
     MonitorClientes& monitor;
     Juego juego;
     int tickMs;
+    int guardadoSeg;  // intervalo de persistencia periodica en segundos (0 = off)
     std::atomic_bool colaComandosCerrada;
     std::atomic_bool colaEventosSesionCerrada;
 
@@ -29,7 +30,7 @@ private:
     void despachar(const std::list<EventoSalida>& eventos);
 
 public:
-    Gameloop(MonitorClientes& monitor, ConfigCompleta config);
+    Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mapa&& mapa);
 
     void run() override;
     void detener();
