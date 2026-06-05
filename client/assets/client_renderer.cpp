@@ -162,8 +162,12 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int sacerdote_x = sacerdote.getPosicion().x * window_width / mapa.getAncho();
         const int sacerdote_y = sacerdote.getPosicion().y * window_height / mapa.getAlto();
 
-        renderer->SetDrawColor(255, 255, 255, 255); // color de sacerdotes es blanco
-        renderer->FillRect(SDL2pp::Rect(sacerdote_x, sacerdote_y, cell_width, cell_height));
+        if (!npc_renderer) {
+            continue;
+        }
+
+        npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width,
+                             cell_height, 0, 0);
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
@@ -172,8 +176,12 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int banquero_x = banquero.getPosicion().x * window_width / mapa.getAncho();
         const int banquero_y = banquero.getPosicion().y * window_height / mapa.getAlto();
 
-        renderer->SetDrawColor(128, 128, 128, 255); // color de banqueros es gris
-        renderer->FillRect(SDL2pp::Rect(banquero_x, banquero_y, cell_width, cell_height));
+        if (!npc_renderer) {
+            continue;
+        }
+
+        npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width,
+                             cell_height, 0, 0);
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
@@ -182,8 +190,11 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int comerciante_x = comerciante.getPosicion().x * window_width / mapa.getAncho();
         const int comerciante_y = comerciante.getPosicion().y * window_height / mapa.getAlto();
 
-        renderer->SetDrawColor(128, 0, 128, 255); // color de comerciantes es violeta
-        renderer->FillRect(SDL2pp::Rect(comerciante_x, comerciante_y, cell_width, cell_height));
+        if (!npc_renderer) {
+            continue;
+        }
+        npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width,
+                             cell_height, 0, 0);
     } 
 
     for (const auto& [id, entity] : state_object.entities()) {
@@ -210,14 +221,6 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
             }
             criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
                                       cell_height, 0, 0);
-            continue;
-        }
-        if (entity.tipo == 2) {
-            if (!npc_renderer) {
-                continue;
-            }
-            npc_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                 cell_height, 0, 0);
             continue;
         }
 

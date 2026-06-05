@@ -7,6 +7,7 @@
 
 #include "SDL2pp/Renderer.hh"
 #include "client/entidad_renderizable.h"
+#include "common/game/npc/npc.h"
 #include "npc_sprite_resolver.h"
 
 class NPCRenderer {
@@ -16,7 +17,7 @@ private:
 public:
     explicit NPCRenderer(NpcSpriteResolver& resolver);
 
-    void render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity, int entity_x,
+    void render(SDL2pp::Renderer& renderer,const Npc& npc, int entity_x,
                 int entity_y, int cell_width, int cell_height, int animation_row,
                 int frame_index) const;
 };

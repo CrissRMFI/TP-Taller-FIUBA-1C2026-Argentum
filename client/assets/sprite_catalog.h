@@ -64,6 +64,8 @@ struct StaticSpriteDefinition {
 struct NpcSpriteDefinition {
     std::optional<std::string> head_path;
     std::optional<std::string> body_path;
+    SpriteRect src_head;
+    SpriteRect src;
     SpriteVec2 size;
     SpriteVec2 offset;
 };

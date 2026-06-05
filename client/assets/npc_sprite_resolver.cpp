@@ -43,6 +43,8 @@ ResolvedNpcSprite NpcSpriteResolver::resolve(const EntidadRenderizable& entidad)
             .head = head,
             .body = body,
             .size = npc_def.size,
+            .src_head = npc_def.src_head,
+            .src = npc_def.src,
             .offset = npc_def.offset,
     };
 }

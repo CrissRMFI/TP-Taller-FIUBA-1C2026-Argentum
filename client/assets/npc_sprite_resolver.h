@@ -21,6 +21,8 @@ struct ResolvedNpcSprite {
     std::optional<ResolvedNpcPart> head;
     std::optional<ResolvedNpcPart> body;
     SpriteVec2 size;
+    SpriteRect src_head;
+    SpriteRect src;
     SpriteVec2 offset;
 };
 

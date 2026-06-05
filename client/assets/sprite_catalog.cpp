@@ -380,6 +380,8 @@ std::unordered_map<std::string, NpcSpriteDefinition> parse_npcs(const toml::tabl
             }
             npc.size = optional_vec2_or_default(*item, "size", SpriteVec2{17, 40},
                                                 join_path(path_prefix, "size"));
+            npc.src_head = require_rect4(*item, "src", join_path(path_prefix, "src")),
+            npc.src = require_rect4(*item, "src", join_path(path_prefix, "src")),
             npc.offset = optional_vec2_or_default(*item, "offset", SpriteVec2{0, 0},
                                                   join_path(path_prefix, "offset"));
             if (!npc.head_path.has_value() && !npc.body_path.has_value()) {

@@ -373,16 +373,20 @@ offset = [0, 0]
 # Catalogo de NPCs
 [npcs.comerciante]
 body_path = "imgs/npc/comerciantes/4071.png"
-size = [17, 40]
+size = [19, 44]
+src = [5, 1, 19, 44]
 offset = [0, 0]
 
 [npcs.sacerdote]
 head_path = "imgs/npc/sacerdotes/2000.png"
 body_path = "imgs/npc/sacerdotes/1243.png"
-size = [17, 40]
+src_head = [5, 0, 11, 14]
+size = [18, 40]
+src = [5, 1, 18, 40]
 offset = [0, 0]
 
 [npcs.banquero]
 body_path = "imgs/npc/banqueros/4057.png"
-size = [17, 40]
+size = [17, 44]
+src = [5, 1, 17, 44]
 offset = [0, 0]
