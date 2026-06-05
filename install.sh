@@ -64,11 +64,12 @@ install_deps() {
 build() {
     log "Configurando y compilando (Release)..."
     
+   
     cmake -S "${PROJECT_ROOT}" -B "${BUILD_DIR}" \
         -DCMAKE_BUILD_TYPE=Release \
         -DTALLER_MAKE_WARNINGS_AS_ERRORS=OFF \
         -DARGENTUM_CONFIG_DIR="${CONFIG_DIR}" \
-        -DCLIENT_ASSETS_DIR="${DATA_DIR}/assets"
+        -DCLIENT_ASSETS_DIR="${DATA_DIR}/resources"
     cmake --build "${BUILD_DIR}" \
         --target taller_server taller_client taller_editor taller_tests \
         -j"$(nproc)"

@@ -4,6 +4,7 @@
 
 #include "client__.h"
 
+#include <iostream>
 #include <utility>
 
 #include "client_game_loop.h"
@@ -32,11 +33,19 @@ void Client::run() {
     LectorConfigCliente lector_config;
     const ConfigCliente config = lector_config.cargar(CLIENT_CONFIG_PATH);
 
+    // El game loop se envuelve en try/catch para garantizar que, pase lo que
+    // pase (incluida una excepcion del renderer), los hilos del manager se
+    // detengan y se joineen. Si no, al destruirse el manager con su hilo aun
+    // vivo, std::thread::~thread() llama a std::terminate() y aborta el proceso.
     ClientGameLoop game_loop(server_message_queue, business, id, config);
-    game_loop.init("Argentum - Parte I",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    config.ancho, config.alto, config.fullscreen);
+    try {
+        game_loop.init("Argentum - Parte I",
+                       SDL_WINDOWPOS_CENTERED,
+                       SDL_WINDOWPOS_CENTERED,
+                       config.ancho, config.alto, config.fullscreen);
+    } catch (const std::exception& e) {
+        std::cerr << "[cliente] error en el game loop: " << e.what() << std::endl;
+    }
 
     manager.stop();
     manager.join();
