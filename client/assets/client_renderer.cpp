@@ -114,6 +114,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
 
     if (background_texture) {
         renderer->Clear();
+        // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
+        SDL_SetTextureColorMod(background_texture->Get(), 185, 185, 185);
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
                        SDL2pp::Rect(0, 0, window_width, window_height));
     } else {
