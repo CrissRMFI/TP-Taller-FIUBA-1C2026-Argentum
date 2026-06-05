@@ -7,9 +7,14 @@
 #include <SDL.h>
 
 #include "config/cargador_nombres_item.h"
+#include "audio/gestor_audio.h"
 
 #ifndef CLIENT_GAME_CONFIG_PATH
 #define CLIENT_GAME_CONFIG_PATH "config/game_config.toml"
+#endif
+
+#ifndef CLIENT_ASSETS_DIR
+#define CLIENT_ASSETS_DIR "client/assets"
 #endif
 
 ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
@@ -34,6 +39,12 @@ void ClientGameLoop::init(const char* title,
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync);
     handler.set_window_dimensions(width, height);
     handler.setIdCliente(object_state.client_id());
+
+    // creo el audio necesito SDL ya inicializado
+    const std::string resourcesRoot = std::string(CLIENT_ASSETS_DIR) + "/../resources";
+    gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
+                                                resourcesRoot);
+    gestorAudio->reproducirMusica("campo");
 
     const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
 
@@ -88,7 +99,7 @@ void ClientGameLoop::despacharComando(const ComandoJugador& command, const uint3
 
 void ClientGameLoop::update() {
     const uint32_t current_tick = SDL_GetTicks();
-    object_state.upload_server_msg(server_messages, current_tick);
+    object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
     object_renderer.update_animation(current_tick, object_state, object_animation);
 }
 

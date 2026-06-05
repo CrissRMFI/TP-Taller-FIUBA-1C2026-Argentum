@@ -11,6 +11,8 @@
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
 
+class GestorAudio;
+
 
 class ObjectGameWorld {
 private:
@@ -21,9 +23,16 @@ private:
     bool isMoving;
     uint32_t lastMotionTick;
 
+    uint8_t nivelAnterior;
+    uint8_t estadoAnterior;
+    bool vidaBajaAvisada;
+
+    int distanciaAlJugador(int x, int y) const;
+
 public:
     explicit ObjectGameWorld(uint16_t client_id);
-    void upload_server_msg(Queue<MensajeServidor>& server_msgs, uint32_t current_tick);
+    void upload_server_msg(Queue<MensajeServidor>& server_msgs, uint32_t current_tick,
+                           GestorAudio& gestorAudio);
     void notify_move_requested(uint32_t current_tick);
 
     const std::unordered_map<uint16_t, EntidadRenderizable>& entities() const;
@@ -35,4 +44,5 @@ public:
 };
 
 
-#endif  // TALLER_TP_CLIENT_GAME_WORLD_H
+#endif
+
