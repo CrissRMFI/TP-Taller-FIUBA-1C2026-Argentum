@@ -27,18 +27,22 @@ struct SkinPreset {
 };
 
 struct SpriteSheetDirection {
-    SpriteRect src;
+    int column;
+   SpriteRect src;
 };
 
 struct SpriteSheetAnimationRow {
     int y;
     int frames;
     int step_x;
+    int row;
 };
 
 struct CharacterPartDefinition {
     uint16_t id;
     std::string path;
+    SpriteRect scr_head;
+    SpriteRect scr_body;
     std::optional<SpriteVec2> frame_size;
     SpriteVec2 visible_size;
     SpriteVec2 visible_offset;

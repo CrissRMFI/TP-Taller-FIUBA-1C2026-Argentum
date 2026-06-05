@@ -19,311 +19,398 @@ body_ids = [2130]
 # Catalogo de partes de personaje por id de protocolo
 [character_parts.heads.2000]
 path = "imgs/personajes/cabezas/2000.png"
-visible_size = [11, 12]
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+visible_size = [11, 14]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2000.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2000.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2000.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2000.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2001]
 path = "imgs/personajes/cabezas/2001.png"
-visible_size = [11, 12]
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+visible_size = [11, 14]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2001.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2001.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2001.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2001.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2002]
 path = "imgs/personajes/cabezas/2002.png"
-visible_size = [11, 12]
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+visible_size = [11, 14]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2002.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2002.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2002.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2002.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2010]
 path = "imgs/personajes/cabezas/2010.png"
-visible_size = [11, 12]
+src_head = [1,1, 15, 15]
+frame_size = [19, 15]
+visible_size = [15, 15]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2010.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2010.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2010.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2010.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2011]
 path = "imgs/personajes/cabezas/2011.png"
-visible_size = [11, 12]
+src_head = [3,1, 15, 15]
+frame_size = [19, 15]
+visible_size = [15, 15]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2011.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2011.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2011.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2011.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2012]
 path = "imgs/personajes/cabezas/2012.png"
-visible_size = [11, 12]
+src_head = [1,1, 15, 15]
+frame_size = [19, 15]
+visible_size = [15, 15]
 visible_offset = [3, 5]
 draw_offset = [0,0]
 
 [character_parts.heads.2012.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2012.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2012.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2012.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2020]
 path = "imgs/personajes/cabezas/2020.png"
-visible_size = [11, 12]
+src_head = [2,3, 13, 17]
+frame_size = [19,17]
+visible_size = [13, 17]
 visible_offset = [3, 5]
-draw_offset = [0, 8]
+draw_offset = [0,8]
 
 [character_parts.heads.2020.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2020.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2020.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2020.directions.up]
+col= 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2021]
 path = "imgs/personajes/cabezas/2021.png"
-visible_size = [11, 12]
+src_head = [4,3, 9, 14]
+frame_size = [15,14]
+visible_size = [9, 14]
 visible_offset = [3, 5]
 draw_offset = [0,8]
 
 [character_parts.heads.2021.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2021.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2021.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2021.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2022]
 path = "imgs/personajes/cabezas/2022.png"
-visible_size = [11, 12]
+src_head = [4,3, 9, 13]
+frame_size = [15, 13]
+visible_size = [9, 13]
 visible_offset = [3, 5]
 draw_offset = [0,8]
 
 [character_parts.heads.2022.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2022.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2022.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2022.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.heads.2030]
 path = "imgs/personajes/cabezas/2030.png"
+src_head = [3,3, 11, 12]
+frame_size  = [17, 12]
 visible_size = [11, 12]
 visible_offset = [3, 5]
-draw_offset = [0,8]
+draw_offset = [0,0]
 
 [character_parts.heads.2030.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2030.directions.left]
-src = [32, 0, 32, 32]
+col = 2
+src = [3, 0, 32, 32]
 
 [character_parts.heads.2030.directions.right]
-src = [64, 0, 32, 32]
+col = 1
+src = [6, 0, 32, 32]
 
 [character_parts.heads.2030.directions.up]
-src = [96, 0, 32, 32]
+col = 3
+src = [9, 0, 32, 32]
 
 [character_parts.heads.2031]
 path = "imgs/personajes/cabezas/2031.png"
+src_head = [3,3, 11, 12]
+frame_size = [17,12]
 visible_size = [11, 12]
 visible_offset = [3, 5]
-draw_offset = [0,8]
+draw_offset = [0,0]
 
 [character_parts.heads.2031.directions.down]
+col = 0
 src = [0, 0, 32, 32]
 
 [character_parts.heads.2031.directions.left]
+col = 2
 src = [32, 0, 32, 32]
 
 [character_parts.heads.2031.directions.right]
+col = 1
 src = [64, 0, 32, 32]
 
 [character_parts.heads.2031.directions.up]
+col = 3
 src = [96, 0, 32, 32]
 
 [character_parts.bodies.2100]
 path = "imgs/personajes/cuerpos/2100.png"
-frame_size = [32, 64]
-visible_size = [17, 40]
-visible_offset = [3, 5]
+src_body = [4, 6,17, 37]
+frame_size = [25, 45]
+visible_size = [17, 37]
+visible_offset = [0,1]
 
 [character_parts.bodies.2100.rows.down]
-y = 0
-frames = 6
-step_x = 32
+row = 0
+y = 6
+frames = 4
+step_x = 4
 
 [character_parts.bodies.2100.rows.left]
-y = 64
-frames = 6
-step_x = 32
+row = 2
+y = 6
+frames = 4
+step_x = 4
 
 [character_parts.bodies.2100.rows.right]
-y = 128
-frames = 6
-step_x = 32
+row = 3
+y = 6
+frames = 4
+step_x = 4
 
 [character_parts.bodies.2100.rows.up]
-y = 192
-frames = 6
-step_x = 32
+row = 1
+y = 6
+frames = 4
+step_x = 4
 
 [character_parts.bodies.2110]
 path = "imgs/personajes/cuerpos/2110.png"
-frame_size = [32, 64]
+src_body = [4, 6, 17, 37]
+frame_size = [25, 45]
 visible_size = [17, 40]
-visible_offset = [3, 3]
+visible_offset = [0, 1]
 
 [character_parts.bodies.2110.rows.down]
-y = 0
-frames = 6
-step_x = 32
+y = 6
+frames = 4
+step_x = 4
+row = 0
 
 [character_parts.bodies.2110.rows.left]
-y = 64
-frames = 6
-step_x = 32
+y = 6
+frames = 4
+step_x = 4
+row = 2
 
 [character_parts.bodies.2110.rows.right]
-y = 128
-frames = 6
-step_x = 32
+y = 6
+frames = 4
+step_x = 4
+row = 3
 
 [character_parts.bodies.2110.rows.up]
-y = 192
-frames = 6
-step_x = 32
+y = 6
+frames = 4
+step_x = 4
+row = 1
 
 [character_parts.bodies.2120]
 path = "imgs/personajes/cuerpos/2120.png"
-frame_size = [32, 64]
+src_body = [4,15,17,28]
+frame_size = [25, 43]
 visible_size = [17, 40]
-visible_offset = [3, 3]
+visible_offset = [0, 1]
 
 [character_parts.bodies.2120.rows.down]
-y = 0
-frames = 6
-step_x = 32
+y = 15
+frames = 4
+step_x = 4
+row = 0
 
 [character_parts.bodies.2120.rows.left]
-y = 64
-frames = 6
-step_x = 32
+y = 15
+frames = 4
+step_x = 4
+row = 2
 
 [character_parts.bodies.2120.rows.right]
-y = 128
-frames = 6
-step_x = 32
+y = 15
+frames = 4
+step_x = 4
+row = 3
 
 [character_parts.bodies.2120.rows.up]
-y = 192
-frames = 6
-step_x = 32
+y = 15
+frames = 4
+step_x = 4
+row = 1
 
 [character_parts.bodies.2130]
 path = "imgs/personajes/cuerpos/2130.png"
-frame_size = [32, 64]
+src_body = [5, 16, 17, 28]
+frame_size = [25, 44]
 visible_size = [17, 40]
-visible_offset = [3, 5]
+visible_offset = [0,1]
 
 [character_parts.bodies.2130.rows.down]
-y = 0
-frames = 6
-step_x = 32
+y = 17
+frames = 4
+step_x = 5
+row = 0
 
 [character_parts.bodies.2130.rows.left]
-y = 64
-frames = 6
-step_x = 32
+y = 17
+frames = 4
+step_x = 5
+row = 2
 
 [character_parts.bodies.2130.rows.right]
-y = 128
-frames = 6
-step_x = 32
+y = 17
+frames = 4
+step_x = 5
+row = 3
 
 [character_parts.bodies.2130.rows.up]
-y = 192
-frames = 6
-step_x = 32
+y = 17
+frames = 4
+step_x = 5
+row = 1
 
 
 # Overrides por estado
 [states.fantasma]
 body_path = "imgs/fantasma.png"
-size = [17, 40]
+size = [25, 45]
+src = [6, 10, 25,45]
 
 
 # Catalogo de criaturas
@@ -380,7 +467,7 @@ offset = [0, 0]
 [npcs.sacerdote]
 head_path = "imgs/npc/sacerdotes/2000.png"
 body_path = "imgs/npc/sacerdotes/1243.png"
-src_head = [5, 0, 11, 14]
+src_head = [3,1, 11, 14]
 size = [18, 40]
 src = [5, 1, 18, 40]
 offset = [0, 0]

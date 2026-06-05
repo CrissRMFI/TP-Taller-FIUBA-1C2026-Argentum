@@ -3,11 +3,8 @@
 #include "SDL_render.h"
 
 namespace {
-
-constexpr int FRONT_ROW = 0;
-constexpr int FRONT_FRAME = 0;
 constexpr float CHARACTER_SCALE = 1.0f;
-constexpr  int OFF_POSITION = 5;
+//constexpr int OFF_POSITION = 5;
 
 SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
@@ -17,29 +14,47 @@ SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int anim
                              int frame_index) {
     const auto& row = definition.rows.at(animation_row);
     if (!row.has_value()) {
-        return {definition.visible_offset.x, definition.visible_offset.y,
-                definition.visible_size.x, definition.visible_size.y};
+        return definition.scr_body;
     }
 
     const int clamped_frame = row->frames > 0 ? frame_index % row->frames : 0;
+    if (!definition.frame_size.has_value()) {
+        return {
+                clamped_frame * row->step_x + definition.scr_body.x,
+                row->y + definition.scr_body.y,
+                definition.scr_body.width,
+                definition.scr_body.height};
+    }
+
+    const int frame_w = definition.frame_size->x;
+    const int frame_h = definition.frame_size->y;
     return {
-            clamped_frame * row->step_x + definition.visible_offset.x,
-            row->y + definition.visible_offset.y,
-            definition.visible_size.x,
-            definition.visible_size.y};
+            clamped_frame * frame_w + row->step_x,
+            row->row * frame_h + row->y,
+            definition.scr_body.width,
+            definition.scr_body.height};
 }
 
 SpriteRect head_src_rect_for(const CharacterPartDefinition& definition, int animation_row) {
     const auto& direction = definition.directions.at(animation_row);
     if (!direction.has_value()) {
-        return {definition.visible_offset.x, definition.visible_offset.y,
-                definition.visible_size.x, definition.visible_size.y};
+        return definition.scr_head;
     }
+
+    if (!definition.frame_size.has_value()) {
+        return {
+                direction->src.x + definition.scr_head.x,
+                direction->src.y + definition.scr_head.y,
+                definition.scr_head.width,
+                definition.scr_head.height};
+    }
+
+    const int frame_width = definition.frame_size->x;
     return {
-            direction->src.x + definition.visible_offset.x,
-            direction->src.y + definition.visible_offset.y,
-            definition.visible_size.x,
-            definition.visible_size.y};
+            direction->column * frame_width + definition.scr_head.x,
+            definition.scr_head.y,
+            definition.scr_head.width,
+            definition.scr_head.height};
 }
 
 }  // namespace
@@ -52,9 +67,10 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
                                const int entity_y,
                                const int cell_width,
                                const int cell_height,
-                               const int /*animation_row*/,
-                               const int /*frame_index*/) const {
+                               const int animation_row,
+                               const int frame_index) const {
     const auto resolved = resolver_.resolveSprite(entity);
+    const int effective_frame_index = (entity.estado == 1) ? 0 : frame_index;
     int body_x = entity_x;
     int body_y = entity_y;
     int body_width = cell_width;
@@ -64,7 +80,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
 
     if (resolved.body.has_value()) {
         const SpriteRect body_src =
-                body_src_rect_for(*resolved.body->definition, FRONT_ROW, FRONT_FRAME);
+                body_src_rect_for(*resolved.body->definition, animation_row,
+                                  effective_frame_index);
 
         body_width = static_cast<int>(body_src.width * CHARACTER_SCALE);
         body_height = static_cast<int>(body_src.height * CHARACTER_SCALE);
@@ -72,23 +89,24 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         body_x = anchor_x - body_width / 2 + resolved.body->definition->draw_offset.x;
         body_y = anchor_y - body_height + resolved.body->definition->draw_offset.y;
         SDL_SetTextureBlendMode(resolved.body->texture->Get(), SDL_BLENDMODE_BLEND);
-        SDL_SetTextureAlphaMod(resolved.body->texture->Get(), entity.estado == 1 ? 128 : 255);
+        const uint8_t alpha =
+                (entity.estado == 1 || entity.estado == 2 || entity.estado == 3) ? 128 : 255;
+        SDL_SetTextureAlphaMod(resolved.body->texture->Get(), alpha);
         renderer.Copy(*resolved.body->texture, to_sdl_rect(body_src),
                       SDL2pp::Rect(body_x, body_y, body_width, body_height));
         SDL_SetTextureAlphaMod(resolved.body->texture->Get(), 255);
     }
     if (resolved.head.has_value()) {
         const SpriteRect head_src =
-                head_src_rect_for(*resolved.head->definition, FRONT_ROW);
+                head_src_rect_for(*resolved.head->definition, animation_row);
 
-        const int head_width =
-                static_cast<int>(resolved.head->definition->visible_size.x * CHARACTER_SCALE);
-        const int head_height =
-                static_cast<int>(resolved.head->definition->visible_size.y * CHARACTER_SCALE);
+        const int head_width = static_cast<int>(head_src.width * CHARACTER_SCALE);
+        const int head_height = static_cast<int>(head_src.height * CHARACTER_SCALE);
 
-        const int head_x =  body_x + (body_width - head_width)/ 2;
+        const int head_x = body_x + (body_width - head_width) / 2;
 
-        const int head_y = body_y - head_height + OFF_POSITION  + resolved.head->definition->draw_offset.y;
+        const int head_y =
+                body_y - head_height + resolved.head->definition->draw_offset.y;
 
         renderer.Copy(*resolved.head->texture, to_sdl_rect(head_src),
                       SDL2pp::Rect(head_x, head_y, head_width, head_height));

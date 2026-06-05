@@ -41,10 +41,10 @@ int row_index_for_key(const std::string& key) {
 const toml::table& require_subtable(const toml::table& table, const std::string& key,
                                     const std::string& path) {
     const toml::table* child = table[key].as_table();
-    if (!child) {
-        throw_missing(path);
+    if (!child || !child->is_table()) {
+        throw_missing("Se esperaba tabla en: " + path);
     }
-    return *child;
+    return *child->as_table();
 }
 
 std::string require_string(const toml::table& table, const std::string& key,
@@ -62,6 +62,18 @@ int require_int(const toml::table& table, const std::string& key, const std::str
         throw_missing(path);
     }
     return static_cast<int>(*value);
+}
+
+int require_int_any_key(const toml::table& table,
+                        const std::initializer_list<std::string>& keys,
+                        const std::string& path) {
+    for (const std::string& key : keys) {
+        auto value = table[key].value<int64_t>();
+        if (value.has_value()) {
+            return static_cast<int>(*value);
+        }
+    }
+    throw_missing(path);
 }
 
 uint16_t require_uint16_from_key(const toml::key& key, const std::string& path) {
@@ -185,7 +197,9 @@ CharacterPartDefinition parse_head_part(const toml::key& key, const toml::table&
     CharacterPartDefinition part{
             .id = require_uint16_from_key(key, path_prefix),
             .path = require_string(item, "path", join_path(path_prefix, "path")),
-            .frame_size = std::nullopt,
+            .scr_head = require_rect4(item, "src_head", join_path(path_prefix, "src_head")),
+            .scr_body = SpriteRect{0, 0, 0, 0},
+            .frame_size = require_vec2(item, "frame_size", join_path(path_prefix, "frame_size")),
             .visible_size = require_vec2(item, "visible_size",
                                          join_path(path_prefix, "visible_size")),
             .visible_offset = require_vec2(item, "visible_offset",
@@ -207,8 +221,10 @@ CharacterPartDefinition parse_head_part(const toml::key& key, const toml::table&
             throw_invalid(direction_path, "se esperaba una tabla");
         }
         part.directions[row_index_for_key(direction_name)] =
-                SpriteSheetDirection{.src = require_rect4(*direction_table, "src",
-                                                         join_path(direction_path, "src"))};
+                SpriteSheetDirection{
+                    .column = require_int_any_key(*direction_table, {"column", "col"},
+                                      join_path(direction_path, "column|col")),
+                    .src = require_rect4(*direction_table, "src", join_path(direction_path, "src"))};
     }
 
     validate_directions(part, path_prefix);
@@ -220,6 +236,8 @@ CharacterPartDefinition parse_body_part(const toml::key& key, const toml::table&
     CharacterPartDefinition part{
             .id = require_uint16_from_key(key, path_prefix),
             .path = require_string(item, "path", join_path(path_prefix, "path")),
+            .scr_head = SpriteRect{0, 0, 0, 0},
+            .scr_body = require_rect4(item, "src_body", join_path(path_prefix, "src_body")),
             .frame_size = require_vec2(item, "frame_size", join_path(path_prefix, "frame_size")),
             .visible_size = require_vec2(item, "visible_size",
                                          join_path(path_prefix, "visible_size")),
@@ -227,8 +245,8 @@ CharacterPartDefinition parse_body_part(const toml::key& key, const toml::table&
                                            join_path(path_prefix, "visible_offset")),
             .draw_offset = optional_vec2_or_default(item, "draw_offset", SpriteVec2{0, 0},
                                                     join_path(path_prefix, "draw_offset")),
-            .directions = {},
-            .rows = {},
+        .directions = {},
+        .rows = {},
     };
 
     const toml::table& rows = require_subtable(item, "rows", join_path(path_prefix, "rows"));
@@ -243,6 +261,7 @@ CharacterPartDefinition parse_body_part(const toml::key& key, const toml::table&
                 .y = require_int(*row_table, "y", join_path(row_path, "y")),
                 .frames = require_int(*row_table, "frames", join_path(row_path, "frames")),
                 .step_x = require_int(*row_table, "step_x", join_path(row_path, "step_x")),
+                .row = require_int(*row_table, "row", join_path(row_path, "row")),
         };
     }
 

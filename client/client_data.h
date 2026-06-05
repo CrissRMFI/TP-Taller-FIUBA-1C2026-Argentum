@@ -22,11 +22,11 @@ constexpr int animation_row_for_action(const GameAction action) {
     switch (action) {
         case GameAction::MoveDown:
             return 0;
-        case GameAction::MoveUp:
-            return 1;
         case GameAction::MoveLeft:
-            return 2;
+            return 1;
         case GameAction::MoveRight:
+            return  2;
+        case GameAction::MoveUp:
             return 3;
     }
 
@@ -37,13 +37,13 @@ constexpr int animation_row_for_action(const GameAction action) {
 constexpr uint8_t direction_for_protocol(const GameAction action) {
     switch (action) {
         case GameAction::MoveDown:
-            return 1;
-        case GameAction::MoveUp:
             return 0;
+        case GameAction::MoveUp:
+            return 1;
         case GameAction::MoveLeft:
-            return 2;
-        case GameAction::MoveRight:
             return 3;
+        case GameAction::MoveRight:
+            return 2;
     }
 
     return 0;

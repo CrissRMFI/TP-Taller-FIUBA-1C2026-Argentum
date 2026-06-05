@@ -46,8 +46,8 @@ void NPCRenderer::render(SDL2pp::Renderer& renderer, const Npc& npc,
     const auto resolved = resolver_.resolve(entity);
     const int anchor_x = entity_x + cell_width / 2;
     const int anchor_y = entity_y + cell_height;
-    const int body_width = std::max(1, static_cast<int>(resolved.size.x ));
-    const int body_height = std::max(1, static_cast<int>(resolved.size.y));
+    const int body_width = resolved.size.x;
+    const int body_height =  resolved.size.y;
     const int body_x = anchor_x - body_width / 2 + resolved.offset.x;
     const int body_y = anchor_y - body_height + resolved.offset.y;
 
@@ -56,10 +56,6 @@ void NPCRenderer::render(SDL2pp::Renderer& renderer, const Npc& npc,
                       SDL2pp::Rect(body_x, body_y, body_width, body_height));
     }
 
-    // if (resolved.body.has_value()) {
-    //     renderer.Copy(*resolved.body->texture, SDL2pp::NullOpt,
-    //                   SDL2pp::Rect(body_x, body_y, body_width, body_height));
-    // }
 
     if (resolved.head.has_value()) {
         renderer.Copy(*resolved.head->texture, to_sdl_rect(resolved.src_head),
