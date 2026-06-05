@@ -94,7 +94,36 @@ void ClientGameLoop::despacharComando(const ComandoJugador& command, const uint3
         object_animation.on_action(*action);
         object_state.notify_move_requested(current_tick);
     }
+    reproducirSonidoDeComando(command);
     business.save_command(command);
+}
+
+void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
+    if (!gestorAudio) {
+        return;
+    }
+    switch (command.opcode) {
+        case Opcode::COMPRAR:
+            gestorAudio->reproducirEfecto("comercianteComprar");
+            break;
+        case Opcode::VENDER:
+            gestorAudio->reproducirEfecto("comercianteVender");
+            break;
+        case Opcode::LISTAR:
+            gestorAudio->reproducirEfecto("comercianteBienvenida");
+            break;
+        case Opcode::CURAR:
+            gestorAudio->reproducirEfecto("sacerdoteInteraccion");
+            break;
+        case Opcode::DEPOSITAR_ITEM:
+        case Opcode::DEPOSITAR_ORO:
+        case Opcode::RETIRAR_ITEM:
+        case Opcode::RETIRAR_ORO:
+            gestorAudio->reproducirEfecto("banqueroBienvenida");
+            break;
+        default:
+            break;
+    }
 }
 
 void ClientGameLoop::update() {

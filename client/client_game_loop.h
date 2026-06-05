@@ -33,6 +33,7 @@ private:
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
+    void reproducirSonidoDeComando(const ComandoJugador& command);
 
 public:
     ClientGameLoop(Queue<MensajeServidor>& server_messages,

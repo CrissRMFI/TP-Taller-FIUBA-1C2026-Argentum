@@ -21,12 +21,15 @@
 
 // Porcentaje de vida por debajo del cual se avisa "vida critica".
 #define UMBRAL_VIDA_BAJA 20
+// Suba minima de vida/mana (en puntos) para considerarlo curacion/pocion y no
+// la recuperacion natural por tiempo (que sube de a 1).
+#define UMBRAL_CURACION 5
 
 ObjectGameWorld::ObjectGameWorld(const uint16_t client_id):
     idCliente(client_id), posX(0), posY(0), isMoving(false), lastMotionTick(0),
     nivelAnterior(0),
     estadoAnterior(static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)),
-    vidaBajaAvisada(false) {}
+    vidaBajaAvisada(false), vidaAnterior(0), manaAnterior(0) {}
 
 int ObjectGameWorld::distanciaAlJugador(int x, int y) const {
     return std::max(std::abs(x - posX), std::abs(y - posY));
@@ -59,6 +62,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 posY = entity_position->y;
                 if (own_position_changed) {
                     lastMotionTick = current_tick;
+                    gestorAudio.reproducirEfecto("pasos");  // un paso por celda avanzada
                 }
             } else if (esNueva && entity_position->tipo == 1) {  // criatura nueva en pantalla
                 gestorAudio.reproducirEfectoPosicional(
@@ -90,7 +94,16 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             if (vidaCritica && !vidaBajaAvisada) {
                 gestorAudio.reproducirEfecto("vidaBaja");
             }
+            // Suba marcada de vida/mana => curacion o pocion (no la regen natural).
+            if (vidaAnterior > 0 && estado->vidaActual >= vidaAnterior + UMBRAL_CURACION) {
+                gestorAudio.reproducirEfecto("curarVida");
+            }
+            if (manaAnterior > 0 && estado->manaActual >= manaAnterior + UMBRAL_CURACION) {
+                gestorAudio.reproducirEfecto("curarMana");
+            }
             vidaBajaAvisada = vidaCritica;
+            vidaAnterior = estado->vidaActual;
+            manaAnterior = estado->manaActual;
             nivelAnterior = estado->nivel;
             estadoAnterior = estado->estado;
             std::cout << "[cliente] estado personaje: vida " << estado->vidaActual << "/"
@@ -145,6 +158,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         } else if (std::get_if<MensajeActualizarInventario>(&mensaje.payload)) {
            
             gestorAudio.reproducirEfecto("tomarItem");
+        } else if (auto* mensaje_clan = std::get_if<MensajeClan>(&mensaje.payload)) {
+            if (mensaje_clan->tipo == TipoMensajeClan::Conectado) {
+                gestorAudio.reproducirEfecto("clanMiembroEntra");
+            }
         } else if (auto* item_desaparecio = std::get_if<MensajeItemDesaparecioSuelo>(&mensaje.payload)) {
             std::cout << "[cliente] item desaparecio del suelo: pos=("
                       << item_desaparecio->x << ", " << item_desaparecio->y << ")"

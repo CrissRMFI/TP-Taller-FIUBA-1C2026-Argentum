@@ -26,6 +26,8 @@ private:
     uint8_t nivelAnterior;
     uint8_t estadoAnterior;
     bool vidaBajaAvisada;
+    uint16_t vidaAnterior;
+    uint16_t manaAnterior;
 
     int distanciaAlJugador(int x, int y) const;
 
