@@ -29,7 +29,7 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     }
     if (auto* e = std::get_if<EventoDanioProducido>(&evento)) {
         return { Opcode::DANIO_PRODUCIDO,
-                 MensajeDanoProducido{ e->cantidad, e->idObjetivo } };
+                 MensajeDanoProducido{ e->cantidad, e->idObjetivo, e->tipoGolpe } };
     }
     if (auto* e = std::get_if<EventoEsquive>(&evento)) {
         return { Opcode::ESQUIVE,

@@ -13,7 +13,9 @@
 #include <vector>
 #include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/tipo_entidad.h"
+#include "../../common/protocolo/tipo_golpe.h"
 #include "objeto/catalogo_items.h"
+#include "objeto/item.h"
 #include "reglas/reglas_juego.h"
 #include "../persistencia/serializador_jugador.h"
 #include "../../common/persistencia/error_persistencia.h"
@@ -1406,7 +1408,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         std::cout << "El atacante con id " << atacante->getId() << " ataca al jugador con id " << objetivo->getId() << " y causa " << danioAplicado << " de daño" << std::endl;
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                        EventoDanioProducido{danioAplicado, objetivo->getId()}});
+                                        EventoDanioProducido{danioAplicado, objetivo->getId(),
+                                                             tipoGolpeDeAtacante(*atacante)}});
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
                                         EventoDanioRecibido{danioAplicado, atacante->getId()}});
@@ -2268,7 +2271,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     std::cout << "El jugador con id " << atacante->getId() << " ataca a criatura con id " << criatura.getId() << std::endl;
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                    EventoDanioProducido{danioAplicado, criatura.getId()}});
+                                    EventoDanioProducido{danioAplicado, criatura.getId(),
+                                                         tipoGolpeDeAtacante(*atacante)}});
 
     // XP por impacto
     bool atacanteGanoXp = false;
@@ -2326,6 +2330,30 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     }
 
     return mensajes;
+}
+
+uint8_t Juego::tipoGolpeDeAtacante(const Jugador& atacante) const {
+    
+    if (const uint16_t idBaculo = atacante.getBaculoEquipado(); idBaculo != 0) {
+        if (const Baculo* baculo = catalogo.comoBaculo(idBaculo)) {
+            return static_cast<uint8_t>(baculo->getHechizo() == TipoHechizo::Explosion ? TipoGolpe::Explosion : TipoGolpe::Hechizo);
+        }
+    }
+    
+    if (const uint16_t idArma = atacante.getArmaEquipada(); idArma != 0) {
+        if (const Arma* arma = catalogo.comoArma(idArma)) {
+            if (arma->esArmaDistancia()) {
+                return static_cast<uint8_t>(TipoGolpe::Disparo);
+            }
+            switch (arma->getId()) {
+                case 2:  return static_cast<uint8_t>(TipoGolpe::Hacha);
+                case 3:  return static_cast<uint8_t>(TipoGolpe::Martillo);
+                default: return static_cast<uint8_t>(TipoGolpe::Espada);
+            }
+        }
+    }
+    // Sin arma (golpe basico)
+    return static_cast<uint8_t>(TipoGolpe::Espada);
 }
 
 uint16_t Juego::getIndiceCuerpoCriatura(TipoCriatura tipo) const {

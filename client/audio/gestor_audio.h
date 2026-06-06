@@ -30,6 +30,10 @@ private:
     int radioAudibleCeldas;
     std::string musicaActual;
 
+    // Canal dedicado para el loop de pasos (-1 si no esta sonando).
+    int canalPasos;
+    bool pasosActivos;
+
     void cargarCatalogo(const std::string& rutaConfig, const std::string& resourcesRoot);
     int volumenCanalDe(int volumenBase0a100) const;
 
@@ -50,6 +54,10 @@ public:
     // Musica de fondo en loop.
     void reproducirMusica(const std::string& clave);
     void detenerMusica();
+
+    // Loop de pasos en un canal dedicado: arranca al empezar a caminar y se corta al detenerse
+    void reproducirPasos();
+    void detenerPasos();
 
     bool disponible() const { return audioOk; }
 

@@ -42,6 +42,7 @@ struct MensajeDanoRecibido {
 struct MensajeDanoProducido {
   uint16_t cantidad;
   uint16_t idObjetivo;
+  uint8_t  tipoGolpe;
 };
 
 struct MensajeEsquive {

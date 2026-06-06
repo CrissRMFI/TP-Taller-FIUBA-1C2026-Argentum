@@ -11,6 +11,8 @@
 
 #include "../../common/mensajes/mensajes_error_accion.h"
 #include "../../common/protocolo/estado_entidad.h"
+#include "../../common/protocolo/tipo_entidad.h"
+#include "../../common/protocolo/tipo_golpe.h"
 #include "../audio/gestor_audio.h"
 
 // Gracia (ms) para mantener viva la animacion de caminar entre actualizaciones
@@ -108,9 +110,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             if (entity_position->id == idCliente) {
                 posX = entity_position->x;
                 posY = entity_position->y;
-                if (position_changed) {
-                    gestorAudio.reproducirEfecto("pasos");  // un paso por celda avanzada
-                }
+                // El sonido de pasos se maneja como loop al final, segun is_moving.
             } else if (esNueva && entity_position->tipo == 1) {  // criatura nueva en pantalla
                 gestorAudio.reproducirEfectoPosicional(
                         "criaturaAparece",
@@ -123,8 +123,12 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             if (dead_entity->id == idCliente) {
                 gestorAudio.reproducirEfecto("muereJugador");
             } else if (const auto it = entidades.find(dead_entity->id); it != entidades.end()) {
+                const char* claveMuerte =
+                        (it->second.tipo == static_cast<uint8_t>(TipoEntidad::Criatura))
+                                ? "matar"
+                                : "muerte";
                 gestorAudio.reproducirEfectoPosicional(
-                        "muerte", distanciaAlJugador(it->second.x, it->second.y));
+                        claveMuerte, distanciaAlJugador(it->second.x, it->second.y));
             }
             entidades.erase(dead_entity->id);
             animation_states.erase(dead_entity->id);
@@ -161,15 +165,31 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << static_cast<int>(estado->nivel) << std::endl;
         } else if (auto* dano_recibido = std::get_if<MensajeDanoRecibido>(&mensaje.payload)) {
             gestorAudio.reproducirEfecto("recibirDanio");
+            
+            if (const auto it = entidades.find(dano_recibido->idAtacante);
+                it != entidades.end() &&
+                it->second.tipo == static_cast<uint8_t>(TipoEntidad::Criatura)) {
+                gestorAudio.reproducirEfectoPosicional(
+                        "criaturaAtacando", distanciaAlJugador(it->second.x, it->second.y));
+            }
             std::cout << "[cliente] daño recibido: " << dano_recibido->cantidad
                       << ", atacante=" << dano_recibido->idAtacante << std::endl;
         } else if (auto* dano_producido = std::get_if<MensajeDanoProducido>(&mensaje.payload)) {
-            // Golpe generico (el tipo de arma/hechizo llegara con el protocolo en 2b).
+            // El sonido depende del arma con que se golpeo (lo decide el server).
+            const char* claveAtaque = "ataqueEspada";
+            switch (static_cast<TipoGolpe>(dano_producido->tipoGolpe)) {
+                case TipoGolpe::Hacha:     claveAtaque = "ataqueHacha"; break;
+                case TipoGolpe::Martillo:  claveAtaque = "ataqueMartillo"; break;
+                case TipoGolpe::Disparo:   claveAtaque = "disparoDistancia"; break;
+                case TipoGolpe::Hechizo:   claveAtaque = "lanzarHechizo"; break;
+                case TipoGolpe::Explosion: claveAtaque = "explosion"; break;
+                case TipoGolpe::Espada:    claveAtaque = "ataqueEspada"; break;
+            }
             if (const auto it = entidades.find(dano_producido->idObjetivo); it != entidades.end()) {
                 gestorAudio.reproducirEfectoPosicional(
-                        "ataqueEspada", distanciaAlJugador(it->second.x, it->second.y));
+                        claveAtaque, distanciaAlJugador(it->second.x, it->second.y));
             } else {
-                gestorAudio.reproducirEfecto("ataqueEspada");
+                gestorAudio.reproducirEfecto(claveAtaque);
             }
             std::cout << "[cliente] daño producido: " << dano_producido->cantidad
                       << ", objetivo=" << dano_producido->idObjetivo << std::endl;
@@ -238,6 +258,14 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             animation_state.is_moving =
                     (current_tick - animation_state.last_motion_tick) < MOTION_GRACE_MS;
         }
+    }
+
+    
+    const auto miAnimacion = animation_states.find(idCliente);
+    if (miAnimacion != animation_states.end() && miAnimacion->second.is_moving) {
+        gestorAudio.reproducirPasos();
+    } else {
+        gestorAudio.detenerPasos();
     }
 }
 

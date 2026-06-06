@@ -9,8 +9,6 @@
 #include "../../../common/mensajes/codigo_error_accion.h"
 #include "../jugador.h"
 
-// Eventos de dominio del juego. La capa Juego produce estos eventos sin conocer el protocolo binario (Opcodes, layout de wire, etc.). El TraductorProtocolo en server/gameloop/ los convierte a MensajeServidor justo antes de despachar.
-
 struct EventoEstadoPersonaje {
     uint16_t vidaActual;
     uint16_t vidaMax;
@@ -44,6 +42,7 @@ struct EventoDanioRecibido {
 struct EventoDanioProducido {
     uint16_t cantidad;
     uint16_t idObjetivo;
+    uint8_t  tipoGolpe;  // TipoGolpe: derivado del arma del atacante
 };
 
 struct EventoEsquive {

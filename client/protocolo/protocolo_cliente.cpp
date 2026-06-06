@@ -32,7 +32,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
                         CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
     MensajeEstadoUsuario estado;
-    estado.id = recibirUnByte();
+    estado.id = recibirDosBytes();  // id de cliente es uint16 (puede ser >255)
     estado.nick = recibirCadenaConMaximo(MAX_NICK);
     estado.error = static_cast<ErrorUsuario>(recibirUnByte());
     return MensajeServidor{.opcode = opcode, .payload = estado};
@@ -445,10 +445,11 @@ MensajeServidor ProtocoloCliente::recibirDanoRecibido() {
 MensajeServidor ProtocoloCliente::recibirDanoProducido() {
     uint16_t cantidad = recibirDosBytes();
     uint16_t idObjetivo = recibirDosBytes();
+    uint8_t tipoGolpe = recibirUnByte();
 
     return MensajeServidor{
             Opcode::DANIO_PRODUCIDO,
-            MensajeDanoProducido{cantidad, idObjetivo},
+            MensajeDanoProducido{cantidad, idObjetivo, tipoGolpe},
     };
 }
 

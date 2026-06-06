@@ -27,7 +27,7 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
 
 void ProtocoloServidor::enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje) {
     enviarUnByte(static_cast<uint8_t>(Opcode::ESTADO_USUARIO));
-    enviarUnByte(mensaje.id);
+    enviarDosBytes(mensaje.id);  // id de cliente es uint16 (puede ser >255)
     enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
     enviarUnByte(static_cast<uint8_t>(mensaje.error));
 }
@@ -545,6 +545,7 @@ void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idObjetivo);
+    enviarUnByte(mensaje.tipoGolpe);
 }
 
 void ProtocoloServidor::enviarEsquive(const MensajeEsquive& mensaje) {

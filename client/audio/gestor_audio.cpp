@@ -19,7 +19,9 @@ GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resou
         subsistemaIniciado(false),
         volumenMaestroPct(90),
         volumenMusicaPct(55),
-        radioAudibleCeldas(18) {
+        radioAudibleCeldas(18),
+        canalPasos(-1),
+        pasosActivos(false) {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
         std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::SUBSISTEMA_NO_INICIADO)
                   << ": " << SDL_GetError() << std::endl;
@@ -183,4 +185,32 @@ void GestorAudio::detenerMusica() {
     }
     mixer->HaltMusic();
     musicaActual.clear();
+}
+
+void GestorAudio::reproducirPasos() {
+    if (!audioOk || pasosActivos) {
+        return;
+    }
+    const auto it = efectos.find("pasos");
+    if (it == efectos.end() || !it->second) {
+        return;
+    }
+    try {
+        canalPasos = mixer->PlayChannel(-1, *it->second, -1);  // -1 loops = loop infinito
+        mixer->SetVolume(canalPasos, volumenCanal["pasos"]);
+        pasosActivos = true;
+    } catch (const std::exception&) {
+        canalPasos = -1;
+    }
+}
+
+void GestorAudio::detenerPasos() {
+    if (!audioOk || !pasosActivos) {
+        return;
+    }
+    if (canalPasos != -1) {
+        mixer->HaltChannel(canalPasos);
+    }
+    canalPasos = -1;
+    pasosActivos = false;
 }

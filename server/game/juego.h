@@ -146,6 +146,8 @@ class Juego {
     std::list<EventoSalida> ejecutarAtaqueAJugador(uint16_t idCliente, Jugador& atacante, const ComandoAtacar& comando);
     std::list<EventoSalida> ejecutarAtaqueACriatura(uint16_t idCliente, Jugador& atacante, Criatura& criatura);
 
+    uint8_t tipoGolpeDeAtacante(const Jugador& atacante) const;
+
     std::list<EventoSalida> armarOroEnSueloParaMapa(const Posicion& posicion, uint32_t cantidad);
     std::list<EventoSalida> armarOroDesaparecioSueloParaMapa(const Posicion& posicion);
     bool dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad, Posicion& posicionFinal);
