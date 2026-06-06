@@ -5,6 +5,8 @@
 
 #include <toml++/toml.hpp>
 
+#include "../../common/mensajes/mensajes_error_cliente.h"
+
 ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     ConfigCliente cfg;
 
@@ -12,8 +14,9 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     try {
         tbl = toml::parse_file(path);
     } catch (const toml::parse_error& e) {
-        std::cerr << "No se pudo leer '" << path << "' (" << e.description()
-                  << "). Se usan valores por defecto del cliente." << std::endl;
+        std::cerr << "[cliente] "
+                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::CONFIG_NO_LEIDA) << " ('"
+                  << path << "': " << e.description() << ")" << std::endl;
         return cfg;
     }
 
@@ -38,6 +41,44 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
         cfg.alto = alto;
     }
     cfg.fullscreen = tbl["video"]["fullscreen"].value_or(cfg.fullscreen);
+
+    cfg.fuenteRuta = tbl["chat"]["fuente"].value_or(cfg.fuenteRuta);
+    const int64_t fuenteTam = tbl["chat"]["tam"].value_or<int64_t>(cfg.fuenteTam);
+    if (fuenteTam > 0) {
+        cfg.fuenteTam = static_cast<int>(fuenteTam);
+    }
+    if (const toml::array* ayuda = tbl["chat"]["ayuda"].as_array()) {
+        cfg.ayudaChat.clear();
+        for (const toml::node& linea : *ayuda) {
+            if (const std::optional<std::string> texto = linea.value<std::string>()) {
+                cfg.ayudaChat.push_back(*texto);
+            }
+        }
+    }
+
+    const int64_t maxLineas = tbl["chat"]["max_lineas"].value_or<int64_t>(cfg.chatMaxLineas);
+    if (maxLineas > 0) {
+        cfg.chatMaxLineas = static_cast<int>(maxLineas);
+    }
+
+    const auto leerColor = [&tbl](const char* clave, std::vector<int>& destino) {
+        const toml::array* color = tbl["chat"][clave].as_array();
+        if (color == nullptr || color->size() != 3) {
+            return;
+        }
+        std::vector<int> rgb;
+        for (const toml::node& canal : *color) {
+            if (const std::optional<int64_t> valor = canal.value<int64_t>()) {
+                rgb.push_back(static_cast<int>(*valor));
+            }
+        }
+        if (rgb.size() == 3) {
+            destino = rgb;
+        }
+    };
+    leerColor("color_texto", cfg.chatColorTexto);
+    leerColor("color_input", cfg.chatColorInput);
+    leerColor("color_ayuda", cfg.chatColorAyuda);
 
     return cfg;
 }
