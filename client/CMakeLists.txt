@@ -35,6 +35,7 @@ target_sources(taller_client
         Qt/cargarPersonaje/cargarPersonajeController.cpp
         handlers/client_input_handler.cpp
         protocolo/protocolo_cliente.cpp
+        audio/gestor_audio.cpp
         # .h
         client__.h
         client_business.h
@@ -50,6 +51,7 @@ target_sources(taller_client
         Qt/cargarPersonaje/cargarPersonajeController.h
         handlers/client_input_handler.h
         handlers/parser_comando_chat.h
+        audio/gestor_audio.h
         protocolo/protocolo_cliente.h
         config/config_cliente.h
         config/lector_config_cliente.h

@@ -30,6 +30,8 @@ struct InterpolatedPosition {
     float y = 0.0f;
 };
 
+class GestorAudio;
+
 class ObjectGameWorld {
 private:
     std::unordered_map<uint16_t, EntidadRenderizable> entidades;
@@ -41,9 +43,18 @@ private:
     int posX;
     int posY;
 
+    uint8_t nivelAnterior;
+    uint8_t estadoAnterior;
+    bool vidaBajaAvisada;
+    uint16_t vidaAnterior;
+    uint16_t manaAnterior;
+
+    int distanciaAlJugador(int x, int y) const;
+
 public:
     explicit ObjectGameWorld(uint16_t client_id);
-    void upload_server_msg(Queue<MensajeServidor>& server_msgs, uint32_t current_tick);
+    void upload_server_msg(Queue<MensajeServidor>& server_msgs, uint32_t current_tick,
+                           GestorAudio& gestorAudio);
     void notify_move_requested(uint32_t current_tick);
 
     const std::unordered_map<uint16_t, EntidadRenderizable>& entities() const;
@@ -59,4 +70,5 @@ public:
 };
 
 
-#endif  // TALLER_TP_CLIENT_GAME_WORLD_H
+#endif
+

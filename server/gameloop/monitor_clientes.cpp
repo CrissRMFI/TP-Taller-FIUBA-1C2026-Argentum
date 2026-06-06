@@ -6,7 +6,8 @@
 #include <vector>
 
 
-MonitorClientes::MonitorClientes(): proximoID(1){}
+// Los ids de jugador arrancan en 1000 para no colisionar con los ids de los NPCs
+MonitorClientes::MonitorClientes(): proximoID(1000){}
 
 uint16_t MonitorClientes::almacenarID() {
     std::lock_guard<std::mutex> lock(mtx);

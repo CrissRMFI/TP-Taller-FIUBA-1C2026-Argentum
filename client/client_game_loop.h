@@ -2,6 +2,7 @@
 #define TALLER_TP_CLIENT_GAME_LOOP_H
 
 #include <cstdint>
+#include <memory>
 #include <optional>
 
 #include "../common/protocolo/mensaje_servidor.h"
@@ -14,6 +15,8 @@
 #include "handlers/client_input_handler.h"
 #include "handlers/parser_comando_chat.h"
 
+class GestorAudio;
+
 class ClientGameLoop {
 private:
     Queue<MensajeServidor>& server_messages;
@@ -24,11 +27,13 @@ private:
     ObjectRenderer object_renderer;
     ConfigCliente config;
     ParserComandoChat parser;
+    std::unique_ptr<GestorAudio> gestorAudio;
     bool is_running;
 
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
+    void reproducirSonidoDeComando(const ComandoJugador& command);
 
 public:
     ClientGameLoop(Queue<MensajeServidor>& server_messages,

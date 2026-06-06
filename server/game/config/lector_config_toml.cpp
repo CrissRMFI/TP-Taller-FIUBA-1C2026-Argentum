@@ -413,6 +413,9 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cargarSpawn(tbl, cfg);
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
+    cfg.cuerpoSacerdote = leerUint16Obligatorio(tbl, "npcs", "cuerpo_sacerdote");
+    cfg.cuerpoComerciante = leerUint16Obligatorio(tbl, "npcs", "cuerpo_comerciante");
+    cfg.cuerpoBanquero = leerUint16Obligatorio(tbl, "npcs", "cuerpo_banquero");
     cargarStockNpcs(tbl, cfg);
     cfg.rangoVisionAtaque = leerUint16Obligatorio(tbl, "combate", "rango_vision_ataque");
 

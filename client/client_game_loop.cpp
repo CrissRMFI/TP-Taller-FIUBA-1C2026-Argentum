@@ -7,9 +7,14 @@
 #include <SDL.h>
 
 #include "config/cargador_nombres_item.h"
+#include "audio/gestor_audio.h"
 
 #ifndef CLIENT_GAME_CONFIG_PATH
 #define CLIENT_GAME_CONFIG_PATH "config/game_config.toml"
+#endif
+
+#ifndef CLIENT_ASSETS_DIR
+#define CLIENT_ASSETS_DIR "client/assets"
 #endif
 
 ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
@@ -35,6 +40,12 @@ void ClientGameLoop::init(const char* title,
                          config.fpsMax);
     handler.set_window_dimensions(width, height);
     handler.setIdCliente(object_state.client_id());
+
+    // creo el audio necesito SDL ya inicializado
+    const std::string resourcesRoot = std::string(CLIENT_ASSETS_DIR) + "/../resources";
+    gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
+                                                resourcesRoot);
+    gestorAudio->reproducirMusica("campo");
 
     const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
     int it = 0;
@@ -96,13 +107,41 @@ void ClientGameLoop::despacharComando(const ComandoJugador& command, const uint3
         object_animation.on_action(*action);
         object_state.notify_move_requested(current_tick);
     }
+    reproducirSonidoDeComando(command);
     business.save_command(command);
+}
+
+void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
+    if (!gestorAudio) {
+        return;
+    }
+    switch (command.opcode) {
+        case Opcode::COMPRAR:
+            gestorAudio->reproducirEfecto("comercianteComprar");
+            break;
+        case Opcode::VENDER:
+            gestorAudio->reproducirEfecto("comercianteVender");
+            break;
+        case Opcode::LISTAR:
+            gestorAudio->reproducirEfecto("comercianteBienvenida");
+            break;
+        case Opcode::CURAR:
+            gestorAudio->reproducirEfecto("sacerdoteInteraccion");
+            break;
+        case Opcode::DEPOSITAR_ITEM:
+        case Opcode::DEPOSITAR_ORO:
+        case Opcode::RETIRAR_ITEM:
+        case Opcode::RETIRAR_ORO:
+            gestorAudio->reproducirEfecto("banqueroBienvenida");
+            break;
+        default:
+            break;
+    }
 }
 
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
-    object_state.upload_server_msg(server_messages, current_tick);
-    // object_renderer.update_animation(current_tick, object_state, object_animation);
+    object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
     object_renderer.update_animation(it, object_state, object_animation);
 }
 

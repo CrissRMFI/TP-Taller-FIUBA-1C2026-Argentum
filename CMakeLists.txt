@@ -17,6 +17,7 @@ project(taller_tp
     )
 
 set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
+set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
