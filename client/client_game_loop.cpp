@@ -1,7 +1,9 @@
 
 #include "client_game_loop.h"
 
+#include <deque>
 #include <iostream>
+#include <string>
 #include <utility>
 
 #include <SDL.h>
@@ -37,7 +39,8 @@ void ClientGameLoop::init(const char* title,
                           const int height,
                           const bool fullscreen) {
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
-                         config.fpsMax);
+                         config.fpsMax, config.fuenteRuta, config.fuenteTam);
+    object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
     handler.setIdCliente(object_state.client_id());
 
@@ -146,7 +149,25 @@ void ClientGameLoop::update(const int it) {
 }
 
 void ClientGameLoop::render() {
-    object_renderer.render(object_state, object_animation);
+    
+    const auto aColor = [](const std::vector<int>& rgb, const SDL_Color& porDefecto) -> SDL_Color {
+        if (rgb.size() != 3) {
+            return porDefecto;
+        }
+        return SDL_Color{static_cast<uint8_t>(rgb[0]), static_cast<uint8_t>(rgb[1]),
+                         static_cast<uint8_t>(rgb[2]), 255};
+    };
+
+    EstadoChatRender chat;
+    chat.activo = handler.chatActivo();
+    chat.entrada = handler.bufferChat();
+    const std::deque<std::string>& historial = object_state.historialChat();
+    chat.historial.assign(historial.begin(), historial.end());
+    chat.ayuda = config.ayudaChat;
+    chat.colorTexto = aColor(config.chatColorTexto, chat.colorTexto);
+    chat.colorInput = aColor(config.chatColorInput, chat.colorInput);
+    chat.colorAyuda = aColor(config.chatColorAyuda, chat.colorAyuda);
+    object_renderer.render(object_state, object_animation, chat);
 }
 
 void ClientGameLoop::clean() {}
