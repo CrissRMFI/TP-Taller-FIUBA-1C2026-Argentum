@@ -21,3 +21,20 @@ fullscreen = false
 [movimiento]
 # Cada cuántos milisegundos se envía un MOVER mientras se mantiene apretada una tecla de dirección.
 intervalo_ms = 130
+
+[chat]
+# Fuente usada
+fuente = "fonts/Cardo-Regular.ttf"
+
+# Tamaño de la fuente en puntos.
+tam = 14
+
+# Ayuda de comandos que se muestra arriba a la izquierda al abrir el chat
+ayuda = [
+  "ENTER: abrir / enviar    ESC: cancelar",
+  "Texto suelto = chat global    @nick msg = privado",
+  "/curar  /resucitar  /meditar    (cerca del NPC)",
+  "/comprar <item> <cant>  /vender <item> <cant>  /listar",
+  "/depositar oro <n>  /retirar oro <n>",
+  "/tomar  /tirar oro <n>  /equipar <item>",
+]
