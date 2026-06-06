@@ -29,6 +29,14 @@ fuente = "fonts/Cardo-Regular.ttf"
 # Tamaño de la fuente en puntos.
 tam = 14
 
+# Cuántas líneas de chat/feedback se ven a la vez en pantalla.
+max_lineas = 6
+
+# Colores [r, g, b] del texto del chat.
+color_texto = [255, 255, 255]  # mensajes entrantes
+color_input = [255, 255, 0]    # lo que se está tipeando
+color_ayuda = [200, 200, 200]  # ayuda de comandos
+
 # Ayuda de comandos que se muestra arriba a la izquierda al abrir el chat
 ayuda = [
   "ENTER: abrir / enviar    ESC: cancelar",
