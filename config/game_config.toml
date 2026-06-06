@@ -285,6 +285,16 @@ movimiento_ticks = 5
 spawn_ticks   = 100
 poblacion_max = 10           # Tope global de NPCs vivos
 
+# id de sprite de cuerpo de cada criatura con que el cliente la dibuja.
+# Deben coincidir con el catalogo del cliente (criatura_sprite_resolver /
+# sprites.toml): es un contrato cliente-servidor.
+cuerpo_goblin    = 2200
+cuerpo_esqueleto = 2201
+cuerpo_zombie    = 2202
+cuerpo_arania    = 2203
+cuerpo_orco      = 2204
+cuerpo_golem     = 2205
+
 # ------------------------------------------------------------
 [mapa]
 # Dimensiones del escenario en celdas.

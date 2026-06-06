@@ -13,10 +13,7 @@ sprite_catalog(catalog), texture_cache(textures){}
 CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable& entity) const {
     std::optional<ResolvedCharacterPart> body;
 
-    // Sin un cuerpo valido en el catalogo no se resuelve el sprite del cuerpo:
-    // se deja el body vacio (el renderer lo omite) en lugar de llamar a body(id)
-    // y que unordered_map::at lance. Protege contra datos invalidos (p. ej. un
-    // registro corrupto con cuerpo == 0).
+    // Sin un cuerpo valido en el catalogo no se resuelve el sprite del cuerpo: se deja el body vacio (el renderer lo omite) en lugar de llamar a body(id) y que unordered_map::at lance. 
     if (sprite_catalog.has_body(entity.cuerpo)) {
         if (entity.estado == 1) {
             if (const StateOverride* ghost_state = sprite_catalog.state_override("fantasma");

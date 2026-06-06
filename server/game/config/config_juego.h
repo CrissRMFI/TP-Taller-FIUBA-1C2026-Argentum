@@ -100,6 +100,12 @@ struct ConfigJuego {
     uint8_t criaturaRangoAggroBase;
     uint8_t criaturaDanioMinBase;
     uint8_t criaturaDanioMaxBase;
+    uint16_t cuerpoGoblin;
+    uint16_t cuerpoEsqueleto;
+    uint16_t cuerpoZombie;
+    uint16_t cuerpoArania;
+    uint16_t cuerpoOrco;
+    uint16_t cuerpoGolem;
 
     // ---- Muerte / resurrección ----
     float expPerdidaMuertePct;      // fracción de experiencia perdida al morir

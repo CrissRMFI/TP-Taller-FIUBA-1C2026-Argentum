@@ -438,6 +438,12 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.criaturaRangoAggroBase = leerUint8Obligatorio(tbl, "criaturas", "rango_aggro_base");
     cfg.criaturaDanioMinBase = leerUint8Obligatorio(tbl, "criaturas", "danio_min_base");
     cfg.criaturaDanioMaxBase = leerUint8Obligatorio(tbl, "criaturas", "danio_max_base");
+    cfg.cuerpoGoblin = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_goblin");
+    cfg.cuerpoEsqueleto = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_esqueleto");
+    cfg.cuerpoZombie = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_zombie");
+    cfg.cuerpoArania = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_arania");
+    cfg.cuerpoOrco = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_orco");
+    cfg.cuerpoGolem = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_golem");
 
     ConfigCompleta resultado;
     resultado.juego = cfg;

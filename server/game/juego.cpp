@@ -2331,17 +2331,17 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 uint16_t Juego::getIndiceCuerpoCriatura(TipoCriatura tipo) const {
     switch (tipo) {
         case TipoCriatura::Goblin:
-            return 2200;
+            return cfg.cuerpoGoblin;
         case TipoCriatura::Esqueleto:
-            return 2201;
+            return cfg.cuerpoEsqueleto;
         case TipoCriatura::Zombie:
-            return 2202;
+            return cfg.cuerpoZombie;
         case TipoCriatura::Arania:
-            return 2203;
+            return cfg.cuerpoArania;
         case TipoCriatura::Orco:
-            return 2204;
+            return cfg.cuerpoOrco;
         case TipoCriatura::Golem:
-            return 2205;
+            return cfg.cuerpoGolem;
         default:
             return 0;
     }
