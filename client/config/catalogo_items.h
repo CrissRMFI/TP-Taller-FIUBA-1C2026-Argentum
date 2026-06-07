@@ -25,7 +25,12 @@ public:
     std::string nombre(uint16_t id) const;
     const std::unordered_map<std::string, uint16_t>& mapaClaveAId() const;
 
+    uint32_t precioCompra(uint16_t id) const;
+    uint32_t precioVenta(uint16_t id) const;
 
+private:
+    std::unordered_map<uint16_t, uint32_t> compraComerciante;
+    std::unordered_map<uint16_t, uint32_t> ventaComerciante;
 };
 
 #endif

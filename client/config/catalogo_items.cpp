@@ -59,6 +59,24 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
         porId[info.id] = info;
         claveAId[info.clave] = info.id;
     }
+    
+    if (const toml::array* stock = tbl["npcs"]["comerciante"]["items"].as_array()) {
+        for (const toml::node& nodo : *stock) {
+            const toml::table* entrada = nodo.as_table();
+            if (entrada == nullptr) {
+                continue;
+            }
+            const std::optional<int64_t> id = (*entrada)["id"].value<int64_t>();
+            if (!id || *id < 0 || *id > 0xFFFF) {
+                continue;
+            }
+            const auto iid = static_cast<uint16_t>(*id);
+            compraComerciante[iid] =
+                    static_cast<uint32_t>((*entrada)["compra"].value_or<int64_t>(0));
+            ventaComerciante[iid] =
+                    static_cast<uint32_t>((*entrada)["venta"].value_or<int64_t>(0));
+        }
+    }
 }
 
 const ItemInfo* CatalogoItems::info(uint16_t id) const {
@@ -73,4 +91,14 @@ std::string CatalogoItems::nombre(uint16_t id) const {
 
 const std::unordered_map<std::string, uint16_t>& CatalogoItems::mapaClaveAId() const {
     return claveAId;
+}
+
+uint32_t CatalogoItems::precioCompra(uint16_t id) const {
+    const auto it = compraComerciante.find(id);
+    return (it != compraComerciante.end()) ? it->second : 0;
+}
+
+uint32_t CatalogoItems::precioVenta(uint16_t id) const {
+    const auto it = ventaComerciante.find(id);
+    return (it != ventaComerciante.end()) ? it->second : 0;
 }
