@@ -8,7 +8,6 @@
 
 #include <SDL.h>
 
-#include "config/cargador_nombres_item.h"
 #include "audio/gestor_audio.h"
 
 #ifndef CLIENT_GAME_CONFIG_PATH
@@ -27,7 +26,8 @@ ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
     business(business),
     object_state(idCliente),
     config(config),
-    parser(CargadorNombresItem().cargar(CLIENT_GAME_CONFIG_PATH)),
+    catalogo(CLIENT_GAME_CONFIG_PATH),
+    parser(catalogo.mapaClaveAId()),
     is_running(false) {}
 
 ClientGameLoop::~ClientGameLoop() = default;
