@@ -97,6 +97,7 @@ enum class TipoCheat : uint8_t {
   VidaInfinita = 0,
   ManaInfinito = 1,
   MorirAuto    = 2,
+  DarOro       = 3,
 };
 
 struct ComandoCheat {
