@@ -51,6 +51,13 @@ private:
     ConfigPanelRender panel_config;
     const CatalogoItems* catalogo = nullptr;
     std::unordered_set<uint16_t> iconos_fallidos;
+    // FX de hechizo en curso: animacion transitoria sobre el objetivo.
+    struct FxActivo {
+        uint16_t spellId;
+        uint16_t targetId;
+        uint32_t startTick;
+    };
+    std::vector<FxActivo> fx_activos;
     int last_animation_row = -1;
     int window_width = 0;
     int window_height = 0;
@@ -107,6 +114,8 @@ public:
     bool clickTabInventario(int x, int y) const;
     bool clickTabHechizos(int x, int y) const;
     bool esSacerdote(uint16_t id) const;
+    // Inicia la animacion de FX de un hechizo sobre un objetivo (se dibuja unos frames).
+    void iniciarFx(uint16_t spellId, uint16_t targetId);
     // Banco: hit-test (devuelven indice de slot o -1; los botones true/false).
     int bancoBovedaClickeada(int x, int y) const;
     int bancoInvClickeado(int x, int y) const;

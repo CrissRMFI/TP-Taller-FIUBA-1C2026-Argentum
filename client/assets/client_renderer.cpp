@@ -280,6 +280,36 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         renderer->FillRect(SDL2pp::Rect(entity_x, entity_y, cell_width, cell_height));
     }
 
+    // --- FX de hechizos en curso: animacion transitoria centrada en el objetivo ---
+    const int tileW = std::max(1, gw / mapa.getAncho());
+    const int tileH = std::max(1, gh / mapa.getAlto());
+    for (auto it = fx_activos.begin(); it != fx_activos.end();) {
+        const HechizoInfo* h = (catalogo != nullptr) ? catalogo->hechizo(it->spellId) : nullptr;
+        const int frames = (h != nullptr) ? static_cast<int>(h->fxFrames) : 0;
+        const int frame = (frames > 0) ? static_cast<int>((current_tick - it->startTick) / 60) : 0;
+        if (frames <= 0 || frame >= frames ||
+            state_object.entities().find(it->targetId) == state_object.entities().end()) {
+            it = fx_activos.erase(it);
+            continue;
+        }
+        const InterpolatedPosition pos =
+                state_object.entity_interpolated_position(it->targetId, current_tick);
+        const int tx = static_cast<int>(pos.x * gw / mapa.getAncho());
+        const int ty = gy0 + static_cast<int>(pos.y * gh / mapa.getAlto());
+        try {
+            SDL2pp::Texture& sheet = cache_texture->get_or_load(
+                    "imgs/hechizos/fx/" + std::to_string(it->spellId) + ".png");
+            const int cellW = sheet.GetWidth() / frames;
+            const int cellH = sheet.GetHeight();
+            const int dw = 48;
+            const int dh = 48;
+            renderer->Copy(sheet, SDL2pp::Rect(frame * cellW, 0, cellW, cellH),
+                           SDL2pp::Rect(tx + tileW / 2 - dw / 2, ty + tileH / 2 - dh, dw, dh));
+        } catch (const std::exception&) {
+        }
+        ++it;
+    }
+
     // Fin del mundo: saco el clip para que el panel y el chat se dibujen completos.
     renderer->SetClipRect(SDL2pp::NullOpt);
     dibujar_panel(panel);
@@ -585,6 +615,10 @@ uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
 
 bool ObjectRenderer::esSacerdote(uint16_t id) const {
     return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
+}
+
+void ObjectRenderer::iniciarFx(uint16_t spellId, uint16_t targetId) {
+    fx_activos.push_back({spellId, targetId, SDL_GetTicks()});
 }
 
 uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {

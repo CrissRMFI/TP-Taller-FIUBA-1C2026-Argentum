@@ -76,6 +76,7 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
             hi.tipo = (*h)["tipo"].value_or<std::string>("danio");
             hi.mana = static_cast<uint16_t>((*h)["mana"].value_or<int64_t>(0));
             hi.precio = static_cast<uint32_t>((*h)["precio"].value_or<int64_t>(0));
+            hi.fxFrames = static_cast<uint16_t>((*h)["fx_frames"].value_or<int64_t>(0));
             hechizos[hi.id] = hi;
         }
     }

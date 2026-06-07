@@ -231,6 +231,8 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
         despacharComando({Opcode::LANZAR_HECHIZO,
                           ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        // FX visual sobre el objetivo (o sobre uno mismo si es cura sin objetivo).
+        object_renderer.iniciarFx(idHechizo, objetivo.value_or(object_state.client_id()));
         return;
     }
     // Lista de hechizos del sacerdote: comprar.

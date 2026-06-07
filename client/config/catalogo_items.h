@@ -20,6 +20,7 @@ struct HechizoInfo {
     std::string tipo;   // "danio" | "cura"
     uint16_t mana = 0;
     uint32_t precio = 0;
+    uint16_t fxFrames = 0;  // cuadros de la animacion de FX (imgs/hechizos/fx/<id>.png); 0 = sin FX
 };
 
 
