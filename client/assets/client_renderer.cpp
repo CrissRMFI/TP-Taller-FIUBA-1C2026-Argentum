@@ -518,7 +518,8 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     // --- Comercio: lista clickeable de lo que vende el NPC (con scroll en Y) ---
     if (!panel.stock.empty() && catalogo != nullptr) {
         const int total = static_cast<int>(panel.stock.size());
-        const int desde = std::max(0, std::min(panel.scrollStock, total - 1));
+        // Permitimos desde==total (0 items) para revelar los hechizos en venta de abajo.
+        const int desde = std::max(0, std::min(panel.scrollStock, total));
         text_renderer->dibujar(*renderer, "Comercio (rueda = scroll)", cx, y, cTit);
         y += lh + 2;
         const int fila_h = lh + 4;

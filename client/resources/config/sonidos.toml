@@ -30,7 +30,7 @@ path = "sound/musicaCombate.ogg"
 
 # --- Combate ---
 [efectos.ataqueEspada]
-path = "sound/ataqueEspada.ogg"
+path = "sound/ataqueEspada.wav"
 volumen = 100
 
 [efectos.ataqueEspada2]
@@ -50,7 +50,7 @@ path = "sound/disparoDistancia.ogg"
 volumen = 100
 
 [efectos.lanzarHechizo]
-path = "sound/lanzarHechizo.ogg"
+path = "sound/lanzarHechizo.wav"
 volumen = 100
 
 [efectos.explosion]
@@ -79,7 +79,7 @@ path = "sound/subirNivel.ogg"
 volumen = 100
 
 [efectos.meditar]
-path = "sound/meditar.ogg"
+path = "sound/meditar.wav"
 volumen = 80
 
 [efectos.curarVida]
@@ -91,7 +91,7 @@ path = "sound/curarMana.ogg"
 volumen = 90
 
 [efectos.tomarPocion]
-path = "sound/tomarPocion.ogg"
+path = "sound/tomarPocion.wav"
 volumen = 90
 
 [efectos.vidaBaja]
@@ -228,5 +228,5 @@ path = "sound/menuSeleccionPersonaje.ogg"
 volumen = 85
 
 [efectos.accionNoPermitida]
-path = "sound/accionNoPermitida.ogg"
+path = "sound/accionNoPermitida.wav"
 volumen = 80

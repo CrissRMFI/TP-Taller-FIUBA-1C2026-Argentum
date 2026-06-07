@@ -118,13 +118,15 @@ void ClientGameLoop::handleEvents() {
         }
         // Rueda del mouse: scrollea la lista de comercio del panel.
         if (event.type == SDL_MOUSEWHEEL) {
+            // Scroll de la lista de venta. Permitimos ocultar todos los items (hasta 'total')
+            // para que, en el sacerdote, queden a la vista los hechizos en venta de abajo.
             const int total = static_cast<int>(object_state.stockNpc().size());
             scrollComercio -= event.wheel.y;
             if (scrollComercio < 0) {
                 scrollComercio = 0;
             }
-            if (scrollComercio > std::max(0, total - 1)) {
-                scrollComercio = std::max(0, total - 1);
+            if (scrollComercio > total) {
+                scrollComercio = total;
             }
             continue;
         }
