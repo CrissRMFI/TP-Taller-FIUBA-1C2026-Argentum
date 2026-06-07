@@ -20,9 +20,11 @@
 #include "../persistencia/serializador_jugador.h"
 #include "../../common/persistencia/error_persistencia.h"
 
-Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, Mapa&& mapa) :
+Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hechizos,
+             Mapa&& mapa) :
         cfg(cfg),
         catalogo(std::move(cat)),
+        catalogoHechizos(std::move(hechizos)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mapa(std::move(mapa)),

@@ -3,10 +3,12 @@
 
 #include "config_juego.h"
 #include "../objeto/catalogo_items.h"
+#include "../objeto/hechizo.h"
 
 struct ConfigCompleta {
-    ConfigJuego   juego;
-    CatalogoItems items;
+    ConfigJuego      juego;
+    CatalogoItems    items;
+    CatalogoHechizos hechizos;
 };
 
 #endif

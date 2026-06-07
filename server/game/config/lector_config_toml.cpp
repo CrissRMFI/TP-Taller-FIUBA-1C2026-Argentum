@@ -291,6 +291,31 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
     }
 }
 
+static void poblarHechizos(CatalogoHechizos& catalogo, const toml::table& tbl) {
+    const toml::table* hechizosTbl = tbl["hechizos"].as_table();
+    if (hechizosTbl == nullptr) {
+        return;  // seccion opcional
+    }
+    for (auto& [nombreKey, node] : *hechizosTbl) {
+        const std::string nombre(nombreKey.str());
+        const auto* h = node.as_table();
+        if (!h) {
+            throw std::runtime_error("Entrada TOML invalida: hechizos." + nombre);
+        }
+        Hechizo hz;
+        hz.id = leerUint16EnTabla(*h, "id", rutaToml("hechizos", nombre, "id"));
+        hz.nombre = leerStringEnTabla(*h, "nombre", rutaToml("hechizos", nombre, "nombre"));
+        const std::string tipo =
+                leerStringEnTabla(*h, "tipo", rutaToml("hechizos", nombre, "tipo"));
+        hz.tipo = (tipo == "cura") ? TipoHechizoEfecto::Cura : TipoHechizoEfecto::Danio;
+        hz.min = leerUint16EnTabla(*h, "min", rutaToml("hechizos", nombre, "min"), true);
+        hz.max = leerUint16EnTabla(*h, "max", rutaToml("hechizos", nombre, "max"), true);
+        hz.mana = leerUint16EnTabla(*h, "mana", rutaToml("hechizos", nombre, "mana"), true);
+        hz.precio = static_cast<uint32_t>((*h)["precio"].value_or<int64_t>(0));
+        catalogo.registrar(hz);
+    }
+}
+
 void LectorConfigToml::cargarSpawn(const toml::table& tbl, ConfigJuego& cfg) {
     const toml::table& spawn = leerSubtablaObligatoria(tbl, "mapa", "spawn");
 
@@ -446,6 +471,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     ConfigCompleta resultado;
     resultado.juego = cfg;
     poblarCatalogo(resultado.items, tbl);
+    poblarHechizos(resultado.hechizos, tbl);
 
     return resultado;
 }
