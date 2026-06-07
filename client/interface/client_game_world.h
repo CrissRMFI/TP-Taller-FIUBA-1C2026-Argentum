@@ -15,6 +15,7 @@ struct EntityAnimationState {
     bool is_moving = false;
     uint32_t last_motion_tick = 0;
     int animation_row = 0;
+    int walk_frame = 0; // ajuste walk frame animacion cambia por tile a medida posicion cambia
     uint32_t move_start_tick = 0;
 };
 
@@ -50,8 +51,8 @@ public:
     bool player_is_moving() const;
     bool entity_is_moving(uint16_t entity_id) const;
     int entity_animation_row(uint16_t entity_id) const;
+    int entity_walk_frame(uint16_t entity_id) const;
 };
 
 
 #endif
-

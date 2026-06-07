@@ -55,12 +55,6 @@ void ObjectGameWorld::upload_server_msg(
     MensajeServidor mensaje;
     while (server_msgs.try_pop(mensaje)) {
         if (auto* entity_position = std::get_if<MensajePosicionEntidad>(&mensaje.payload)) {
-            if (entity_position->tipo == 0) {
-                std::cout << "[client_game_world] [" << idCliente << "] " << "entity_id " << entity_position->id
-                << " body id: " << entity_position->cuerpo << " cabeza id: " << entity_position->cabeza
-                << std::endl;
-
-            }
             const auto previous_entity = entidades.find(entity_position->id);
             const bool esNueva = (previous_entity == entidades.end());
             const int previous_x =
@@ -76,10 +70,12 @@ void ObjectGameWorld::upload_server_msg(
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
             if (position_changed) {
-                animation_state.animation_row = animation_row_for_delta(
+                int actual_animation = animation_row_for_delta(
                         static_cast<int>(entity_position->x) - previous_x,
                         static_cast<int>(entity_position->y) - previous_y,
                         animation_state.animation_row);
+                animation_state.animation_row = actual_animation;
+                animation_state.walk_frame += 2;
 
                 animation_state.last_motion_tick = current_tick;
 
@@ -271,8 +267,6 @@ int ObjectGameWorld::player_y() const {
 // }
 
 bool ObjectGameWorld::entity_is_moving(const uint16_t entity_id) const {
-    // const auto it = animation_states.find(entity_id);
-    // return it != animation_states.end() && it->second.is_moving;
     const auto it = animation_states.find(entity_id);
     if (it == animation_states.end()) return false;
     if (!it->second.is_moving) return false;
@@ -282,4 +276,9 @@ bool ObjectGameWorld::entity_is_moving(const uint16_t entity_id) const {
 int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
     const auto it = animation_states.find(entity_id);
     return (it != animation_states.end()) ? it->second.animation_row : 0;
+}
+
+int ObjectGameWorld::entity_walk_frame(const uint16_t entity_id) const {
+    const auto it = animation_states.find(entity_id);
+    return (it != animation_states.end()) ? it->second.walk_frame : 0;
 }

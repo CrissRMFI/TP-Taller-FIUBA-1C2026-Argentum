@@ -186,10 +186,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
         const int entity_x = entity.x * window_width / mapa.getAncho();
         const int entity_y = entity.y * window_height / mapa.getAlto();
 
-        if (entity.tipo == 0 && sprite_manager) {
+        if (entity.tipo == 0) {
             const int animation_row = state_object.entity_animation_row(id);
-
-            const int frame_index = state_object.entity_is_moving(id) ? sprite_manager->current_frame_index() : 0;
+            const int frame_index =
+                    state_object.entity_is_moving(id) ? state_object.entity_walk_frame(id) : 0;
 
             if (!character_renderer) { continue; }
 
