@@ -231,8 +231,7 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
         despacharComando({Opcode::LANZAR_HECHIZO,
                           ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
-        // FX visual sobre el objetivo (o sobre uno mismo si es cura sin objetivo).
-        object_renderer.iniciarFx(idHechizo, objetivo.value_or(object_state.client_id()));
+        // El FX lo difunde el server (FX_HECHIZO) para que lo vean todos, incluido el que lanza.
         return;
     }
     // Lista de hechizos del sacerdote: comprar.
@@ -387,6 +386,10 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
     object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
+    // FX de hechizos que el server difundio (para que todos vean los lanzamientos).
+    for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
+        object_renderer.iniciarFx(idHechizo, idObjetivo);
+    }
     object_renderer.update_animation(it, object_state, object_animation);
 }
 
@@ -410,6 +413,21 @@ void ClientGameLoop::render() {
     const std::optional<uint16_t> objetivoPanel = handler.objetivoSeleccionado();
     panel.sacerdoteSeleccionado =
             objetivoPanel.has_value() && object_renderer.esSacerdote(*objetivoPanel);
+
+    // Resaltado del objetivo: solo si la seleccion es valida por distancia (en rango).
+    uint16_t objetivoResaltado = 0;
+    if (objetivoPanel.has_value()) {
+        const auto& ents = object_state.entities();
+        const auto it = ents.find(*objetivoPanel);
+        if (it != ents.end()) {
+            const int dist = std::abs(static_cast<int>(it->second.x) - object_state.player_x()) +
+                             std::abs(static_cast<int>(it->second.y) - object_state.player_y());
+            if (dist <= config.seleccionRango) {
+                objetivoResaltado = *objetivoPanel;
+            }
+        }
+    }
+    object_renderer.resaltarObjetivo(objetivoResaltado);
 
     EstadoBancoRender banco;
     banco.abierto = object_state.bancoRecibido();

@@ -102,5 +102,8 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     leerInt("gap", cfg.bancoGap);
     leerInt("cols", cfg.bancoCols);
 
+    cfg.seleccionRango = static_cast<int>(
+            tbl["seleccion"]["rango"].value_or<int64_t>(cfg.seleccionRango));
+
     return cfg;
 }

@@ -39,6 +39,10 @@ struct ConfigCliente {
     int bancoSlot = 32;
     int bancoGap = 4;
     int bancoCols = 6;
+
+    // Rango (distancia Manhattan en celdas) para considerar valida la seleccion de un
+    // objetivo: si esta mas lejos, no se resalta.
+    int seleccionRango = 10;
 };
 
 #endif

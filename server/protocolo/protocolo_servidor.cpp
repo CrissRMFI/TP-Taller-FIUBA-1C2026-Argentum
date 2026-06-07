@@ -525,6 +525,10 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarListaHechizos(std::get<MensajeListaHechizos>(mensaje.payload));
             break;
 
+        case Opcode::FX_HECHIZO:
+            enviarFxHechizo(std::get<MensajeFxHechizo>(mensaje.payload));
+            break;
+
         case Opcode::ERROR_ACCION:
             enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
             break;
@@ -693,6 +697,12 @@ void ProtocoloServidor::enviarListaHechizos(const MensajeListaHechizos& mensaje)
     for (uint16_t id : mensaje.ids) {
         enviarDosBytes(id);
     }
+}
+
+void ProtocoloServidor::enviarFxHechizo(const MensajeFxHechizo& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::FX_HECHIZO));
+    enviarDosBytes(mensaje.idHechizo);
+    enviarDosBytes(mensaje.idObjetivo);
 }
 
 void ProtocoloServidor::enviarContenidoBanco(const MensajeContenidoBanco& mensaje) {

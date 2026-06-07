@@ -251,6 +251,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int entity_x = static_cast<int>(interpolated_position.x * gw / mapa.getAncho());
         const int entity_y = gy0 + static_cast<int>(interpolated_position.y * gh / mapa.getAlto());
 
+        const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
+
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
             const int frame_index =
@@ -259,7 +261,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                 continue;
             }
             character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                       cell_height, animation_row, frame_index);
+                                       cell_height, animation_row, frame_index, resaltar);
             if (entity.estado == 2) {  // Meditando: aura animada encima del personaje
                 dibujar_meditacion(entity_x, entity_y, cell_width, cell_height, current_tick);
             }
@@ -271,7 +273,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                 continue;
             }
             criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                      cell_height, 0, 0);
+                                      cell_height, 0, 0, resaltar);
             continue;
         }
 
@@ -619,6 +621,10 @@ bool ObjectRenderer::esSacerdote(uint16_t id) const {
 
 void ObjectRenderer::iniciarFx(uint16_t spellId, uint16_t targetId) {
     fx_activos.push_back({spellId, targetId, SDL_GetTicks()});
+}
+
+void ObjectRenderer::resaltarObjetivo(uint16_t id) {
+    objetivo_resaltado = id;
 }
 
 uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {

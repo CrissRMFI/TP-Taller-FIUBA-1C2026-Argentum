@@ -1,5 +1,7 @@
 #include "character_renderer.h"
 
+#include <utility>
+
 #include "SDL_render.h"
 
 namespace {
@@ -68,7 +70,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
                                const int cell_width,
                                const int cell_height,
                                const int animation_row,
-                               const int frame_index) const {
+                               const int frame_index,
+                               const bool resaltar) const {
     const auto resolved = resolver_.resolveSprite(entity);
     const int effective_frame_index = (entity.estado == 1) ? 0 : frame_index;
     int body_x = entity_x;
@@ -89,6 +92,18 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         body_x = anchor_x - body_width / 2 + resolved.body->definition->draw_offset.x;
         body_y = anchor_y - body_height + resolved.body->definition->draw_offset.y;
         SDL_SetTextureBlendMode(resolved.body->texture->Get(), SDL_BLENDMODE_BLEND);
+        // Resaltado: contorno verde de la silueta (cuerpo desplazado en 4 direcciones).
+        if (resaltar) {
+            SDL_SetTextureColorMod(resolved.body->texture->Get(), 80, 255, 120);
+            const int o = 2;
+            for (const auto& d : {std::pair{-o, 0}, std::pair{o, 0}, std::pair{0, -o},
+                                  std::pair{0, o}}) {
+                renderer.Copy(*resolved.body->texture, to_sdl_rect(body_src),
+                              SDL2pp::Rect(body_x + d.first, body_y + d.second, body_width,
+                                           body_height));
+            }
+            SDL_SetTextureColorMod(resolved.body->texture->Get(), 255, 255, 255);
+        }
         const uint8_t alpha =
                 (entity.estado == 1 || entity.estado == 2 || entity.estado == 3) ? 128 : 255;
         SDL_SetTextureAlphaMod(resolved.body->texture->Get(), alpha);

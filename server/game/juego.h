@@ -79,6 +79,8 @@ class Juego {
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarContenidoBanco(uint16_t idCliente, Banquero& banquero);
     EventoSalida armarListaHechizos(uint16_t idCliente, const Jugador& jugador);
+    std::list<EventoSalida> armarFxHechizoParaMapa(uint16_t idHechizo, uint16_t idObjetivo,
+                                                   uint16_t mapaId);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);

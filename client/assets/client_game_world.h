@@ -4,6 +4,7 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "client/entidad_renderizable.h"
@@ -79,6 +80,8 @@ private:
     uint32_t              bancoOro_ = 0;   // oro guardado en el banco
     bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
     std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
+    // FX de hechizos recibidos del server (idHechizo, idObjetivo); el loop los pasa al renderer.
+    std::vector<std::pair<uint16_t, uint16_t>> fxPendientes_;
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea);
@@ -110,6 +113,8 @@ public:
     bool bancoRecibido() const;
     void cerrarBanco();
     const std::vector<uint16_t>& hechizosConocidos() const;
+    // Devuelve y limpia los FX de hechizo recibidos desde el ultimo frame.
+    std::vector<std::pair<uint16_t, uint16_t>> drenarFx();
 };
 
 

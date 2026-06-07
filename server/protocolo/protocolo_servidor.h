@@ -97,6 +97,7 @@ class ProtocoloServidor : public Protocolo {
     void enviarListaItems(const MensajeListaItems& mensaje);
     void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);
     void enviarListaHechizos(const MensajeListaHechizos& mensaje);
+    void enviarFxHechizo(const MensajeFxHechizo& mensaje);
     void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 

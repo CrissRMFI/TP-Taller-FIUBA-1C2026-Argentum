@@ -68,3 +68,8 @@ inv_y    = 127
 slot     = 32
 gap      = 4
 cols     = 6
+
+[seleccion]
+# Distancia (en celdas, Manhattan) hasta la cual una seleccion de objetivo se considera
+# valida y se resalta en pantalla. Mas lejos: no se resalta.
+rango = 10

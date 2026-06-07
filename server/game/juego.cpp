@@ -1567,6 +1567,18 @@ EventoSalida Juego::armarListaHechizos(uint16_t idCliente, const Jugador& jugado
     return {TipoDestino::UNO, idCliente, EventoListaHechizos{jugador.getHechizosConocidos()}};
 }
 
+std::list<EventoSalida> Juego::armarFxHechizoParaMapa(uint16_t idHechizo, uint16_t idObjetivo,
+                                                      uint16_t mapaId) {
+    std::list<EventoSalida> mensajes;
+    const EventoFxHechizo fx{idHechizo, idObjetivo};
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (otro.getPosicion().mapaId == mapaId) {
+            mensajes.push_back(EventoSalida{TipoDestino::UNO, idOtro, fx});
+        }
+    }
+    return mensajes;
+}
+
 std::list<EventoSalida> Juego::ejecutarComprarHechizo(uint16_t idCliente,
                                                       const ComandoComprarHechizo& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
@@ -1618,6 +1630,8 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
         if (idObj.has_value() && *idObj != idCliente) {
             mensajes.push_back(armarEstado(*idObj, *objetivo));
         }
+        mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(cmd.idHechizo, objetivo->getId(),
+                                                               lanzador->getPosicion().mapaId));
         return mensajes;
     }
 
@@ -1638,6 +1652,8 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
             mensajes.splice(mensajes.end(),
                             emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
         }
+        mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(cmd.idHechizo, objetivo->getId(),
+                                                               lanzador->getPosicion().mapaId));
         return mensajes;
     }
 
@@ -1690,6 +1706,8 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
             }
         }
     }
+    mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(cmd.idHechizo, cmd.idObjetivo,
+                                                           lanzador->getPosicion().mapaId));
     return mensajes;
 }
 

@@ -58,6 +58,7 @@ private:
         uint32_t startTick;
     };
     std::vector<FxActivo> fx_activos;
+    uint16_t objetivo_resaltado = 0;  // entidad seleccionada a resaltar (0 = ninguna)
     int last_animation_row = -1;
     int window_width = 0;
     int window_height = 0;
@@ -116,6 +117,8 @@ public:
     bool esSacerdote(uint16_t id) const;
     // Inicia la animacion de FX de un hechizo sobre un objetivo (se dibuja unos frames).
     void iniciarFx(uint16_t spellId, uint16_t targetId);
+    // Marca la entidad seleccionada para resaltarla (0 = ninguna).
+    void resaltarObjetivo(uint16_t id);
     // Banco: hit-test (devuelven indice de slot o -1; los botones true/false).
     int bancoBovedaClickeada(int x, int y) const;
     int bancoInvClickeado(int x, int y) const;

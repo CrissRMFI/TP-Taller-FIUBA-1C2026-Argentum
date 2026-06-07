@@ -97,6 +97,7 @@ private:
     MensajeServidor recibirListaItems();
     MensajeServidor recibirContenidoBanco();
     MensajeServidor recibirListaHechizos();
+    MensajeServidor recibirFxHechizo();
     MensajeServidor recibirErrorAccion();
 };
 
