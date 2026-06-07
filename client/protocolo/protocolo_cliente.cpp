@@ -378,6 +378,9 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::LISTA_ITEMS:
             return recibirListaItems();
 
+        case Opcode::CONTENIDO_BANCO:
+            return recibirContenidoBanco();
+
         case Opcode::ERROR_ACCION:
             return recibirErrorAccion();
 
@@ -554,6 +557,20 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
     return MensajeServidor{
             Opcode::LISTA_ITEMS,
             MensajeListaItems{ids},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirContenidoBanco() {
+    uint8_t cantidad = recibirUnByte();
+    std::vector<uint16_t> items;
+    items.reserve(cantidad);
+    for (uint8_t i = 0; i < cantidad; ++i) {
+        items.push_back(recibirDosBytes());
+    }
+    uint32_t oroBanco = recibirCuatroBytes();
+    return MensajeServidor{
+            Opcode::CONTENIDO_BANCO,
+            MensajeContenidoBanco{items, oroBanco},
     };
 }
 

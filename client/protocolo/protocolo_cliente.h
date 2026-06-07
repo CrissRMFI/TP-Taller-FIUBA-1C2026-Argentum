@@ -93,6 +93,7 @@ private:
     MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
+    MensajeServidor recibirContenidoBanco();
     MensajeServidor recibirErrorAccion();
 };
 
