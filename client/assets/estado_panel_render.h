@@ -20,7 +20,7 @@ struct ConfigPanelRender {
     std::string botonCurar = "imgs/ui/es_boton-curar.bmp";
     std::string barraVida = "imgs/ui/en_barradevida.bmp";
     std::string barraMana = "imgs/ui/en_barrademana.bmp";
-    // Banco (ventana modal).
+    std::string spriteMeditacion = "imgs/estados/3446.png"; // Aura meditar
     std::string bancoImg = "imgs/ui/es_banco.bmp";
     std::string botonDepositar = "imgs/ui/es_boton-depositar.bmp";
     std::string botonRetirar = "imgs/ui/es_boton-retirar.bmp";

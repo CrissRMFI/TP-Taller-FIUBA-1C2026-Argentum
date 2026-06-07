@@ -244,6 +244,7 @@ private:
     Raza raza;
     uint16_t cabeza;
     uint16_t cuerpo;
+    uint16_t cuerpoBase; 
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
     float tiempoDesdeUltimoAtaque;
@@ -261,6 +262,7 @@ private:
     void morir();
     void perder_experiencia(uint32_t cantidad);
     void consumir_item(uint16_t idItem);
+    void actualizarCuerpoPorArmadura(const CatalogoItems& catalogo);
     void normalizarOro();
     bool esquiva_ataque(Aleatorio& aleatorio);
     bool es_golpe_critico(Aleatorio& aleatorio);

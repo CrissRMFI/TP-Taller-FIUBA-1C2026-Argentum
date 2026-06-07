@@ -68,6 +68,8 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         moviendose(false),
         direccionMov(0),
         ticksAcumuladosMov(0) {
+    
+    cuerpoBase = cuerpo;
     const StatsRaza& sr = cfg.statsRaza(raza);
 
     fuerza = static_cast<uint8_t>(sr.fuerza);
@@ -93,6 +95,7 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     experiencia = datos.experiencia;
     cabeza = datos.skinCabeza;
     cuerpo = datos.skinCuerpo;
+    cuerpoBase = datos.skinCuerpo;
 
     moviendose = false;
     direccionMov = 0;
@@ -551,10 +554,26 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
             return false;
         }
 
-        return inventario.equiparPiezaSlot(indice, defensa->getSlot());
+        const bool ok = inventario.equiparPiezaSlot(indice, defensa->getSlot());
+        if (ok && defensa->getSlot() == TipoDefensa::Armadura) {
+            actualizarCuerpoPorArmadura(catalogo);  // vestimenta: cambia el cuerpo renderizado
+        }
+        return ok;
     }
 
     return inventario.equiparSlot(indice, item->getTipo());
+}
+
+void Jugador::actualizarCuerpoPorArmadura(const CatalogoItems& catalogo) {
+    const uint16_t idArmadura = inventario.getDefensaEquipada();
+    if (idArmadura != 0) {
+        const Defensa* defensa = catalogo.comoDefensa(idArmadura);
+        if (defensa != nullptr && defensa->getSpriteCuerpo() != 0) {
+            cuerpo = defensa->getSpriteCuerpo();
+            return;
+        }
+    }
+    cuerpo = cuerpoBase;
 }
 
 bool Jugador::agregar_item_banco(uint8_t indice) {
