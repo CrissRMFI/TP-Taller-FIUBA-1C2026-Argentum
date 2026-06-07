@@ -10,8 +10,8 @@
 
 #include "SDL2pp/Texture.hh"
 #include "common/game/npc/npc.h"
-#include "sprite_catalog.h"
-#include "texture_cache.h"
+#include "client/interface/sprites/sprite_catalog.h"
+#include "client/interface/texture_cache.h"
 
 struct ResolvedNpcPart {
     SDL2pp::Texture* texture;

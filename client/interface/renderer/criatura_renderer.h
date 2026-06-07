@@ -6,14 +6,16 @@
 #define TALLER_TP_CRIATURA_RENDERER_H
 
 
-#include "criatura_sprite_resolver.h"
+#include "client/interface/sprites_resolver/criatura_sprite_resolver.h"
 
 
 class CriaturaRenderer {
 private:
     CreatureSpriteResolver& resolver_;
+    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
 
 public:
+
     explicit CriaturaRenderer(CreatureSpriteResolver& resolver);
 
     void render(SDL2pp::Renderer& renderer,

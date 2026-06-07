@@ -4,16 +4,16 @@
 
 #include "criatura_renderer.h"
 
-namespace {
+// modifca el tamaño de las criaturas en la pantalla
 constexpr float CHARACTER_SCALE = 0.30f;
-SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
+
+SDL2pp::Rect CriaturaRenderer::to_sdl_rect(const SpriteRect& rect) const {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
 
-}  // namespace
-
 CriaturaRenderer::CriaturaRenderer(CreatureSpriteResolver& resolver):
         resolver_(resolver) {}
+
 // tengo que ajustar el tamaño de corte
 void CriaturaRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity,
                               const int entity_x, const int entity_y, const int  cell_width,

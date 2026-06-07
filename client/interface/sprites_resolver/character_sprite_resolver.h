@@ -7,8 +7,8 @@
 
 #include "SDL2pp/Texture.hh"
 #include "client/entidad_renderizable.h"
-#include "sprite_catalog.h"
-#include "texture_cache.h"
+#include "client/interface/sprites/sprite_catalog.h"
+#include "client/interface/texture_cache.h"
 //  se encarga de armar la estructura del personaje
 struct ResolvedCharacterPart {
     SDL2pp::Texture* texture;

@@ -2,16 +2,16 @@
 
 #include "SDL_render.h"
 
-namespace {
 constexpr float CHARACTER_SCALE = 1.0f;
-//constexpr int OFF_POSITION = 5;
 
-SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
+
+SDL2pp::Rect CharacterRenderer::to_sdl_rect(const SpriteRect& rect) const {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
 
-SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int animation_row,
-                             int frame_index) {
+SpriteRect CharacterRenderer::body_src_rect_for(const CharacterPartDefinition& definition,
+                                                const int animation_row,
+                                                const int frame_index) const {
     const auto& row = definition.rows.at(animation_row);
     if (!row.has_value()) {
         return definition.scr_body;
@@ -20,22 +20,22 @@ SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int anim
     const int clamped_frame = row->frames > 0 ? frame_index % row->frames : 0;
     if (!definition.frame_size.has_value()) {
         return {
-                clamped_frame * row->step_x + definition.scr_body.x,
-                row->y + definition.scr_body.y,
-                definition.scr_body.width,
-                definition.scr_body.height};
+            clamped_frame * row->step_x + definition.scr_body.x,
+            row->y + definition.scr_body.y,
+            definition.scr_body.width,
+            definition.scr_body.height};
     }
 
     const int frame_w = definition.frame_size->x;
     const int frame_h = definition.frame_size->y;
     return {
-            clamped_frame * frame_w + row->step_x,
-            row->row * frame_h + row->y,
-            definition.scr_body.width,
-            definition.scr_body.height};
+        clamped_frame * frame_w + row->step_x,
+        row->row * frame_h + row->y,
+        definition.scr_body.width,
+        definition.scr_body.height};
 }
 
-SpriteRect head_src_rect_for(const CharacterPartDefinition& definition, int animation_row) {
+SpriteRect CharacterRenderer::head_src_rect_for(const CharacterPartDefinition& definition, int animation_row) const {
     const auto& direction = definition.directions.at(animation_row);
     if (!direction.has_value()) {
         return definition.scr_head;
@@ -43,32 +43,27 @@ SpriteRect head_src_rect_for(const CharacterPartDefinition& definition, int anim
 
     if (!definition.frame_size.has_value()) {
         return {
-                direction->src.x + definition.scr_head.x,
-                direction->src.y + definition.scr_head.y,
-                definition.scr_head.width,
-                definition.scr_head.height};
+            direction->src.x + definition.scr_head.x,
+            direction->src.y + definition.scr_head.y,
+            definition.scr_head.width,
+            definition.scr_head.height};
     }
 
     const int frame_width = definition.frame_size->x;
     return {
-            direction->column * frame_width + definition.scr_head.x,
-            definition.scr_head.y,
-            definition.scr_head.width,
-            definition.scr_head.height};
+        direction->column * frame_width + definition.scr_head.x,
+        definition.scr_head.y,
+        definition.scr_head.width,
+        definition.scr_head.height};
 }
 
-}  // namespace
+CharacterRenderer::CharacterRenderer(CharacterSpriteResolver& resolver): resolver_(resolver) {
+}
 
-CharacterRenderer::CharacterRenderer(CharacterSpriteResolver& resolver): resolver_(resolver) {}
 
-void CharacterRenderer::render(SDL2pp::Renderer& renderer,
-                               const EntidadRenderizable& entity,
-                               const int entity_x,
-                               const int entity_y,
-                               const int cell_width,
-                               const int cell_height,
-                               const int animation_row,
-                               const int frame_index) const {
+void CharacterRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity, const int entity_x,
+                               const int entity_y, const int cell_width, const int cell_height,
+                               const int animation_row, const int frame_index) const {
     const auto resolved = resolver_.resolveSprite(entity);
     const int effective_frame_index = (entity.estado == 1) ? 0 : frame_index;
     int body_x = entity_x;

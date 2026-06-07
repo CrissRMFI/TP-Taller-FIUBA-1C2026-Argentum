@@ -2,13 +2,19 @@
 #define TALLER_TP_CHARACTER_RENDERER_H
 
 #include "SDL2pp/Renderer.hh"
-#include "character_sprite_resolver.h"
+#include "client/interface/sprites_resolver/character_sprite_resolver.h"
 #include "client/entidad_renderizable.h"
 
 // dibujamos al personaje
 class CharacterRenderer {
 private:
     CharacterSpriteResolver& resolver_;
+    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
+    SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int animation_row,
+                                 int frame_index) const;
+    SpriteRect head_src_rect_for(const CharacterPartDefinition& definition,
+                                 int animation_row) const;
+
 
 public:
     explicit CharacterRenderer(CharacterSpriteResolver& resolver);

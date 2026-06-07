@@ -11,15 +11,15 @@
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Texture.hh"
 #include "SDL2pp/Window.hh"
-#include "character_renderer.h"
-#include "character_sprite_resolver.h"
-#include "client_game_world.h"
-#include "criatura_renderer.h"
-#include "criatura_sprite_resolver.h"
-#include "npc_renderer.h"
-#include "npc_sprite_resolver.h"
-#include "object_animation.h"
-#include "sprite_manager.h"
+#include "../renderer/character_renderer.h"
+#include "client/interface/client_game_world.h"
+#include "client/interface/object_animation.h"
+#include "client/interface/sprite_manager.h"
+#include "client/interface/sprites_resolver/character_sprite_resolver.h"
+#include "../renderer/criatura_renderer.h"
+#include "client/interface/sprites_resolver/criatura_sprite_resolver.h"
+#include "../renderer/npc_renderer.h"
+#include "client/interface/sprites_resolver/npc_sprite_resolver.h"
 #include "../../common/game/mapa/mapa.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
@@ -50,10 +50,10 @@ public:
     ObjectRenderer();
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
               bool vsync, int loop_fps);
-    void update_animation(/*uint32_t current_tick*/  int it,
+    void update_animation( int it,
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
-    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);
+    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

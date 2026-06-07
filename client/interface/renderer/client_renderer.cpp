@@ -15,7 +15,7 @@
 #define SPRITE_ANIMATION_FPS 8
 
 #ifndef CLIENT_ASSETS_DIR
-#define CLIENT_ASSETS_DIR "client/assets"
+#define CLIENT_ASSETS_DIR "client/interface"
 #endif
 
 #ifndef CLIENT_MAP_PATH
@@ -35,14 +35,10 @@ Mapa ObjectRenderer::cargarMapa() const {
 
 ObjectRenderer::ObjectRenderer() : mapa(cargarMapa()) {}
 
-void ObjectRenderer::init(const char* title,
-                          const int xpos,
-                          const int ypos,
-                          const int width,
-                          const int height,
-                          const bool fullscreen,
-                          const bool vsync,
-                          const int loop_fps) {
+void ObjectRenderer::init(const char* title, const int xpos, const int ypos,
+                          const int width, const int height, const bool fullscreen,
+                          const bool vsync, const int loop_fps) {
+
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -51,7 +47,7 @@ void ObjectRenderer::init(const char* title,
     image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
 
-    
+
     uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
     if (vsync) {
         renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -77,34 +73,14 @@ void ObjectRenderer::init(const char* title,
         cache_texture = std::make_unique<TextureCache>(*renderer, resources_root);
         resolver_sprite =
                 std::make_unique<CharacterSpriteResolver>(*catalog, *cache_texture);
-
         character_renderer = std::make_unique<CharacterRenderer>(*resolver_sprite);
-
         creature_sprite_resolver =
                 std::make_unique<CreatureSpriteResolver>(*catalog, *cache_texture);
-
         criatura_renderer = std::make_unique<CriaturaRenderer>(*creature_sprite_resolver);
         npc_sprite_resolver = std::make_unique<NpcSpriteResolver>(*catalog, *cache_texture);
         npc_renderer = std::make_unique<NPCRenderer>(*npc_sprite_resolver);
-
         sprite_manager = std::make_unique<SpriteManager>(SPRITE_ANIMATION_FPS, loop_fps);
 
-        const SkinPreset& default_skin = catalog->skin_preset("humano_default");
-
-        if (!default_skin.body_ids.empty()) {
-            const CharacterPartDefinition& body_definition =
-                    catalog->body(default_skin.body_ids.front());
-            const SpriteVec2 frame_size = body_definition.frame_size.value_or(
-                    SpriteVec2{body_definition.visible_size.x, body_definition.visible_size.y});
-            for (int row = 0; row < 4; ++row) {
-                if (!body_definition.rows[row].has_value()) {
-                    continue;
-                }
-                sprite_manager->add_animation(
-                        row, body_definition.rows[row]->frames, frame_size.x, frame_size.y, 0,
-                        body_definition.rows[row]->y, body_definition.rows[row]->step_x);
-            }
-        }
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el sprite del jugador: " << e.what() << std::endl;
     }
@@ -112,20 +88,25 @@ void ObjectRenderer::init(const char* title,
     window->Raise();
 }
 
-void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int it,
+void ObjectRenderer::update_animation( const int it,
                                       const ObjectGameWorld& state_object,
                                       const ObjectAnimation& animation) {
-    if (!sprite_manager) {
-        return;
-    }
+    if (!sprite_manager) { return;}
 
     bool has_moving_character = false;
     int current_row = animation.current_animation_row();
+    int current_frame_count = 0;
     for (const auto& [id, entity] : state_object.entities()) {
         if (entity.tipo != 0 || !state_object.entity_is_moving(id)) {
             continue;
         }
         current_row = state_object.entity_animation_row(id);
+        if (catalog && catalog->has_body(entity.cuerpo)) {
+            const CharacterPartDefinition& body_definition = catalog->body(entity.cuerpo);
+            if (body_definition.rows[current_row].has_value()) {
+                current_frame_count = body_definition.rows[current_row]->frames;
+            }
+        }
         has_moving_character = true;
         break;
     }
@@ -135,19 +116,15 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
         last_animation_row = current_row;
     }
 
-    if (has_moving_character) {
-        sprite_manager->update(it, current_row);
+    if (has_moving_character && current_frame_count > 0) {
+        sprite_manager->update(it, current_frame_count);
     } else {
         sprite_manager->reset_frame();
     }
 }
 
-void ObjectRenderer::render(const ObjectGameWorld& state_object,
-                            const ObjectAnimation& /*animation*/) {
-    if (!renderer) {
-        return;
-    }
-    const uint32_t current_tick = SDL_GetTicks();
+void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAnimation& /*animation*/) const {
+    if (!renderer) { return; }
 
     if (background_texture) {
         renderer->Clear();
@@ -175,12 +152,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int sacerdote_x = sacerdote.getPosicion().x * window_width / mapa.getAncho();
         const int sacerdote_y = sacerdote.getPosicion().y * window_height / mapa.getAlto();
 
-        if (!npc_renderer) {
-            continue;
-        }
+        if (!npc_renderer) { continue; }
 
-        npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width,
-                             cell_height, 0, 0);
+        npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width, cell_height, 0, 0);
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
@@ -189,53 +163,43 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int banquero_x = banquero.getPosicion().x * window_width / mapa.getAncho();
         const int banquero_y = banquero.getPosicion().y * window_height / mapa.getAlto();
 
-        if (!npc_renderer) {
-            continue;
-        }
+        if (!npc_renderer) { continue; }
 
-        npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width,
-                             cell_height, 0, 0);
+        npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width, cell_height, 0, 0);
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
+
         const int cell_width = window_width / mapa.getAncho();
         const int cell_height = window_height / mapa.getAlto();
         const int comerciante_x = comerciante.getPosicion().x * window_width / mapa.getAncho();
         const int comerciante_y = comerciante.getPosicion().y * window_height / mapa.getAlto();
 
-        if (!npc_renderer) {
-            continue;
-        }
-        npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width,
-                             cell_height, 0, 0);
-    } 
+        if (!npc_renderer) { continue;}
+        npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width, cell_height, 0, 0);
+    }
 
     for (const auto& [id, entity] : state_object.entities()) {
+
         const int cell_width = window_width / mapa.getAncho();
         const int cell_height = window_height / mapa.getAlto();
-        const InterpolatedPosition interpolated_position =
-                state_object.entity_interpolated_position(id, current_tick);
-        const int entity_x = static_cast<int>(interpolated_position.x * window_width / mapa.getAncho());
-        const int entity_y = static_cast<int>(interpolated_position.y * window_height / mapa.getAlto());
+        const int entity_x = entity.x * window_width / mapa.getAncho();
+        const int entity_y = entity.y * window_height / mapa.getAlto();
 
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
-            const int frame_index =
-                    state_object.entity_is_moving(id) ? sprite_manager->current_frame_index() : 0;
-            if (!character_renderer) {
-                continue;
-            }
-            character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                       cell_height, animation_row, frame_index);
+
+            const int frame_index = state_object.entity_is_moving(id) ? sprite_manager->current_frame_index() : 0;
+
+            if (!character_renderer) { continue; }
+
+            character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width, cell_height, animation_row, frame_index);
             continue;
         }
 
         if (entity.tipo == 1) {
-            if (!criatura_renderer) {
-                continue;
-            }
-            criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
-                                      cell_height, 0, 0);
+            if (!criatura_renderer) { continue; }
+            criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width, cell_height, 0, 0);
             continue;
         }
 
@@ -246,6 +210,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
 
     renderer->Present();
 }
+
+
 SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
     if (tipo == 0) {
         switch (estado) {
