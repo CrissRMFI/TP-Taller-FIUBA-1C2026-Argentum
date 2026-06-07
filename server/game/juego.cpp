@@ -1514,8 +1514,10 @@ std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comando
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    return {armarInventario(idCliente, *jugador), armarEquipamiento(idCliente, *jugador),
-            armarEstado(idCliente, *jugador)};
+    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador), armarEquipamiento(idCliente, *jugador), armarEstado(idCliente, *jugador)};
+    
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsar& cmd) {

@@ -64,17 +64,21 @@ private:
 
 class Defensa : public Item {
 public:
-    Defensa(uint16_t id, const std::string& nombre, uint8_t defMin, uint8_t defMax, TipoDefensa slot)
-        : Item(id, nombre, TipoItem::Defensa), defMin(defMin), defMax(defMax), slot(slot) {}
+    Defensa(uint16_t id, const std::string& nombre, uint8_t defMin, uint8_t defMax, TipoDefensa slot,
+            uint16_t spriteCuerpo = 0)
+        : Item(id, nombre, TipoItem::Defensa), defMin(defMin), defMax(defMax), slot(slot),
+          spriteCuerpo(spriteCuerpo) {}
 
     uint8_t getDefMin() const { return defMin; }
     uint8_t getDefMax() const { return defMax; }
     TipoDefensa getSlot() const { return slot; }
+    uint16_t getSpriteCuerpo() const { return spriteCuerpo; }
 
 private:
     uint8_t defMin;
     uint8_t defMax;
     TipoDefensa slot;
+    uint16_t spriteCuerpo;
 };
 
 class Pocion : public Item {

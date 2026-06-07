@@ -191,23 +191,28 @@ danio_max  = 0
 costo_mana = 100
 
 # Armaduras
+# sprite_cuerpo: cuerpo (vestimenta) que muestra el personaje al equiparla. Contrato con
+# el cliente (sprites.toml -> character_parts.bodies.<id>).
 [items.armadura_cuero]
 id          = 10
 tipo        = "armadura"
 defensa_min = 2
 defensa_max = 6
+sprite_cuerpo = 1084
 
 [items.armadura_placas]
 id          = 11
 tipo        = "armadura"
 defensa_min = 15
 defensa_max = 30
+sprite_cuerpo = 1080
 
 [items.tunica_azul]
 id          = 12
 tipo        = "armadura"
 defensa_min = 6
 defensa_max = 10
+sprite_cuerpo = 1074
 
 # Cascos
 [items.capucha]

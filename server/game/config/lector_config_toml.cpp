@@ -263,6 +263,9 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                 slot = TipoDefensa::Escudo;
             }
 
+            // Opcional: sprite de cuerpo que la armadura le pone al personaje (vestimenta).
+            const uint16_t spriteCuerpo =
+                    static_cast<uint16_t>((*item)["sprite_cuerpo"].value_or<int64_t>(0));
             catalogo.registrar(
                     id,
                     std::make_unique<Defensa>(
@@ -274,7 +277,8 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                             leerUint8EnTabla(
                                     *item, "defensa_max",
                                     rutaToml("items", nombre, "defensa_max"), true),
-                            slot));
+                            slot,
+                            spriteCuerpo));
         } else if (tipo == "pocion_vida" || tipo == "pocion_mana") {
             TipoPocion tipoPocion = (tipo == "pocion_vida") ? TipoPocion::Vida : TipoPocion::Mana;
 

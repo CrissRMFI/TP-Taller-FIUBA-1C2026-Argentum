@@ -483,3 +483,87 @@ body_path = "imgs/npc/banqueros/4057.png"
 size = [17, 44]
 src = [5, 1, 17, 44]
 offset = [0, 0]
+
+
+# --- Cuerpos de armaduras (vestimenta). Grid AO medido por sprite. ---
+[character_parts.bodies.1084]
+path = "imgs/personajes/cuerpos/1084.png"
+src_body = [5, 17, 17, 28]
+frame_size = [27, 47]
+visible_size = [17, 28]
+visible_offset = [0, 0]
+[character_parts.bodies.1084.rows.down]
+row = 0
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.up]
+row = 1
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.left]
+row = 2
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.right]
+row = 3
+y = 17
+frames = 6
+step_x = 5
+
+[character_parts.bodies.1080]
+path = "imgs/personajes/cuerpos/1080.png"
+src_body = [5, 16, 17, 30]
+frame_size = [27, 47]
+visible_size = [17, 30]
+visible_offset = [0, 0]
+[character_parts.bodies.1080.rows.down]
+row = 0
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.up]
+row = 1
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.left]
+row = 2
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.right]
+row = 3
+y = 16
+frames = 6
+step_x = 5
+
+[character_parts.bodies.1074]
+path = "imgs/personajes/cuerpos/1074.png"
+src_body = [5, 7, 17, 38]
+frame_size = [27, 47]
+visible_size = [17, 38]
+visible_offset = [0, 0]
+[character_parts.bodies.1074.rows.down]
+row = 0
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.up]
+row = 1
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.left]
+row = 2
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.right]
+row = 3
+y = 7
+frames = 6
+step_x = 5
+
