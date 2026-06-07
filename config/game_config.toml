@@ -290,6 +290,7 @@ min    = 14
 max    = 18
 mana   = 10
 precio = 50
+fx_frames = 8
 
 [hechizos.flecha_magica]
 id     = 2
@@ -299,6 +300,7 @@ min    = 18
 max    = 25
 mana   = 20
 precio = 120
+fx_frames = 6
 
 [hechizos.misil_magico]
 id     = 3
@@ -308,6 +310,7 @@ min    = 35
 max    = 45
 mana   = 45
 precio = 300
+fx_frames = 10
 
 [hechizos.tormenta_fuego]
 id     = 4
@@ -317,6 +320,7 @@ min    = 45
 max    = 55
 mana   = 150
 precio = 800
+fx_frames = 15
 
 [hechizos.curar_leves]
 id     = 5
@@ -326,6 +330,7 @@ min    = 5
 max    = 15
 mana   = 10
 precio = 50
+fx_frames = 0
 
 [hechizos.curar_graves]
 id     = 6
@@ -335,6 +340,7 @@ min    = 20
 max    = 50
 mana   = 40
 precio = 250
+fx_frames = 10
 
 # ------------------------------------------------------------
 [criaturas]
