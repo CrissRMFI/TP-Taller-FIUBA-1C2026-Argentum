@@ -95,6 +95,14 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoUsar(std::get<ComandoUsar>(comando.payload));
             break;
 
+        case Opcode::COMPRAR_HECHIZO:
+            enviarComandoComprarHechizo(std::get<ComandoComprarHechizo>(comando.payload));
+            break;
+
+        case Opcode::LANZAR_HECHIZO:
+            enviarComandoLanzarHechizo(std::get<ComandoLanzarHechizo>(comando.payload));
+            break;
+
         case Opcode::COMPRAR:
             enviarComandoComprar(std::get<ComandoComprar>(comando.payload));
             break;
@@ -226,6 +234,18 @@ void ProtocoloCliente::enviarComandoComprar(const ComandoComprar& comando) {
     enviarUnByte(static_cast<uint8_t>(Opcode::COMPRAR));
     enviarDosBytes(comando.idItem);
     enviarDosBytes(comando.idNPC);
+}
+
+void ProtocoloCliente::enviarComandoComprarHechizo(const ComandoComprarHechizo& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::COMPRAR_HECHIZO));
+    enviarDosBytes(comando.idHechizo);
+    enviarDosBytes(comando.idSacerdote);
+}
+
+void ProtocoloCliente::enviarComandoLanzarHechizo(const ComandoLanzarHechizo& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::LANZAR_HECHIZO));
+    enviarDosBytes(comando.idHechizo);
+    enviarDosBytes(comando.idObjetivo);
 }
 
 void ProtocoloCliente::enviarComandoVender(const ComandoVender& comando) {
@@ -380,6 +400,9 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
 
         case Opcode::CONTENIDO_BANCO:
             return recibirContenidoBanco();
+
+        case Opcode::LISTA_HECHIZOS:
+            return recibirListaHechizos();
 
         case Opcode::ERROR_ACCION:
             return recibirErrorAccion();
@@ -561,6 +584,16 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
             Opcode::LISTA_ITEMS,
             MensajeListaItems{ids},
     };
+}
+
+MensajeServidor ProtocoloCliente::recibirListaHechizos() {
+    uint8_t cantidad = recibirUnByte();
+    std::vector<uint16_t> ids;
+    ids.reserve(cantidad);
+    for (uint8_t i = 0; i < cantidad; ++i) {
+        ids.push_back(recibirDosBytes());
+    }
+    return MensajeServidor{Opcode::LISTA_HECHIZOS, MensajeListaHechizos{ids}};
 }
 
 MensajeServidor ProtocoloCliente::recibirContenidoBanco() {
