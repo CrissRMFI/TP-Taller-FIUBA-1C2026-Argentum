@@ -8,6 +8,9 @@ const char* MensajesErrorCliente::mensaje(CodigoErrorCliente codigo) {
         case CodigoErrorCliente::FUENTE_NO_CARGADA:
             return "No se pudo cargar la fuente del chat; el chat no se mostrara";
 
+        case CodigoErrorCliente::FONDO_CHAT_NO_CARGADO:
+            return "No se pudo cargar el fondo del chat; se dibuja sin panel";
+
         default:
             return "Error del cliente desconocido";
     }
