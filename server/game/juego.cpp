@@ -372,6 +372,11 @@ EventoSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) 
     return {TipoDestino::UNO, idCliente, EventoActualizarInventario{jugador.getSlotsInventario()}};
 }
 
+EventoSalida Juego::armarContenidoBanco(uint16_t idCliente, Banquero& banquero) {
+    std::pair<uint32_t, std::vector<uint16_t>> cuenta = banquero.listarItemsDisponibles(idCliente);
+    return {TipoDestino::UNO, idCliente, EventoContenidoBanco{cuenta.second, cuenta.first}};
+}
+
 EventoSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugador) {
     return {TipoDestino::UNO, idCliente,
             EventoActualizarEquipamiento{jugador.getArmaEquipada(), jugador.getBaculoEquipado(),
@@ -1644,7 +1649,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
         jugador->agregar_item_en_slot(idItemDepositado, cmd.indiceItem);
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
-    return {armarInventario(idCliente, *jugador)};
+    return {armarInventario(idCliente, *jugador), armarContenidoBanco(idCliente, *banquero)};
 }
 
 std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
@@ -1677,7 +1682,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    return {armarEstado(idCliente, *jugador)};
+    return {armarEstado(idCliente, *jugador), armarContenidoBanco(idCliente, *banquero)};
 }
 
 std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
@@ -1718,7 +1723,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO)};
     }
 
-    return {armarInventario(idCliente, *jugador)};
+    return {armarInventario(idCliente, *jugador), armarContenidoBanco(idCliente, *banquero)};
 }
 
 std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
@@ -1748,7 +1753,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
 
     jugador->sumar_oro(cmd.monto);
 
-    return {armarEstado(idCliente, *jugador)};
+    return {armarEstado(idCliente, *jugador), armarContenidoBanco(idCliente, *banquero)};
 }
 
 std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoListar& cmd) {
@@ -1776,8 +1781,9 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoL
         return {EventoSalida{TipoDestino::UNO, idCliente, EventoListaItems{ids}}};
     }
 
-    if (obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador) != nullptr) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    if (Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador)) {
+        
+        return {armarContenidoBanco(idCliente, *banquero)};
     }
 
     return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};

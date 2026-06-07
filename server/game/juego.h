@@ -74,6 +74,7 @@ class Juego {
     EventoSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
     EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
+    EventoSalida armarContenidoBanco(uint16_t idCliente, Banquero& banquero);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
