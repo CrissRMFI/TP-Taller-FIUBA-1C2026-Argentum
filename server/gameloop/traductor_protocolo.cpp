@@ -80,6 +80,10 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
         return { Opcode::LISTA_ITEMS,
                  MensajeListaItems{ e->ids } };
     }
+    if (auto* e = std::get_if<EventoContenidoBanco>(&evento)) {
+        return { Opcode::CONTENIDO_BANCO,
+                 MensajeContenidoBanco{ e->items, e->oroBanco } };
+    }
     if (auto* e = std::get_if<EventoErrorAccion>(&evento)) {
         return { Opcode::ERROR_ACCION,
                  MensajeErrorAccion{ e->codigo } };
