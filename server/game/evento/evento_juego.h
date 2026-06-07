@@ -121,6 +121,11 @@ struct EventoListaItems {
     std::vector<uint16_t> ids;
 };
 
+struct EventoContenidoBanco {
+    std::vector<uint16_t> items;
+    uint32_t oroBanco;
+};
+
 struct EventoErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -143,6 +148,7 @@ using EventoJuego = std::variant<
         EventoClan,
         EventoResucitado,
         EventoListaItems,
+        EventoContenidoBanco,
         EventoErrorAccion>;
 
 #endif
