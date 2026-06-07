@@ -18,6 +18,7 @@ project(taller_tp
 
 set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
 set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE)
+set(SDL2PP_WITH_TTF ON CACHE BOOL "" FORCE)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -142,6 +143,8 @@ if(TALLER_CLIENT)
                 client/assets/criatura_sprite_resolver.h
                 client/assets/npc_sprite_resolver.cpp
                 client/assets/npc_sprite_resolver.h
+                client/assets/text_renderer.cpp
+                client/assets/text_renderer.h
         )
 
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
