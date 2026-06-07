@@ -60,7 +60,10 @@ enum class Opcode : uint8_t {
     DETENER_MOVER           = 46,
 
     // Cliente → Servidor (usar item: pociones)
-    USAR                    = 47
+    USAR                    = 47,
+
+    // Servidor → Cliente (contenido del banco: items + oro)
+    CONTENIDO_BANCO         = 48
 };
 
 #endif
