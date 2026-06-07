@@ -220,24 +220,27 @@ defensa_min = 6
 defensa_max = 10
 sprite_cuerpo = 1074
 
-# Cascos
+# Cascos (sprite_equip: overlay sobre la cabeza)
 [items.capucha]
 id          = 13
 tipo        = "casco"
 defensa_min = 1
 defensa_max = 4
+sprite_equip = 39
 
 [items.casco_hierro]
 id          = 14
 tipo        = "casco"
 defensa_min = 4
 defensa_max = 8
+sprite_equip = 37
 
 [items.sombrero_magico]
 id          = 15
 tipo        = "casco"
 defensa_min = 4
 defensa_max = 12
+sprite_equip = 54
 
 # Escudos (sprite_equip: overlay sobre el cuerpo)
 [items.escudo_tortuga]

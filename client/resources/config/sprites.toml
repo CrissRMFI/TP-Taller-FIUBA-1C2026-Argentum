@@ -758,3 +758,64 @@ y = 0
 frames = 6
 step_x = 1
 
+# --- Cascos (overlay sobre la cabeza). Extraidos de cascos.ini/graficos.ind. ---
+[character_parts.heads.39]
+path = "imgs/personajes/cascos/39.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.39.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.39.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.39.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.39.directions.right]
+col = 3
+src = [81, 0, 27, 32]
+
+[character_parts.heads.37]
+path = "imgs/personajes/cascos/37.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.37.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.37.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.37.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.37.directions.right]
+col = 3
+src = [81, 0, 27, 32]
+
+[character_parts.heads.54]
+path = "imgs/personajes/cascos/54.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.54.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.54.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.54.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.54.directions.right]
+col = 3
+src = [81, 0, 27, 32]
+
