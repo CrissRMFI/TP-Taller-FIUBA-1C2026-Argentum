@@ -373,3 +373,7 @@ uint32_t ObjectGameWorld::bancoOro() const {
 bool ObjectGameWorld::bancoRecibido() const {
     return bancoRecibido_;
 }
+
+void ObjectGameWorld::cerrarBanco() {
+    bancoRecibido_ = false;
+}

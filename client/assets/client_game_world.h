@@ -106,8 +106,8 @@ public:
     const std::vector<uint16_t>& stockNpc() const;
     const std::vector<uint16_t>& bancoItems() const;
     uint32_t bancoOro() const;
-    bool bancoRecibido() const;  // true si llego al menos un CONTENIDO_BANCO
-
+    bool bancoRecibido() const;
+    void cerrarBanco();
 };
 
 

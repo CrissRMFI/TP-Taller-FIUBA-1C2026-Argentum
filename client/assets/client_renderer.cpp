@@ -171,7 +171,8 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,
-                            const EstadoPanelRender& panel) {
+                            const EstadoPanelRender& panel,
+                            const EstadoBancoRender& banco) {
     if (!renderer) {
         return;
     }
@@ -280,6 +281,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     renderer->SetClipRect(SDL2pp::NullOpt);
     dibujar_panel(panel);
     dibujar_chat(chat);
+    if (banco.abierto) {
+        dibujar_banco(banco);  // modal sobre todo lo demas
+    }
 
     renderer->Present();
 }
@@ -531,6 +535,127 @@ bool ObjectRenderer::clickEnBotonCurar(int x, int y) const {
     const SDL2pp::Rect& r = rect_boton_curar;
     return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
+
+namespace {
+bool dentro(const SDL2pp::Rect& r, int x, int y) {
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+}  // namespace
+
+void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
+    if (!renderer || !text_renderer) {
+        return;
+    }
+    banco_boveda.clear();
+    banco_inv.clear();
+
+    const int mw = 544;
+    const int mh = 481;
+    const int mx = (window_width - mw) / 2;
+    const int my = (window_height - mh) / 2;
+    const SDL_Color& cTxt = panel_config.colorTexto;
+    const SDL_Color& cTit = panel_config.colorTitulo;
+    const int lh = text_renderer->alto_linea();
+
+    // Fondo de la ventana (si falla, rect oscuro).
+    try {
+        renderer->Copy(cache_texture->get_or_load(panel_config.bancoImg), SDL2pp::NullOpt,
+                       SDL2pp::Rect(mx, my, mw, mh));
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(20, 15, 10, 255);
+        renderer->FillRect(SDL2pp::Rect(mx, my, mw, mh));
+    }
+
+    // Grilla calibrable por TOML [banco] (depende de los recuadros del asset).
+    const int slot = panel_config.bancoSlot;
+    const int gap = panel_config.bancoGap;
+    const int cols = panel_config.bancoCols;
+    const auto slot_banco = [&](int sx, int sy, uint16_t id, bool sel) {
+        renderer->SetDrawColor(0, 0, 0, 150);
+        renderer->FillRect(SDL2pp::Rect(sx, sy, slot, slot));
+        if (SDL2pp::Texture* ic = icono_item(id)) {
+            renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, slot, slot));
+        }
+        if (sel) {
+            renderer->SetDrawColor(255, 230, 90, 255);
+        } else {
+            renderer->SetDrawColor(120, 95, 60, 255);
+        }
+        renderer->DrawRect(SDL2pp::Rect(sx, sy, slot, slot));
+    };
+    const auto grilla = [&](int gx, int gy, const std::vector<uint16_t>& items, int sel,
+                            std::vector<SDL2pp::Rect>& rects) {
+        for (size_t i = 0; i < items.size(); ++i) {
+            const int c = static_cast<int>(i) % cols;
+            const int r = static_cast<int>(i) / cols;
+            const int sx = gx + c * (slot + gap);
+            const int sy = gy + r * (slot + gap);
+            slot_banco(sx, sy, items[i], static_cast<int>(i) == sel);
+            rects.push_back(SDL2pp::Rect(sx, sy, slot, slot));
+        }
+    };
+
+    // La imagen ya trae las pestañas BOVEDA / INVENTARIO; solo dibujamos las grillas
+    // calzadas en sus recuadros (origen calibrable por TOML).
+    grilla(mx + panel_config.bancoBovedaX, my + panel_config.bancoBovedaY, b.boveda, b.selBoveda,
+           banco_boveda);
+    grilla(mx + panel_config.bancoInvX, my + panel_config.bancoInvY, b.inventario, b.selInventario,
+           banco_inv);
+
+    text_renderer->dibujar(*renderer, "Oro banco: " + std::to_string(b.oroBanco), mx + 40,
+                           my + 350, cTxt);
+    text_renderer->dibujar(*renderer, "Oro mano: " + std::to_string(b.oroJugador), mx + 300,
+                           my + 350, cTxt);
+
+    const auto boton = [&](const std::string& ruta, const std::string& txt, int bx, int by,
+                           SDL_Color fb) -> SDL2pp::Rect {
+        SDL2pp::Rect r;
+        try {
+            SDL2pp::Texture& t = cache_texture->get_or_load(ruta);
+            r = SDL2pp::Rect(bx, by, t.GetWidth(), t.GetHeight());
+            renderer->Copy(t, SDL2pp::NullOpt, r);
+        } catch (const std::exception&) {
+            r = SDL2pp::Rect(bx, by, 120, lh + 8);
+            renderer->SetDrawColor(fb.r, fb.g, fb.b, 255);
+            renderer->FillRect(r);
+            text_renderer->dibujar(*renderer, txt, bx + 4, by + 4, cTit);
+        }
+        return r;
+    };
+
+    // Botones de item (retirar de la boveda / depositar del inventario).
+    rect_ret = boton(panel_config.botonRetirar, "Retirar", mx + 40, my + 380, {60, 40, 25, 255});
+    rect_dep = boton(panel_config.botonDepositar, "Depositar", mx + 300, my + 380, {45, 55, 35, 255});
+
+    // Caja de monto + botones de oro.
+    const int yo = my + 425;
+    text_renderer->dibujar(*renderer, "Oro:", mx + 40, yo + 4, cTxt);
+    rect_caja_monto = SDL2pp::Rect(mx + 90, yo, 90, lh + 8);
+    renderer->SetDrawColor(0, 0, 0, 200);
+    renderer->FillRect(rect_caja_monto);
+    renderer->SetDrawColor(b.montoActivo ? 255 : 120, b.montoActivo ? 230 : 95, 60, 255);
+    renderer->DrawRect(rect_caja_monto);
+    text_renderer->dibujar(*renderer, b.monto + (b.montoActivo ? "_" : ""), mx + 94, yo + 4, cTxt);
+    rect_dep_oro = boton(panel_config.botonDepositarOro, "Dep oro", mx + 300, yo, {45, 55, 35, 255});
+    rect_ret_oro = boton(panel_config.botonRetirarOro, "Ret oro", mx + 190, yo, {60, 40, 25, 255});
+
+    // X para cerrar.
+    rect_cerrar_banco = SDL2pp::Rect(mx + mw - 34, my + 10, 26, 26);
+    renderer->SetDrawColor(120, 30, 30, 255);
+    renderer->FillRect(rect_cerrar_banco);
+    text_renderer->dibujar(*renderer, "X", mx + mw - 28, my + 12, cTit);
+}
+
+int ObjectRenderer::bancoBovedaClickeada(int x, int y) const {
+    return slot_en(banco_boveda, x, y);
+}
+int ObjectRenderer::bancoInvClickeado(int x, int y) const { return slot_en(banco_inv, x, y); }
+bool ObjectRenderer::clickBancoDepositar(int x, int y) const { return dentro(rect_dep, x, y); }
+bool ObjectRenderer::clickBancoRetirar(int x, int y) const { return dentro(rect_ret, x, y); }
+bool ObjectRenderer::clickBancoDepositarOro(int x, int y) const { return dentro(rect_dep_oro, x, y); }
+bool ObjectRenderer::clickBancoRetirarOro(int x, int y) const { return dentro(rect_ret_oro, x, y); }
+bool ObjectRenderer::clickBancoCajaMonto(int x, int y) const { return dentro(rect_caja_monto, x, y); }
+bool ObjectRenderer::clickBancoCerrar(int x, int y) const { return dentro(rect_cerrar_banco, x, y); }
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     if (!text_renderer || !renderer) {
