@@ -67,7 +67,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                                                  entity_position->tipo,
                                                                  entity_position->estado,
                                                                  entity_position->cabeza,
-                                                                 entity_position->cuerpo};
+                                                                 entity_position->cuerpo,
+                                                                 entity_position->arma,
+                                                                 entity_position->escudo,
+                                                                 entity_position->casco};
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
 

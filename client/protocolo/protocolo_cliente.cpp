@@ -425,13 +425,16 @@ MensajeServidor ProtocoloCliente::recibirPosicionEntidad() {
     uint8_t estado = recibirUnByte();
     uint16_t cabeza = recibirDosBytes();
     uint16_t cuerpo = recibirDosBytes();
+    uint16_t arma = recibirDosBytes();
+    uint16_t escudo = recibirDosBytes();
+    uint16_t casco = recibirDosBytes();
 
     validarTipoEntidad(tipo);
     validarEstadoEntidad(estado);
 
     return MensajeServidor{
             Opcode::POSICION_ENTIDAD,
-            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo},
+            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo, arma, escudo, casco},
     };
 }
 

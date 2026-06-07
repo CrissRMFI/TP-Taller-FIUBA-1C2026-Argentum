@@ -214,18 +214,18 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
         const uint16_t id = leerUint16EnTabla(*item, "id", rutaToml("items", nombre, "id"));
         const std::string tipo = leerStringEnTabla(
                 *item, "tipo", rutaToml("items", nombre, "tipo"));
+        const uint16_t spriteEquip =
+                static_cast<uint16_t>((*item)["sprite_equip"].value_or<int64_t>(0));
 
         if (tipo == "arma" || tipo == "arma_distancia") {
-            catalogo.registrar(
+            auto arma = std::make_unique<Arma>(
                     id,
-                    std::make_unique<Arma>(
-                            id,
-                            nombre,
-                            leerUint8EnTabla(
-                                    *item, "danio_min", rutaToml("items", nombre, "danio_min")),
-                            leerUint8EnTabla(
-                                    *item, "danio_max", rutaToml("items", nombre, "danio_max")),
-                            tipo == "arma_distancia"));
+                    nombre,
+                    leerUint8EnTabla(*item, "danio_min", rutaToml("items", nombre, "danio_min")),
+                    leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max")),
+                    tipo == "arma_distancia");
+            arma->setSpriteEquip(spriteEquip);
+            catalogo.registrar(id, std::move(arma));
         } else if (tipo == "baculo") {
             const std::string hechizo = leerStringEnTabla(
                     *item, "hechizo", rutaToml("items", nombre, "hechizo"));
@@ -242,19 +242,16 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                                          rutaToml("items", nombre, "hechizo"));
             }
 
-            catalogo.registrar(
+            auto baculo = std::make_unique<Baculo>(
                     id,
-                    std::make_unique<Baculo>(
-                            id,
-                            nombre,
-                            leerUint8EnTabla(
-                                    *item, "danio_min", rutaToml("items", nombre, "danio_min"), true),
-                            leerUint8EnTabla(
-                                    *item, "danio_max", rutaToml("items", nombre, "danio_max"), true),
-                            tipoHechizo,
-                            leerUint16EnTabla(
-                                    *item, "costo_mana",
-                                    rutaToml("items", nombre, "costo_mana"), true)));
+                    nombre,
+                    leerUint8EnTabla(*item, "danio_min", rutaToml("items", nombre, "danio_min"), true),
+                    leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max"), true),
+                    tipoHechizo,
+                    leerUint16EnTabla(*item, "costo_mana",
+                                      rutaToml("items", nombre, "costo_mana"), true));
+            baculo->setSpriteEquip(spriteEquip);
+            catalogo.registrar(id, std::move(baculo));
         } else if (tipo == "armadura" || tipo == "casco" || tipo == "escudo") {
             TipoDefensa slot = TipoDefensa::Armadura;
             if (tipo == "casco") {
@@ -263,22 +260,19 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                 slot = TipoDefensa::Escudo;
             }
 
-            // Opcional: sprite de cuerpo que la armadura le pone al personaje (vestimenta).
             const uint16_t spriteCuerpo =
                     static_cast<uint16_t>((*item)["sprite_cuerpo"].value_or<int64_t>(0));
-            catalogo.registrar(
+            auto defensa = std::make_unique<Defensa>(
                     id,
-                    std::make_unique<Defensa>(
-                            id,
-                            nombre,
-                            leerUint8EnTabla(
-                                    *item, "defensa_min",
-                                    rutaToml("items", nombre, "defensa_min"), true),
-                            leerUint8EnTabla(
-                                    *item, "defensa_max",
-                                    rutaToml("items", nombre, "defensa_max"), true),
-                            slot,
-                            spriteCuerpo));
+                    nombre,
+                    leerUint8EnTabla(*item, "defensa_min",
+                                     rutaToml("items", nombre, "defensa_min"), true),
+                    leerUint8EnTabla(*item, "defensa_max",
+                                     rutaToml("items", nombre, "defensa_max"), true),
+                    slot,
+                    spriteCuerpo);
+            defensa->setSpriteEquip(spriteEquip);  // escudo/casco: overlay
+            catalogo.registrar(id, std::move(defensa));
         } else if (tipo == "pocion_vida" || tipo == "pocion_mana") {
             TipoPocion tipoPocion = (tipo == "pocion_vida") ? TipoPocion::Vida : TipoPocion::Mana;
 

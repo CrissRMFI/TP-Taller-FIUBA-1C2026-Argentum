@@ -538,6 +538,9 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     enviarUnByte(mensaje.estado);
     enviarDosBytes(mensaje.cabeza);
     enviarDosBytes(mensaje.cuerpo);
+    enviarDosBytes(mensaje.arma);
+    enviarDosBytes(mensaje.escudo);
+    enviarDosBytes(mensaje.casco);
 }
 
 void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
