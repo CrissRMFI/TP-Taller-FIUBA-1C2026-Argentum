@@ -60,6 +60,26 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
         claveAId[info.clave] = info.id;
     }
     
+    if (const toml::table* hechizosTbl = tbl["hechizos"].as_table()) {
+        for (const auto& [clave, valor] : *hechizosTbl) {
+            const toml::table* h = valor.as_table();
+            if (h == nullptr) {
+                continue;
+            }
+            const std::optional<int64_t> id = (*h)["id"].value<int64_t>();
+            if (!id || *id < 0 || *id > 0xFFFF) {
+                continue;
+            }
+            HechizoInfo hi;
+            hi.id = static_cast<uint16_t>(*id);
+            hi.nombre = (*h)["nombre"].value_or<std::string>(aNombreLindo(std::string(clave.str())));
+            hi.tipo = (*h)["tipo"].value_or<std::string>("danio");
+            hi.mana = static_cast<uint16_t>((*h)["mana"].value_or<int64_t>(0));
+            hi.precio = static_cast<uint32_t>((*h)["precio"].value_or<int64_t>(0));
+            hechizos[hi.id] = hi;
+        }
+    }
+
     if (const toml::array* stock = tbl["npcs"]["comerciante"]["items"].as_array()) {
         for (const toml::node& nodo : *stock) {
             const toml::table* entrada = nodo.as_table();
@@ -101,4 +121,18 @@ uint32_t CatalogoItems::precioCompra(uint16_t id) const {
 uint32_t CatalogoItems::precioVenta(uint16_t id) const {
     const auto it = ventaComerciante.find(id);
     return (it != ventaComerciante.end()) ? it->second : 0;
+}
+
+const HechizoInfo* CatalogoItems::hechizo(uint16_t id) const {
+    const auto it = hechizos.find(id);
+    return (it != hechizos.end()) ? &it->second : nullptr;
+}
+
+std::vector<uint16_t> CatalogoItems::idsHechizos() const {
+    std::vector<uint16_t> ids;
+    ids.reserve(hechizos.size());
+    for (const auto& [id, h] : hechizos) {
+        ids.push_back(id);
+    }
+    return ids;
 }
