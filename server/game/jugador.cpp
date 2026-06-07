@@ -668,6 +668,21 @@ bool Jugador::puedeUsarMagia() const {
     return manaMax > 0;
 }
 
+bool Jugador::conoceHechizo(uint16_t idHechizo) const {
+    return std::find(hechizosConocidos.begin(), hechizosConocidos.end(), idHechizo) !=
+           hechizosConocidos.end();
+}
+
+void Jugador::aprenderHechizo(uint16_t idHechizo) {
+    if (!conoceHechizo(idHechizo)) {
+        hechizosConocidos.push_back(idHechizo);
+    }
+}
+
+const std::vector<uint16_t>& Jugador::getHechizosConocidos() const {
+    return hechizosConocidos;
+}
+
 bool Jugador::estaVivo() const {
     return estado == Estado::Vivo || estado == Estado::Meditando;
 }

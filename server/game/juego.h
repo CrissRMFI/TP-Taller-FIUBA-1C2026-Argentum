@@ -19,13 +19,15 @@
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
 #include "objeto/catalogo_items.h"
+#include "objeto/hechizo.h"
 #include "../persistencia/indice_jugadores.h"
 #include "../persistencia/lector_jugadores.h"
 #include "../persistencia/escritor_jugadores.h"
 
 class Juego {
   public:
-    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, Mapa&& mapa);
+    Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, CatalogoHechizos&& hechizos,
+          Mapa&& mapa);
 
     // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
     std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo);
@@ -40,9 +42,10 @@ class Juego {
     void persistirTodos();
 
   private:
-    ConfigJuego   cfg;
-    CatalogoItems catalogo;
-    uint16_t      proximoIdClan;
+    ConfigJuego      cfg;
+    CatalogoItems    catalogo;
+    CatalogoHechizos catalogoHechizos;
+    uint16_t         proximoIdClan;
     uint16_t      proximoIdCriatura;
     std::map<uint16_t, Clan>     clanes;
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
@@ -75,6 +78,9 @@ class Juego {
     EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarContenidoBanco(uint16_t idCliente, Banquero& banquero);
+    EventoSalida armarListaHechizos(uint16_t idCliente, const Jugador& jugador);
+    std::list<EventoSalida> armarFxHechizoParaMapa(uint16_t idHechizo, uint16_t idObjetivo,
+                                                   uint16_t mapaId);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
@@ -112,6 +118,10 @@ class Juego {
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
     std::list<EventoSalida> ejecutarUsar(uint16_t idCliente, const ComandoUsar& comando);
     std::list<EventoSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
+    std::list<EventoSalida> ejecutarComprarHechizo(uint16_t idCliente,
+                                                   const ComandoComprarHechizo& comando);
+    std::list<EventoSalida> ejecutarLanzarHechizo(uint16_t idCliente,
+                                                  const ComandoLanzarHechizo& comando);
     std::list<EventoSalida> ejecutarVender(uint16_t idCliente, const ComandoVender& comando);
     std::list<EventoSalida> ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& comando);
     std::list<EventoSalida> ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& comando);

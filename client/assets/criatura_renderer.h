@@ -23,7 +23,8 @@ public:
                 int cell_width,
                 int cell_height,
                 int animation_row,
-                int frame_index) const;
+                int frame_index,
+                bool resaltar = false) const;
 };
 
 

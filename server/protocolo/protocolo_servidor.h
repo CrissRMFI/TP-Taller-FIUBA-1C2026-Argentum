@@ -49,6 +49,8 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoTirar();
     ComandoJugador recibirComandoEquipar();
     ComandoJugador recibirComandoUsar();
+    ComandoJugador recibirComandoComprarHechizo();
+    ComandoJugador recibirComandoLanzarHechizo();
     ComandoJugador recibirComandoComprar();
     ComandoJugador recibirComandoVender();
     ComandoJugador recibirComandoDepositarItem();
@@ -94,6 +96,8 @@ class ProtocoloServidor : public Protocolo {
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
     void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);
+    void enviarListaHechizos(const MensajeListaHechizos& mensaje);
+    void enviarFxHechizo(const MensajeFxHechizo& mensaje);
     void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 

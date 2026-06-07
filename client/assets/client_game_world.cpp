@@ -255,6 +255,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             bancoItems_ = banco->items;
             bancoOro_ = banco->oroBanco;
             bancoRecibido_ = true;
+        } else if (auto* hech = std::get_if<MensajeListaHechizos>(&mensaje.payload)) {
+            hechizosConocidos_ = hech->ids;
+        } else if (auto* fx = std::get_if<MensajeFxHechizo>(&mensaje.payload)) {
+            fxPendientes_.emplace_back(fx->idHechizo, fx->idObjetivo);
         }
     }
 
@@ -379,4 +383,14 @@ bool ObjectGameWorld::bancoRecibido() const {
 
 void ObjectGameWorld::cerrarBanco() {
     bancoRecibido_ = false;
+}
+
+const std::vector<uint16_t>& ObjectGameWorld::hechizosConocidos() const {
+    return hechizosConocidos_;
+}
+
+std::vector<std::pair<uint16_t, uint16_t>> ObjectGameWorld::drenarFx() {
+    std::vector<std::pair<uint16_t, uint16_t>> fx;
+    fx.swap(fxPendientes_);
+    return fx;
 }

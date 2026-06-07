@@ -118,13 +118,15 @@ void ClientGameLoop::handleEvents() {
         }
         // Rueda del mouse: scrollea la lista de comercio del panel.
         if (event.type == SDL_MOUSEWHEEL) {
+            // Scroll de la lista de venta. Permitimos ocultar todos los items (hasta 'total')
+            // para que, en el sacerdote, queden a la vista los hechizos en venta de abajo.
             const int total = static_cast<int>(object_state.stockNpc().size());
             scrollComercio -= event.wheel.y;
             if (scrollComercio < 0) {
                 scrollComercio = 0;
             }
-            if (scrollComercio > std::max(0, total - 1)) {
-                scrollComercio = std::max(0, total - 1);
+            if (scrollComercio > total) {
+                scrollComercio = total;
             }
             continue;
         }
@@ -171,6 +173,16 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     const std::optional<uint16_t> objetivo = handler.objetivoSeleccionado();
     const std::vector<uint16_t>& items = object_state.inventario();
 
+    // Pestañas del marco: cambian entre inventario y hechizos.
+    if (object_renderer.clickTabHechizos(x, y)) {
+        pestanaHechizos = true;
+        return;
+    }
+    if (object_renderer.clickTabInventario(x, y)) {
+        pestanaHechizos = false;
+        return;
+    }
+
     // 1) Boton Vender: vende el item seleccionado (requiere comerciante seleccionado).
     if (object_renderer.clickEnBotonVender(x, y)) {
         if (slotInvSeleccionado >= 0 && objetivo &&
@@ -212,6 +224,20 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     if (object_renderer.clickEnBotonCurar(x, y)) {
         despacharComando({Opcode::CURAR, ComandoCurar{objetivo.value_or(static_cast<uint16_t>(0))}},
                          tick);
+        return;
+    }
+
+    // Pestaña HECHIZOS: lanzar (los listados son conocidos).
+    if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
+        despacharComando({Opcode::LANZAR_HECHIZO,
+                          ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        // El FX lo difunde el server (FX_HECHIZO) para que lo vean todos, incluido el que lanza.
+        return;
+    }
+    // Lista de hechizos del sacerdote: comprar.
+    if (const uint16_t idHechizo = object_renderer.hechizoVentaClickeado(x, y); idHechizo != 0) {
+        despacharComando({Opcode::COMPRAR_HECHIZO,
+                          ComandoComprarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
         return;
     }
 
@@ -360,6 +386,10 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
     object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
+    // FX de hechizos que el server difundio (para que todos vean los lanzamientos).
+    for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
+        object_renderer.iniciarFx(idHechizo, idObjetivo);
+    }
     object_renderer.update_animation(it, object_state, object_animation);
 }
 
@@ -378,6 +408,26 @@ void ClientGameLoop::render() {
     panel.stock = object_state.stockNpc();
     panel.seleccionInventario = slotInvSeleccionado;
     panel.scrollStock = scrollComercio;
+    panel.hechizosConocidos = object_state.hechizosConocidos();
+    panel.mostrarHechizos = pestanaHechizos;
+    const std::optional<uint16_t> objetivoPanel = handler.objetivoSeleccionado();
+    panel.sacerdoteSeleccionado =
+            objetivoPanel.has_value() && object_renderer.esSacerdote(*objetivoPanel);
+
+    // Resaltado del objetivo: solo si la seleccion es valida por distancia (en rango).
+    uint16_t objetivoResaltado = 0;
+    if (objetivoPanel.has_value()) {
+        const auto& ents = object_state.entities();
+        const auto it = ents.find(*objetivoPanel);
+        if (it != ents.end()) {
+            const int dist = std::abs(static_cast<int>(it->second.x) - object_state.player_x()) +
+                             std::abs(static_cast<int>(it->second.y) - object_state.player_y());
+            if (dist <= config.seleccionRango) {
+                objetivoResaltado = *objetivoPanel;
+            }
+        }
+    }
+    object_renderer.resaltarObjetivo(objetivoResaltado);
 
     EstadoBancoRender banco;
     banco.abierto = object_state.bancoRecibido();

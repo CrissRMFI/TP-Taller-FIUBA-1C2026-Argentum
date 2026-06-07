@@ -70,11 +70,21 @@ struct ComandoListar {
   uint16_t idNPC; 
 };
 
-struct ComandoCurar { 
-  uint16_t idSacerdote; 
+struct ComandoCurar {
+  uint16_t idSacerdote;
 };
 
-struct ComandoChatGlobal { 
+struct ComandoComprarHechizo {
+  uint16_t idHechizo;
+  uint16_t idSacerdote;
+};
+
+struct ComandoLanzarHechizo {
+  uint16_t idHechizo;
+  uint16_t idObjetivo;
+};
+
+struct ComandoChatGlobal {
   std::string mensaje; 
 };
 
@@ -128,6 +138,8 @@ using PayloadComando = std::variant<
     ComandoRetirarOro,
     ComandoListar,
     ComandoCurar,
+    ComandoComprarHechizo,
+    ComandoLanzarHechizo,
     ComandoChatGlobal,
     ComandoChatPrivado,
     ComandoFundarClan,

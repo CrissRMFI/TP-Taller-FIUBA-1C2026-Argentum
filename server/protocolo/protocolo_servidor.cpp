@@ -81,6 +81,12 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::USAR:
             return recibirComandoUsar();
 
+        case Opcode::COMPRAR_HECHIZO:
+            return recibirComandoComprarHechizo();
+
+        case Opcode::LANZAR_HECHIZO:
+            return recibirComandoLanzarHechizo();
+
         case Opcode::COMPRAR:
             return recibirComandoComprar();
 
@@ -270,6 +276,18 @@ ComandoJugador ProtocoloServidor::recibirComandoComprar() {
       Opcode::COMPRAR,
       ComandoComprar{idItem, idNPC},
     };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoComprarHechizo() {
+    uint16_t idHechizo = recibirDosBytes();
+    uint16_t idSacerdote = recibirDosBytes();
+    return ComandoJugador{Opcode::COMPRAR_HECHIZO, ComandoComprarHechizo{idHechizo, idSacerdote}};
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoLanzarHechizo() {
+    uint16_t idHechizo = recibirDosBytes();
+    uint16_t idObjetivo = recibirDosBytes();
+    return ComandoJugador{Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{idHechizo, idObjetivo}};
 }
 
 ComandoJugador ProtocoloServidor::recibirComandoVender() {
@@ -503,6 +521,14 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarContenidoBanco(std::get<MensajeContenidoBanco>(mensaje.payload));
             break;
 
+        case Opcode::LISTA_HECHIZOS:
+            enviarListaHechizos(std::get<MensajeListaHechizos>(mensaje.payload));
+            break;
+
+        case Opcode::FX_HECHIZO:
+            enviarFxHechizo(std::get<MensajeFxHechizo>(mensaje.payload));
+            break;
+
         case Opcode::ERROR_ACCION:
             enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
             break;
@@ -663,6 +689,20 @@ void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
     for (uint16_t idItem: mensaje.ids) {
         enviarDosBytes(idItem);
     }
+}
+
+void ProtocoloServidor::enviarListaHechizos(const MensajeListaHechizos& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::LISTA_HECHIZOS));
+    enviarUnByte(static_cast<uint8_t>(mensaje.ids.size()));
+    for (uint16_t id : mensaje.ids) {
+        enviarDosBytes(id);
+    }
+}
+
+void ProtocoloServidor::enviarFxHechizo(const MensajeFxHechizo& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::FX_HECHIZO));
+    enviarDosBytes(mensaje.idHechizo);
+    enviarDosBytes(mensaje.idObjetivo);
 }
 
 void ProtocoloServidor::enviarContenidoBanco(const MensajeContenidoBanco& mensaje) {

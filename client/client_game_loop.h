@@ -32,7 +32,7 @@ private:
     std::unique_ptr<GestorAudio> gestorAudio;
     int slotInvSeleccionado = -1;
     int scrollComercio = 0;
-    // Estado de la ventana de banco.
+    bool pestanaHechizos = false;
     int bancoSelBoveda = -1;
     int bancoSelInv = -1;
     std::string bancoMonto;

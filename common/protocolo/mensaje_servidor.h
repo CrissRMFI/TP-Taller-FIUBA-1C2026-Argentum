@@ -142,6 +142,15 @@ struct MensajeContenidoBanco {
   uint32_t oroBanco;
 };
 
+struct MensajeListaHechizos {
+  std::vector<uint16_t> ids;  // hechizos conocidos del jugador
+};
+
+struct MensajeFxHechizo {
+  uint16_t idHechizo;
+  uint16_t idObjetivo;
+};
+
 struct MensajeErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -166,6 +175,8 @@ using PayloadMensajeServidor = std::variant<
         MensajeErrorAccion,
         MensajeListaItems,
         MensajeContenidoBanco,
+        MensajeListaHechizos,
+        MensajeFxHechizo,
         MensajeEstadoUsuario>;
 
 
