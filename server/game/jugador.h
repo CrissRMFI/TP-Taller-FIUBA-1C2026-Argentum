@@ -106,6 +106,7 @@ public:
     // Experiencia, oro y progresión
     void ganar_experiencia(uint32_t cantidad);
     void sumar_oro(uint32_t cantidad);
+    void cheat_dar_oro(uint32_t cantidad);
     bool gastar_oro(uint32_t cantidad);
     uint32_t extraer_oro_perdido();
     bool puede_recibir_oro(uint32_t cantidad) const;
