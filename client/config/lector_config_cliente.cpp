@@ -43,6 +43,7 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     cfg.fullscreen = tbl["video"]["fullscreen"].value_or(cfg.fullscreen);
 
     cfg.fuenteRuta = tbl["chat"]["fuente"].value_or(cfg.fuenteRuta);
+    cfg.fondoChatRuta = tbl["chat"]["fondo"].value_or(cfg.fondoChatRuta);
     const int64_t fuenteTam = tbl["chat"]["tam"].value_or<int64_t>(cfg.fuenteTam);
     if (fuenteTam > 0) {
         cfg.fuenteTam = static_cast<int>(fuenteTam);
@@ -59,6 +60,17 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     const int64_t maxLineas = tbl["chat"]["max_lineas"].value_or<int64_t>(cfg.chatMaxLineas);
     if (maxLineas > 0) {
         cfg.chatMaxLineas = static_cast<int>(maxLineas);
+    }
+
+    cfg.chatPanelX = static_cast<int>(tbl["chat"]["panel_x"].value_or<int64_t>(cfg.chatPanelX));
+    cfg.chatPanelY = static_cast<int>(tbl["chat"]["panel_y"].value_or<int64_t>(cfg.chatPanelY));
+    const int64_t panelAncho = tbl["chat"]["panel_ancho"].value_or<int64_t>(cfg.chatPanelAncho);
+    const int64_t panelAlto = tbl["chat"]["panel_alto"].value_or<int64_t>(cfg.chatPanelAlto);
+    if (panelAncho > 0) {
+        cfg.chatPanelAncho = static_cast<int>(panelAncho);
+    }
+    if (panelAlto > 0) {
+        cfg.chatPanelAlto = static_cast<int>(panelAlto);
     }
 
     const auto leerColor = [&tbl](const char* clave, std::vector<int>& destino) {
