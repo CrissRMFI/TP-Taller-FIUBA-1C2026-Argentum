@@ -279,6 +279,64 @@ tipo    = "pocion_mana"
 cantidad = 150
 
 # ------------------------------------------------------------
+# Hechizos: el sacerdote los vende y el jugador los lanza sobre un objetivo (salvo el
+# Guerrero, que no usa magia). tipo: "danio" | "cura". min/max = puntos de daño o curacion.
+# El cliente dibuja el icono imgs/hechizos/<id>.png.
+[hechizos.dardo_magico]
+id     = 1
+nombre = "Dardo Magico"
+tipo   = "danio"
+min    = 14
+max    = 18
+mana   = 10
+precio = 50
+
+[hechizos.flecha_magica]
+id     = 2
+nombre = "Flecha Magica"
+tipo   = "danio"
+min    = 18
+max    = 25
+mana   = 20
+precio = 120
+
+[hechizos.misil_magico]
+id     = 3
+nombre = "Misil Magico"
+tipo   = "danio"
+min    = 35
+max    = 45
+mana   = 45
+precio = 300
+
+[hechizos.tormenta_fuego]
+id     = 4
+nombre = "Tormenta de Fuego"
+tipo   = "danio"
+min    = 45
+max    = 55
+mana   = 150
+precio = 800
+
+[hechizos.curar_leves]
+id     = 5
+nombre = "Curar Heridas Leves"
+tipo   = "cura"
+min    = 5
+max    = 15
+mana   = 10
+precio = 50
+
+[hechizos.curar_graves]
+id     = 6
+nombre = "Curar Heridas Graves"
+tipo   = "cura"
+min    = 20
+max    = 50
+mana   = 40
+precio = 250
+
+# ------------------------------------------------------------
 [criaturas]
 # Probabilidades de drop al morir un NPC
 prob_nada     = 0.80
