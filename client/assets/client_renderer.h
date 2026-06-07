@@ -66,6 +66,8 @@ private:
     std::vector<SDL2pp::Rect> slots_stock;
     SDL2pp::Rect rect_boton_vender{0, 0, 0, 0};
     SDL2pp::Rect rect_boton_equipar{0, 0, 0, 0};
+    SDL2pp::Rect rect_boton_usar{0, 0, 0, 0};
+    SDL2pp::Rect rect_boton_curar{0, 0, 0, 0};
     int slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const;
 
 public:
@@ -80,6 +82,8 @@ public:
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;
     bool clickEnBotonEquipar(int x, int y) const;
+    bool clickEnBotonUsar(int x, int y) const;
+    bool clickEnBotonCurar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

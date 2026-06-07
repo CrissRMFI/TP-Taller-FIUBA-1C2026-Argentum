@@ -16,6 +16,8 @@ struct ConfigPanelRender {
     std::string marcoInventario = "imgs/ui/es_centroinventario.bmp";
     std::string botonVender = "imgs/ui/es_boton-vender-default.bmp";
     std::string botonEquipar = "imgs/ui/es_boton-construir-default.bmp";
+    std::string botonUsar = "imgs/ui/es_boton-usar.png";
+    std::string botonCurar = "imgs/ui/es_boton-curar.bmp";
     std::string barraVida = "imgs/ui/en_barradevida.bmp";
     std::string barraMana = "imgs/ui/en_barrademana.bmp";
     SDL_Color   colorTexto = {235, 225, 200, 255};

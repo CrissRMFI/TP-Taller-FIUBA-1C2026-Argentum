@@ -314,6 +314,8 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     slots_stock.clear();
     rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_equipar = SDL2pp::Rect(0, 0, 0, 0);
+    rect_boton_usar = SDL2pp::Rect(0, 0, 0, 0);
+    rect_boton_curar = SDL2pp::Rect(0, 0, 0, 0);
     const int px = window_width - panel_config.ancho;  // borde izq del panel
     const int pw = panel_config.ancho;
     const int margen = 8;
@@ -443,39 +445,30 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         }
     }
 
-    // --- Boton Vender (clickeable): vende el item seleccionado ---
-    try {
-        SDL2pp::Texture& boton = cache_texture->get_or_load(panel_config.botonVender);
-        const int bw = boton.GetWidth();
-        const int bh = boton.GetHeight();
-        const int bx = px + (pw - bw) / 2;
-        renderer->Copy(boton, SDL2pp::NullOpt, SDL2pp::Rect(bx, y, bw, bh));
-        rect_boton_vender = SDL2pp::Rect(bx, y, bw, bh);
-        y += bh + 8;
-    } catch (const std::exception&) {
-        renderer->SetDrawColor(60, 40, 25, 255);
-        renderer->FillRect(SDL2pp::Rect(cx, y, cw, lh + 6));
-        text_renderer->dibujar(*renderer, "Vender", cx + 4, y + 3, cTit);
-        rect_boton_vender = SDL2pp::Rect(cx, y, cw, lh + 6);
-        y += lh + 12;
-    }
-
-    // --- Boton Equipar: equipa el item seleccionado ---
-    try {
-        SDL2pp::Texture& boton = cache_texture->get_or_load(panel_config.botonEquipar);
-        const int bw = boton.GetWidth();
-        const int bh = boton.GetHeight();
-        const int bx = px + (pw - bw) / 2;
-        renderer->Copy(boton, SDL2pp::NullOpt, SDL2pp::Rect(bx, y, bw, bh));
-        rect_boton_equipar = SDL2pp::Rect(bx, y, bw, bh);
-        y += bh + 8;
-    } catch (const std::exception&) {
-        renderer->SetDrawColor(45, 55, 35, 255);
-        renderer->FillRect(SDL2pp::Rect(cx, y, cw, lh + 6));
-        text_renderer->dibujar(*renderer, "Equipar", cx + 4, y + 3, cTit);
-        rect_boton_equipar = SDL2pp::Rect(cx, y, cw, lh + 6);
-        y += lh + 12;
-    }
+    // --- Botones de accion (imagen; fallback a texto). Devuelven su rect para hit-test. ---
+    const auto dibujar_boton = [&](const std::string& ruta, const std::string& etiqueta,
+                                   SDL_Color fondoFb) -> SDL2pp::Rect {
+        SDL2pp::Rect r;
+        try {
+            SDL2pp::Texture& b = cache_texture->get_or_load(ruta);
+            const int bw = b.GetWidth();
+            const int bh = b.GetHeight();
+            r = SDL2pp::Rect(px + (pw - bw) / 2, y, bw, bh);
+            renderer->Copy(b, SDL2pp::NullOpt, r);
+            y += bh + 6;
+        } catch (const std::exception&) {
+            r = SDL2pp::Rect(cx, y, cw, lh + 6);
+            renderer->SetDrawColor(fondoFb.r, fondoFb.g, fondoFb.b, 255);
+            renderer->FillRect(r);
+            text_renderer->dibujar(*renderer, etiqueta, cx + 4, y + 3, cTit);
+            y += lh + 10;
+        }
+        return r;
+    };
+    rect_boton_vender = dibujar_boton(panel_config.botonVender, "Vender", {60, 40, 25, 255});
+    rect_boton_equipar = dibujar_boton(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255});
+    rect_boton_usar = dibujar_boton(panel_config.botonUsar, "Usar", {40, 45, 60, 255});
+    rect_boton_curar = dibujar_boton(panel_config.botonCurar, "Curar", {55, 35, 50, 255});
 
     // --- Comercio: lista clickeable de lo que vende el NPC (con scroll en Y) ---
     if (!panel.stock.empty() && catalogo != nullptr) {
@@ -526,6 +519,16 @@ bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
 
 bool ObjectRenderer::clickEnBotonEquipar(int x, int y) const {
     const SDL2pp::Rect& r = rect_boton_equipar;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+bool ObjectRenderer::clickEnBotonUsar(int x, int y) const {
+    const SDL2pp::Rect& r = rect_boton_usar;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+bool ObjectRenderer::clickEnBotonCurar(int x, int y) const {
+    const SDL2pp::Rect& r = rect_boton_curar;
     return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
