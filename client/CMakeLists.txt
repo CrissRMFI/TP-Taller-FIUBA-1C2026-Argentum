@@ -2,15 +2,15 @@ target_include_directories(taller_client PRIVATE
         ${sdl2_image_SOURCE_DIR}/include
         ${sdl2_SOURCE_DIR}/include
 )
-if(NOT DEFINED CLIENT_ASSETS_DIR)
-    set(CLIENT_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/interface")
+if(NOT DEFINED CLIENT_INTERFACE_DIR)
+    set(CLIENT_INTERFACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/interface")
 endif()
 if(NOT DEFINED ARGENTUM_CONFIG_DIR)
     set(ARGENTUM_CONFIG_DIR "config")
 endif()
 
 target_compile_definitions(taller_client PRIVATE
-        CLIENT_ASSETS_DIR="${CLIENT_ASSETS_DIR}"
+        CLIENT_INTERFACE_DIR="${CLIENT_INTERFACE_DIR}"
         CLIENT_CONFIG_PATH="${ARGENTUM_CONFIG_DIR}/client_config.toml"
         CLIENT_GAME_CONFIG_PATH="${ARGENTUM_CONFIG_DIR}/game_config.toml"
         CLIENT_MAP_PATH="${ARGENTUM_CONFIG_DIR}/mapa.toml"

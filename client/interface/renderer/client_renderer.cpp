@@ -14,8 +14,8 @@
 
 #define SPRITE_ANIMATION_FPS 8
 
-#ifndef CLIENT_ASSETS_DIR
-#define CLIENT_ASSETS_DIR "client/interface"
+#ifndef CLIENT_INTERFACE_DIR
+#define CLIENT_INTERFACE_DIR "client/interface"
 #endif
 
 #ifndef CLIENT_MAP_PATH
@@ -58,7 +58,7 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos,
 
     try {
         const std::string background_path =
-                std::string(CLIENT_ASSETS_DIR) + "/../resources/mapas/pasto.png";
+                std::string(CLIENT_INTERFACE_DIR) + "/../resources/mapas/pasto.png";
         SDL2pp::Surface background_surface(background_path);
         background_texture = std::make_unique<SDL2pp::Texture>(*renderer, background_surface);
     } catch (const std::exception& e) {
@@ -66,7 +66,7 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos,
     }
 
     try {
-        const std::string resources_root = std::string(CLIENT_ASSETS_DIR) + "/../resources";
+        const std::string resources_root = std::string(CLIENT_INTERFACE_DIR) + "/../resources";
         const std::string sprites_config_path = resources_root + "/config/sprites.toml";
         catalog = std::make_unique<SpriteCatalog>(
                 SpriteCatalog::load_from_file(sprites_config_path));

@@ -132,7 +132,6 @@ if(TALLER_CLIENT)
                 client/interface/renderer/character_renderer.cpp
                 client/interface/renderer/character_renderer.h
                 client/client_game_loop.cpp
-                client/client_game_loop.cpp
                 client/client_game_loop.h
                 client/interface/sprites_resolver/character_sprite_resolver.cpp
                 client/interface/sprites_resolver/character_sprite_resolver.h
