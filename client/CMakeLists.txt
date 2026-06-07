@@ -3,7 +3,7 @@ target_include_directories(taller_client PRIVATE
         ${sdl2_SOURCE_DIR}/include
 )
 if(NOT DEFINED CLIENT_ASSETS_DIR)
-    set(CLIENT_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+    set(CLIENT_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/interface")
 endif()
 if(NOT DEFINED ARGENTUM_CONFIG_DIR)
     set(ARGENTUM_CONFIG_DIR "config")

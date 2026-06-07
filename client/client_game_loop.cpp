@@ -14,8 +14,11 @@
 #endif
 
 #ifndef CLIENT_ASSETS_DIR
-#define CLIENT_ASSETS_DIR "client/assets"
+#define CLIENT_ASSETS_DIR "client/interface"
 #endif
+
+// constexpr int MAX_FRAMESKIP = 5;
+
 
 ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
                                ClientBusiness& business,
@@ -47,7 +50,39 @@ void ClientGameLoop::init(const char* title,
                                                 resourcesRoot);
     gestorAudio->reproducirMusica("campo");
 
-    const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
+    // const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
+    // uint32_t next_game_tick = SDL_GetTicks();
+    //
+    // int update_counter = 0;
+    // is_running = true;
+    // while (is_running) {
+    //     handleEvents();
+    //     int loops = 0;
+    //     uint32_t current_tick = SDL_GetTicks();
+    //     while (current_tick >= next_game_tick && loops < MAX_FRAMESKIP) {
+    //         update(update_counter);
+    //         next_game_tick += frame_target_ms;
+    //         ++update_counter;
+    //         ++loops;
+    //         current_tick = SDL_GetTicks();
+    //     }
+    //
+    //     // Drop: si seguimos atrasados despues del maximo de updates, soltamos ticks
+    //     // viejos para no ralentizar la simulacion intentando recuperar todo.
+    //     if (loops == MAX_FRAMESKIP && current_tick >= next_game_tick) {
+    //         next_game_tick = current_tick + frame_target_ms;
+    //     }
+    //
+    //     render();
+    //
+    //     if (!config.vsync) {
+    //         current_tick = SDL_GetTicks();
+    //         if (current_tick < next_game_tick) {
+    //             SDL_Delay(next_game_tick - current_tick);
+    //         }
+    //     }
+    // }
+    const uint32_t frame_target_ms = 1000 / static_cast<uint32_t>(config.fpsMax);
     int it = 0;
     uint32_t tick = SDL_GetTicks();
     is_running = true;
@@ -68,11 +103,6 @@ void ClientGameLoop::init(const char* title,
         }
         tick +=  frame_target_ms;
         it ++;
-
-        // const uint32_t elapsed = SDL_GetTicks() - frame_s;
-        // if (elapsed < frame_target_ms) {
-        //     SDL_Delay(frame_target_ms - elapsed);
-        // }
     }
 }
 

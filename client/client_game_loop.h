@@ -7,9 +7,9 @@
 
 #include "../common/protocolo/mensaje_servidor.h"
 #include "../common/thread/queue.h"
-#include "assets/client_game_world.h"
-#include "assets/client_renderer.h"
-#include "assets/object_animation.h"
+#include "interface/client_game_world.h"
+#include "interface/object_animation.h"
+#include "interface/renderer/client_renderer.h"
 #include "client_business.h"
 #include "config/config_cliente.h"
 #include "handlers/client_input_handler.h"
