@@ -260,6 +260,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             }
             character_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
                                        cell_height, animation_row, frame_index);
+            if (entity.estado == 2) {  // Meditando: aura animada encima del personaje
+                dibujar_meditacion(entity_x, entity_y, cell_width, cell_height, current_tick);
+            }
             continue;
         }
 
@@ -644,6 +647,36 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     renderer->SetDrawColor(120, 30, 30, 255);
     renderer->FillRect(rect_cerrar_banco);
     text_renderer->dibujar(*renderer, "X", mx + mw - 28, my + 12, cTit);
+}
+
+void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width,
+                                        int cell_height, uint32_t tick) {
+    if (!cache_texture) {
+        return;
+    }
+    SDL2pp::Texture* tex = nullptr;
+    try {
+        tex = &cache_texture->get_or_load(panel_config.spriteMeditacion);
+    } catch (const std::exception&) {
+        return;
+    }
+    const int cols = 5;
+    const int frames = 10;
+    const int fw = tex->GetWidth() / cols;  // ~102
+    const int rowPitch = 128;
+    const int contentH = 110;
+    const int idx = static_cast<int>((tick / 120) % frames);
+    const int c = idx % cols;
+    const int r = idx / cols;
+    const SDL2pp::Rect src(c * fw, r * rowPitch, fw, contentH);
+    
+    const int aw = 40;
+    const int ah = 52;
+    const int cx = entity_x + cell_width / 2;
+    const int feet = entity_y + cell_height;
+    const SDL2pp::Rect dst(cx - aw / 2, feet - ah, aw, ah);
+    SDL_SetTextureBlendMode(tex->Get(), SDL_BLENDMODE_BLEND);
+    renderer->Copy(*tex, src, dst);
 }
 
 int ObjectRenderer::bancoBovedaClickeada(int x, int y) const {
