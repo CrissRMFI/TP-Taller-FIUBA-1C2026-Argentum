@@ -30,9 +30,12 @@ private:
     CatalogoItems catalogo;
     ParserComandoChat parser;
     std::unique_ptr<GestorAudio> gestorAudio;
+    int slotInvSeleccionado = -1;
+    int scrollComercio = 0;
     bool is_running;
 
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
+    void manejarClickPanel(int x, int y);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
     void reproducirSonidoDeComando(const ComandoJugador& command);
