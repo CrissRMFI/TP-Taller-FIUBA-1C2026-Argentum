@@ -90,5 +90,17 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     leerColor("panel", "color_texto", cfg.panelColorTexto);
     leerColor("panel", "color_titulo", cfg.panelColorTitulo);
 
+    // --- Banco (calibracion de la grilla sobre es_banco.bmp) ---
+    const auto leerInt = [&tbl](const char* clave, int& destino) {
+        destino = static_cast<int>(tbl["banco"][clave].value_or<int64_t>(destino));
+    };
+    leerInt("boveda_x", cfg.bancoBovedaX);
+    leerInt("boveda_y", cfg.bancoBovedaY);
+    leerInt("inv_x", cfg.bancoInvX);
+    leerInt("inv_y", cfg.bancoInvY);
+    leerInt("slot", cfg.bancoSlot);
+    leerInt("gap", cfg.bancoGap);
+    leerInt("cols", cfg.bancoCols);
+
     return cfg;
 }

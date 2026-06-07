@@ -30,6 +30,15 @@ struct ConfigCliente {
     std::string      panelFondoCuero = "imgs/ui/leather_brown.png";
     std::vector<int> panelColorTexto = {235, 225, 200};
     std::vector<int> panelColorTitulo = {255, 220, 120};
+
+    // Grilla del banco (relativa a la ventana es_banco.bmp). Calibrable sin recompilar.
+    int bancoBovedaX = 45;
+    int bancoBovedaY = 127;
+    int bancoInvX = 305;
+    int bancoInvY = 127;
+    int bancoSlot = 32;
+    int bancoGap = 4;
+    int bancoCols = 6;
 };
 
 #endif

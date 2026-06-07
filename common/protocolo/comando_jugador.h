@@ -28,8 +28,12 @@ struct ComandoTirar {
   uint8_t indiceItem;
 };
 
-struct ComandoEquipar { 
-  uint8_t indiceItem; 
+struct ComandoEquipar {
+  uint8_t indiceItem;
+};
+
+struct ComandoUsar {
+  uint8_t indiceItem;
 };
 
 struct ComandoComprar { 
@@ -115,6 +119,7 @@ using PayloadComando = std::variant<
     ComandoAtacar,
     ComandoTirar,
     ComandoEquipar,
+    ComandoUsar,
     ComandoComprar,
     ComandoVender,
     ComandoDepositarItem,

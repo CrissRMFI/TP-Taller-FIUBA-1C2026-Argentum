@@ -48,6 +48,7 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoTomar();
     ComandoJugador recibirComandoTirar();
     ComandoJugador recibirComandoEquipar();
+    ComandoJugador recibirComandoUsar();
     ComandoJugador recibirComandoComprar();
     ComandoJugador recibirComandoVender();
     ComandoJugador recibirComandoDepositarItem();
@@ -92,6 +93,7 @@ class ProtocoloServidor : public Protocolo {
     void enviarMensajeClan(const MensajeClan& mensaje);
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
+    void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);
     void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 

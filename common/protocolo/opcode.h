@@ -57,7 +57,13 @@ enum class Opcode : uint8_t {
     CHEAT                   = 45,
 
     // Cliente → Servidor (movimiento: empezar/detener)
-    DETENER_MOVER           = 46
+    DETENER_MOVER           = 46,
+
+    // Cliente → Servidor (usar item: pociones)
+    USAR                    = 47,
+
+    // Servidor → Cliente (contenido del banco: items + oro)
+    CONTENIDO_BANCO         = 48
 };
 
 #endif

@@ -75,6 +75,9 @@ private:
     EquipamientoJugador   equipamiento_;
     EstadoJugador         estadoJugador_;
     std::vector<uint16_t> stockNpc_;      // ultimo /listar de un comerciante (ids en venta)
+    std::vector<uint16_t> bancoItems_;    // items guardados en el banco (ultimo CONTENIDO_BANCO)
+    uint32_t              bancoOro_ = 0;   // oro guardado en el banco
+    bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea);
@@ -101,7 +104,10 @@ public:
     const EquipamientoJugador& equipamiento() const;
     const EstadoJugador& estadoJugador() const;
     const std::vector<uint16_t>& stockNpc() const;
-
+    const std::vector<uint16_t>& bancoItems() const;
+    uint32_t bancoOro() const;
+    bool bancoRecibido() const;
+    void cerrarBanco();
 };
 
 

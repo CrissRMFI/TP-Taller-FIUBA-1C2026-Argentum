@@ -32,10 +32,17 @@ private:
     std::unique_ptr<GestorAudio> gestorAudio;
     int slotInvSeleccionado = -1;
     int scrollComercio = 0;
+    // Estado de la ventana de banco.
+    int bancoSelBoveda = -1;
+    int bancoSelInv = -1;
+    std::string bancoMonto;
+    bool bancoMontoActivo = false;
     bool is_running;
 
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
     void manejarClickPanel(int x, int y);
+    // Maneja los eventos (clicks + texto del monto) mientras la ventana de banco esta abierta.
+    void manejarEventoBanco(const SDL_Event& event);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
     void reproducirSonidoDeComando(const ComandoJugador& command);

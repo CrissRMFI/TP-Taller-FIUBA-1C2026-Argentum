@@ -78,6 +78,9 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::EQUIPAR:
             return recibirComandoEquipar();
 
+        case Opcode::USAR:
+            return recibirComandoUsar();
+
         case Opcode::COMPRAR:
             return recibirComandoComprar();
 
@@ -243,6 +246,11 @@ ComandoJugador ProtocoloServidor::recibirComandoTirar() {
       Opcode::TIRAR,
       ComandoTirar{indiceItem},
     };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoUsar() {
+    uint8_t indiceItem = recibirUnByte();
+    return ComandoJugador{Opcode::USAR, ComandoUsar{indiceItem}};
 }
 
 ComandoJugador ProtocoloServidor::recibirComandoEquipar() {
@@ -491,6 +499,10 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarListaItems(std::get<MensajeListaItems>(mensaje.payload));
             break;
 
+        case Opcode::CONTENIDO_BANCO:
+            enviarContenidoBanco(std::get<MensajeContenidoBanco>(mensaje.payload));
+            break;
+
         case Opcode::ERROR_ACCION:
             enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
             break;
@@ -648,6 +660,15 @@ void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
     for (uint16_t idItem: mensaje.ids) {
         enviarDosBytes(idItem);
     }
+}
+
+void ProtocoloServidor::enviarContenidoBanco(const MensajeContenidoBanco& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::CONTENIDO_BANCO));
+    enviarUnByte(static_cast<uint8_t>(mensaje.items.size()));
+    for (uint16_t idItem : mensaje.items) {
+        enviarDosBytes(idItem);
+    }
+    enviarCuatroBytes(mensaje.oroBanco);
 }
 
 void ProtocoloServidor::enviarErrorAccion(const MensajeErrorAccion& mensaje) {

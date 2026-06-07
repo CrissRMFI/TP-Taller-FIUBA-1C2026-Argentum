@@ -2,6 +2,7 @@
 #include "client_game_loop.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <deque>
 #include <iostream>
 #include <string>
@@ -62,6 +63,13 @@ void ClientGameLoop::init(const char* title,
     panelCfg.fondoCuero = config.panelFondoCuero;
     panelCfg.colorTexto = aColor(config.panelColorTexto, panelCfg.colorTexto);
     panelCfg.colorTitulo = aColor(config.panelColorTitulo, panelCfg.colorTitulo);
+    panelCfg.bancoBovedaX = config.bancoBovedaX;
+    panelCfg.bancoBovedaY = config.bancoBovedaY;
+    panelCfg.bancoInvX = config.bancoInvX;
+    panelCfg.bancoInvY = config.bancoInvY;
+    panelCfg.bancoSlot = config.bancoSlot;
+    panelCfg.bancoGap = config.bancoGap;
+    panelCfg.bancoCols = config.bancoCols;
 
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
                          config.fpsMax, chatCfg, panelCfg, &catalogo);
@@ -103,6 +111,11 @@ void ClientGameLoop::init(const char* title,
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        // Si el banco esta abierto, es modal: todos los eventos van a su manejo.
+        if (object_state.bancoRecibido()) {
+            manejarEventoBanco(event);
+            continue;
+        }
         // Rueda del mouse: scrollea la lista de comercio del panel.
         if (event.type == SDL_MOUSEWHEEL) {
             const int total = static_cast<int>(object_state.stockNpc().size());
@@ -183,6 +196,25 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
+    // Boton Usar: usa el item seleccionado
+    if (object_renderer.clickEnBotonUsar(x, y)) {
+        if (slotInvSeleccionado >= 0 &&
+            slotInvSeleccionado < static_cast<int>(items.size()) &&
+            items[slotInvSeleccionado] != 0) {
+            despacharComando({Opcode::USAR,
+                              ComandoUsar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
+            slotInvSeleccionado = -1;
+        }
+        return;
+    }
+
+    // Boton Curar: pide curacion al objetivo. Si no es un sacerdote (o no hay objetivo)"accion no permitida" y suena.
+    if (object_renderer.clickEnBotonCurar(x, y)) {
+        despacharComando({Opcode::CURAR, ComandoCurar{objetivo.value_or(static_cast<uint16_t>(0))}},
+                         tick);
+        return;
+    }
+
     // 2) Click en el stock del comerciante -> comprar (requiere NPC seleccionado).
     const int s = object_renderer.slotStockClickeado(x, y);
     if (s >= 0) {
@@ -200,6 +232,100 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         if (inv < static_cast<int>(items.size()) && items[inv] != 0) {
             slotInvSeleccionado = (slotInvSeleccionado == inv) ? -1 : inv;  // toggle
         }
+    }
+}
+
+void ClientGameLoop::manejarEventoBanco(const SDL_Event& event) {
+    if (event.type == SDL_QUIT) {
+        is_running = false;
+        return;
+    }
+    const uint32_t tick = SDL_GetTicks();
+    const std::optional<uint16_t> banquero = handler.objetivoSeleccionado();
+
+    // Caja de monto activa: capturamos digitos por teclado (sin SDL_TextInput).
+    if (bancoMontoActivo && event.type == SDL_KEYDOWN) {
+        const SDL_Keycode k = event.key.keysym.sym;
+        if (k >= SDLK_0 && k <= SDLK_9 && bancoMonto.size() < 9) {
+            bancoMonto += static_cast<char>('0' + (k - SDLK_0));
+        } else if (k >= SDLK_KP_1 && k <= SDLK_KP_9 && bancoMonto.size() < 9) {
+            bancoMonto += static_cast<char>('1' + (k - SDLK_KP_1));
+        } else if (k == SDLK_KP_0 && bancoMonto.size() < 9) {
+            bancoMonto += '0';
+        } else if (k == SDLK_BACKSPACE && !bancoMonto.empty()) {
+            bancoMonto.pop_back();
+        } else if (k == SDLK_RETURN || k == SDLK_KP_ENTER || k == SDLK_ESCAPE) {
+            bancoMontoActivo = false;
+        }
+        return;
+    }
+
+    if (event.type != SDL_MOUSEBUTTONDOWN) {
+        return;
+    }
+    const int x = event.button.x;
+    const int y = event.button.y;
+
+    if (object_renderer.clickBancoCerrar(x, y)) {
+        object_state.cerrarBanco();
+        bancoSelBoveda = bancoSelInv = -1;
+        bancoMonto.clear();
+        bancoMontoActivo = false;
+        return;
+    }
+    if (object_renderer.clickBancoCajaMonto(x, y)) {
+        bancoMontoActivo = true;
+        return;
+    }
+    bancoMontoActivo = false;
+
+    if (const int bv = object_renderer.bancoBovedaClickeada(x, y); bv >= 0) {
+        bancoSelBoveda = (bancoSelBoveda == bv) ? -1 : bv;
+        return;
+    }
+    if (const int iv = object_renderer.bancoInvClickeado(x, y); iv >= 0) {
+        bancoSelInv = (bancoSelInv == iv) ? -1 : iv;
+        return;
+    }
+
+    const std::vector<uint16_t>& boveda = object_state.bancoItems();
+    const std::vector<uint16_t>& inv = object_state.inventario();
+
+    if (object_renderer.clickBancoDepositar(x, y)) {
+        if (banquero && bancoSelInv >= 0 && bancoSelInv < static_cast<int>(inv.size()) &&
+            inv[bancoSelInv] != 0) {
+            despacharComando({Opcode::DEPOSITAR_ITEM,
+                              ComandoDepositarItem{static_cast<uint8_t>(bancoSelInv), *banquero}},
+                             tick);
+            bancoSelInv = -1;
+        }
+        return;
+    }
+    if (object_renderer.clickBancoRetirar(x, y)) {
+        if (banquero && bancoSelBoveda >= 0 && bancoSelBoveda < static_cast<int>(boveda.size())) {
+            despacharComando({Opcode::RETIRAR_ITEM,
+                              ComandoRetirarItem{boveda[bancoSelBoveda], *banquero}}, tick);
+            bancoSelBoveda = -1;
+        }
+        return;
+    }
+
+    const uint32_t monto =
+            bancoMonto.empty() ? 0u : static_cast<uint32_t>(std::strtoul(bancoMonto.c_str(),
+                                                                         nullptr, 10));
+    if (object_renderer.clickBancoDepositarOro(x, y)) {
+        if (banquero && monto > 0) {
+            despacharComando({Opcode::DEPOSITAR_ORO, ComandoDepositarOro{monto, *banquero}}, tick);
+        }
+        bancoMonto.clear();
+        return;
+    }
+    if (object_renderer.clickBancoRetirarOro(x, y)) {
+        if (banquero && monto > 0) {
+            despacharComando({Opcode::RETIRAR_ORO, ComandoRetirarOro{monto, *banquero}}, tick);
+        }
+        bancoMonto.clear();
+        return;
     }
 }
 
@@ -253,7 +379,20 @@ void ClientGameLoop::render() {
     panel.seleccionInventario = slotInvSeleccionado;
     panel.scrollStock = scrollComercio;
 
-    object_renderer.render(object_state, object_animation, chat, panel);
+    EstadoBancoRender banco;
+    banco.abierto = object_state.bancoRecibido();
+    if (banco.abierto) {
+        banco.boveda = object_state.bancoItems();
+        banco.inventario = object_state.inventario();
+        banco.oroBanco = object_state.bancoOro();
+        banco.oroJugador = object_state.estadoJugador().oro;
+        banco.selBoveda = bancoSelBoveda;
+        banco.selInventario = bancoSelInv;
+        banco.monto = bancoMonto;
+        banco.montoActivo = bancoMontoActivo;
+    }
+
+    object_renderer.render(object_state, object_animation, chat, panel, banco);
 }
 
 void ClientGameLoop::clean() {}

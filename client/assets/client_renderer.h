@@ -59,13 +59,23 @@ private:
     Mapa cargarMapa() const;
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
+    void dibujar_banco(const EstadoBancoRender& banco);
     SDL2pp::Texture* icono_item(uint16_t id);
     int ancho_juego() const;
-    // Rects de los slots dibujados el ultimo frame (para hit-test del click).
+    std::vector<SDL2pp::Rect> banco_boveda;
+    std::vector<SDL2pp::Rect> banco_inv;
+    SDL2pp::Rect rect_dep{0, 0, 0, 0};
+    SDL2pp::Rect rect_ret{0, 0, 0, 0};
+    SDL2pp::Rect rect_dep_oro{0, 0, 0, 0};
+    SDL2pp::Rect rect_ret_oro{0, 0, 0, 0};
+    SDL2pp::Rect rect_caja_monto{0, 0, 0, 0};
+    SDL2pp::Rect rect_cerrar_banco{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
     SDL2pp::Rect rect_boton_vender{0, 0, 0, 0};
     SDL2pp::Rect rect_boton_equipar{0, 0, 0, 0};
+    SDL2pp::Rect rect_boton_usar{0, 0, 0, 0};
+    SDL2pp::Rect rect_boton_curar{0, 0, 0, 0};
     int slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const;
 
 public:
@@ -75,11 +85,23 @@ public:
               const ConfigPanelRender& panel_config, const CatalogoItems* catalogo);
     void update_animation(int it, const ObjectGameWorld& state_object, const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
-                const EstadoChatRender& chat, const EstadoPanelRender& panel);
+                const EstadoChatRender& chat, const EstadoPanelRender& panel,
+                const EstadoBancoRender& banco);
     int slotInventarioClickeado(int x, int y) const;
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;
     bool clickEnBotonEquipar(int x, int y) const;
+    bool clickEnBotonUsar(int x, int y) const;
+    bool clickEnBotonCurar(int x, int y) const;
+    // Banco: hit-test (devuelven indice de slot o -1; los botones true/false).
+    int bancoBovedaClickeada(int x, int y) const;
+    int bancoInvClickeado(int x, int y) const;
+    bool clickBancoDepositar(int x, int y) const;
+    bool clickBancoRetirar(int x, int y) const;
+    bool clickBancoDepositarOro(int x, int y) const;
+    bool clickBancoRetirarOro(int x, int y) const;
+    bool clickBancoCajaMonto(int x, int y) const;
+    bool clickBancoCerrar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

@@ -54,6 +54,7 @@ private:
     void enviarComandoTomar(const ComandoTomar& comando);
     void enviarComandoTirar(const ComandoTirar& comando);
     void enviarComandoEquipar(const ComandoEquipar& comando);
+    void enviarComandoUsar(const ComandoUsar& comando);
     void enviarComandoComprar(const ComandoComprar& comando);
     void enviarComandoVender(const ComandoVender& comando);
     void enviarComandoDepositarItem(const ComandoDepositarItem& comando);
@@ -92,6 +93,7 @@ private:
     MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
+    MensajeServidor recibirContenidoBanco();
     MensajeServidor recibirErrorAccion();
 };
 

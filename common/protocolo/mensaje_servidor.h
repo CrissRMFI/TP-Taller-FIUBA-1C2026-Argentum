@@ -134,6 +134,11 @@ struct MensajeListaItems {
   std::vector<uint16_t> ids;
 };
 
+struct MensajeContenidoBanco {
+  std::vector<uint16_t> items;
+  uint32_t oroBanco;
+};
+
 struct MensajeErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -157,6 +162,7 @@ using PayloadMensajeServidor = std::variant<
         MensajeResucitado,
         MensajeErrorAccion,
         MensajeListaItems,
+        MensajeContenidoBanco,
         MensajeEstadoUsuario>;
 
 

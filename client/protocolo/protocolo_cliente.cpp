@@ -91,6 +91,10 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoEquipar(std::get<ComandoEquipar>(comando.payload));
             break;
 
+        case Opcode::USAR:
+            enviarComandoUsar(std::get<ComandoUsar>(comando.payload));
+            break;
+
         case Opcode::COMPRAR:
             enviarComandoComprar(std::get<ComandoComprar>(comando.payload));
             break;
@@ -210,6 +214,11 @@ void ProtocoloCliente::enviarComandoTirar(const ComandoTirar& comando) {
 
 void ProtocoloCliente::enviarComandoEquipar(const ComandoEquipar& comando) {
     enviarUnByte(static_cast<uint8_t>(Opcode::EQUIPAR));
+    enviarUnByte(comando.indiceItem);
+}
+
+void ProtocoloCliente::enviarComandoUsar(const ComandoUsar& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::USAR));
     enviarUnByte(comando.indiceItem);
 }
 
@@ -368,6 +377,9 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
 
         case Opcode::LISTA_ITEMS:
             return recibirListaItems();
+
+        case Opcode::CONTENIDO_BANCO:
+            return recibirContenidoBanco();
 
         case Opcode::ERROR_ACCION:
             return recibirErrorAccion();
@@ -545,6 +557,20 @@ MensajeServidor ProtocoloCliente::recibirListaItems() {
     return MensajeServidor{
             Opcode::LISTA_ITEMS,
             MensajeListaItems{ids},
+    };
+}
+
+MensajeServidor ProtocoloCliente::recibirContenidoBanco() {
+    uint8_t cantidad = recibirUnByte();
+    std::vector<uint16_t> items;
+    items.reserve(cantidad);
+    for (uint8_t i = 0; i < cantidad; ++i) {
+        items.push_back(recibirDosBytes());
+    }
+    uint32_t oroBanco = recibirCuatroBytes();
+    return MensajeServidor{
+            Opcode::CONTENIDO_BANCO,
+            MensajeContenidoBanco{items, oroBanco},
     };
 }
 

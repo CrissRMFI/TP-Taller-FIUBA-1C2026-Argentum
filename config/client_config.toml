@@ -56,3 +56,15 @@ fondo = "imgs/ui/leather_brown.png"
 # Colores [r, g, b].
 color_texto = [235, 225, 200]
 color_titulo = [255, 220, 120]
+
+[banco]
+# Calibracion de la grilla del banco sobre la imagen es_banco.bmp (coords relativas
+# a la esquina sup-izq de la ventana). Ajustar hasta que los iconos caigan en los
+# casilleros. boveda = grilla izquierda, inv = grilla derecha.
+boveda_x = 45
+boveda_y = 127
+inv_x    = 305
+inv_y    = 127
+slot     = 32
+gap      = 4
+cols     = 6

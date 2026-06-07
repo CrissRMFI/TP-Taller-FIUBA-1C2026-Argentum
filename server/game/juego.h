@@ -74,6 +74,7 @@ class Juego {
     EventoSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
     EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
+    EventoSalida armarContenidoBanco(uint16_t idCliente, Banquero& banquero);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
@@ -109,6 +110,7 @@ class Juego {
     std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
     std::list<EventoSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
+    std::list<EventoSalida> ejecutarUsar(uint16_t idCliente, const ComandoUsar& comando);
     std::list<EventoSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
     std::list<EventoSalida> ejecutarVender(uint16_t idCliente, const ComandoVender& comando);
     std::list<EventoSalida> ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& comando);
