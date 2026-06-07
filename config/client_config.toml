@@ -8,7 +8,7 @@
 vsync = true
 
 # Tope de FPS usado cuando VSync no está disponible
-fps_max = 60
+fps_max = 120
 
 # Tamaño de la ventana. Acepta cualquier tamaño en modo ventana.
 # En pantalla completa, ancho/alto definen la resolución.
