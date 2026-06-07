@@ -318,7 +318,7 @@ mapa_id = 0
 [npcs]
 # Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
 # 1 significa celda adyacente.
-rango_interaccion = 1
+rango_interaccion = 5
 
 # id de sprite de cuerpo con que el cliente dibuja cada NPC ciudadano.
 # Deben coincidir con el catalogo de sprites del cliente (npc_sprite_resolver):
