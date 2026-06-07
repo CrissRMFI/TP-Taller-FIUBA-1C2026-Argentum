@@ -26,11 +26,21 @@ intervalo_ms = 130
 # Fuente usada
 fuente = "fonts/Cardo-Regular.ttf"
 
+# Imagen de fondo del panel de chat.
+fondo = "chat/fondoPrincipal.png"
+
 # Tamaño de la fuente en puntos.
 tam = 14
 
 # Cuántas líneas de chat/feedback se ven a la vez en pantalla.
 max_lineas = 6
+
+# Caja del chat en píxeles (esquina superior izquierda + tamaño).
+# Siempre visible. Reubicable sin recompilar mientras se arma el layout.
+panel_x = 8
+panel_y = 8
+panel_ancho = 380
+panel_alto = 120
 
 # Colores [r, g, b] del texto del chat.
 color_texto = [255, 255, 255]  # mensajes entrantes
