@@ -39,7 +39,7 @@ void ClientGameLoop::init(const char* title,
                           const int height,
                           const bool fullscreen) {
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
-                         config.fpsMax, config.fuenteRuta, config.fuenteTam);
+                         config.fpsMax, config.fuenteRuta, config.fuenteTam, config.fondoChatRuta);
     object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
     handler.setIdCliente(object_state.client_id());
@@ -167,6 +167,10 @@ void ClientGameLoop::render() {
     chat.colorTexto = aColor(config.chatColorTexto, chat.colorTexto);
     chat.colorInput = aColor(config.chatColorInput, chat.colorInput);
     chat.colorAyuda = aColor(config.chatColorAyuda, chat.colorAyuda);
+    chat.panelX = config.chatPanelX;
+    chat.panelY = config.chatPanelY;
+    chat.panelAncho = config.chatPanelAncho;
+    chat.panelAlto = config.chatPanelAlto;
     object_renderer.render(object_state, object_animation, chat);
 }
 
