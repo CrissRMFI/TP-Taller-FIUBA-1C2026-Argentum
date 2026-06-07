@@ -61,8 +61,9 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
         cfg.chatPanelAlto = static_cast<int>(panelAlto);
     }
 
-    const auto leerColor = [&tbl](const char* clave, std::vector<int>& destino) {
-        const toml::array* color = tbl["chat"][clave].as_array();
+    const auto leerColor = [&tbl](const char* seccion, const char* clave,
+                                  std::vector<int>& destino) {
+        const toml::array* color = tbl[seccion][clave].as_array();
         if (color == nullptr || color->size() != 3) {
             return;
         }
@@ -76,8 +77,18 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
             destino = rgb;
         }
     };
-    leerColor("color_texto", cfg.chatColorTexto);
-    leerColor("color_input", cfg.chatColorInput);
+    leerColor("chat", "color_texto", cfg.chatColorTexto);
+    leerColor("chat", "color_input", cfg.chatColorInput);
+
+    // --- Panel derecho (inventario/equipo/stats/comercio) ---
+    const int64_t panelAncho = tbl["panel"]["ancho"].value_or<int64_t>(cfg.panelAncho);
+    if (panelAncho > 0) {
+        cfg.panelAncho = static_cast<int>(panelAncho);
+    }
+    cfg.panelIconDir = tbl["panel"]["icon_dir"].value_or(cfg.panelIconDir);
+    cfg.panelFondoCuero = tbl["panel"]["fondo"].value_or(cfg.panelFondoCuero);
+    leerColor("panel", "color_texto", cfg.panelColorTexto);
+    leerColor("panel", "color_titulo", cfg.panelColorTitulo);
 
     return cfg;
 }

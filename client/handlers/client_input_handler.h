@@ -36,11 +36,14 @@ private:
     int chat_panel_x = 0;
     int chat_panel_y = 0;
     int chat_panel_alto = 0;
+    // Ancho del panel derecho (px). El area de juego es window_width - ancho_panel.
+    int ancho_panel = 0;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
     std::optional<uint8_t> direccion_de_tecla(SDL_Keycode key) const;
     bool click_en_chat(int x, int y) const;
+    int ancho_juego() const;
     ResultadoInput manejar_texto_chat(const SDL_Event& event);
     void abrir_chat();
     void cerrar_chat();
@@ -74,6 +77,7 @@ public:
         chat_panel_y = y;
         chat_panel_alto = alto;
     }
+    void setAnchoPanel(int ancho) { ancho_panel = ancho; }
 };
 
 

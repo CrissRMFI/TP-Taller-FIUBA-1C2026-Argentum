@@ -40,8 +40,12 @@ void ObjectRenderer::init(const char* title,
                           const bool fullscreen,
                           const bool vsync,
                           const int loop_fps,
-                          const ConfigChatRender& chat_config) {
+                          const ConfigChatRender& chat_config,
+                          const ConfigPanelRender& panel_config,
+                          const CatalogoItems* catalogo) {
     this->chat_config = chat_config;
+    this->panel_config = panel_config;
+    this->catalogo = catalogo;
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -166,37 +170,42 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
 
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
-                            const EstadoChatRender& chat) {
+                            const EstadoChatRender& chat,
+                            const EstadoPanelRender& panel) {
     if (!renderer) {
         return;
     }
     const uint32_t current_tick = SDL_GetTicks();
+    // El mundo se dibuja en el area de juego: a la izquierda del panel y DEBAJO del chat.
+    const int gw = ancho_juego();
+    const int gy0 = chat_config.panelAlto;
+    const int gh = std::max(1, window_height - gy0);
 
+    renderer->SetDrawColor(0, 0, 0, 255);
+    renderer->Clear();
+    // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se desbordan por debajo del panel ni del chat.
+    renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));
     if (background_texture) {
-        renderer->Clear();
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
         SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
-                       SDL2pp::Rect(0, 0, window_width, window_height));
-    } else {
-        renderer->SetDrawColor(0, 255, 0, 255);
-        renderer->Clear();
+                       SDL2pp::Rect(0, gy0, gw, gh));
     }
     for (const auto& wall : mapa.getParedes()) {
-        const int cell_width = std::max(1, window_width / mapa.getAncho());
-        const int cell_height = std::max(1, window_height / mapa.getAlto());
-        const int wall_x = wall.x * window_width / mapa.getAncho();
-        const int wall_y = wall.y * window_height / mapa.getAlto();
+        const int cell_width = std::max(1, gw / mapa.getAncho());
+        const int cell_height = std::max(1, gh / mapa.getAlto());
+        const int wall_x = wall.x * gw / mapa.getAncho();
+        const int wall_y = wall.y * gh / mapa.getAlto() + gy0;
 
         renderer->SetDrawColor(0, 0, 0, 255); // color de paredes es negro
         renderer->FillRect(SDL2pp::Rect(wall_x, wall_y, cell_width, cell_height));
     }
 
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
-        const int cell_width = window_width / mapa.getAncho();
-        const int cell_height = window_height / mapa.getAlto();
-        const int sacerdote_x = sacerdote.getPosicion().x * window_width / mapa.getAncho();
-        const int sacerdote_y = sacerdote.getPosicion().y * window_height / mapa.getAlto();
+        const int cell_width = gw / mapa.getAncho();
+        const int cell_height = gh / mapa.getAlto();
+        const int sacerdote_x = sacerdote.getPosicion().x * gw / mapa.getAncho();
+        const int sacerdote_y = sacerdote.getPosicion().y * gh / mapa.getAlto() + gy0;
 
         if (!npc_renderer) {
             continue;
@@ -207,10 +216,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
-        const int cell_width = window_width / mapa.getAncho();
-        const int cell_height = window_height / mapa.getAlto();
-        const int banquero_x = banquero.getPosicion().x * window_width / mapa.getAncho();
-        const int banquero_y = banquero.getPosicion().y * window_height / mapa.getAlto();
+        const int cell_width = gw / mapa.getAncho();
+        const int cell_height = gh / mapa.getAlto();
+        const int banquero_x = banquero.getPosicion().x * gw / mapa.getAncho();
+        const int banquero_y = banquero.getPosicion().y * gh / mapa.getAlto() + gy0;
 
         if (!npc_renderer) {
             continue;
@@ -221,10 +230,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
-        const int cell_width = window_width / mapa.getAncho();
-        const int cell_height = window_height / mapa.getAlto();
-        const int comerciante_x = comerciante.getPosicion().x * window_width / mapa.getAncho();
-        const int comerciante_y = comerciante.getPosicion().y * window_height / mapa.getAlto();
+        const int cell_width = gw / mapa.getAncho();
+        const int cell_height = gh / mapa.getAlto();
+        const int comerciante_x = comerciante.getPosicion().x * gw / mapa.getAncho();
+        const int comerciante_y = comerciante.getPosicion().y * gh / mapa.getAlto() + gy0;
 
         if (!npc_renderer) {
             continue;
@@ -234,12 +243,12 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     } 
 
     for (const auto& [id, entity] : state_object.entities()) {
-        const int cell_width = window_width / mapa.getAncho();
-        const int cell_height = window_height / mapa.getAlto();
+        const int cell_width = gw / mapa.getAncho();
+        const int cell_height = gh / mapa.getAlto();
         const InterpolatedPosition interpolated_position =
                 state_object.entity_interpolated_position(id, current_tick);
-        const int entity_x = static_cast<int>(interpolated_position.x * window_width / mapa.getAncho());
-        const int entity_y = static_cast<int>(interpolated_position.y * window_height / mapa.getAlto());
+        const int entity_x = static_cast<int>(interpolated_position.x * gw / mapa.getAncho());
+        const int entity_y = gy0 + static_cast<int>(interpolated_position.y * gh / mapa.getAlto());
 
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
@@ -267,9 +276,257 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         renderer->FillRect(SDL2pp::Rect(entity_x, entity_y, cell_width, cell_height));
     }
 
+    // Fin del mundo: saco el clip para que el panel y el chat se dibujen completos.
+    renderer->SetClipRect(SDL2pp::NullOpt);
+    dibujar_panel(panel);
     dibujar_chat(chat);
 
     renderer->Present();
+}
+
+int ObjectRenderer::ancho_juego() const {
+    const int gw = window_width - panel_config.ancho;
+    return (gw > 0) ? gw : window_width;
+}
+
+SDL2pp::Texture* ObjectRenderer::icono_item(const uint16_t id) {
+    if (id == 0 || !cache_texture || iconos_fallidos.count(id)) {
+        return nullptr;
+    }
+    const std::string ruta = panel_config.iconDir + "/" + std::to_string(id) + ".png";
+    try {
+        return &cache_texture->get_or_load(ruta);
+    } catch (const std::exception& e) {
+        iconos_fallidos.insert(id);  // no reintentar ni spamear cada frame
+        std::cerr << "[cliente] "
+                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::ICONO_ITEM_NO_CARGADO)
+                  << " (id=" << id << ": " << e.what() << ")" << std::endl;
+        return nullptr;
+    }
+}
+
+void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
+    if (!renderer || !text_renderer || panel_config.ancho <= 0) {
+        return;
+    }
+    // Rects de slots/boton dibujados este frame (para el hit-test del click).
+    slots_inventario.clear();
+    slots_stock.clear();
+    rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
+    rect_boton_equipar = SDL2pp::Rect(0, 0, 0, 0);
+    const int px = window_width - panel_config.ancho;  // borde izq del panel
+    const int pw = panel_config.ancho;
+    const int margen = 8;
+    const int cx = px + margen;
+    const int cw = pw - 2 * margen;
+    const int lh = text_renderer->alto_linea();
+    const SDL_Color& cTxt = panel_config.colorTexto;
+    const SDL_Color& cTit = panel_config.colorTitulo;
+
+    // Fondo de cuero del panel (si falla, rect oscuro).
+    try {
+        renderer->Copy(cache_texture->get_or_load(panel_config.fondoCuero), SDL2pp::NullOpt,
+                       SDL2pp::Rect(px, 0, pw, window_height));
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(35, 25, 18, 255);
+        renderer->FillRect(SDL2pp::Rect(px, 0, pw, window_height));
+    }
+
+    int y = margen;
+    // --- Header: nivel + oro ---
+    const EstadoJugador& s = panel.stats;
+    text_renderer->dibujar(*renderer, "Nivel " + std::to_string(s.nivel), cx, y, cTit);
+    y += lh;
+    text_renderer->dibujar(*renderer, "Oro: " + std::to_string(s.oro), cx, y, cTxt);
+    y += lh + 6;
+
+    // --- Barras de vida y mana (con textura de relleno, recortada al valor) ---
+    const auto barra = [&](const std::string& etiqueta, uint16_t act, uint16_t max,
+                           const std::string& ruta, SDL_Color fallback) {
+        text_renderer->dibujar(*renderer, etiqueta + " " + std::to_string(act) + "/" +
+                                                  std::to_string(max), cx, y, cTxt);
+        y += lh;
+        const int h = 14;
+        renderer->SetDrawColor(20, 20, 20, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
+        const double pct = (max > 0) ? static_cast<double>(act) / max : 0.0;
+        const int w = static_cast<int>(cw * pct);
+        if (w > 0) {
+            try {
+                SDL2pp::Texture& t = cache_texture->get_or_load(ruta);
+                const int tw = static_cast<int>(t.GetWidth() * pct);
+                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
+                               SDL2pp::Rect(cx, y, w, h));
+            } catch (const std::exception&) {
+                renderer->SetDrawColor(fallback.r, fallback.g, fallback.b, 255);
+                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
+            }
+        }
+        y += h + 6;
+    };
+    barra("Vida", s.vida, s.vidaMax, panel_config.barraVida, SDL_Color{200, 40, 40, 255});
+    barra("Mana", s.mana, s.manaMax, panel_config.barraMana, SDL_Color{50, 90, 210, 255});
+
+    // Dibuja un slot de tamaño sz (fondo + icono + marco), reusado por equipo e inventario.
+    const auto dibujar_slot = [&](int sx, int sy, int sz, uint16_t id) {
+        renderer->SetDrawColor(0, 0, 0, 180);
+        renderer->FillRect(SDL2pp::Rect(sx, sy, sz, sz));
+        if (SDL2pp::Texture* ic = icono_item(id)) {
+            renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, sz, sz));
+        }
+        renderer->SetDrawColor(120, 95, 60, 255);  // marco tipo madera
+        renderer->DrawRect(SDL2pp::Rect(sx, sy, sz, sz));
+    };
+
+    const int cols = 5;
+
+    // --- Equipo: 5 slots (arma, baculo, defensa, casco, escudo), centrados ---
+    const int eq_slot = 32;
+    const int eq_gap = 6;
+    text_renderer->dibujar(*renderer, "Equipo", cx, y, cTit);
+    y += lh + 2;
+    const uint16_t equipados[5] = {panel.equip.arma, panel.equip.baculo, panel.equip.defensa,
+                                   panel.equip.casco, panel.equip.escudo};
+    const int eq_x = px + (pw - (5 * eq_slot + 4 * eq_gap)) / 2;
+    for (int i = 0; i < 5; ++i) {
+        dibujar_slot(eq_x + i * (eq_slot + eq_gap), y, eq_slot, equipados[i]);
+    }
+    y += eq_slot + 8;
+
+    // --- Inventario: marco (con pestañas) + grid calzado en su interior ---
+    const int marco_top = y;
+    int inv_x;
+    int inv_y;
+    int inv_slot;
+    int inv_gap = 4;
+    try {
+        SDL2pp::Texture& marco = cache_texture->get_or_load(panel_config.marcoInventario);
+        const int mw = cw;
+        const int mh = (marco.GetWidth() > 0) ? cw * marco.GetHeight() / marco.GetWidth()
+                                              : marco.GetHeight();
+        renderer->Copy(marco, SDL2pp::NullOpt, SDL2pp::Rect(px + margen, marco_top, mw, mh));
+        // Insets del interior (borde lateral ~5%, pestañas arriba ~11%) calzan la grilla.
+        const int insetX = mw * 5 / 100;
+        const int insetY = mh * 11 / 100;
+        const int interiorW = mw - 2 * insetX;
+        inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
+        inv_x = px + margen + insetX;
+        inv_y = marco_top + insetY;
+        y = marco_top + mh + 8;
+    } catch (const std::exception&) {
+        inv_slot = 32;
+        text_renderer->dibujar(*renderer, "Inventario", cx, y, cTit);
+        y += lh + 2;
+        inv_x = px + (pw - (cols * inv_slot + (cols - 1) * inv_gap)) / 2;
+        inv_y = y;
+        const int fg = (static_cast<int>(panel.inventario.size()) + cols - 1) / cols;
+        y = inv_y + fg * (inv_slot + inv_gap) + 8;
+    }
+    for (size_t i = 0; i < panel.inventario.size(); ++i) {
+        const int col = static_cast<int>(i) % cols;
+        const int row = static_cast<int>(i) / cols;
+        const int sx = inv_x + col * (inv_slot + inv_gap);
+        const int sy = inv_y + row * (inv_slot + inv_gap);
+        dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
+        slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
+
+        // Slot seleccionado: icono ampliado (zoom) + borde resaltado.
+        if (static_cast<int>(i) == panel.seleccionInventario) {
+            const int z = inv_slot * 3 / 2;
+            const int zx = sx + inv_slot / 2 - z / 2;
+            const int zy = sy + inv_slot / 2 - z / 2;
+            if (SDL2pp::Texture* ic = icono_item(panel.inventario[i])) {
+                renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(zx, zy, z, z));
+            }
+            renderer->SetDrawColor(255, 230, 90, 255);
+            renderer->DrawRect(SDL2pp::Rect(sx - 1, sy - 1, inv_slot + 2, inv_slot + 2));
+        }
+    }
+
+    // --- Boton Vender (clickeable): vende el item seleccionado ---
+    try {
+        SDL2pp::Texture& boton = cache_texture->get_or_load(panel_config.botonVender);
+        const int bw = boton.GetWidth();
+        const int bh = boton.GetHeight();
+        const int bx = px + (pw - bw) / 2;
+        renderer->Copy(boton, SDL2pp::NullOpt, SDL2pp::Rect(bx, y, bw, bh));
+        rect_boton_vender = SDL2pp::Rect(bx, y, bw, bh);
+        y += bh + 8;
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(60, 40, 25, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, lh + 6));
+        text_renderer->dibujar(*renderer, "Vender", cx + 4, y + 3, cTit);
+        rect_boton_vender = SDL2pp::Rect(cx, y, cw, lh + 6);
+        y += lh + 12;
+    }
+
+    // --- Boton Equipar: equipa el item seleccionado ---
+    try {
+        SDL2pp::Texture& boton = cache_texture->get_or_load(panel_config.botonEquipar);
+        const int bw = boton.GetWidth();
+        const int bh = boton.GetHeight();
+        const int bx = px + (pw - bw) / 2;
+        renderer->Copy(boton, SDL2pp::NullOpt, SDL2pp::Rect(bx, y, bw, bh));
+        rect_boton_equipar = SDL2pp::Rect(bx, y, bw, bh);
+        y += bh + 8;
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(45, 55, 35, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, lh + 6));
+        text_renderer->dibujar(*renderer, "Equipar", cx + 4, y + 3, cTit);
+        rect_boton_equipar = SDL2pp::Rect(cx, y, cw, lh + 6);
+        y += lh + 12;
+    }
+
+    // --- Comercio: lista clickeable de lo que vende el NPC (con scroll en Y) ---
+    if (!panel.stock.empty() && catalogo != nullptr) {
+        const int total = static_cast<int>(panel.stock.size());
+        const int desde = std::max(0, std::min(panel.scrollStock, total - 1));
+        text_renderer->dibujar(*renderer, "Comercio (rueda = scroll)", cx, y, cTit);
+        y += lh + 2;
+        const int fila_h = lh + 4;
+        for (int i = desde; i < total; ++i) {
+            if (y + fila_h > window_height) {
+                break;
+            }
+            const uint16_t id = panel.stock[i];
+            // Fondo de la fila (para que se note clickeable) + texto.
+            renderer->SetDrawColor(0, 0, 0, 110);
+            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
+            const std::string linea =
+                    catalogo->nombre(id) + "  $" + std::to_string(catalogo->precioCompra(id));
+            text_renderer->dibujar(*renderer, linea, cx + 2, y + 2, cTxt);
+            slots_stock.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
+            y += fila_h;
+        }
+    }
+}
+
+int ObjectRenderer::slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const {
+    for (size_t i = 0; i < slots.size(); ++i) {
+        const SDL2pp::Rect& r = slots[i];
+        if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+int ObjectRenderer::slotInventarioClickeado(int x, int y) const {
+    return slot_en(slots_inventario, x, y);
+}
+
+int ObjectRenderer::slotStockClickeado(int x, int y) const {
+    return slot_en(slots_stock, x, y);
+}
+
+bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
+    const SDL2pp::Rect& r = rect_boton_vender;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+bool ObjectRenderer::clickEnBotonEquipar(int x, int y) const {
+    const SDL2pp::Rect& r = rect_boton_equipar;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
@@ -279,7 +536,8 @@ void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     const int alto = text_renderer->alto_linea();
     const int margen = 6;
 
-    const int panel_ancho = window_width / 2;
+    // El chat ocupa todo el ancho del area de juego (desde la izq hasta el panel).
+    const int panel_ancho = ancho_juego();
     const SDL2pp::Rect caja(chat_config.panelX, chat_config.panelY, panel_ancho,
                             chat_config.panelAlto);
     if (chat_background_texture) {

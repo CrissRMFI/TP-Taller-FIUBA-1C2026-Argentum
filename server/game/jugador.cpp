@@ -864,6 +864,11 @@ void Jugador::normalizarOro() {
     oroExceso = total - oroMano;
 }
 
+void Jugador::cheat_dar_oro(uint32_t cantidad) {
+    oroExceso += cantidad;
+    normalizarOro();
+}
+
 bool Jugador::esquiva_ataque(Aleatorio& aleatorio) {
     return ReglasJuego::esquivaAtaque(cfg, agilidad, aleatorio.uniforme());
 }

@@ -88,10 +88,11 @@ exp_kill_max  = 0.1          # rand(0, 0.1) * VidaMaxOtro * factor
 exp_perdida_muerte_pct = 0.10
 # ------------------------------------------------------------
 [oro]
-max_exp       = 1.1          # OroMax = 100 * nivel^1.1
+max_exp       = 1.1          # OroMax = base * nivel^1.1
 exceso_pct    = 0.50         # Puede tener hasta 50% extra "en exceso"
 drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
-oro_max_base = 100.0
+# Subimos a 10000 para ver como se comporta con nuestro cheat, luego lo bajamos a 100
+oro_max_base = 100000.0
 
 # ------------------------------------------------------------
 [combate]
@@ -318,7 +319,7 @@ mapa_id = 0
 [npcs]
 # Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
 # 1 significa celda adyacente.
-rango_interaccion = 1
+rango_interaccion = 5
 
 # id de sprite de cuerpo con que el cliente dibuja cada NPC ciudadano.
 # Deben coincidir con el catalogo de sprites del cliente (npc_sprite_resolver):

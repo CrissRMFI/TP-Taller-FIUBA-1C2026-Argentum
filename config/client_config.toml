@@ -44,3 +44,15 @@ panel_alto = 140
 # Colores [r, g, b] del texto del chat.
 color_texto = [255, 255, 255]  # mensajes entrantes
 color_input = [255, 255, 0]    # lo que se está tipeando
+
+[panel]
+# Panel derecho: inventario, equipo, stats y comercio.
+# Ancho en píxeles (el juego se dibuja a la izquierda de este panel).
+ancho = 268
+# Carpeta de iconos de ítems (relativa a client/resources); archivos <id>.png.
+icon_dir = "imgs/items"
+# Textura de fondo del panel
+fondo = "imgs/ui/leather_brown.png"
+# Colores [r, g, b].
+color_texto = [235, 225, 200]
+color_titulo = [255, 220, 120]

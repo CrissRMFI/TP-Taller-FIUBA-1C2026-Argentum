@@ -4,6 +4,7 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "client/entidad_renderizable.h"
 #include "../../common/protocolo/mensaje_servidor.h"
@@ -28,6 +29,26 @@ struct InterpolatedPosition {
     float y = 0.0f;
 };
 
+// Lo que el jugador tiene equipado 
+struct EquipamientoJugador {
+    uint16_t arma = 0;
+    uint16_t baculo = 0;
+    uint16_t defensa = 0;
+    uint16_t casco = 0;
+    uint16_t escudo = 0;
+};
+
+// Stats del jugador para mostrar en el panel.
+struct EstadoJugador {
+    uint16_t vida = 0;
+    uint16_t vidaMax = 0;
+    uint16_t mana = 0;
+    uint16_t manaMax = 0;
+    uint32_t oro = 0;
+    uint32_t experiencia = 0;
+    uint8_t  nivel = 0;
+};
+
 class GestorAudio;
 
 class ObjectGameWorld {
@@ -49,6 +70,12 @@ private:
     std::deque<std::string> historialChatReciente;
     size_t maxLineasChat = 6;
 
+    // Estado de objetos del jugador (llega por protocolo; lo usa el panel derecho).
+    std::vector<uint16_t> inventario_;   // ids por slot (0 = vacio)
+    EquipamientoJugador   equipamiento_;
+    EstadoJugador         estadoJugador_;
+    std::vector<uint16_t> stockNpc_;      // ultimo /listar de un comerciante (ids en venta)
+
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea);
 
@@ -69,6 +96,11 @@ public:
                                                       uint32_t current_tick) const;
     const std::deque<std::string>& historialChat() const;
     void setMaxLineasChat(size_t maximo);
+
+    const std::vector<uint16_t>& inventario() const;
+    const EquipamientoJugador& equipamiento() const;
+    const EstadoJugador& estadoJugador() const;
+    const std::vector<uint16_t>& stockNpc() const;
 
 };
 
