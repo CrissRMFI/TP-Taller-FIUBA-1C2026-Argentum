@@ -248,6 +248,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 linea += " " + std::to_string(id);
             }
             agregarLineaChat(linea);
+        } else if (auto* banco = std::get_if<MensajeContenidoBanco>(&mensaje.payload)) {
+            bancoItems_ = banco->items;
+            bancoOro_ = banco->oroBanco;
+            bancoRecibido_ = true;
         }
     }
 
@@ -356,4 +360,16 @@ const EstadoJugador& ObjectGameWorld::estadoJugador() const {
 
 const std::vector<uint16_t>& ObjectGameWorld::stockNpc() const {
     return stockNpc_;
+}
+
+const std::vector<uint16_t>& ObjectGameWorld::bancoItems() const {
+    return bancoItems_;
+}
+
+uint32_t ObjectGameWorld::bancoOro() const {
+    return bancoOro_;
+}
+
+bool ObjectGameWorld::bancoRecibido() const {
+    return bancoRecibido_;
 }
