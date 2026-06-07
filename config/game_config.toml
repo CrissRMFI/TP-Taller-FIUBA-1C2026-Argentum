@@ -126,23 +126,27 @@ tiempo_suelo_seg = 60
 # hechizo (solo baculo): "misil" | "explosion" | "curar" | "flecha_magica"
 
 # Armas cuerpo a cuerpo
+# sprite_equip: overlay que muestra el personaje al equiparla (sprites.toml bodies.<id>).
 [items.espada]
 id        = 1
 tipo      = "arma"
 danio_min = 2
 danio_max = 5
+sprite_equip = 2095
 
 [items.hacha]
 id        = 2
 tipo      = "arma"
 danio_min = 4
 danio_max = 5
+sprite_equip = 2085
 
 [items.martillo]
 id        = 3
 tipo      = "arma"
 danio_min = 1
 danio_max = 9
+sprite_equip = 2084
 
 # Armas a distancia
 [items.arco_simple]
@@ -150,12 +154,14 @@ id        = 4
 tipo      = "arma_distancia"
 danio_min = 1
 danio_max = 4
+sprite_equip = 2035
 
 [items.arco_compuesto]
 id        = 5
 tipo      = "arma_distancia"
 danio_min = 4
 danio_max = 16
+sprite_equip = 2036
 
 # Báculos
 [items.vara_fresno]
@@ -233,18 +239,20 @@ tipo        = "casco"
 defensa_min = 4
 defensa_max = 12
 
-# Escudos
+# Escudos (sprite_equip: overlay sobre el cuerpo)
 [items.escudo_tortuga]
 id          = 16
 tipo        = "escudo"
 defensa_min = 1
 defensa_max = 2
+sprite_equip = 2303
 
 [items.escudo_hierro]
 id          = 17
 tipo        = "escudo"
 defensa_min = 1
 defensa_max = 4
+sprite_equip = 2327
 
 # Pociones
 [items.pocion_vida_chica]

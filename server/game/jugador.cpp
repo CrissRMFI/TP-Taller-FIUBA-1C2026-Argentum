@@ -555,26 +555,48 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
         }
 
         const bool ok = inventario.equiparPiezaSlot(indice, defensa->getSlot());
-        if (ok && defensa->getSlot() == TipoDefensa::Armadura) {
-            actualizarCuerpoPorArmadura(catalogo);  // vestimenta: cambia el cuerpo renderizado
+        if (ok) {
+            actualizarVestimenta(catalogo);  // recalcula cuerpo + overlays
         }
         return ok;
     }
 
-    return inventario.equiparSlot(indice, item->getTipo());
+    const bool ok = inventario.equiparSlot(indice, item->getTipo());
+    if (ok) {
+        actualizarVestimenta(catalogo);  // arma/baculo: overlay de arma
+    }
+    return ok;
 }
 
-void Jugador::actualizarCuerpoPorArmadura(const CatalogoItems& catalogo) {
+void Jugador::actualizarVestimenta(const CatalogoItems& catalogo) {
+    const auto spriteDe = [&catalogo](uint16_t idItem) -> uint16_t {
+        if (idItem == 0) {
+            return 0;
+        }
+        const Item* it = catalogo.buscar(idItem);
+        return it != nullptr ? it->getSpriteEquip() : 0;
+    };
+
+    // Cuerpo: la armadura puede cambiarlo (sprite_cuerpo); sin armadura, el cuerpo base.
+    cuerpo = cuerpoBase;
     const uint16_t idArmadura = inventario.getDefensaEquipada();
     if (idArmadura != 0) {
         const Defensa* defensa = catalogo.comoDefensa(idArmadura);
         if (defensa != nullptr && defensa->getSpriteCuerpo() != 0) {
             cuerpo = defensa->getSpriteCuerpo();
-            return;
         }
     }
-    cuerpo = cuerpoBase;
+
+    // Overlays: arma (o baculo si no hay arma), escudo y casco.
+    const uint16_t idArma = inventario.getArmaEquipada();
+    spriteArma = spriteDe(idArma != 0 ? idArma : inventario.getBaculoEquipado());
+    spriteEscudo = spriteDe(inventario.getEscudoEquipado());
+    spriteCasco = spriteDe(inventario.getCascoEquipado());
 }
+
+uint16_t Jugador::getSpriteArma() const { return spriteArma; }
+uint16_t Jugador::getSpriteEscudo() const { return spriteEscudo; }
+uint16_t Jugador::getSpriteCasco() const { return spriteCasco; }
 
 bool Jugador::agregar_item_banco(uint8_t indice) {
     uint16_t idItem = inventario.quitarDeSlot(indice);

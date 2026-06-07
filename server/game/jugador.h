@@ -186,6 +186,9 @@ public:
     uint16_t getClan() const;
     uint16_t getCabeza() const;
     uint16_t getCuerpo() const;
+    uint16_t getSpriteArma() const;
+    uint16_t getSpriteEscudo() const;
+    uint16_t getSpriteCasco() const;
     ClasePersonaje getClase() const;
     Raza getRaza() const;
     bool estaInmovilizado() const;
@@ -244,7 +247,10 @@ private:
     Raza raza;
     uint16_t cabeza;
     uint16_t cuerpo;
-    uint16_t cuerpoBase; 
+    uint16_t cuerpoBase;
+    uint16_t spriteArma = 0; // overlay del arma/baculo equipado (vestimenta)
+    uint16_t spriteEscudo = 0; // overlay del escudo equipado
+    uint16_t spriteCasco = 0; // overlay del casco equipado
     bool fundadoClan;
     float tiempoRestanteInmovilizado;
     float tiempoDesdeUltimoAtaque;
@@ -262,7 +268,8 @@ private:
     void morir();
     void perder_experiencia(uint32_t cantidad);
     void consumir_item(uint16_t idItem);
-    void actualizarCuerpoPorArmadura(const CatalogoItems& catalogo);
+    // Recalcula la vestimenta a renderizar (cuerpo + overlays arma/escudo/casco) segun el equipamiento actual. Se llama tras cada equipar/desequipar.
+    void actualizarVestimenta(const CatalogoItems& catalogo);
     void normalizarOro();
     bool esquiva_ataque(Aleatorio& aleatorio);
     bool es_golpe_critico(Aleatorio& aleatorio);

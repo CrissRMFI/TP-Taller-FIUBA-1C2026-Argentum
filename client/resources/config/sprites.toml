@@ -567,3 +567,194 @@ y = 7
 frames = 6
 step_x = 5
 
+# --- Armas (overlay de vestimenta). Celda completa AO (el arma esta posicionada en la mano). ---
+[character_parts.bodies.2095]
+path = "imgs/personajes/armas/2095.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2095.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2085]
+path = "imgs/personajes/armas/2085.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2085.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2084]
+path = "imgs/personajes/armas/2084.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2084.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2035]
+path = "imgs/personajes/armas/2035.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2035.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2036]
+path = "imgs/personajes/armas/2036.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2036.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+# --- Escudos (overlay de vestimenta). Celda completa AO. ---
+[character_parts.bodies.2327]
+path = "imgs/personajes/cuerpos/2327.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2327.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2303]
+path = "imgs/personajes/cuerpos/2303.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2303.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+

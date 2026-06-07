@@ -18,6 +18,9 @@ struct ResolvedCharacterPart {
 struct CharacterSprite {
     std::optional<ResolvedCharacterPart> head;
     std::optional<ResolvedCharacterPart> body;
+    std::optional<ResolvedCharacterPart> arma;
+    std::optional<ResolvedCharacterPart> escudo;
+    std::optional<ResolvedCharacterPart> casco;
 };
 class CharacterSpriteResolver {
 private:
@@ -30,4 +33,4 @@ public:
 };
 
 
-#endif  // TALLER_TP_CHARACTER_SPRITE_RESOLVER_H
+#endif

@@ -44,5 +44,25 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
                 .definition = &head_def,
         };
     }
-    return CharacterSprite{head, body};
+    // Overlays de vestimenta. Solo personajes vivos (no fantasma/resucitando).
+    const bool puedeVestir = (entity.tipo == 0 && entity.estado != 1 && entity.estado != 3);
+    const auto overlayCuerpo =
+            [&](uint16_t id) -> std::optional<ResolvedCharacterPart> {
+        if (!puedeVestir || id == 0 || !sprite_catalog.has_body(id)) {
+            return std::nullopt;
+        }
+        const auto& def = sprite_catalog.body(id);
+        return ResolvedCharacterPart{&texture_cache.get_or_load(def.path), &def};
+    };
+
+    std::optional<ResolvedCharacterPart> arma = overlayCuerpo(entity.arma);
+    std::optional<ResolvedCharacterPart> escudo = overlayCuerpo(entity.escudo);
+
+    std::optional<ResolvedCharacterPart> casco;
+    if (puedeVestir && entity.casco != 0 && sprite_catalog.has_head(entity.casco)) {
+        const auto& casco_def = sprite_catalog.head(entity.casco);
+        casco = ResolvedCharacterPart{&texture_cache.get_or_load(casco_def.path), &casco_def};
+    }
+
+    return CharacterSprite{head, body, arma, escudo, casco};
 }

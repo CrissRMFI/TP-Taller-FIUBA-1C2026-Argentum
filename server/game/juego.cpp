@@ -390,8 +390,11 @@ EventoSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador
             EventoPosicionEntidad{jugador.getId(), posicion.x, posicion.y,
                                   static_cast<uint8_t>(TipoEntidad::Personaje),
                                   estadoEntidadDe(jugador),
-                                  jugador.getCabeza(), 
-                                  jugador.getCuerpo()}};
+                                  jugador.getCabeza(),
+                                  jugador.getCuerpo(),
+                                  jugador.getSpriteArma(),
+                                  jugador.getSpriteEscudo(),
+                                  jugador.getSpriteCasco()}};
 }
 
 EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura) {

@@ -28,6 +28,9 @@ struct MensajePosicionEntidad {
     uint8_t estado;
     uint16_t cabeza;
     uint16_t cuerpo;
+    uint16_t arma = 0;
+    uint16_t escudo = 0;
+    uint16_t casco = 0;
 };
 
 struct MensajeEntidadDesaparecio {
