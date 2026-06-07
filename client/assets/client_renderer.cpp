@@ -1,7 +1,3 @@
-//
-// Created by victoria zubieta on 29/05/2026.
-//
-
 #include "client_renderer.h"
 
 #include <iostream>
@@ -10,6 +6,7 @@
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Surface.hh"
 #include "SDL_image.h"
+#include "../../common/mensajes/mensajes_error_cliente.h"
 #include "../../common/persistencia/lector_mapa.h"
 
 #define SPRITE_ANIMATION_FPS 8
@@ -42,7 +39,10 @@ void ObjectRenderer::init(const char* title,
                           const int height,
                           const bool fullscreen,
                           const bool vsync,
-                          const int loop_fps) {
+                          const int loop_fps,
+                          const std::string& fuente_ruta,
+                          const int fuente_tam,
+                          const std::string& fondo_chat_ruta) {
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -67,6 +67,29 @@ void ObjectRenderer::init(const char* title,
         background_texture = std::make_unique<SDL2pp::Texture>(*renderer, background_surface);
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el fondo: " << e.what() << std::endl;
+    }
+
+    try {
+        const std::string fuente_path =
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + fuente_ruta;
+        text_renderer = std::make_unique<TextRenderer>(fuente_path, fuente_tam);
+    } catch (const std::exception& e) {
+        // Sin fuente el chat no se dibuja, pero el juego sigue andando.
+        std::cerr << "[cliente] "
+                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::FUENTE_NO_CARGADA) << ": "
+                  << e.what() << std::endl;
+    }
+
+    try {
+        const std::string fondo_path =
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + fondo_chat_ruta;
+        SDL2pp::Surface fondo_surface(fondo_path);
+        chat_background_texture = std::make_unique<SDL2pp::Texture>(*renderer, fondo_surface);
+    } catch (const std::exception& e) {
+        // Sin panel el chat igual se dibuja, solo que sin fondo.
+        std::cerr << "[cliente] "
+                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::FONDO_CHAT_NO_CARGADO)
+                  << ": " << e.what() << std::endl;
     }
 
     try {
@@ -143,7 +166,8 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
 }
 
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
-                            const ObjectAnimation& /*animation*/) {
+                            const ObjectAnimation& /*animation*/,
+                            const EstadoChatRender& chat) {
     if (!renderer) {
         return;
     }
@@ -244,7 +268,50 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         renderer->FillRect(SDL2pp::Rect(entity_x, entity_y, cell_width, cell_height));
     }
 
+    dibujar_chat(chat);
+
     renderer->Present();
+}
+
+void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
+    if (!text_renderer || !renderer) {
+        return;
+    }
+    const int alto = text_renderer->alto_linea();
+    const int margen = 6;
+
+    const SDL2pp::Rect caja(chat.panelX, chat.panelY, chat.panelAncho, chat.panelAlto);
+    if (chat_background_texture) {
+        renderer->Copy(*chat_background_texture, SDL2pp::NullOpt, caja);
+    } else {
+        renderer->SetDrawColor(0, 0, 0, 255);
+        renderer->FillRect(caja);
+    }
+
+    const int inner_x = chat.panelX + margen;
+    const int caja_fondo = chat.panelY + chat.panelAlto;
+
+    const int y_input = caja_fondo - alto - margen;
+    if (chat.activo) {
+        text_renderer->dibujar(*renderer, "> " + chat.entrada, inner_x, y_input, chat.colorInput);
+    }
+
+    // Historial
+    int y = (chat.activo ? y_input : caja_fondo - margen) - alto;
+    const int tope = chat.panelY + margen;
+    for (auto it = chat.historial.rbegin(); it != chat.historial.rend() && y >= tope; ++it) {
+        text_renderer->dibujar(*renderer, *it, inner_x, y, chat.colorTexto);
+        y -= alto;
+    }
+
+    // Ayuda de comandos
+    if (chat.activo) {
+        int ay = caja_fondo + margen;
+        for (const std::string& linea : chat.ayuda) {
+            text_renderer->dibujar(*renderer, linea, chat.panelX, ay, chat.colorAyuda);
+            ay += alto;
+        }
+    }
 }
 SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
     if (tipo == 0) {
