@@ -151,6 +151,11 @@ public:
     void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
     std::vector<uint16_t> vaciar_inventario();
 
+    // Hechizos: se compran al sacerdote y se lanzan sobre un objetivo.
+    bool conoceHechizo(uint16_t idHechizo) const;
+    void aprenderHechizo(uint16_t idHechizo);
+    const std::vector<uint16_t>& getHechizosConocidos() const;
+
     // Cheats de prueba. vida/mana infinitos son toggles; matar fuerza la muerte
     // al instante ignorando la invulnerabilidad de cheat.
     void alternarVidaInfinita();
@@ -241,6 +246,7 @@ private:
     Inventario inventario;
 
     std::vector<uint16_t> idItemsBanco;
+    std::vector<uint16_t> hechizosConocidos;
 
     ClasePersonaje clase;
     Estado estado;

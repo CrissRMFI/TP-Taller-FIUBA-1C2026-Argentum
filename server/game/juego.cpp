@@ -116,7 +116,8 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
 
     Jugador& jugador = jugadoresConectados.at(id);
     std::list<EventoSalida> mensajes = {armarEstado(id, jugador), armarInventario(id, jugador),
-                                        armarEquipamiento(id, jugador)};
+                                        armarEquipamiento(id, jugador),
+                                        armarListaHechizos(id, jugador)};
 
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
 
@@ -674,6 +675,16 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
             return ejecutarConPayload(std::get_if<ComandoCurar>(&comando.payload),
                                       [&](const ComandoCurar& payload) {
                                           return ejecutarCurar(idCliente, payload);
+                                      });
+        case Opcode::COMPRAR_HECHIZO:
+            return ejecutarConPayload(std::get_if<ComandoComprarHechizo>(&comando.payload),
+                                      [&](const ComandoComprarHechizo& payload) {
+                                          return ejecutarComprarHechizo(idCliente, payload);
+                                      });
+        case Opcode::LANZAR_HECHIZO:
+            return ejecutarConPayload(std::get_if<ComandoLanzarHechizo>(&comando.payload),
+                                      [&](const ComandoLanzarHechizo& payload) {
+                                          return ejecutarLanzarHechizo(idCliente, payload);
                                       });
         case Opcode::CHAT_GLOBAL:
             return ejecutarConPayload(std::get_if<ComandoChatGlobal>(&comando.payload),
@@ -1550,6 +1561,136 @@ std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsa
     jugador->quitar_item_de_slot(cmd.indiceItem);
 
     return {armarInventario(idCliente, *jugador), armarEstado(idCliente, *jugador)};
+}
+
+EventoSalida Juego::armarListaHechizos(uint16_t idCliente, const Jugador& jugador) {
+    return {TipoDestino::UNO, idCliente, EventoListaHechizos{jugador.getHechizosConocidos()}};
+}
+
+std::list<EventoSalida> Juego::ejecutarComprarHechizo(uint16_t idCliente,
+                                                      const ComandoComprarHechizo& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+    // El Guerrero no usa magia (manaMax == 0): no puede comprar hechizos.
+    if (!jugador->puedeUsarMagia()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+    if (obtenerSacerdoteParaInteraccion(cmd.idSacerdote, *jugador) == nullptr) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+    const Hechizo* hechizo = catalogoHechizos.buscar(cmd.idHechizo);
+    if (hechizo == nullptr || jugador->conoceHechizo(cmd.idHechizo)) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+    if (jugador->getOro() < hechizo->precio || !jugador->gastar_oro(hechizo->precio)) {
+        return {armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE)};
+    }
+    jugador->aprenderHechizo(cmd.idHechizo);
+    return {armarEstado(idCliente, *jugador), armarListaHechizos(idCliente, *jugador)};
+}
+
+std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
+                                                     const ComandoLanzarHechizo& cmd) {
+    Jugador* lanzador = buscarJugador(idCliente);
+    if (!lanzador || !lanzador->estaVivo() || !lanzador->puedeUsarMagia()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+    const Hechizo* hechizo = catalogoHechizos.buscar(cmd.idHechizo);
+    if (hechizo == nullptr || !lanzador->conoceHechizo(cmd.idHechizo)) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+    if (!lanzador->consumir_mana(hechizo->mana)) {
+        return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
+    }
+    const uint16_t puntos = aleatorio.enteroEnRango<uint16_t>(hechizo->min, hechizo->max);
+
+    // --- Cura: sobre un jugador objetivo (o sobre uno mismo si no hay objetivo valido) ---
+    if (hechizo->tipo == TipoHechizoEfecto::Cura) {
+        Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
+        if (objetivo == nullptr) {
+            objetivo = lanzador;
+        }
+        objetivo->curar(puntos);
+        std::list<EventoSalida> mensajes = {armarEstado(idCliente, *lanzador)};
+        const std::optional<uint16_t> idObj = buscarIdClienteDeJugador(objetivo->getId());
+        if (idObj.has_value() && *idObj != idCliente) {
+            mensajes.push_back(armarEstado(*idObj, *objetivo));
+        }
+        return mensajes;
+    }
+
+    // --- Danio: a un jugador (PvP) o a una criatura (PvE) ---
+    if (Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo)) {
+        if (objetivo->getId() == lanzador->getId() || !objetivo->estaVivo()) {
+            return {armarEstado(idCliente, *lanzador)};
+        }
+        objetivo->recibir_danio(puntos);
+        std::list<EventoSalida> mensajes = {armarEstado(idCliente, *lanzador)};
+        const std::optional<uint16_t> idObj = buscarIdClienteDeJugador(objetivo->getId());
+        if (idObj.has_value()) {
+            mensajes.push_back(EventoSalida{TipoDestino::UNO, *idObj,
+                                            EventoDanioRecibido{puntos, lanzador->getId()}});
+            mensajes.push_back(armarEstado(*idObj, *objetivo));
+        }
+        if (!objetivo->estaVivo()) {
+            mensajes.splice(mensajes.end(),
+                            emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
+        }
+        return mensajes;
+    }
+
+    Criatura* criatura = mapa.obtenerCriaturaPor(cmd.idObjetivo);
+    if (criatura == nullptr) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+    const Posicion posicionCriatura = criatura->getPos();
+    const uint8_t nivelLanzador = lanzador->getNivel();
+    const uint8_t nivelCriaturaAntes = criatura->getNivel();
+    const uint16_t vidaMaxCriaturaAntes = criatura->getVidaMaxima();
+    const uint16_t vidaActualCriaturaAntes = criatura->getVidaActual();
+    const uint16_t danioAplicado =
+            static_cast<uint16_t>(std::min<uint32_t>(puntos, vidaActualCriaturaAntes));
+    criatura->recibir_danio(puntos);
+
+    std::list<EventoSalida> mensajes = {armarEstado(idCliente, *lanzador)};
+    mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
+                                    EventoDanioProducido{danioAplicado, criatura->getId(),
+                                                         static_cast<uint8_t>(TipoGolpe::Hechizo)}});
+    if (danioAplicado > 0) {
+        const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
+                cfg, danioAplicado, nivelLanzador, nivelCriaturaAntes);
+        if (xpHit > 0) {
+            lanzador->ganar_experiencia(xpHit);
+        }
+    }
+    if (criatura->esta_muerta()) {
+        const uint16_t idCriatura = criatura->getId();
+        const float rngXp = aleatorio.uniforme();
+        const uint32_t xpKill = ReglasJuego::calcularExperienciaKill(
+                cfg, vidaMaxCriaturaAntes, nivelLanzador, nivelCriaturaAntes, rngXp);
+        if (xpKill > 0) {
+            lanzador->ganar_experiencia(xpKill);
+        }
+        const float rngOro = aleatorio.uniforme();
+        const uint32_t cantidadOro =
+                ReglasJuego::calcularDropOroNpc(cfg, vidaMaxCriaturaAntes, rngOro);
+        mapa.removerCriatura(idCriatura);
+        if (cantidadOro > 0) {
+            Posicion celdaDrop = posicionCriatura;
+            if (dropearOroEnSueloCercano(posicionCriatura, cantidadOro, celdaDrop)) {
+                mensajes.splice(mensajes.end(), armarOroEnSueloParaMapa(celdaDrop, cantidadOro));
+            }
+        }
+        const EventoMuerteEntidad eventoMuerte{idCriatura};
+        for (const auto& [idOtro, otroJugador] : jugadoresConectados) {
+            if (otroJugador.getPosicion().mapaId == posicionCriatura.mapaId) {
+                mensajes.push_back(EventoSalida{TipoDestino::UNO, idOtro, eventoMuerte});
+            }
+        }
+    }
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& cmd) {

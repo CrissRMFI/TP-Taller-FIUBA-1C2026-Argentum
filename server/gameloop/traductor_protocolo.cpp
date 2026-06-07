@@ -85,6 +85,9 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
         return { Opcode::CONTENIDO_BANCO,
                  MensajeContenidoBanco{ e->items, e->oroBanco } };
     }
+    if (auto* e = std::get_if<EventoListaHechizos>(&evento)) {
+        return { Opcode::LISTA_HECHIZOS, MensajeListaHechizos{ e->ids } };
+    }
     if (auto* e = std::get_if<EventoErrorAccion>(&evento)) {
         return { Opcode::ERROR_ACCION,
                  MensajeErrorAccion{ e->codigo } };

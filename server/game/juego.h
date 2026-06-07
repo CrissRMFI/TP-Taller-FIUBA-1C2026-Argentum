@@ -78,6 +78,7 @@ class Juego {
     EventoSalida armarEstado(uint16_t idCliente, const Jugador& j);
     EventoSalida armarInventario(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarContenidoBanco(uint16_t idCliente, Banquero& banquero);
+    EventoSalida armarListaHechizos(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarEquipamiento(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionPara(uint16_t idCliente, const Jugador& jugador);
     EventoSalida armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura);
@@ -115,6 +116,10 @@ class Juego {
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
     std::list<EventoSalida> ejecutarUsar(uint16_t idCliente, const ComandoUsar& comando);
     std::list<EventoSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
+    std::list<EventoSalida> ejecutarComprarHechizo(uint16_t idCliente,
+                                                   const ComandoComprarHechizo& comando);
+    std::list<EventoSalida> ejecutarLanzarHechizo(uint16_t idCliente,
+                                                  const ComandoLanzarHechizo& comando);
     std::list<EventoSalida> ejecutarVender(uint16_t idCliente, const ComandoVender& comando);
     std::list<EventoSalida> ejecutarDepositarItem(uint16_t idCliente, const ComandoDepositarItem& comando);
     std::list<EventoSalida> ejecutarDepositarOro(uint16_t idCliente, const ComandoDepositarOro& comando);
