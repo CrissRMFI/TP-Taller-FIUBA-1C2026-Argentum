@@ -620,6 +620,11 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
                                       [&](const ComandoEquipar& payload) {
                                           return ejecutarEquipar(idCliente, payload);
                                       });
+        case Opcode::USAR:
+            return ejecutarConPayload(std::get_if<ComandoUsar>(&comando.payload),
+                                      [&](const ComandoUsar& payload) {
+                                          return ejecutarUsar(idCliente, payload);
+                                      });
         case Opcode::COMPRAR:
             return ejecutarConPayload(std::get_if<ComandoComprar>(&comando.payload),
                                       [&](const ComandoComprar& payload) {
@@ -1506,6 +1511,33 @@ std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comando
 
     return {armarInventario(idCliente, *jugador), armarEquipamiento(idCliente, *jugador),
             armarEstado(idCliente, *jugador)};
+}
+
+std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsar& cmd) {
+    Jugador* jugador = buscarJugador(idCliente);
+    if (!jugador || !jugador->estaVivo()) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+
+    const uint16_t idItem = jugador->getIdItemEnSlot(cmd.indiceItem);
+    if (idItem == 0) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+
+    // Solo las pociones son usables; cualquier otra cosa => accion no permitida.
+    const Pocion* pocion = catalogo.comoPocion(idItem);
+    if (pocion == nullptr) {
+        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    }
+
+    if (pocion->getTipoPocion() == TipoPocion::Vida) {
+        jugador->curar(pocion->getCantidad());
+    } else {
+        jugador->recuperar_mana(pocion->getCantidad());
+    }
+    jugador->quitar_item_de_slot(cmd.indiceItem);
+
+    return {armarInventario(idCliente, *jugador), armarEstado(idCliente, *jugador)};
 }
 
 std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const ComandoComprar& cmd) {

@@ -78,6 +78,9 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::EQUIPAR:
             return recibirComandoEquipar();
 
+        case Opcode::USAR:
+            return recibirComandoUsar();
+
         case Opcode::COMPRAR:
             return recibirComandoComprar();
 
@@ -243,6 +246,11 @@ ComandoJugador ProtocoloServidor::recibirComandoTirar() {
       Opcode::TIRAR,
       ComandoTirar{indiceItem},
     };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoUsar() {
+    uint8_t indiceItem = recibirUnByte();
+    return ComandoJugador{Opcode::USAR, ComandoUsar{indiceItem}};
 }
 
 ComandoJugador ProtocoloServidor::recibirComandoEquipar() {
