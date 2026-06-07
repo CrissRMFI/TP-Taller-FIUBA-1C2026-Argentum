@@ -255,6 +255,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             bancoItems_ = banco->items;
             bancoOro_ = banco->oroBanco;
             bancoRecibido_ = true;
+        } else if (auto* hech = std::get_if<MensajeListaHechizos>(&mensaje.payload)) {
+            hechizosConocidos_ = hech->ids;
         }
     }
 
@@ -379,4 +381,8 @@ bool ObjectGameWorld::bancoRecibido() const {
 
 void ObjectGameWorld::cerrarBanco() {
     bancoRecibido_ = false;
+}
+
+const std::vector<uint16_t>& ObjectGameWorld::hechizosConocidos() const {
+    return hechizosConocidos_;
 }

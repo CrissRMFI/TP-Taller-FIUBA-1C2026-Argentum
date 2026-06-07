@@ -78,6 +78,7 @@ private:
     std::vector<uint16_t> bancoItems_;    // items guardados en el banco (ultimo CONTENIDO_BANCO)
     uint32_t              bancoOro_ = 0;   // oro guardado en el banco
     bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
+    std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea);
@@ -108,6 +109,7 @@ public:
     uint32_t bancoOro() const;
     bool bancoRecibido() const;
     void cerrarBanco();
+    const std::vector<uint16_t>& hechizosConocidos() const;
 };
 
 

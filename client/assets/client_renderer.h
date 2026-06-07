@@ -74,10 +74,16 @@ private:
     SDL2pp::Rect rect_cerrar_banco{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
+    std::vector<SDL2pp::Rect> slots_hechizos;       // filas de la pestaña HECHIZOS (lanzar)
+    std::vector<uint16_t> ids_hechizos_dibujados;   // id de hechizo por fila (pestaña)
+    std::vector<SDL2pp::Rect> slots_hechizos_venta; // filas de hechizos en venta del sacerdote
+    std::vector<uint16_t> ids_hechizos_venta;       // id por fila de venta
     SDL2pp::Rect rect_boton_vender{0, 0, 0, 0};
     SDL2pp::Rect rect_boton_equipar{0, 0, 0, 0};
     SDL2pp::Rect rect_boton_usar{0, 0, 0, 0};
     SDL2pp::Rect rect_boton_curar{0, 0, 0, 0};
+    SDL2pp::Rect rect_tab_inv{0, 0, 0, 0};   // pestaña INVENTARIO del marco
+    SDL2pp::Rect rect_tab_hech{0, 0, 0, 0};  // pestaña HECHIZOS del marco
     int slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const;
 
 public:
@@ -95,6 +101,12 @@ public:
     bool clickEnBotonEquipar(int x, int y) const;
     bool clickEnBotonUsar(int x, int y) const;
     bool clickEnBotonCurar(int x, int y) const;
+    // Devuelve el id del hechizo clickeado en la lista del panel, o 0 si ninguno.
+    uint16_t hechizoClickeado(int x, int y) const;       // pestaña HECHIZOS (lanzar)
+    uint16_t hechizoVentaClickeado(int x, int y) const;  // lista del sacerdote (comprar)
+    bool clickTabInventario(int x, int y) const;
+    bool clickTabHechizos(int x, int y) const;
+    bool esSacerdote(uint16_t id) const;
     // Banco: hit-test (devuelven indice de slot o -1; los botones true/false).
     int bancoBovedaClickeada(int x, int y) const;
     int bancoInvClickeado(int x, int y) const;

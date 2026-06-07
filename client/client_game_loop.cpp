@@ -171,6 +171,16 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     const std::optional<uint16_t> objetivo = handler.objetivoSeleccionado();
     const std::vector<uint16_t>& items = object_state.inventario();
 
+    // Pestañas del marco: cambian entre inventario y hechizos.
+    if (object_renderer.clickTabHechizos(x, y)) {
+        pestanaHechizos = true;
+        return;
+    }
+    if (object_renderer.clickTabInventario(x, y)) {
+        pestanaHechizos = false;
+        return;
+    }
+
     // 1) Boton Vender: vende el item seleccionado (requiere comerciante seleccionado).
     if (object_renderer.clickEnBotonVender(x, y)) {
         if (slotInvSeleccionado >= 0 && objetivo &&
@@ -215,17 +225,16 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
+    // Pestaña HECHIZOS: lanzar (los listados son conocidos).
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
-        const std::vector<uint16_t>& conocidos = object_state.hechizosConocidos();
-        const bool conocido =
-                std::find(conocidos.begin(), conocidos.end(), idHechizo) != conocidos.end();
-        if (conocido) {
-            despacharComando({Opcode::LANZAR_HECHIZO,
-                              ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
-        } else {
-            despacharComando({Opcode::COMPRAR_HECHIZO,
-                              ComandoComprarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
-        }
+        despacharComando({Opcode::LANZAR_HECHIZO,
+                          ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        return;
+    }
+    // Lista de hechizos del sacerdote: comprar.
+    if (const uint16_t idHechizo = object_renderer.hechizoVentaClickeado(x, y); idHechizo != 0) {
+        despacharComando({Opcode::COMPRAR_HECHIZO,
+                          ComandoComprarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
         return;
     }
 
@@ -393,6 +402,10 @@ void ClientGameLoop::render() {
     panel.seleccionInventario = slotInvSeleccionado;
     panel.scrollStock = scrollComercio;
     panel.hechizosConocidos = object_state.hechizosConocidos();
+    panel.mostrarHechizos = pestanaHechizos;
+    const std::optional<uint16_t> objetivoPanel = handler.objetivoSeleccionado();
+    panel.sacerdoteSeleccionado =
+            objetivoPanel.has_value() && object_renderer.esSacerdote(*objetivoPanel);
 
     EstadoBancoRender banco;
     banco.abierto = object_state.bancoRecibido();

@@ -319,6 +319,10 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     // Rects de slots/boton dibujados este frame (para el hit-test del click).
     slots_inventario.clear();
     slots_stock.clear();
+    slots_hechizos.clear();
+    ids_hechizos_dibujados.clear();
+    slots_hechizos_venta.clear();
+    ids_hechizos_venta.clear();
     rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_equipar = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_usar = SDL2pp::Rect(0, 0, 0, 0);
@@ -402,55 +406,89 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     }
     y += eq_slot + 8;
 
-    // --- Inventario: marco (con pestañas) + grid calzado en su interior ---
+    // --- Marco con pestañas INVENTARIO / HECHIZOS (la pestaña la trae la imagen) ---
     const int marco_top = y;
-    int inv_x;
-    int inv_y;
-    int inv_slot;
-    int inv_gap = 4;
+    const std::string& marcoImg =
+            panel.mostrarHechizos ? panel_config.marcoHechizos : panel_config.marcoInventario;
+    int interiorX = px + margen;
+    int interiorY = marco_top + lh + 2;
+    int interiorW = cw;
+    int marco_alto = 0;
     try {
-        SDL2pp::Texture& marco = cache_texture->get_or_load(panel_config.marcoInventario);
+        SDL2pp::Texture& marco = cache_texture->get_or_load(marcoImg);
         const int mw = cw;
         const int mh = (marco.GetWidth() > 0) ? cw * marco.GetHeight() / marco.GetWidth()
                                               : marco.GetHeight();
         renderer->Copy(marco, SDL2pp::NullOpt, SDL2pp::Rect(px + margen, marco_top, mw, mh));
-        // Insets del interior (borde lateral ~5%, pestañas arriba ~11%) calzan la grilla.
         const int insetX = mw * 5 / 100;
         const int insetY = mh * 11 / 100;
-        const int interiorW = mw - 2 * insetX;
-        inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
-        inv_x = px + margen + insetX;
-        inv_y = marco_top + insetY;
-        y = marco_top + mh + 8;
+        interiorX = px + margen + insetX;
+        interiorY = marco_top + insetY;
+        interiorW = mw - 2 * insetX;
+        marco_alto = mh;
+        // Pestañas clickeables (banda superior del marco): izq = inventario, der = hechizos.
+        rect_tab_inv = SDL2pp::Rect(px + margen, marco_top, mw / 2, insetY);
+        rect_tab_hech = SDL2pp::Rect(px + margen + mw / 2, marco_top, mw - mw / 2, insetY);
     } catch (const std::exception&) {
-        inv_slot = 32;
-        text_renderer->dibujar(*renderer, "Inventario", cx, y, cTit);
-        y += lh + 2;
-        inv_x = px + (pw - (cols * inv_slot + (cols - 1) * inv_gap)) / 2;
-        inv_y = y;
-        const int fg = (static_cast<int>(panel.inventario.size()) + cols - 1) / cols;
-        y = inv_y + fg * (inv_slot + inv_gap) + 8;
+        text_renderer->dibujar(*renderer, panel.mostrarHechizos ? "Hechizos" : "Inventario", cx, y,
+                               cTit);
+        rect_tab_inv = SDL2pp::Rect(cx, y, cw / 2, lh + 2);
+        rect_tab_hech = SDL2pp::Rect(cx + cw / 2, y, cw - cw / 2, lh + 2);
     }
-    for (size_t i = 0; i < panel.inventario.size(); ++i) {
-        const int col = static_cast<int>(i) % cols;
-        const int row = static_cast<int>(i) / cols;
-        const int sx = inv_x + col * (inv_slot + inv_gap);
-        const int sy = inv_y + row * (inv_slot + inv_gap);
-        dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
-        slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
+    const int marco_fin = marco_top + (marco_alto > 0 ? marco_alto : 300);
 
-        // Slot seleccionado: icono ampliado (zoom) + borde resaltado.
-        if (static_cast<int>(i) == panel.seleccionInventario) {
-            const int z = inv_slot * 3 / 2;
-            const int zx = sx + inv_slot / 2 - z / 2;
-            const int zy = sy + inv_slot / 2 - z / 2;
-            if (SDL2pp::Texture* ic = icono_item(panel.inventario[i])) {
-                renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(zx, zy, z, z));
+    if (panel.mostrarHechizos) {
+        // Pestaña HECHIZOS: SOLO los hechizos que el jugador conoce (para lanzar).
+        const int fila_h = lh + 4;
+        int hy = interiorY;
+        if (catalogo != nullptr) {
+            for (uint16_t id : panel.hechizosConocidos) {
+                if (hy + fila_h > marco_fin) {
+                    break;
+                }
+                const HechizoInfo* h = catalogo->hechizo(id);
+                if (h == nullptr) {
+                    continue;
+                }
+                try {
+                    SDL2pp::Texture& ic = cache_texture->get_or_load(
+                            "imgs/hechizos/" + std::to_string(id) + ".png");
+                    renderer->Copy(ic, SDL2pp::NullOpt,
+                                   SDL2pp::Rect(interiorX, hy, fila_h - 2, fila_h - 2));
+                } catch (const std::exception&) {
+                }
+                text_renderer->dibujar(*renderer, h->nombre + "  M" + std::to_string(h->mana),
+                                       interiorX + fila_h, hy + 2, cTit);
+                slots_hechizos.push_back(SDL2pp::Rect(interiorX, hy, interiorW, fila_h));
+                ids_hechizos_dibujados.push_back(id);
+                hy += fila_h;
             }
-            renderer->SetDrawColor(255, 230, 90, 255);
-            renderer->DrawRect(SDL2pp::Rect(sx - 1, sy - 1, inv_slot + 2, inv_slot + 2));
+        }
+    } else {
+        // Grilla de inventario calzada en el interior del marco.
+        const int inv_gap = 4;
+        const int inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
+        for (size_t i = 0; i < panel.inventario.size(); ++i) {
+            const int col = static_cast<int>(i) % cols;
+            const int row = static_cast<int>(i) / cols;
+            const int sx = interiorX + col * (inv_slot + inv_gap);
+            const int sy = interiorY + row * (inv_slot + inv_gap);
+            dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
+            slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
+
+            if (static_cast<int>(i) == panel.seleccionInventario) {
+                const int z = inv_slot * 3 / 2;
+                const int zx = sx + inv_slot / 2 - z / 2;
+                const int zy = sy + inv_slot / 2 - z / 2;
+                if (SDL2pp::Texture* ic = icono_item(panel.inventario[i])) {
+                    renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(zx, zy, z, z));
+                }
+                renderer->SetDrawColor(255, 230, 90, 255);
+                renderer->DrawRect(SDL2pp::Rect(sx - 1, sy - 1, inv_slot + 2, inv_slot + 2));
+            }
         }
     }
+    y = marco_fin + 8;
 
     // --- Botones de accion (imagen; fallback a texto). Devuelven su rect para hit-test. ---
     const auto dibujar_boton = [&](const std::string& ruta, const std::string& etiqueta,
@@ -499,6 +537,69 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
             y += fila_h;
         }
     }
+
+    // --- Venta de hechizos del sacerdote: solo los que el jugador AUN no conoce ---
+    if (panel.sacerdoteSeleccionado && catalogo != nullptr) {
+        std::vector<uint16_t> ids = catalogo->idsHechizos();
+        std::sort(ids.begin(), ids.end());
+        const int fila_h = lh + 4;
+        bool titulo = false;
+        for (uint16_t id : ids) {
+            const bool conocido =
+                    std::find(panel.hechizosConocidos.begin(), panel.hechizosConocidos.end(), id) !=
+                    panel.hechizosConocidos.end();
+            if (conocido) {
+                continue;  // ya lo tiene, no se ofrece
+            }
+            const HechizoInfo* h = catalogo->hechizo(id);
+            if (h == nullptr) {
+                continue;
+            }
+            if (!titulo) {
+                if (y + lh + 2 > window_height) {
+                    break;
+                }
+                text_renderer->dibujar(*renderer, "Hechizos (comprar)", cx, y, cTit);
+                y += lh + 2;
+                titulo = true;
+            }
+            if (y + fila_h > window_height) {
+                break;
+            }
+            renderer->SetDrawColor(0, 0, 0, 110);
+            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
+            text_renderer->dibujar(*renderer, h->nombre + "  $" + std::to_string(h->precio),
+                                   cx + 2, y + 2, cTxt);
+            slots_hechizos_venta.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
+            ids_hechizos_venta.push_back(id);
+            y += fila_h;
+        }
+    }
+}
+
+uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
+    const int i = slot_en(slots_hechizos_venta, x, y);
+    return (i >= 0 && i < static_cast<int>(ids_hechizos_venta.size())) ? ids_hechizos_venta[i] : 0;
+}
+
+bool ObjectRenderer::esSacerdote(uint16_t id) const {
+    return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
+}
+
+uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {
+    const int i = slot_en(slots_hechizos, x, y);
+    return (i >= 0 && i < static_cast<int>(ids_hechizos_dibujados.size()))
+                   ? ids_hechizos_dibujados[i]
+                   : 0;
+}
+
+bool ObjectRenderer::clickTabInventario(int x, int y) const {
+    const SDL2pp::Rect& r = rect_tab_inv;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+bool ObjectRenderer::clickTabHechizos(int x, int y) const {
+    const SDL2pp::Rect& r = rect_tab_hech;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
 int ObjectRenderer::slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const {

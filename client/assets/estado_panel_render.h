@@ -14,6 +14,7 @@ struct ConfigPanelRender {
     std::string iconDir = "imgs/items";
     std::string fondoCuero = "imgs/ui/leather_brown.png";
     std::string marcoInventario = "imgs/ui/es_centroinventario.bmp";
+    std::string marcoHechizos = "imgs/hechizos/es_centrohechizo.bmp";
     std::string botonVender = "imgs/ui/es_boton-vender-default.bmp";
     std::string botonEquipar = "imgs/ui/es_boton-construir-default.bmp";
     std::string botonUsar = "imgs/ui/es_boton-usar.png";
@@ -61,6 +62,9 @@ struct EstadoPanelRender {
     std::vector<uint16_t> stock;
     int seleccionInventario = -1;
     int scrollStock = 0;
+    std::vector<uint16_t> hechizosConocidos;  // ids que el jugador conoce (pestaña HECHIZOS = lanzar)
+    bool mostrarHechizos = false;             // pestaña activa: false=inventario, true=hechizos
+    bool sacerdoteSeleccionado = false;       // objetivo es un sacerdote -> ofrece hechizos en venta
 };
 
 #endif
