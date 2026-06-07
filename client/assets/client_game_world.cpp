@@ -1,7 +1,3 @@
-//
-// Created by victoria zubieta on 29/05/2026.
-//
-
 #include "client_game_world.h"
 
 #include <algorithm>
@@ -15,16 +11,10 @@
 #include "../../common/protocolo/tipo_golpe.h"
 #include "../audio/gestor_audio.h"
 
-// Gracia (ms) para mantener viva la animacion de caminar entre actualizaciones
-// de posicion del server. DEBE ser mayor que el tick del server (tick_ms, hoy
-// 200): si es menor, la animacion se apaga antes de que llegue el proximo paso
-// y se ve a tirones.
 #define MOTION_GRACE_MS 260
 
-// Porcentaje de vida por debajo del cual se avisa "vida critica".
 #define UMBRAL_VIDA_BAJA 20
-// Suba minima de vida/mana (en puntos) para considerarlo curacion/pocion y no
-// la recuperacion natural por tiempo (que sube de a 1).
+
 #define UMBRAL_CURACION 5
 
 namespace {
@@ -203,9 +193,12 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             std::cout << "[cliente] esquive: entidad=" << esquive->idEntidad
                       << ", esquivador=" << static_cast<int>(esquive->esquivador)
                       << std::endl;
+        } else if (auto* mensaje_chat = std::get_if<MensajeChat>(&mensaje.payload)) {
+            agregarLineaChat(mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje);
         } else if (auto* error_accion = std::get_if<MensajeErrorAccion>(&mensaje.payload)) {
             gestorAudio.reproducirEfecto("accionNoPermitida");
-            std::cout << "[cliente] error de accion: " << MensajesErrorAccion::mensaje(error_accion->codigo) << std::endl;
+            const std::string texto = MensajesErrorAccion::mensaje(error_accion->codigo);
+            agregarLineaChat("* " + texto);
         } else if (auto* resucitado = std::get_if<MensajeResucitado>(&mensaje.payload)) {
             posX = resucitado->x;
             posY = resucitado->y;
@@ -242,12 +235,11 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << oro_desaparecio->x << ", " << oro_desaparecio->y << ")"
                       << std::endl;
         } else if (auto* recibir_lista_items = std::get_if<MensajeListaItems>(&mensaje.payload)) {
-            std::cout << "[cliente] lista items: cantidad=" << recibir_lista_items->ids.size()
-                      << ", ids=[";
+            std::string linea = "Items:";
             for (const auto& id : recibir_lista_items->ids) {
-                std::cout << id << ",";
+                linea += " " + std::to_string(id);
             }
-            std::cout << "]" << std::endl;
+            agregarLineaChat(linea);
         }
     }
 
@@ -323,4 +315,21 @@ InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_
             .y = animation_state.previous_y +
                  (animation_state.current_y - animation_state.previous_y) * alpha,
     };
+}
+
+void ObjectGameWorld::agregarLineaChat(const std::string& linea) {
+    historialChatReciente.push_back(linea);
+    while (historialChatReciente.size() > maxLineasChat) {
+        historialChatReciente.pop_front();
+    }
+}
+
+const std::deque<std::string>& ObjectGameWorld::historialChat() const {
+    return historialChatReciente;
+}
+
+void ObjectGameWorld::setMaxLineasChat(const size_t maximo) {
+    if (maximo > 0) {
+        maxLineasChat = maximo;
+    }
 }
