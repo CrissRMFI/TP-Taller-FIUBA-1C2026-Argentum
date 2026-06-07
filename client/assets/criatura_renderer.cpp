@@ -5,7 +5,7 @@
 #include "criatura_renderer.h"
 
 namespace {
-constexpr float CHARACTER_SCALE = 0.30f;
+constexpr float CHARACTER_SCALE = 1.0f;
 SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
