@@ -149,6 +149,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             manaAnterior = estado->manaActual;
             nivelAnterior = estado->nivel;
             estadoAnterior = estado->estado;
+            // Stats para el panel derecho.
+            estadoJugador_ = EstadoJugador{estado->vidaActual, estado->vidaMax,
+                                           estado->manaActual, estado->manaMax, estado->oro,
+                                           estado->experiencia, estado->nivel};
             std::cout << "[cliente] estado personaje: vida " << estado->vidaActual << "/"
                       << estado->vidaMax << ", mana " << estado->manaActual << "/"
                       << estado->manaMax << ", oro " << estado->oro << ", nivel "
@@ -219,9 +223,12 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             std::cout << "[cliente] oro en suelo: cantidad=" << oro_suelo->cantidad
                       << ", pos=(" << oro_suelo->x << ", " << oro_suelo->y << ")"
                       << std::endl;
-        } else if (std::get_if<MensajeActualizarInventario>(&mensaje.payload)) {
-           
+        } else if (auto* inv = std::get_if<MensajeActualizarInventario>(&mensaje.payload)) {
+            inventario_ = inv->slots_;
             gestorAudio.reproducirEfecto("tomarItem");
+        } else if (auto* equip = std::get_if<MensajeActualizarEquipamiento>(&mensaje.payload)) {
+            equipamiento_ = EquipamientoJugador{equip->arma, equip->baculo, equip->defensa,
+                                                equip->casco, equip->escudo};
         } else if (auto* mensaje_clan = std::get_if<MensajeClan>(&mensaje.payload)) {
             if (mensaje_clan->tipo == TipoMensajeClan::Conectado) {
                 gestorAudio.reproducirEfecto("clanMiembroEntra");
@@ -235,6 +242,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << oro_desaparecio->x << ", " << oro_desaparecio->y << ")"
                       << std::endl;
         } else if (auto* recibir_lista_items = std::get_if<MensajeListaItems>(&mensaje.payload)) {
+            stockNpc_ = recibir_lista_items->ids;
             std::string linea = "Items:";
             for (const auto& id : recibir_lista_items->ids) {
                 linea += " " + std::to_string(id);
@@ -332,4 +340,20 @@ void ObjectGameWorld::setMaxLineasChat(const size_t maximo) {
     if (maximo > 0) {
         maxLineasChat = maximo;
     }
+}
+
+const std::vector<uint16_t>& ObjectGameWorld::inventario() const {
+    return inventario_;
+}
+
+const EquipamientoJugador& ObjectGameWorld::equipamiento() const {
+    return equipamiento_;
+}
+
+const EstadoJugador& ObjectGameWorld::estadoJugador() const {
+    return estadoJugador_;
+}
+
+const std::vector<uint16_t>& ObjectGameWorld::stockNpc() const {
+    return stockNpc_;
 }
