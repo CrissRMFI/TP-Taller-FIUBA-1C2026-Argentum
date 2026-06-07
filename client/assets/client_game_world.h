@@ -1,10 +1,8 @@
-//
-// Created by victoria zubieta on 29/05/2026.
-//
-
 #ifndef TALLER_TP_CLIENT_GAME_WORLD_H
 #define TALLER_TP_CLIENT_GAME_WORLD_H
 #include <cstdint>
+#include <deque>
+#include <string>
 #include <unordered_map>
 
 #include "client/entidad_renderizable.h"
@@ -35,8 +33,6 @@ class GestorAudio;
 class ObjectGameWorld {
 private:
     std::unordered_map<uint16_t, EntidadRenderizable> entidades;
-    // me almaceno las animaciones de las entidades, asi se visualiza correctamente el movimiento
-    // de los personajes
     std::unordered_map<uint16_t, EntityAnimationState> animation_states;
 
     uint16_t idCliente;
@@ -49,7 +45,12 @@ private:
     uint16_t vidaAnterior;
     uint16_t manaAnterior;
 
+    // Ultimas lineas de chat/feedback recibidas del server
+    std::deque<std::string> historialChatReciente;
+    size_t maxLineasChat = 6;
+
     int distanciaAlJugador(int x, int y) const;
+    void agregarLineaChat(const std::string& linea);
 
 public:
     explicit ObjectGameWorld(uint16_t client_id);
@@ -66,6 +67,8 @@ public:
     int entity_animation_row(uint16_t entity_id) const;
     InterpolatedPosition entity_interpolated_position(uint16_t entity_id,
                                                       uint32_t current_tick) const;
+    const std::deque<std::string>& historialChat() const;
+    void setMaxLineasChat(size_t maximo);
 
 };
 

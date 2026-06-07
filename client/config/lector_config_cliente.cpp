@@ -5,6 +5,8 @@
 
 #include <toml++/toml.hpp>
 
+#include "../../common/mensajes/mensajes_error_cliente.h"
+
 ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     ConfigCliente cfg;
 
@@ -12,8 +14,9 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     try {
         tbl = toml::parse_file(path);
     } catch (const toml::parse_error& e) {
-        std::cerr << "No se pudo leer '" << path << "' (" << e.description()
-                  << "). Se usan valores por defecto del cliente." << std::endl;
+        std::cerr << "[cliente] "
+                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::CONFIG_NO_LEIDA) << " ('"
+                  << path << "': " << e.description() << ")" << std::endl;
         return cfg;
     }
 
@@ -38,6 +41,43 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
         cfg.alto = alto;
     }
     cfg.fullscreen = tbl["video"]["fullscreen"].value_or(cfg.fullscreen);
+
+    cfg.fuenteRuta = tbl["chat"]["fuente"].value_or(cfg.fuenteRuta);
+    cfg.fondoChatRuta = tbl["chat"]["fondo"].value_or(cfg.fondoChatRuta);
+    const int64_t fuenteTam = tbl["chat"]["tam"].value_or<int64_t>(cfg.fuenteTam);
+    if (fuenteTam > 0) {
+        cfg.fuenteTam = static_cast<int>(fuenteTam);
+    }
+
+    const int64_t maxLineas = tbl["chat"]["max_lineas"].value_or<int64_t>(cfg.chatMaxLineas);
+    if (maxLineas > 0) {
+        cfg.chatMaxLineas = static_cast<int>(maxLineas);
+    }
+
+    cfg.chatPanelX = static_cast<int>(tbl["chat"]["panel_x"].value_or<int64_t>(cfg.chatPanelX));
+    cfg.chatPanelY = static_cast<int>(tbl["chat"]["panel_y"].value_or<int64_t>(cfg.chatPanelY));
+    const int64_t panelAlto = tbl["chat"]["panel_alto"].value_or<int64_t>(cfg.chatPanelAlto);
+    if (panelAlto > 0) {
+        cfg.chatPanelAlto = static_cast<int>(panelAlto);
+    }
+
+    const auto leerColor = [&tbl](const char* clave, std::vector<int>& destino) {
+        const toml::array* color = tbl["chat"][clave].as_array();
+        if (color == nullptr || color->size() != 3) {
+            return;
+        }
+        std::vector<int> rgb;
+        for (const toml::node& canal : *color) {
+            if (const std::optional<int64_t> valor = canal.value<int64_t>()) {
+                rgb.push_back(static_cast<int>(*valor));
+            }
+        }
+        if (rgb.size() == 3) {
+            destino = rgb;
+        }
+    };
+    leerColor("color_texto", cfg.chatColorTexto);
+    leerColor("color_input", cfg.chatColorInput);
 
     return cfg;
 }

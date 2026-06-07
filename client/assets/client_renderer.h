@@ -16,10 +16,12 @@
 #include "client_game_world.h"
 #include "criatura_renderer.h"
 #include "criatura_sprite_resolver.h"
+#include "estado_chat_render.h"
 #include "npc_renderer.h"
 #include "npc_sprite_resolver.h"
 #include "object_animation.h"
 #include "sprite_manager.h"
+#include "text_renderer.h"
 #include "../../common/game/mapa/mapa.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
@@ -39,22 +41,27 @@ private:
     std::unique_ptr<SpriteCatalog> catalog;
     std::unique_ptr<TextureCache> cache_texture;
     std::unique_ptr<NPCRenderer> npc_renderer;
+    std::unique_ptr<TextRenderer> text_renderer;
+    std::unique_ptr<SDL2pp::Texture> chat_background_texture;
+    ConfigChatRender chat_config;
     int last_animation_row = -1;
     int window_width = 0;
     int window_height = 0;
     Mapa mapa;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     Mapa cargarMapa() const;
+    void dibujar_chat(const EstadoChatRender& chat);
 
 public:
     ObjectRenderer();
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
-              bool vsync, int loop_fps);
+              bool vsync, int loop_fps, const ConfigChatRender& chat_config);
     void update_animation(/*uint32_t current_tick*/  int it,
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
-    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);
+    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
+                const EstadoChatRender& chat);
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 
-#endif  // TALLER_TP_CLIENT_RENDERER_H
+#endif

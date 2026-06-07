@@ -4,6 +4,7 @@ target_sources(taller_common
     foo.cpp
     mensajes/mensajes_error_accion.cpp
     mensajes/mensajes_error_audio.cpp
+    mensajes/mensajes_error_cliente.cpp
     mensajes/mensajes_error_persistencia.cpp
     mensajes/mensajes_error_protocolo.cpp
 
@@ -34,10 +35,12 @@ target_sources(taller_common
 
     mensajes/codigo_error_accion.h
     mensajes/codigo_error_audio.h
+    mensajes/codigo_error_cliente.h
     mensajes/codigo_error_persistencia.h
     mensajes/codigo_error_protocolo.h
     mensajes/mensajes_error_accion.h
     mensajes/mensajes_error_audio.h
+    mensajes/mensajes_error_cliente.h
     mensajes/mensajes_error_persistencia.h
     mensajes/mensajes_error_protocolo.h
 

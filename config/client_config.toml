@@ -12,8 +12,8 @@ fps_max = 60
 
 # Tamaño de la ventana. Acepta cualquier tamaño en modo ventana.
 # En pantalla completa, ancho/alto definen la resolución.
-ancho = 640
-alto  = 480
+ancho = 1024
+alto  = 768
 
 # Pantalla completa (true) o modo ventana (false).
 fullscreen = false
@@ -21,3 +21,26 @@ fullscreen = false
 [movimiento]
 # Cada cuántos milisegundos se envía un MOVER mientras se mantiene apretada una tecla de dirección.
 intervalo_ms = 130
+
+[chat]
+# Fuente usada
+fuente = "fonts/Cardo-Regular.ttf"
+
+# Imagen de fondo del panel de chat.
+fondo = "chat/fondoPrincipal.png"
+
+# Tamaño de la fuente en puntos.
+tam = 14
+
+# Cuántas líneas de chat/feedback se ven a la vez en pantalla.
+max_lineas = 6
+
+# Caja del chat en píxeles (esquina superior izquierda + alto).
+# El ancho es siempre la mitad del ancho de la ventana (no se configura).
+panel_x = 0
+panel_y = 0
+panel_alto = 140
+
+# Colores [r, g, b] del texto del chat.
+color_texto = [255, 255, 255]  # mensajes entrantes
+color_input = [255, 255, 0]    # lo que se está tipeando
