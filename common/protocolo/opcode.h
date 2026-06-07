@@ -63,7 +63,16 @@ enum class Opcode : uint8_t {
     USAR                    = 47,
 
     // Servidor → Cliente (contenido del banco: items + oro)
-    CONTENIDO_BANCO         = 48
+    CONTENIDO_BANCO         = 48,
+
+    // Cliente → Servidor (comprar un hechizo al sacerdote)
+    COMPRAR_HECHIZO         = 49,
+
+    // Servidor → Cliente (lista de hechizos conocidos del jugador)
+    LISTA_HECHIZOS          = 50,
+
+    // Cliente → Servidor (lanzar un hechizo sobre un objetivo)
+    LANZAR_HECHIZO          = 51
 };
 
 #endif
