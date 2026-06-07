@@ -183,6 +183,25 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
+    // Boton Usar: usa el item seleccionado
+    if (object_renderer.clickEnBotonUsar(x, y)) {
+        if (slotInvSeleccionado >= 0 &&
+            slotInvSeleccionado < static_cast<int>(items.size()) &&
+            items[slotInvSeleccionado] != 0) {
+            despacharComando({Opcode::USAR,
+                              ComandoUsar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
+            slotInvSeleccionado = -1;
+        }
+        return;
+    }
+
+    // Boton Curar: pide curacion al objetivo. Si no es un sacerdote (o no hay objetivo)"accion no permitida" y suena.
+    if (object_renderer.clickEnBotonCurar(x, y)) {
+        despacharComando({Opcode::CURAR, ComandoCurar{objetivo.value_or(static_cast<uint16_t>(0))}},
+                         tick);
+        return;
+    }
+
     // 2) Click en el stock del comerciante -> comprar (requiere NPC seleccionado).
     const int s = object_renderer.slotStockClickeado(x, y);
     if (s >= 0) {
