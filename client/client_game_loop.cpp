@@ -215,6 +215,20 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
+    if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
+        const std::vector<uint16_t>& conocidos = object_state.hechizosConocidos();
+        const bool conocido =
+                std::find(conocidos.begin(), conocidos.end(), idHechizo) != conocidos.end();
+        if (conocido) {
+            despacharComando({Opcode::LANZAR_HECHIZO,
+                              ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        } else {
+            despacharComando({Opcode::COMPRAR_HECHIZO,
+                              ComandoComprarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        }
+        return;
+    }
+
     // 2) Click en el stock del comerciante -> comprar (requiere NPC seleccionado).
     const int s = object_renderer.slotStockClickeado(x, y);
     if (s >= 0) {
@@ -378,6 +392,7 @@ void ClientGameLoop::render() {
     panel.stock = object_state.stockNpc();
     panel.seleccionInventario = slotInvSeleccionado;
     panel.scrollStock = scrollComercio;
+    panel.hechizosConocidos = object_state.hechizosConocidos();
 
     EstadoBancoRender banco;
     banco.abierto = object_state.bancoRecibido();
