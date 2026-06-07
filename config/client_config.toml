@@ -35,10 +35,10 @@ tam = 14
 # Cuántas líneas de chat/feedback se ven a la vez en pantalla.
 max_lineas = 6
 
-# Caja del chat en píxeles (esquina superior izquierda + tamaño).
+# Caja del chat en píxeles (esquina superior izquierda + alto).
+# El ancho es siempre la mitad del ancho de la ventana (no se configura).
 panel_x = 0
 panel_y = 0
-panel_ancho = 420
 panel_alto = 140
 
 # Colores [r, g, b] del texto del chat.

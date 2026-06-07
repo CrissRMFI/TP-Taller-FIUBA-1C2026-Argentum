@@ -18,10 +18,9 @@ struct ConfigCliente {
     std::string fondoChatRuta = "chat/fondoPrincipal.png";
     int fuenteTam = 14;
     int chatMaxLineas = 6;
-    int chatPanelX = 8;
-    int chatPanelY = 8;
-    int chatPanelAncho = 380;
-    int chatPanelAlto = 120;
+    int chatPanelX = 0;
+    int chatPanelY = 0;
+    int chatPanelAlto = 120;  // el ancho lo deriva el renderer: mitad de la ventana
     std::vector<int> chatColorTexto = {255, 255, 255};
     std::vector<int> chatColorInput = {255, 255, 0};
 };

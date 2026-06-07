@@ -38,15 +38,30 @@ void ClientGameLoop::init(const char* title,
                           const int width,
                           const int height,
                           const bool fullscreen) {
+    const auto aColor = [](const std::vector<int>& rgb, const SDL_Color& porDefecto) -> SDL_Color {
+        if (rgb.size() != 3) {
+            return porDefecto;
+        }
+        return SDL_Color{static_cast<uint8_t>(rgb[0]), static_cast<uint8_t>(rgb[1]),
+                         static_cast<uint8_t>(rgb[2]), 255};
+    };
+    ConfigChatRender chatCfg;
+    chatCfg.fuenteRuta = config.fuenteRuta;
+    chatCfg.fuenteTam = config.fuenteTam;
+    chatCfg.fondoRuta = config.fondoChatRuta;
+    chatCfg.panelX = config.chatPanelX;
+    chatCfg.panelY = config.chatPanelY;
+    chatCfg.panelAlto = config.chatPanelAlto;
+    chatCfg.colorTexto = aColor(config.chatColorTexto, chatCfg.colorTexto);
+    chatCfg.colorInput = aColor(config.chatColorInput, chatCfg.colorInput);
+
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
-                         config.fpsMax, config.fuenteRuta, config.fuenteTam, config.fondoChatRuta);
+                         config.fpsMax, chatCfg);
     object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
-    handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAncho,
-                         config.chatPanelAlto);
+    handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAlto);
     handler.setIdCliente(object_state.client_id());
 
-    // creo el audio necesito SDL ya inicializado
     const std::string resourcesRoot = std::string(CLIENT_ASSETS_DIR) + "/../resources";
     gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
                                                 resourcesRoot);
@@ -73,11 +88,6 @@ void ClientGameLoop::init(const char* title,
         }
         tick +=  frame_target_ms;
         it ++;
-
-        // const uint32_t elapsed = SDL_GetTicks() - frame_s;
-        // if (elapsed < frame_target_ms) {
-        //     SDL_Delay(frame_target_ms - elapsed);
-        // }
     }
 }
 
@@ -151,26 +161,12 @@ void ClientGameLoop::update(const int it) {
 }
 
 void ClientGameLoop::render() {
-    
-    const auto aColor = [](const std::vector<int>& rgb, const SDL_Color& porDefecto) -> SDL_Color {
-        if (rgb.size() != 3) {
-            return porDefecto;
-        }
-        return SDL_Color{static_cast<uint8_t>(rgb[0]), static_cast<uint8_t>(rgb[1]),
-                         static_cast<uint8_t>(rgb[2]), 255};
-    };
-
+    // Solo lo dinamico: la config del chat ya la tiene el renderer desde init().
     EstadoChatRender chat;
     chat.activo = handler.chatActivo();
     chat.entrada = handler.bufferChat();
     const std::deque<std::string>& historial = object_state.historialChat();
     chat.historial.assign(historial.begin(), historial.end());
-    chat.colorTexto = aColor(config.chatColorTexto, chat.colorTexto);
-    chat.colorInput = aColor(config.chatColorInput, chat.colorInput);
-    chat.panelX = config.chatPanelX;
-    chat.panelY = config.chatPanelY;
-    chat.panelAncho = config.chatPanelAncho;
-    chat.panelAlto = config.chatPanelAlto;
     object_renderer.render(object_state, object_animation, chat);
 }
 

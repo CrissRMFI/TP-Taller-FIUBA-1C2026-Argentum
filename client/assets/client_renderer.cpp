@@ -40,9 +40,8 @@ void ObjectRenderer::init(const char* title,
                           const bool fullscreen,
                           const bool vsync,
                           const int loop_fps,
-                          const std::string& fuente_ruta,
-                          const int fuente_tam,
-                          const std::string& fondo_chat_ruta) {
+                          const ConfigChatRender& chat_config) {
+    this->chat_config = chat_config;
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -71,8 +70,8 @@ void ObjectRenderer::init(const char* title,
 
     try {
         const std::string fuente_path =
-                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + fuente_ruta;
-        text_renderer = std::make_unique<TextRenderer>(fuente_path, fuente_tam);
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + chat_config.fuenteRuta;
+        text_renderer = std::make_unique<TextRenderer>(fuente_path, chat_config.fuenteTam);
     } catch (const std::exception& e) {
         // Sin fuente el chat no se dibuja, pero el juego sigue andando.
         std::cerr << "[cliente] "
@@ -82,7 +81,7 @@ void ObjectRenderer::init(const char* title,
 
     try {
         const std::string fondo_path =
-                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + fondo_chat_ruta;
+                std::string(CLIENT_ASSETS_DIR) + "/../resources/" + chat_config.fondoRuta;
         SDL2pp::Surface fondo_surface(fondo_path);
         chat_background_texture = std::make_unique<SDL2pp::Texture>(*renderer, fondo_surface);
     } catch (const std::exception& e) {
@@ -280,7 +279,9 @@ void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     const int alto = text_renderer->alto_linea();
     const int margen = 6;
 
-    const SDL2pp::Rect caja(chat.panelX, chat.panelY, chat.panelAncho, chat.panelAlto);
+    const int panel_ancho = window_width / 2;
+    const SDL2pp::Rect caja(chat_config.panelX, chat_config.panelY, panel_ancho,
+                            chat_config.panelAlto);
     if (chat_background_texture) {
         renderer->Copy(*chat_background_texture, SDL2pp::NullOpt, caja);
     } else {
@@ -288,18 +289,18 @@ void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
         renderer->FillRect(caja);
     }
 
-    const int inner_x = chat.panelX + margen;
-    const int caja_fondo = chat.panelY + chat.panelAlto;
+    const int inner_x = chat_config.panelX + margen;
+    const int caja_fondo = chat_config.panelY + chat_config.panelAlto;
 
     const int y_input = caja_fondo - alto - margen;
     const std::string prompt = "> " + chat.entrada + (chat.activo ? "_" : "");
-    text_renderer->dibujar(*renderer, prompt, inner_x, y_input, chat.colorInput);
+    text_renderer->dibujar(*renderer, prompt, inner_x, y_input, chat_config.colorInput);
 
     // Historial
     int y = y_input - alto;
-    const int tope = chat.panelY + margen;
+    const int tope = chat_config.panelY + margen;
     for (auto it = chat.historial.rbegin(); it != chat.historial.rend() && y >= tope; ++it) {
-        text_renderer->dibujar(*renderer, *it, inner_x, y, chat.colorTexto);
+        text_renderer->dibujar(*renderer, *it, inner_x, y, chat_config.colorTexto);
         y -= alto;
     }
 }

@@ -32,9 +32,9 @@ private:
     bool chat_activo;
     std::string chat_buffer;
     std::optional<uint16_t> objetivo_seleccionado;
+    // Caja del chat (px). El ancho es la mitad de la ventana (igual que el renderer).
     int chat_panel_x = 0;
     int chat_panel_y = 0;
-    int chat_panel_ancho = 0;
     int chat_panel_alto = 0;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
@@ -69,10 +69,9 @@ public:
         window_width = width;
         window_height = height;
     }
-    void setChatPanel(int x, int y, int ancho, int alto) {
+    void setChatPanel(int x, int y, int alto) {
         chat_panel_x = x;
         chat_panel_y = y;
-        chat_panel_ancho = ancho;
         chat_panel_alto = alto;
     }
 };

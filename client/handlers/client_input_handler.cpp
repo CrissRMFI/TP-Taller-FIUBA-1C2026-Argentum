@@ -93,7 +93,9 @@ ResultadoInput ClientInputHandler::manejar_texto_chat(const SDL_Event& event) {
 }
 
 bool ClientInputHandler::click_en_chat(const int x, const int y) const {
-    return x >= chat_panel_x && x < chat_panel_x + chat_panel_ancho &&
+    // El ancho de la caja es la mitad de la ventana (igual que el renderer).
+    const int ancho = window_width / 2;
+    return x >= chat_panel_x && x < chat_panel_x + ancho &&
            y >= chat_panel_y && y < chat_panel_y + chat_panel_alto;
 }
 

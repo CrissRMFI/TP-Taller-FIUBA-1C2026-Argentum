@@ -43,6 +43,7 @@ private:
     std::unique_ptr<NPCRenderer> npc_renderer;
     std::unique_ptr<TextRenderer> text_renderer;
     std::unique_ptr<SDL2pp::Texture> chat_background_texture;
+    ConfigChatRender chat_config;
     int last_animation_row = -1;
     int window_width = 0;
     int window_height = 0;
@@ -54,8 +55,7 @@ private:
 public:
     ObjectRenderer();
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
-              bool vsync, int loop_fps, const std::string& fuente_ruta, int fuente_tam,
-              const std::string& fondo_chat_ruta);
+              bool vsync, int loop_fps, const ConfigChatRender& chat_config);
     void update_animation(/*uint32_t current_tick*/  int it,
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);

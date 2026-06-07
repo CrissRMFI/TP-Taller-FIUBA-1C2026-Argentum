@@ -56,11 +56,7 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
 
     cfg.chatPanelX = static_cast<int>(tbl["chat"]["panel_x"].value_or<int64_t>(cfg.chatPanelX));
     cfg.chatPanelY = static_cast<int>(tbl["chat"]["panel_y"].value_or<int64_t>(cfg.chatPanelY));
-    const int64_t panelAncho = tbl["chat"]["panel_ancho"].value_or<int64_t>(cfg.chatPanelAncho);
     const int64_t panelAlto = tbl["chat"]["panel_alto"].value_or<int64_t>(cfg.chatPanelAlto);
-    if (panelAncho > 0) {
-        cfg.chatPanelAncho = static_cast<int>(panelAncho);
-    }
     if (panelAlto > 0) {
         cfg.chatPanelAlto = static_cast<int>(panelAlto);
     }
