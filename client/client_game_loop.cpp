@@ -42,6 +42,8 @@ void ClientGameLoop::init(const char* title,
                          config.fpsMax, config.fuenteRuta, config.fuenteTam, config.fondoChatRuta);
     object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
+    handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAncho,
+                         config.chatPanelAlto);
     handler.setIdCliente(object_state.client_id());
 
     // creo el audio necesito SDL ya inicializado
@@ -163,10 +165,8 @@ void ClientGameLoop::render() {
     chat.entrada = handler.bufferChat();
     const std::deque<std::string>& historial = object_state.historialChat();
     chat.historial.assign(historial.begin(), historial.end());
-    chat.ayuda = config.ayudaChat;
     chat.colorTexto = aColor(config.chatColorTexto, chat.colorTexto);
     chat.colorInput = aColor(config.chatColorInput, chat.colorInput);
-    chat.colorAyuda = aColor(config.chatColorAyuda, chat.colorAyuda);
     chat.panelX = config.chatPanelX;
     chat.panelY = config.chatPanelY;
     chat.panelAncho = config.chatPanelAncho;

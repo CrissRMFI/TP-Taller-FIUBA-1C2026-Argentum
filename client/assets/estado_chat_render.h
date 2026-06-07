@@ -13,17 +13,15 @@ struct EstadoChatRender {
     std::string entrada;
     // mensajes entrantes recientes (mas viejo -> mas nuevo)
     std::vector<std::string> historial;
-    // lineas de ayuda de comandos (se muestran al abrir)
-    std::vector<std::string> ayuda;
-    // colores (vienen del TOML via ConfigCliente)
+    // colores (vienen del TOML via ConfigCliente). Estos defaults SI se usan: el loop
+    // los pasa como fallback si el color del TOML viene mal formado.
     SDL_Color colorTexto = {255, 255, 255, 255};
     SDL_Color colorInput = {255, 255, 0, 255};
-    SDL_Color colorAyuda = {200, 200, 200, 255};
-    // caja del chat en pixeles (viene del TOML via ConfigCliente)
-    int panelX = 8;
-    int panelY = 8;
-    int panelAncho = 380;
-    int panelAlto = 120;
+    // caja del chat en pixeles.
+    int panelX = 0;
+    int panelY = 0;
+    int panelAncho = 0;
+    int panelAlto = 0;
 };
 
 #endif

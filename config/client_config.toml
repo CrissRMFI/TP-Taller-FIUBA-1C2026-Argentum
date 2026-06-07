@@ -12,8 +12,8 @@ fps_max = 60
 
 # Tamaño de la ventana. Acepta cualquier tamaño en modo ventana.
 # En pantalla completa, ancho/alto definen la resolución.
-ancho = 640
-alto  = 480
+ancho = 1024
+alto  = 768
 
 # Pantalla completa (true) o modo ventana (false).
 fullscreen = false
@@ -36,23 +36,11 @@ tam = 14
 max_lineas = 6
 
 # Caja del chat en píxeles (esquina superior izquierda + tamaño).
-# Siempre visible. Reubicable sin recompilar mientras se arma el layout.
-panel_x = 8
-panel_y = 8
-panel_ancho = 380
-panel_alto = 120
+panel_x = 0
+panel_y = 0
+panel_ancho = 420
+panel_alto = 140
 
 # Colores [r, g, b] del texto del chat.
 color_texto = [255, 255, 255]  # mensajes entrantes
 color_input = [255, 255, 0]    # lo que se está tipeando
-color_ayuda = [200, 200, 200]  # ayuda de comandos
-
-# Ayuda de comandos que se muestra arriba a la izquierda al abrir el chat
-ayuda = [
-  "ENTER: abrir / enviar    ESC: cancelar",
-  "Texto suelto = chat global    @nick msg = privado",
-  "/curar  /resucitar  /meditar    (cerca del NPC)",
-  "/comprar <item> <cant>  /vender <item> <cant>  /listar",
-  "/depositar oro <n>  /retirar oro <n>",
-  "/tomar  /tirar oro <n>  /equipar <item>",
-]

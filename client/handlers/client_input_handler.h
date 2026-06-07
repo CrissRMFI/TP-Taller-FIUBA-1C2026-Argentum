@@ -32,10 +32,15 @@ private:
     bool chat_activo;
     std::string chat_buffer;
     std::optional<uint16_t> objetivo_seleccionado;
+    int chat_panel_x = 0;
+    int chat_panel_y = 0;
+    int chat_panel_ancho = 0;
+    int chat_panel_alto = 0;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
     std::optional<uint8_t> direccion_de_tecla(SDL_Keycode key) const;
+    bool click_en_chat(int x, int y) const;
     ResultadoInput manejar_texto_chat(const SDL_Event& event);
     void abrir_chat();
     void cerrar_chat();
@@ -63,6 +68,12 @@ public:
     void set_window_dimensions(int width, int height) {
         window_width = width;
         window_height = height;
+    }
+    void setChatPanel(int x, int y, int ancho, int alto) {
+        chat_panel_x = x;
+        chat_panel_y = y;
+        chat_panel_ancho = ancho;
+        chat_panel_alto = alto;
     }
 };
 

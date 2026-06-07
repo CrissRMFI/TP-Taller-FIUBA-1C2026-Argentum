@@ -22,10 +22,8 @@ struct ConfigCliente {
     int chatPanelY = 8;
     int chatPanelAncho = 380;
     int chatPanelAlto = 120;
-    std::vector<std::string> ayudaChat;
     std::vector<int> chatColorTexto = {255, 255, 255};
     std::vector<int> chatColorInput = {255, 255, 0};
-    std::vector<int> chatColorAyuda = {200, 200, 200};
 };
 
 #endif

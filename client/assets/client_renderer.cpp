@@ -292,25 +292,15 @@ void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     const int caja_fondo = chat.panelY + chat.panelAlto;
 
     const int y_input = caja_fondo - alto - margen;
-    if (chat.activo) {
-        text_renderer->dibujar(*renderer, "> " + chat.entrada, inner_x, y_input, chat.colorInput);
-    }
+    const std::string prompt = "> " + chat.entrada + (chat.activo ? "_" : "");
+    text_renderer->dibujar(*renderer, prompt, inner_x, y_input, chat.colorInput);
 
     // Historial
-    int y = (chat.activo ? y_input : caja_fondo - margen) - alto;
+    int y = y_input - alto;
     const int tope = chat.panelY + margen;
     for (auto it = chat.historial.rbegin(); it != chat.historial.rend() && y >= tope; ++it) {
         text_renderer->dibujar(*renderer, *it, inner_x, y, chat.colorTexto);
         y -= alto;
-    }
-
-    // Ayuda de comandos
-    if (chat.activo) {
-        int ay = caja_fondo + margen;
-        for (const std::string& linea : chat.ayuda) {
-            text_renderer->dibujar(*renderer, linea, chat.panelX, ay, chat.colorAyuda);
-            ay += alto;
-        }
     }
 }
 SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {

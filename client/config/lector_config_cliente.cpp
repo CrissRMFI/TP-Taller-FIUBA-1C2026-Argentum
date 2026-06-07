@@ -48,14 +48,6 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     if (fuenteTam > 0) {
         cfg.fuenteTam = static_cast<int>(fuenteTam);
     }
-    if (const toml::array* ayuda = tbl["chat"]["ayuda"].as_array()) {
-        cfg.ayudaChat.clear();
-        for (const toml::node& linea : *ayuda) {
-            if (const std::optional<std::string> texto = linea.value<std::string>()) {
-                cfg.ayudaChat.push_back(*texto);
-            }
-        }
-    }
 
     const int64_t maxLineas = tbl["chat"]["max_lineas"].value_or<int64_t>(cfg.chatMaxLineas);
     if (maxLineas > 0) {
@@ -90,7 +82,6 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     };
     leerColor("color_texto", cfg.chatColorTexto);
     leerColor("color_input", cfg.chatColorInput);
-    leerColor("color_ayuda", cfg.chatColorAyuda);
 
     return cfg;
 }

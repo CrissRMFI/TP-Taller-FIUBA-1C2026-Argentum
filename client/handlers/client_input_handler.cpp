@@ -48,13 +48,11 @@ std::optional<ComandoJugador> ClientInputHandler::handle_keyboard(SDL_Keycode ke
 
 void ClientInputHandler::abrir_chat() {
     chat_activo = true;
-    chat_buffer.clear();
     SDL_StartTextInput();
 }
 
 void ClientInputHandler::cerrar_chat() {
     chat_activo = false;
-    chat_buffer.clear();
     SDL_StopTextInput();
 }
 
@@ -72,10 +70,9 @@ ResultadoInput ClientInputHandler::manejar_texto_chat(const SDL_Event& event) {
         switch (event.key.keysym.sym) {
             case SDLK_RETURN:
             case SDLK_KP_ENTER: {
-                std::string linea = chat_buffer;
-                cerrar_chat();
-                if (!linea.empty()) {
-                    resultado.lineaChat = std::move(linea);
+                if (!chat_buffer.empty()) {
+                    resultado.lineaChat = chat_buffer;
+                    chat_buffer.clear();
                 }
                 break;
             }
@@ -95,6 +92,11 @@ ResultadoInput ClientInputHandler::manejar_texto_chat(const SDL_Event& event) {
     return resultado;
 }
 
+bool ClientInputHandler::click_en_chat(const int x, const int y) const {
+    return x >= chat_panel_x && x < chat_panel_x + chat_panel_ancho &&
+           y >= chat_panel_y && y < chat_panel_y + chat_panel_alto;
+}
+
 ResultadoInput ClientInputHandler::handle_event(
         const SDL_Event& event,
         const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) {
@@ -106,18 +108,17 @@ ResultadoInput ClientInputHandler::handle_event(
     }
 
     if (chat_activo) {
+        if (event.type == SDL_MOUSEBUTTONDOWN &&
+            !click_en_chat(event.button.x, event.button.y)) {
+            cerrar_chat();
+            resultado.comando = handle_mouse_click(event.button.x, event.button.y, entidades);
+            return resultado;
+        }
         return manejar_texto_chat(event);
     }
 
     if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
         const SDL_Keycode key = event.key.keysym.sym;
-        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-            abrir_chat();
-            // Si veniamos moviendonos, frenamos: la tecla de direccion soltada
-            // mientras se tipea no llegaria como DETENER.
-            resultado.comando = ComandoJugador{Opcode::DETENER_MOVER, ComandoDetenerMover{}};
-            return resultado;
-        }
         // Tecla de direccion presionada: empezar a moverse (el server avanza solo).
         if (auto direccion = direccion_de_tecla(key)) {
             resultado.comando =
@@ -135,6 +136,12 @@ ResultadoInput ClientInputHandler::handle_event(
         return resultado;
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
+      
+      if (click_en_chat(event.button.x, event.button.y)) {
+            abrir_chat();
+            resultado.comando = ComandoJugador{Opcode::DETENER_MOVER, ComandoDetenerMover{}};
+            return resultado;
+        }
         resultado.comando = handle_mouse_click(event.button.x, event.button.y, entidades);
         return resultado;
     }
