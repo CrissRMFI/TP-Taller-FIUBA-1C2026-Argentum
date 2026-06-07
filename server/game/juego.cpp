@@ -846,6 +846,10 @@ std::list<EventoSalida> Juego::ejecutarCheat(uint16_t idCliente, const ComandoCh
             return mensajes;
         }
 
+        case TipoCheat::DarOro:
+            jugador->cheat_dar_oro(1000);
+            return {armarEstado(idCliente, *jugador)};
+
         default:
             return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
