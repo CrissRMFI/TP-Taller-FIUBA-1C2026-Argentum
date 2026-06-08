@@ -94,6 +94,9 @@ RegistroJugador SerializadorJugador::aRegistro(const Jugador& jugador) {
     reg.posX = pos.x;
     reg.posY = pos.y;
 
+    reg.skinCabeza = jugador.getCabeza();
+    reg.skinCuerpo = jugador.getCuerpo();
+
     const std::vector<uint16_t> slots = jugador.getSlotsInventario();
     const size_t maxInv = std::size(reg.inventarioSlots);
     const size_t nInv = std::min(slots.size(), maxInv);

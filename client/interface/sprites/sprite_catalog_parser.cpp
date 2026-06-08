@@ -161,6 +161,8 @@ std::unordered_map<std::string, StateOverride> SpriteCatalogParser::parse_states
             if (auto body_path = item->get_as<std::string>("body_path")) {
                 state.body_path = body_path->get();
             }
+            state.body_src = helper.optional_rect4(
+                    *item, "src", helper.join_path(path_prefix, "src"));
             if (!state.head_path.has_value() && !state.body_path.has_value()) {
                 helper.throw_invalid(path_prefix, "debe definir head_path o body_path");
             }

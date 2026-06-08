@@ -74,9 +74,11 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderiz
     const int anchor_y = entity_y + cell_height;
 
     if (resolved.body.has_value()) {
-        const SpriteRect body_src =
-                body_src_rect_for(*resolved.body->definition, animation_row,
-                                  effective_frame_index);
+        const SpriteRect body_src = resolved.body->src_override.has_value()
+                                            ? *resolved.body->src_override
+                                            : body_src_rect_for(*resolved.body->definition,
+                                                                animation_row,
+                                                                effective_frame_index);
 
         body_width = static_cast<int>(body_src.width * CHARACTER_SCALE);
         body_height = static_cast<int>(body_src.height * CHARACTER_SCALE);

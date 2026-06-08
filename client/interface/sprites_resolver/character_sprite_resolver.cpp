@@ -33,6 +33,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
                 body = ResolvedCharacterPart{
                         .texture = &texture_cache.get_or_load(*ghost_state->body_path),
                         .definition = &base_body_def,
+                        .src_override = ghost_state->body_src,
                 };
             }
         }
@@ -42,6 +43,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
             body = ResolvedCharacterPart{
                     .texture = &texture_cache.get_or_load(body_def.path),
                     .definition = &body_def,
+                    .src_override = std::nullopt,
             };
         }
     } else {
@@ -56,6 +58,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
         head = ResolvedCharacterPart{
                 .texture = &texture_cache.get_or_load(head_def.path),
                 .definition = &head_def,
+                .src_override = std::nullopt,
         };
     } else if (entity.tipo == 0) {
         std::cerr << "[sprite_resolver] head omitida para entidad: estado="

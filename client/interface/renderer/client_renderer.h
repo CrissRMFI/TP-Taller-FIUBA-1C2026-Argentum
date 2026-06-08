@@ -19,6 +19,7 @@
 #include "../renderer/criatura_renderer.h"
 #include "client/interface/sprites_resolver/criatura_sprite_resolver.h"
 #include "../renderer/npc_renderer.h"
+#include "client/camara/player_camera.h"
 #include "client/interface/sprites_resolver/npc_sprite_resolver.h"
 #include "../../common/game/mapa/mapa.h"
 
@@ -30,6 +31,7 @@ private:
     std::unique_ptr<SDL2pp::Window> window;
     std::unique_ptr<SDL2pp::Renderer> renderer;
     std::unique_ptr<SDL2pp::Texture> background_texture;
+    std::unique_ptr<SDL2pp::Texture> city_texture;
     std::unique_ptr<SpriteManager> sprite_manager;
     std::unique_ptr<CharacterSpriteResolver> resolver_sprite;
     std::unique_ptr<CharacterRenderer> character_renderer;
@@ -43,6 +45,7 @@ private:
     int window_width = 0;
     int window_height = 0;
     Mapa mapa;
+    PlayerCamera camera;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     Mapa cargarMapa() const;
 
@@ -53,7 +56,7 @@ public:
     void update_animation( int it,
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
-    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation) const;
+    void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

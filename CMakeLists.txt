@@ -148,6 +148,8 @@ if(TALLER_CLIENT)
                 client/interface/sprites/sprite_catalog_parser.cpp
                 client/interface/sprites/sprite_catalog_parser.h
                 client/interface/sprites/catalog_resources.h
+                client/camara/player_camera.cpp
+                client/camara/player_camera.h
         )
 
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)

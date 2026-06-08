@@ -334,9 +334,9 @@ row = 1
 
 # Overrides por estado
 [states.fantasma]
-body_path = "imgs/fantasma.png"
-size = [25, 45]
-src = [6, 10, 25,45]
+body_path = "imgs/10141.png"
+size = [53, 52]
+src = [0, 0, 53, 52]
 
 
 # Catalogo de criaturas
