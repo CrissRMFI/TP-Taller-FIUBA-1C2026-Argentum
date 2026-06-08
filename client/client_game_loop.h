@@ -54,6 +54,7 @@ public:
                    const ConfigCliente& config);
     ~ClientGameLoop();
 
+    void setNick(const std::string& nick) { object_state.setNick(nick); }
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
     void handleEvents();
     void update(int it);

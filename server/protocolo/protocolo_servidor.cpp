@@ -553,6 +553,9 @@ void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mens
     enviarUnByte(mensaje.nivel);
     enviarCuatroBytes(mensaje.experiencia);
     enviarUnByte(mensaje.estado);
+    enviarUnByte(mensaje.raza);
+    enviarUnByte(mensaje.clase);
+    enviarCuatroBytes(mensaje.expSiguienteNivel);
 }
 
 void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mensaje) {
@@ -583,6 +586,7 @@ void ProtocoloServidor::enviarDanioRecibido(const MensajeDanoRecibido& mensaje) 
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idAtacante);
+    enviarUnByte(mensaje.esCritico);
 }
 
 void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje) {
@@ -591,6 +595,7 @@ void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idObjetivo);
     enviarUnByte(mensaje.tipoGolpe);
+    enviarUnByte(mensaje.esCritico);
 }
 
 void ProtocoloServidor::enviarEsquive(const MensajeEsquive& mensaje) {

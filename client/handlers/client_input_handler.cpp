@@ -147,6 +147,7 @@ ResultadoInput ClientInputHandler::handle_event(
             return resultado;
         }
         resultado.comando = handle_mouse_click(event.button.x, event.button.y, entidades);
+        resultado.clickVacio = !resultado.comando.has_value();  // click en el juego sin objetivo
         return resultado;
     }
     return resultado;

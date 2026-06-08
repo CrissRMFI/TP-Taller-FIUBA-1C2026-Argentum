@@ -143,19 +143,31 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             // Suba marcada de vida/mana => curacion o pocion (no la regen natural).
             if (vidaAnterior > 0 && estado->vidaActual >= vidaAnterior + UMBRAL_CURACION) {
                 gestorAudio.reproducirEfecto("curarVida");
+                agregarLineaChat("Recuperaste " + std::to_string(estado->vidaActual - vidaAnterior) +
+                                 " de vida.", TipoMensajeChat::Recuperacion);
             }
             if (manaAnterior > 0 && estado->manaActual >= manaAnterior + UMBRAL_CURACION) {
                 gestorAudio.reproducirEfecto("curarMana");
+                agregarLineaChat("Recuperaste " + std::to_string(estado->manaActual - manaAnterior) +
+                                 " de mana.", TipoMensajeChat::Recuperacion);
+            }
+            // Ganancia de experiencia (el guard evita el mensaje espurio al conectar).
+            if (experienciaAnterior > 0 && estado->experiencia > experienciaAnterior) {
+                agregarLineaChat("Ganaste " +
+                                 std::to_string(estado->experiencia - experienciaAnterior) +
+                                 " de experiencia.", TipoMensajeChat::Experiencia);
             }
             vidaBajaAvisada = vidaCritica;
             vidaAnterior = estado->vidaActual;
             manaAnterior = estado->manaActual;
+            experienciaAnterior = estado->experiencia;
             nivelAnterior = estado->nivel;
             estadoAnterior = estado->estado;
             // Stats para el panel derecho.
             estadoJugador_ = EstadoJugador{estado->vidaActual, estado->vidaMax,
                                            estado->manaActual, estado->manaMax, estado->oro,
-                                           estado->experiencia, estado->nivel};
+                                           estado->experiencia, estado->nivel, estado->raza,
+                                           estado->clase, estado->expSiguienteNivel};
             std::cout << "[cliente] estado personaje: vida " << estado->vidaActual << "/"
                       << estado->vidaMax << ", mana " << estado->manaActual << "/"
                       << estado->manaMax << ", oro " << estado->oro << ", nivel "
@@ -169,8 +181,15 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 gestorAudio.reproducirEfectoPosicional(
                         "criaturaAtacando", distanciaAlJugador(it->second.x, it->second.y));
             }
-            std::cout << "[cliente] daño recibido: " << dano_recibido->cantidad
-                      << ", atacante=" << dano_recibido->idAtacante << std::endl;
+            if (dano_recibido->esCritico) {
+                agregarLineaChat("Te dieron un golpe CRITICO de " +
+                                 std::to_string(dano_recibido->cantidad) + " de dano.",
+                                 TipoMensajeChat::CriticoRecibido);
+            } else {
+                agregarLineaChat("Te atacaron y recibiste " +
+                                 std::to_string(dano_recibido->cantidad) + " de dano.",
+                                 TipoMensajeChat::Ataque);
+            }
         } else if (auto* dano_producido = std::get_if<MensajeDanoProducido>(&mensaje.payload)) {
             // El sonido depende del arma con que se golpeo (lo decide el server).
             const char* claveAtaque = "ataqueEspada";
@@ -188,8 +207,14 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             } else {
                 gestorAudio.reproducirEfecto(claveAtaque);
             }
-            std::cout << "[cliente] daño producido: " << dano_producido->cantidad
-                      << ", objetivo=" << dano_producido->idObjetivo << std::endl;
+            if (dano_producido->esCritico) {
+                agregarLineaChat("Hiciste un golpe CRITICO de " +
+                                 std::to_string(dano_producido->cantidad) + " de dano.",
+                                 TipoMensajeChat::CriticoHecho);
+            } else {
+                agregarLineaChat("Atacaste e hiciste " + std::to_string(dano_producido->cantidad) +
+                                 " de dano.");
+            }
         } else if (auto* esquive = std::get_if<MensajeEsquive>(&mensaje.payload)) {
             if (const auto it = entidades.find(esquive->idEntidad); it != entidades.end()) {
                 gestorAudio.reproducirEfectoPosicional(
@@ -197,12 +222,14 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             } else {
                 gestorAudio.reproducirEfecto("esquive");
             }
-            std::cout << "[cliente] esquive: entidad=" << esquive->idEntidad
-                      << ", esquivador=" << static_cast<int>(esquive->esquivador)
-                      << std::endl;
+            agregarLineaChat("El ataque fue esquivado.");
         } else if (auto* mensaje_chat = std::get_if<MensajeChat>(&mensaje.payload)) {
             agregarLineaChat(mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje);
         } else if (auto* error_accion = std::get_if<MensajeErrorAccion>(&mensaje.payload)) {
+            // El cooldown de ataque es esperado al golpear seguido: no lo mostramos.
+            if (error_accion->codigo == CodigoErrorAccion::COOLDOWN_ATAQUE) {
+                continue;
+            }
             gestorAudio.reproducirEfecto("accionNoPermitida");
             const std::string texto = MensajesErrorAccion::mensaje(error_accion->codigo);
             agregarLineaChat("* " + texto);
@@ -245,12 +272,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << oro_desaparecio->x << ", " << oro_desaparecio->y << ")"
                       << std::endl;
         } else if (auto* recibir_lista_items = std::get_if<MensajeListaItems>(&mensaje.payload)) {
+            // El stock se muestra en el panel de comercio; no ensuciamos el chat con ids.
             stockNpc_ = recibir_lista_items->ids;
-            std::string linea = "Items:";
-            for (const auto& id : recibir_lista_items->ids) {
-                linea += " " + std::to_string(id);
-            }
-            agregarLineaChat(linea);
         } else if (auto* banco = std::get_if<MensajeContenidoBanco>(&mensaje.payload)) {
             bancoItems_ = banco->items;
             bancoOro_ = banco->oroBanco;
@@ -338,14 +361,22 @@ InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_
     };
 }
 
-void ObjectGameWorld::agregarLineaChat(const std::string& linea) {
-    historialChatReciente.push_back(linea);
+void ObjectGameWorld::agregarLineaChat(const std::string& linea, TipoMensajeChat tipo) {
+    // Regla centralizada: cualquier mensaje con '@' va en color de clan (marron).
+    if (tipo == TipoMensajeChat::Normal && linea.find('@') != std::string::npos) {
+        tipo = TipoMensajeChat::Clan;
+    }
+    historialChatReciente.emplace_back(linea, tipo);
     while (historialChatReciente.size() > maxLineasChat) {
         historialChatReciente.pop_front();
     }
 }
 
-const std::deque<std::string>& ObjectGameWorld::historialChat() const {
+void ObjectGameWorld::mensajeLocal(const std::string& linea, TipoMensajeChat tipo) {
+    agregarLineaChat(linea, tipo);
+}
+
+const std::deque<LineaChat>& ObjectGameWorld::historialChat() const {
     return historialChatReciente;
 }
 

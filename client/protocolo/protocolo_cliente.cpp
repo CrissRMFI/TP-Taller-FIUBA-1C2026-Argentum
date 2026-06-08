@@ -430,6 +430,9 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
     uint8_t nivel = recibirUnByte();
     uint32_t experiencia = recibirCuatroBytes();
     uint8_t estado = recibirUnByte();
+    uint8_t raza = recibirUnByte();
+    uint8_t clase = recibirUnByte();
+    uint32_t expSiguienteNivel = recibirCuatroBytes();
 
     return MensajeServidor{
             Opcode::ESTADO_PERSONAJE,
@@ -442,6 +445,9 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
                     nivel,
                     experiencia,
                     estado,
+                    raza,
+                    clase,
+                    expSiguienteNivel,
             },
     };
 }
@@ -479,10 +485,11 @@ MensajeServidor ProtocoloCliente::recibirEntidadDesaparecio() {
 MensajeServidor ProtocoloCliente::recibirDanoRecibido() {
     uint16_t cantidad = recibirDosBytes();
     uint16_t idAtacante = recibirDosBytes();
+    uint8_t esCritico = recibirUnByte();
 
     return MensajeServidor{
             Opcode::DANIO_RECIBIDO,
-            MensajeDanoRecibido{cantidad, idAtacante},
+            MensajeDanoRecibido{cantidad, idAtacante, esCritico},
     };
 }
 
@@ -490,10 +497,11 @@ MensajeServidor ProtocoloCliente::recibirDanoProducido() {
     uint16_t cantidad = recibirDosBytes();
     uint16_t idObjetivo = recibirDosBytes();
     uint8_t tipoGolpe = recibirUnByte();
+    uint8_t esCritico = recibirUnByte();
 
     return MensajeServidor{
             Opcode::DANIO_PRODUCIDO,
-            MensajeDanoProducido{cantidad, idObjetivo, tipoGolpe},
+            MensajeDanoProducido{cantidad, idObjetivo, tipoGolpe, esCritico},
     };
 }
 

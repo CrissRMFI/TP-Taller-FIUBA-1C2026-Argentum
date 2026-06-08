@@ -18,6 +18,9 @@ struct MensajeEstadoPersonaje {
     uint8_t  nivel;
     uint32_t experiencia;
     uint8_t  estado;
+    uint8_t  raza = 0;
+    uint8_t  clase = 0;
+    uint32_t expSiguienteNivel = 0;
 };
 
 struct MensajePosicionEntidad {
@@ -40,12 +43,14 @@ struct MensajeEntidadDesaparecio {
 struct MensajeDanoRecibido {
   uint16_t cantidad;
   uint16_t idAtacante;
+  uint8_t  esCritico = 0;
 };
 
 struct MensajeDanoProducido {
   uint16_t cantidad;
   uint16_t idObjetivo;
   uint8_t  tipoGolpe;
+  uint8_t  esCritico = 0;  // 1 = golpe critico
 };
 
 struct MensajeEsquive {

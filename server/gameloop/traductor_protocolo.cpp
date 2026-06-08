@@ -13,7 +13,8 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
                      e->vidaActual, e->vidaMax,
                      e->manaActual, e->manaMax,
                      e->oro, e->nivel, e->experiencia,
-                     static_cast<uint8_t>(e->estado) } };
+                     static_cast<uint8_t>(e->estado),
+                     e->raza, e->clase, e->expSiguienteNivel } };
     }
     if (auto* e = std::get_if<EventoPosicionEntidad>(&evento)) {
         return { Opcode::POSICION_ENTIDAD,
@@ -26,11 +27,13 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     }
     if (auto* e = std::get_if<EventoDanioRecibido>(&evento)) {
         return { Opcode::DANIO_RECIBIDO,
-                 MensajeDanoRecibido{ e->cantidad, e->idAtacante } };
+                 MensajeDanoRecibido{ e->cantidad, e->idAtacante,
+                                      static_cast<uint8_t>(e->esCritico ? 1 : 0) } };
     }
     if (auto* e = std::get_if<EventoDanioProducido>(&evento)) {
         return { Opcode::DANIO_PRODUCIDO,
-                 MensajeDanoProducido{ e->cantidad, e->idObjetivo, e->tipoGolpe } };
+                 MensajeDanoProducido{ e->cantidad, e->idObjetivo, e->tipoGolpe,
+                                       static_cast<uint8_t>(e->esCritico ? 1 : 0) } };
     }
     if (auto* e = std::get_if<EventoEsquive>(&evento)) {
         return { Opcode::ESQUIVE,

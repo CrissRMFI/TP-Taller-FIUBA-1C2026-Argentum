@@ -368,7 +368,10 @@ EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
             EventoEstadoPersonaje{jugador.getVidaActual(), jugador.getVidaMax(),
                                   jugador.getManaActual(), jugador.getManaMax(), jugador.getOro(),
                                   jugador.getNivel(), jugador.getExperiencia(),
-                                  jugador.getEstado()}};
+                                  jugador.getEstado(),
+                                  static_cast<uint8_t>(jugador.getRaza()),
+                                  static_cast<uint8_t>(jugador.getClase()),
+                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel())}};
 }
 
 EventoSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) {
@@ -1325,7 +1328,7 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
 
     // Cooldown de ataque
     if (!atacante->puedeAtacar()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::COOLDOWN_ATAQUE)};
     }
 
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
@@ -1439,10 +1442,12 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoDanioProducido{danioAplicado, objetivo->getId(),
-                                                             tipoGolpeDeAtacante(*atacante)}});
+                                                             tipoGolpeDeAtacante(*atacante),
+                                                             resultadoDanio.esCritico}});
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
-                                        EventoDanioRecibido{danioAplicado, atacante->getId()}});
+                                        EventoDanioRecibido{danioAplicado, atacante->getId(),
+                                                            resultadoDanio.esCritico}});
 
         mensajes.push_back(armarEstado(*idClienteObjetivo, *objetivo));
 
@@ -1641,14 +1646,17 @@ std::list<EventoSalida> Juego::ejecutarComprarHechizo(uint16_t idCliente,
     }
     // El Guerrero no usa magia (manaMax == 0): no puede comprar hechizos.
     if (!jugador->puedeUsarMagia()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::CLASE_SIN_MAGIA)};
     }
     if (obtenerSacerdoteParaInteraccion(cmd.idSacerdote, *jugador) == nullptr) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
     const Hechizo* hechizo = catalogoHechizos.buscar(cmd.idHechizo);
-    if (hechizo == nullptr || jugador->conoceHechizo(cmd.idHechizo)) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    if (hechizo == nullptr) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+    if (jugador->conoceHechizo(cmd.idHechizo)) {
+        return {armarError(idCliente, CodigoErrorAccion::HECHIZO_YA_CONOCIDO)};
     }
     if (jugador->getOro() < hechizo->precio || !jugador->gastar_oro(hechizo->precio)) {
         return {armarError(idCliente, CodigoErrorAccion::ORO_INSUFICIENTE)};
@@ -1660,8 +1668,11 @@ std::list<EventoSalida> Juego::ejecutarComprarHechizo(uint16_t idCliente,
 std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
                                                      const ComandoLanzarHechizo& cmd) {
     Jugador* lanzador = buscarJugador(idCliente);
-    if (!lanzador || !lanzador->estaVivo() || !lanzador->puedeUsarMagia()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+    if (!lanzador || !lanzador->estaVivo()) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_MUERTO)};
+    }
+    if (!lanzador->puedeUsarMagia()) {
+        return {armarError(idCliente, CodigoErrorAccion::CLASE_SIN_MAGIA)};
     }
     const Hechizo* hechizo = catalogoHechizos.buscar(cmd.idHechizo);
     if (hechizo == nullptr || !lanzador->conoceHechizo(cmd.idHechizo)) {
@@ -2002,11 +2013,16 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoL
     }
 
     if (Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idNPC, *jugador)) {
-        
+
         return {armarContenidoBanco(idCliente, *banquero)};
     }
 
-    return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    // Si el id es un NPC conocido pero ninguno quedo "para interaccion", esta fuera de rango.
+    const bool esNpcConocido = mapa.getSacerdotes().count(cmd.idNPC) ||
+                               mapa.getComerciantes().count(cmd.idNPC) ||
+                               mapa.getBanqueros().count(cmd.idNPC);
+    return {armarError(idCliente, esNpcConocido ? CodigoErrorAccion::FUERA_DE_RANGO
+                                                : CodigoErrorAccion::OBJETIVO_INVALIDO)};
 }
 
 std::list<EventoSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCurar& cmd) {
@@ -2471,7 +2487,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionCriatura)) {
         std::cerr << "Error: atacante o criatura están en zona segura." << std::endl;
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ZONA_SEGURA)};
     }
 
     // El alcance depende del equipamiento del atacante.
@@ -2486,7 +2502,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const int distanciaACriatura = posicionAtacante.distanciaManhattan(posicionCriatura);
     if (distanciaACriatura > descriptorAtaque.alcanceMaximo) {
         std::cerr << "Error: el objetivo está fuera del alcance del ataque." << std::endl;
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+        return {armarError(idCliente, CodigoErrorAccion::FUERA_DE_RANGO)};
     }
 
     bool atacanteConsumioMana = false;
@@ -2534,7 +2550,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                     EventoDanioProducido{danioAplicado, criatura.getId(),
-                                                         tipoGolpeDeAtacante(*atacante)}});
+                                                         tipoGolpeDeAtacante(*atacante),
+                                                         resultadoDanio.esCritico}});
 
     // Swing del arma (visible para todo el mapa).
     mensajes.splice(mensajes.end(), armarSwingAtaqueParaMapa(*atacante));

@@ -18,6 +18,9 @@ struct EventoEstadoPersonaje {
     uint8_t  nivel;
     uint32_t experiencia;
     Estado   estado;
+    uint8_t  raza = 0;
+    uint8_t  clase = 0;
+    uint32_t expSiguienteNivel = 0;  // experiencia necesaria para subir de nivel
 };
 
 struct EventoPosicionEntidad {
@@ -40,12 +43,14 @@ struct EventoEntidadDesaparecio {
 struct EventoDanioRecibido {
     uint16_t cantidad;
     uint16_t idAtacante;
+    bool     esCritico = false;
 };
 
 struct EventoDanioProducido {
     uint16_t cantidad;
     uint16_t idObjetivo;
     uint8_t  tipoGolpe;  // TipoGolpe: derivado del arma del atacante
+    bool     esCritico = false;
 };
 
 struct EventoEsquive {

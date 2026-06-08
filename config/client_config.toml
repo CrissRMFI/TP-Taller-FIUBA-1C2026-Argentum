@@ -44,6 +44,22 @@ panel_alto = 140
 # Colores [r, g, b] del texto del chat.
 color_texto = [255, 255, 255]  # mensajes entrantes
 color_input = [255, 255, 0]    # lo que se está tipeando
+# Colores por tipo de mensaje (centralizados):
+color_ataque = [220, 60, 60]        # me atacan -> rojo
+color_hechizo = [240, 150, 40]      # lanzo hechizo -> naranja
+color_sistema = [40, 120, 160]      # "no hay nada aqui" -> celeste oscuro
+color_experiencia = [80, 120, 255]  # gano XP -> azul
+color_recuperacion = [40, 150, 60]  # recupero vida/mana -> verde oscuro
+color_clan = [150, 100, 50]         # mensajes con @ -> marron
+color_critico_hecho = [255, 200, 60]      # yo pego critico -> dorado
+color_critico_recibido = [255, 40, 100]   # me pegan critico -> magenta
+
+[personaje]
+# Nombres mostrados en el panel, en el ORDEN del enum del server.
+# Raza:  HUMANO, ELFO, ENANO, GNOMO
+razas  = ["Humano", "Elfo", "Enano", "Gnomo"]
+# Clase: MAGO, CLERIGO, PALADIN, GUERRERO
+clases = ["Mago", "Clerigo", "Paladin", "Guerrero"]
 
 [panel]
 # Panel derecho: inventario, equipo, stats y comercio.

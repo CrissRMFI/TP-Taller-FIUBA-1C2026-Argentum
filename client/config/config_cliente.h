@@ -23,6 +23,19 @@ struct ConfigCliente {
     int chatPanelAlto = 120; 
     std::vector<int> chatColorTexto = {255, 255, 255};
     std::vector<int> chatColorInput = {255, 255, 0};
+    // Colores por tipo de mensaje de chat (centralizados, configurables).
+    std::vector<int> chatColorAtaque = {220, 60, 60};
+    std::vector<int> chatColorHechizo = {240, 150, 40};
+    std::vector<int> chatColorSistema = {40, 120, 160};
+    std::vector<int> chatColorExperiencia = {80, 120, 255};
+    std::vector<int> chatColorRecuperacion = {40, 150, 60};
+    std::vector<int> chatColorClan = {150, 100, 50};
+    std::vector<int> chatColorCriticoHecho = {255, 200, 60};
+    std::vector<int> chatColorCriticoRecibido = {255, 40, 100};
+
+    // Nombres de raza/clase indexados por el enum del server (para mostrar en el panel).
+    std::vector<std::string> razasNombres = {"Humano", "Elfo", "Enano", "Gnomo"};
+    std::vector<std::string> clasesNombres = {"Mago", "Clerigo", "Paladin", "Guerrero"};
 
     // Panel derecho (inventario/equipo/stats/comercio).
     int              panelAncho = 268;
