@@ -27,8 +27,8 @@ void NPCRenderer::render(SDL2pp::Renderer& renderer, const Npc& npc,
     }
 
 
-    if (resolved.head.has_value()) {
-        renderer.Copy(*resolved.head->texture, to_sdl_rect(resolved.src_head),
-                      SDL2pp::Rect(body_x + 5, body_y + 1, body_width,body_height));
-    }
+    // if (resolved.head.has_value()) {
+    //     renderer.Copy(*resolved.head->texture, to_sdl_rect(resolved.src_head),
+    //                   SDL2pp::Rect(body_x + 5, body_y + 1, body_width,body_height));
+    // }
 }
