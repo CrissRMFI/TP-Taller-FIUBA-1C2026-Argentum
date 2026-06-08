@@ -82,6 +82,8 @@ private:
     std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
     // FX de hechizos recibidos del server (idHechizo, idObjetivo); el loop los pasa al renderer.
     std::vector<std::pair<uint16_t, uint16_t>> fxPendientes_;
+    // Proyectiles recibidos (idOrigen, idDestino); el loop los pasa al renderer.
+    std::vector<std::pair<uint16_t, uint16_t>> proyectilesPendientes_;
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea);
@@ -115,6 +117,7 @@ public:
     const std::vector<uint16_t>& hechizosConocidos() const;
     // Devuelve y limpia los FX de hechizo recibidos desde el ultimo frame.
     std::vector<std::pair<uint16_t, uint16_t>> drenarFx();
+    std::vector<std::pair<uint16_t, uint16_t>> drenarProyectiles();
 };
 
 

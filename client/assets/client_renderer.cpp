@@ -285,9 +285,28 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     // --- FX de hechizos en curso: animacion transitoria centrada en el objetivo ---
     const int tileW = std::max(1, gw / mapa.getAncho());
     const int tileH = std::max(1, gh / mapa.getAlto());
+    constexpr uint16_t FX_AURA_BASE = 900;    // ids 900..: auras de critico (imgs/estados/critico)
+    constexpr uint16_t FX_ATAQUE_BASE = 7000;  // ids 7000..: swing de ataque (imgs/ataques/fx)
     for (auto it = fx_activos.begin(); it != fx_activos.end();) {
-        const HechizoInfo* h = (catalogo != nullptr) ? catalogo->hechizo(it->spellId) : nullptr;
-        const int frames = (h != nullptr) ? static_cast<int>(h->fxFrames) : 0;
+        std::string path;
+        int frames = 0;
+        int dw = 48;
+        int dh = 48;
+        if (it->spellId >= FX_ATAQUE_BASE) {
+            path = "imgs/ataques/fx/" + std::to_string(it->spellId - FX_ATAQUE_BASE) + ".png";
+            frames = 6;  // las tiras de swing se extrajeron a 6 cuadros
+            dw = 36;
+            dh = 48;
+        } else if (it->spellId >= FX_AURA_BASE) {
+            path = "imgs/estados/critico/" + std::to_string(it->spellId - FX_AURA_BASE) + ".png";
+            frames = 10;  // todas las auras se extrajeron a 10 cuadros
+            dw = 72;
+            dh = 96;
+        } else {
+            const HechizoInfo* h = (catalogo != nullptr) ? catalogo->hechizo(it->spellId) : nullptr;
+            path = "imgs/hechizos/fx/" + std::to_string(it->spellId) + ".png";
+            frames = (h != nullptr) ? static_cast<int>(h->fxFrames) : 0;
+        }
         const int frame = (frames > 0) ? static_cast<int>((current_tick - it->startTick) / 60) : 0;
         if (frames <= 0 || frame >= frames ||
             state_object.entities().find(it->targetId) == state_object.entities().end()) {
@@ -299,14 +318,38 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int tx = static_cast<int>(pos.x * gw / mapa.getAncho());
         const int ty = gy0 + static_cast<int>(pos.y * gh / mapa.getAlto());
         try {
-            SDL2pp::Texture& sheet = cache_texture->get_or_load(
-                    "imgs/hechizos/fx/" + std::to_string(it->spellId) + ".png");
+            SDL2pp::Texture& sheet = cache_texture->get_or_load(path);
             const int cellW = sheet.GetWidth() / frames;
             const int cellH = sheet.GetHeight();
-            const int dw = 48;
-            const int dh = 48;
             renderer->Copy(sheet, SDL2pp::Rect(frame * cellW, 0, cellW, cellH),
                            SDL2pp::Rect(tx + tileW / 2 - dw / 2, ty + tileH / 2 - dh, dw, dh));
+        } catch (const std::exception&) {
+        }
+        ++it;
+    }
+
+    // --- Proyectiles en vuelo: viajan del origen al destino (~280ms) ---
+    constexpr uint32_t PROY_DUR = 280;
+    for (auto it = proyectiles_.begin(); it != proyectiles_.end();) {
+        const auto& ents = state_object.entities();
+        const auto orig = ents.find(it->origen);
+        const auto dest = ents.find(it->destino);
+        const uint32_t elapsed = current_tick - it->startTick;
+        if (elapsed >= PROY_DUR || orig == ents.end() || dest == ents.end()) {
+            it = proyectiles_.erase(it);
+            continue;
+        }
+        const float t = static_cast<float>(elapsed) / PROY_DUR;
+        const float ox = (orig->second.x + 0.5f) * gw / mapa.getAncho();
+        const float oy = gy0 + (orig->second.y + 0.5f) * gh / mapa.getAlto();
+        const float dx = (dest->second.x + 0.5f) * gw / mapa.getAncho();
+        const float dy = gy0 + (dest->second.y + 0.5f) * gh / mapa.getAlto();
+        const int cx = static_cast<int>(ox + (dx - ox) * t);
+        const int cy = static_cast<int>(oy + (dy - oy) * t);
+        try {
+            SDL2pp::Texture& roca = cache_texture->get_or_load("imgs/ataques/proyectil.png");
+            const int s = 22;
+            renderer->Copy(roca, SDL2pp::NullOpt, SDL2pp::Rect(cx - s / 2, cy - s / 2, s, s));
         } catch (const std::exception&) {
         }
         ++it;
@@ -621,6 +664,10 @@ bool ObjectRenderer::esSacerdote(uint16_t id) const {
 
 void ObjectRenderer::iniciarFx(uint16_t spellId, uint16_t targetId) {
     fx_activos.push_back({spellId, targetId, SDL_GetTicks()});
+}
+
+void ObjectRenderer::iniciarProyectil(uint16_t origen, uint16_t destino) {
+    proyectiles_.push_back({origen, destino, SDL_GetTicks()});
 }
 
 void ObjectRenderer::resaltarObjetivo(uint16_t id) {

@@ -91,6 +91,9 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     if (auto* e = std::get_if<EventoFxHechizo>(&evento)) {
         return { Opcode::FX_HECHIZO, MensajeFxHechizo{ e->idHechizo, e->idObjetivo } };
     }
+    if (auto* e = std::get_if<EventoProyectil>(&evento)) {
+        return { Opcode::PROYECTIL, MensajeProyectil{ e->idOrigen, e->idDestino } };
+    }
     if (auto* e = std::get_if<EventoErrorAccion>(&evento)) {
         return { Opcode::ERROR_ACCION,
                  MensajeErrorAccion{ e->codigo } };

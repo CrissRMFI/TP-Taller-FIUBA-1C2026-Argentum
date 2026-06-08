@@ -98,6 +98,7 @@ private:
     MensajeServidor recibirContenidoBanco();
     MensajeServidor recibirListaHechizos();
     MensajeServidor recibirFxHechizo();
+    MensajeServidor recibirProyectil();
     MensajeServidor recibirErrorAccion();
 };
 

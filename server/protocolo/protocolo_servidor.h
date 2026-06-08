@@ -98,6 +98,7 @@ class ProtocoloServidor : public Protocolo {
     void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);
     void enviarListaHechizos(const MensajeListaHechizos& mensaje);
     void enviarFxHechizo(const MensajeFxHechizo& mensaje);
+    void enviarProyectil(const MensajeProyectil& mensaje);
     void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 

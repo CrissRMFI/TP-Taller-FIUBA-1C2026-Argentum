@@ -138,6 +138,11 @@ struct EventoFxHechizo {
     uint16_t idObjetivo;
 };
 
+struct EventoProyectil {
+    uint16_t idOrigen;
+    uint16_t idDestino;
+};
+
 struct EventoErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -163,6 +168,7 @@ using EventoJuego = std::variant<
         EventoContenidoBanco,
         EventoListaHechizos,
         EventoFxHechizo,
+        EventoProyectil,
         EventoErrorAccion>;
 
 #endif

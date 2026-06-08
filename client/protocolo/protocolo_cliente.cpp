@@ -407,6 +407,9 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::FX_HECHIZO:
             return recibirFxHechizo();
 
+        case Opcode::PROYECTIL:
+            return recibirProyectil();
+
         case Opcode::ERROR_ACCION:
             return recibirErrorAccion();
 
@@ -593,6 +596,12 @@ MensajeServidor ProtocoloCliente::recibirFxHechizo() {
     uint16_t idHechizo = recibirDosBytes();
     uint16_t idObjetivo = recibirDosBytes();
     return MensajeServidor{Opcode::FX_HECHIZO, MensajeFxHechizo{idHechizo, idObjetivo}};
+}
+
+MensajeServidor ProtocoloCliente::recibirProyectil() {
+    uint16_t idOrigen = recibirDosBytes();
+    uint16_t idDestino = recibirDosBytes();
+    return MensajeServidor{Opcode::PROYECTIL, MensajeProyectil{idOrigen, idDestino}};
 }
 
 MensajeServidor ProtocoloCliente::recibirListaHechizos() {

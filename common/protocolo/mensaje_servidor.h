@@ -151,6 +151,11 @@ struct MensajeFxHechizo {
   uint16_t idObjetivo;
 };
 
+struct MensajeProyectil {
+  uint16_t idOrigen;
+  uint16_t idDestino;
+};
+
 struct MensajeErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -177,6 +182,7 @@ using PayloadMensajeServidor = std::variant<
         MensajeContenidoBanco,
         MensajeListaHechizos,
         MensajeFxHechizo,
+        MensajeProyectil,
         MensajeEstadoUsuario>;
 
 

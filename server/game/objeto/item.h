@@ -24,12 +24,16 @@ public:
     // Sprite overlay que el item muestra al equiparse (arma/escudo/casco). 0 = ninguno.
     void setSpriteEquip(uint16_t sprite) { spriteEquip = sprite; }
     uint16_t getSpriteEquip() const { return spriteEquip; }
+    // Sprite de la animacion de ataque (swing) de esta arma. 0 = ninguno.
+    void setSpriteAtaque(uint16_t sprite) { spriteAtaque = sprite; }
+    uint16_t getSpriteAtaque() const { return spriteAtaque; }
 
 private:
     uint16_t idItem;
     std::string nombre;
     TipoItem tipo;
     uint16_t spriteEquip = 0;
+    uint16_t spriteAtaque = 0;
 };
 
 class Arma : public Item {

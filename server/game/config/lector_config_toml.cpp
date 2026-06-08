@@ -216,6 +216,8 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                 *item, "tipo", rutaToml("items", nombre, "tipo"));
         const uint16_t spriteEquip =
                 static_cast<uint16_t>((*item)["sprite_equip"].value_or<int64_t>(0));
+        const uint16_t spriteAtaque =
+                static_cast<uint16_t>((*item)["sprite_ataque"].value_or<int64_t>(0));
 
         if (tipo == "arma" || tipo == "arma_distancia") {
             auto arma = std::make_unique<Arma>(
@@ -225,6 +227,7 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
                     leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max")),
                     tipo == "arma_distancia");
             arma->setSpriteEquip(spriteEquip);
+            arma->setSpriteAtaque(spriteAtaque);
             catalogo.registrar(id, std::move(arma));
         } else if (tipo == "baculo") {
             const std::string hechizo = leerStringEnTabla(
