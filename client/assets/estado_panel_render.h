@@ -21,6 +21,7 @@ struct ConfigPanelRender {
     std::string botonCurar = "imgs/ui/es_boton-curar.bmp";
     std::string barraVida = "imgs/ui/en_barradevida.bmp";
     std::string barraMana = "imgs/ui/en_barrademana.bmp";
+    std::string barraExperiencia = "imgs/estados/es_barraexperiencia.bmp";
     std::string spriteMeditacion = "imgs/estados/3446.png"; // Aura meditar
     std::string bancoImg = "imgs/ui/es_banco.bmp";
     std::string botonDepositar = "imgs/ui/es_boton-depositar.bmp";
@@ -56,6 +57,9 @@ struct EstadoBancoRender {
 
 
 struct EstadoPanelRender {
+    std::string nick;   // nombre del jugador (titulo del panel)
+    std::string raza;   // nombre de la raza (resuelto desde el enum)
+    std::string clase;  // nombre de la clase
     std::vector<uint16_t> inventario;
     EquipamientoJugador equip;
     EstadoJugador stats;

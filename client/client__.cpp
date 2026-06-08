@@ -38,8 +38,10 @@ void Client::run() {
     // detengan y se joineen. Si no, al destruirse el manager con su hilo aun
     // vivo, std::thread::~thread() llama a std::terminate() y aborta el proceso.
     ClientGameLoop game_loop(server_message_queue, business, id, config);
+    game_loop.setNick(datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick
+                                                       : datos.getDatosPersonaje().nick);
     try {
-        game_loop.init("Argentum - Parte I",
+        game_loop.init("Argentum - TALLER FIUBA",
                        SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED,
                        config.ancho, config.alto, config.fullscreen);

@@ -56,6 +56,15 @@ void ClientGameLoop::init(const char* title,
     chatCfg.panelAlto = config.chatPanelAlto;
     chatCfg.colorTexto = aColor(config.chatColorTexto, chatCfg.colorTexto);
     chatCfg.colorInput = aColor(config.chatColorInput, chatCfg.colorInput);
+    chatCfg.colorAtaque = aColor(config.chatColorAtaque, chatCfg.colorAtaque);
+    chatCfg.colorHechizo = aColor(config.chatColorHechizo, chatCfg.colorHechizo);
+    chatCfg.colorSistema = aColor(config.chatColorSistema, chatCfg.colorSistema);
+    chatCfg.colorExperiencia = aColor(config.chatColorExperiencia, chatCfg.colorExperiencia);
+    chatCfg.colorRecuperacion = aColor(config.chatColorRecuperacion, chatCfg.colorRecuperacion);
+    chatCfg.colorClan = aColor(config.chatColorClan, chatCfg.colorClan);
+    chatCfg.colorCriticoHecho = aColor(config.chatColorCriticoHecho, chatCfg.colorCriticoHecho);
+    chatCfg.colorCriticoRecibido =
+            aColor(config.chatColorCriticoRecibido, chatCfg.colorCriticoRecibido);
 
     ConfigPanelRender panelCfg;
     panelCfg.ancho = config.panelAncho;
@@ -140,6 +149,9 @@ void ClientGameLoop::handleEvents() {
         if (resultado.comando) {
             despacharComando(*resultado.comando, SDL_GetTicks());
         }
+        if (resultado.clickVacio) {
+            object_state.mensajeLocal("No hay nada aqui.", TipoMensajeChat::Sistema);
+        }
         if (resultado.lineaChat) {
             procesarLineaChat(*resultado.lineaChat, SDL_GetTicks());
         }
@@ -203,6 +215,8 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
             items[slotInvSeleccionado] != 0) {
             despacharComando({Opcode::EQUIPAR,
                               ComandoEquipar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
+            object_state.mensajeLocal("Equipaste " + catalogo.nombre(items[slotInvSeleccionado]) +
+                                      ".", TipoMensajeChat::Normal);
             slotInvSeleccionado = -1;
         }
         return;
@@ -231,6 +245,7 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
         despacharComando({Opcode::LANZAR_HECHIZO,
                           ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        object_state.mensajeLocal("Lanzaste un hechizo.", TipoMensajeChat::Hechizo);
         // El FX lo difunde el server (FX_HECHIZO) para que lo vean todos, incluido el que lanza.
         return;
     }
@@ -248,6 +263,8 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         const int idx = scrollComercio + s;  // el scroll desplaza la lista visible
         if (objetivo && idx < static_cast<int>(stock.size())) {
             despacharComando({Opcode::COMPRAR, ComandoComprar{stock[idx], *objetivo}}, tick);
+            object_state.mensajeLocal("Compraste " + catalogo.nombre(stock[idx]) + ".",
+                                      TipoMensajeChat::Normal);
         }
         return;
     }
@@ -401,10 +418,18 @@ void ClientGameLoop::render() {
     EstadoChatRender chat;
     chat.activo = handler.chatActivo();
     chat.entrada = handler.bufferChat();
-    const std::deque<std::string>& historial = object_state.historialChat();
+    const std::deque<LineaChat>& historial = object_state.historialChat();
     chat.historial.assign(historial.begin(), historial.end());
 
     EstadoPanelRender panel;
+    panel.nick = object_state.nick();
+    const EstadoJugador& st = object_state.estadoJugador();
+    if (st.raza < config.razasNombres.size()) {
+        panel.raza = config.razasNombres[st.raza];
+    }
+    if (st.clase < config.clasesNombres.size()) {
+        panel.clase = config.clasesNombres[st.clase];
+    }
     panel.inventario = object_state.inventario();
     panel.equip = object_state.equipamiento();
     panel.stats = object_state.estadoJugador();

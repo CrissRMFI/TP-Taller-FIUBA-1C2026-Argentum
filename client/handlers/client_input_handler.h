@@ -21,6 +21,7 @@
 struct ResultadoInput {
     std::optional<ComandoJugador> comando;
     std::optional<std::string> lineaChat;
+    bool clickVacio = false;  // click en el area de juego que no selecciono nada
 };
 
 class ClientInputHandler {

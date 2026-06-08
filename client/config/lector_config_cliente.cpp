@@ -79,6 +79,33 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     };
     leerColor("chat", "color_texto", cfg.chatColorTexto);
     leerColor("chat", "color_input", cfg.chatColorInput);
+    leerColor("chat", "color_ataque", cfg.chatColorAtaque);
+    leerColor("chat", "color_hechizo", cfg.chatColorHechizo);
+    leerColor("chat", "color_sistema", cfg.chatColorSistema);
+    leerColor("chat", "color_experiencia", cfg.chatColorExperiencia);
+    leerColor("chat", "color_recuperacion", cfg.chatColorRecuperacion);
+    leerColor("chat", "color_clan", cfg.chatColorClan);
+    leerColor("chat", "color_critico_hecho", cfg.chatColorCriticoHecho);
+    leerColor("chat", "color_critico_recibido", cfg.chatColorCriticoRecibido);
+
+    // --- Nombres de raza/clase (arrays de strings, indexados por enum) ---
+    const auto leerNombres = [&tbl](const char* clave, std::vector<std::string>& destino) {
+        const toml::array* arr = tbl["personaje"][clave].as_array();
+        if (arr == nullptr || arr->empty()) {
+            return;
+        }
+        std::vector<std::string> nombres;
+        for (const toml::node& n : *arr) {
+            if (const std::optional<std::string> v = n.value<std::string>()) {
+                nombres.push_back(*v);
+            }
+        }
+        if (!nombres.empty()) {
+            destino = nombres;
+        }
+    };
+    leerNombres("razas", cfg.razasNombres);
+    leerNombres("clases", cfg.clasesNombres);
 
     // --- Panel derecho (inventario/equipo/stats/comercio) ---
     const int64_t panelAncho = tbl["panel"]["ancho"].value_or<int64_t>(cfg.panelAncho);

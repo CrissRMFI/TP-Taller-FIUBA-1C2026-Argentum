@@ -479,11 +479,18 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     }
 
     int y = margen;
-    // --- Header: nivel + oro ---
+    // --- Header: nombre (grande), raza/clase (chico), nivel, oro ---
     const EstadoJugador& s = panel.stats;
+    if (!panel.nick.empty()) {
+        text_renderer->dibujarEscalado(*renderer, panel.nick, cx, y, cTit, 1.8f);
+        y += static_cast<int>(lh * 1.8) + 2;
+    }
+    if (!panel.raza.empty() || !panel.clase.empty()) {
+        text_renderer->dibujar(*renderer, panel.raza + " - " + panel.clase, cx, y, cTxt);
+        y += lh + 2;
+    }
     text_renderer->dibujar(*renderer, "Nivel " + std::to_string(s.nivel), cx, y, cTit);
-    y += lh;
-    text_renderer->dibujar(*renderer, "Oro: " + std::to_string(s.oro), cx, y, cTxt);
+    text_renderer->dibujar(*renderer, "Oro: " + std::to_string(s.oro), cx + cw / 2, y, cTxt);
     y += lh + 6;
 
     // --- Barras de vida y mana (con textura de relleno, recortada al valor) ---
@@ -512,6 +519,34 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     };
     barra("Vida", s.vida, s.vidaMax, panel_config.barraVida, SDL_Color{200, 40, 40, 255});
     barra("Mana", s.mana, s.manaMax, panel_config.barraMana, SDL_Color{50, 90, 210, 255});
+
+    // --- Barra de experiencia (exp acumulada / limite del nivel actual) ---
+    {
+        text_renderer->dibujar(*renderer, "Exp " + std::to_string(s.experiencia) + "/" +
+                                                  std::to_string(s.expSiguienteNivel),
+                               cx, y, cTxt);
+        y += lh;
+        const int h = 14;
+        renderer->SetDrawColor(20, 20, 20, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
+        const double pct = (s.expSiguienteNivel > 0)
+                                   ? std::min(1.0, static_cast<double>(s.experiencia) /
+                                                           s.expSiguienteNivel)
+                                   : 0.0;
+        const int w = static_cast<int>(cw * pct);
+        if (w > 0) {
+            try {
+                SDL2pp::Texture& t = cache_texture->get_or_load(panel_config.barraExperiencia);
+                const int tw = static_cast<int>(t.GetWidth() * pct);
+                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
+                               SDL2pp::Rect(cx, y, w, h));
+            } catch (const std::exception&) {
+                renderer->SetDrawColor(200, 170, 40, 255);
+                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
+            }
+        }
+        y += h + 6;
+    }
 
     // Dibuja un slot de tamaño sz (fondo + icono + marco), reusado por equipo e inventario.
     const auto dibujar_slot = [&](int sx, int sy, int sz, uint16_t id) {
@@ -623,30 +658,35 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     }
     y = marco_fin + 8;
 
-    // --- Botones de accion (imagen; fallback a texto). Devuelven su rect para hit-test. ---
-    const auto dibujar_boton = [&](const std::string& ruta, const std::string& etiqueta,
-                                   SDL_Color fondoFb) -> SDL2pp::Rect {
-        SDL2pp::Rect r;
+    // --- Botones de accion en grilla 2x2 (imagen escalada a la celda; fallback a texto). ---
+    const int btn_gap = 6;
+    const int btn_col_w = (cw - btn_gap) / 2;
+    const int btn_h = 30;
+    const int btn_colL = cx;
+    const int btn_colR = cx + btn_col_w + btn_gap;
+    const auto boton_celda = [&](const std::string& ruta, const std::string& etiqueta,
+                                 SDL_Color fondoFb, int bx, int by) -> SDL2pp::Rect {
+        SDL2pp::Rect r(bx, by, btn_col_w, btn_h);
         try {
-            SDL2pp::Texture& b = cache_texture->get_or_load(ruta);
-            const int bw = b.GetWidth();
-            const int bh = b.GetHeight();
-            r = SDL2pp::Rect(px + (pw - bw) / 2, y, bw, bh);
-            renderer->Copy(b, SDL2pp::NullOpt, r);
-            y += bh + 6;
+            renderer->Copy(cache_texture->get_or_load(ruta), SDL2pp::NullOpt, r);
         } catch (const std::exception&) {
-            r = SDL2pp::Rect(cx, y, cw, lh + 6);
             renderer->SetDrawColor(fondoFb.r, fondoFb.g, fondoFb.b, 255);
             renderer->FillRect(r);
-            text_renderer->dibujar(*renderer, etiqueta, cx + 4, y + 3, cTit);
-            y += lh + 10;
+            text_renderer->dibujar(*renderer, etiqueta, bx + 4, by + (btn_h - lh) / 2, cTit);
         }
         return r;
     };
-    rect_boton_vender = dibujar_boton(panel_config.botonVender, "Vender", {60, 40, 25, 255});
-    rect_boton_equipar = dibujar_boton(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255});
-    rect_boton_usar = dibujar_boton(panel_config.botonUsar, "Usar", {40, 45, 60, 255});
-    rect_boton_curar = dibujar_boton(panel_config.botonCurar, "Curar", {55, 35, 50, 255});
+    // Fila de arriba: Vender | Equipar
+    rect_boton_vender = boton_celda(panel_config.botonVender, "Vender", {60, 40, 25, 255},
+                                    btn_colL, y);
+    rect_boton_equipar = boton_celda(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255},
+                                     btn_colR, y);
+    y += btn_h + btn_gap;
+    // Fila de abajo: Usar | Curar
+    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colL, y);
+    rect_boton_curar = boton_celda(panel_config.botonCurar, "Curar", {55, 35, 50, 255},
+                                   btn_colR, y);
+    y += btn_h + 8;
 
     // --- Comercio: lista clickeable de lo que vende el NPC (con scroll en Y) ---
     if (!panel.stock.empty() && catalogo != nullptr) {
@@ -966,7 +1006,7 @@ void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     int y = y_input - alto;
     const int tope = chat_config.panelY + margen;
     for (auto it = chat.historial.rbegin(); it != chat.historial.rend() && y >= tope; ++it) {
-        text_renderer->dibujar(*renderer, *it, inner_x, y, chat_config.colorTexto);
+        text_renderer->dibujar(*renderer, it->first, inner_x, y, chat_config.colorPara(it->second));
         y -= alto;
     }
 }

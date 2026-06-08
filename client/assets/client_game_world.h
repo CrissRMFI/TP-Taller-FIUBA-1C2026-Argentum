@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "client/entidad_renderizable.h"
+#include "estado_chat_render.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
 
@@ -48,6 +49,9 @@ struct EstadoJugador {
     uint32_t oro = 0;
     uint32_t experiencia = 0;
     uint8_t  nivel = 0;
+    uint8_t  raza = 0;
+    uint8_t  clase = 0;
+    uint32_t expSiguienteNivel = 0;
 };
 
 class GestorAudio;
@@ -66,10 +70,12 @@ private:
     bool vidaBajaAvisada;
     uint16_t vidaAnterior;
     uint16_t manaAnterior;
+    uint32_t experienciaAnterior = 0;
 
-    // Ultimas lineas de chat/feedback recibidas del server
-    std::deque<std::string> historialChatReciente;
+    // Ultimas lineas de chat/feedback recibidas del server (con su tipo/color)
+    std::deque<LineaChat> historialChatReciente;
     size_t maxLineasChat = 6;
+    std::string nick_;  // nombre del propio jugador (se conoce al loguear)
 
     // Estado de objetos del jugador (llega por protocolo; lo usa el panel derecho).
     std::vector<uint16_t> inventario_;   // ids por slot (0 = vacio)
@@ -86,7 +92,7 @@ private:
     std::vector<std::pair<uint16_t, uint16_t>> proyectilesPendientes_;
 
     int distanciaAlJugador(int x, int y) const;
-    void agregarLineaChat(const std::string& linea);
+    void agregarLineaChat(const std::string& linea, TipoMensajeChat tipo = TipoMensajeChat::Normal);
 
 public:
     explicit ObjectGameWorld(uint16_t client_id);
@@ -103,8 +109,12 @@ public:
     int entity_animation_row(uint16_t entity_id) const;
     InterpolatedPosition entity_interpolated_position(uint16_t entity_id,
                                                       uint32_t current_tick) const;
-    const std::deque<std::string>& historialChat() const;
+    const std::deque<LineaChat>& historialChat() const;
     void setMaxLineasChat(size_t maximo);
+    void setNick(const std::string& nick) { nick_ = nick; }
+    const std::string& nick() const { return nick_; }
+    // Para que el loop agregue mensajes locales con color (ej. lanzar hechizo, "no hay nada").
+    void mensajeLocal(const std::string& linea, TipoMensajeChat tipo);
 
     const std::vector<uint16_t>& inventario() const;
     const EquipamientoJugador& equipamiento() const;
