@@ -133,6 +133,7 @@ tipo      = "arma"
 danio_min = 2
 danio_max = 5
 sprite_equip = 2095
+sprite_ataque = 2110
 
 [items.hacha]
 id        = 2
@@ -140,6 +141,7 @@ tipo      = "arma"
 danio_min = 4
 danio_max = 5
 sprite_equip = 2085
+sprite_ataque = 2048
 
 [items.martillo]
 id        = 3
@@ -147,6 +149,7 @@ tipo      = "arma"
 danio_min = 1
 danio_max = 9
 sprite_equip = 2084
+sprite_ataque = 2048
 
 # Armas a distancia
 [items.arco_simple]
@@ -155,6 +158,7 @@ tipo      = "arma_distancia"
 danio_min = 1
 danio_max = 4
 sprite_equip = 2035
+sprite_ataque = 2017
 
 [items.arco_compuesto]
 id        = 5
@@ -162,6 +166,7 @@ tipo      = "arma_distancia"
 danio_min = 4
 danio_max = 16
 sprite_equip = 2036
+sprite_ataque = 2017
 
 # Báculos
 [items.vara_fresno]

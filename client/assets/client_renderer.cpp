@@ -192,14 +192,72 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
                        SDL2pp::Rect(0, gy0, gw, gh));
     }
+    // --- Terreno por zona (sobre el pasto base): desierto y piso de ciudad, tileados ---
+    const auto rectZona = [&](const Ciudad& z) {
+        const int sx = z.xMin * gw / mapa.getAncho();
+        const int sy = gy0 + z.yMin * gh / mapa.getAlto();
+        const int ex = (z.xMax + 1) * gw / mapa.getAncho();
+        const int ey = gy0 + (z.yMax + 1) * gh / mapa.getAlto();
+        return SDL2pp::Rect(sx, sy, std::max(1, ex - sx), std::max(1, ey - sy));
+    };
+    const auto tileZona = [&](const std::vector<Ciudad>& zonas, const std::string& tex) {
+        SDL2pp::Texture* t = nullptr;
+        try {
+            t = &cache_texture->get_or_load(tex);
+        } catch (const std::exception&) {
+            return;
+        }
+        const int paso = 48;
+        for (const Ciudad& z : zonas) {
+            const SDL2pp::Rect r = rectZona(z);
+            renderer->SetClipRect(r);
+            for (int yy = r.y; yy < r.y + r.h; yy += paso) {
+                for (int xx = r.x; xx < r.x + r.w; xx += paso) {
+                    renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(xx, yy, paso, paso));
+                }
+            }
+        }
+        renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));  // restaurar clip del mundo
+    };
+    tileZona(mapa.getDesiertos(), "imgs/mapas/desierto.png");
+    tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
+
+    // Arboles dispersos en las zonas boscosas (sobre el pasto).
+    try {
+        SDL2pp::Texture& arbol = cache_texture->get_or_load("imgs/mapas/arbol.png");
+        const int aw = 26;
+        const int ah = 42;
+        for (const Ciudad& b : mapa.getBosques()) {
+            for (int cy = b.yMin + 1; cy <= b.yMax; cy += 5) {
+                for (int cx = b.xMin + 1; cx <= b.xMax; cx += 5) {
+                    const int pxc = cx * gw / mapa.getAncho();
+                    const int pyc = gy0 + cy * gh / mapa.getAlto();
+                    renderer->Copy(arbol, SDL2pp::NullOpt,
+                                   SDL2pp::Rect(pxc - aw / 2, pyc - ah, aw, ah));
+                }
+            }
+        }
+    } catch (const std::exception&) {
+    }
+
+    // --- Paredes: ladrillo (si falla la textura, rect oscuro) ---
+    SDL2pp::Texture* texPared = nullptr;
+    try {
+        texPared = &cache_texture->get_or_load("imgs/mapas/pared.png");
+    } catch (const std::exception&) {
+    }
     for (const auto& wall : mapa.getParedes()) {
         const int cell_width = std::max(1, gw / mapa.getAncho());
         const int cell_height = std::max(1, gh / mapa.getAlto());
         const int wall_x = wall.x * gw / mapa.getAncho();
         const int wall_y = wall.y * gh / mapa.getAlto() + gy0;
-
-        renderer->SetDrawColor(0, 0, 0, 255); // color de paredes es negro
-        renderer->FillRect(SDL2pp::Rect(wall_x, wall_y, cell_width, cell_height));
+        const SDL2pp::Rect destPared(wall_x, wall_y, cell_width, cell_height);
+        if (texPared != nullptr) {
+            renderer->Copy(*texPared, SDL2pp::NullOpt, destPared);
+        } else {
+            renderer->SetDrawColor(0, 0, 0, 255);
+            renderer->FillRect(destPared);
+        }
     }
 
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
