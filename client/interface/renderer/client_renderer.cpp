@@ -132,27 +132,48 @@ void ObjectRenderer::update_animation( const int it,
 void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAnimation& /*animation*/) {
     if (!renderer) { return; }
 
-
-
     if (background_texture) {
         renderer->Clear();
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
         SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
-        renderer->Copy(*background_texture, SDL2pp::NullOpt,
-                       SDL2pp::Rect(0, 0, window_width, window_height));
+        const int tile_width = camera.tile_width();
+        const int tile_height = camera.tile_height();
+        const int offset_x = camera.get_offset_x();
+        const int offset_y = camera.get_offset_y();
+
+        const int first_tile_x = std::max(0, -offset_x / tile_width);
+        const int first_tile_y = std::max(0, -offset_y / tile_height);
+
+        const int last_tile_x  = std::min(static_cast<int>(mapa.getAncho()),
+            first_tile_x + window_width / tile_width + 2);
+        const int last_tile_y  = std::min(static_cast<int>(mapa.getAlto()),
+        first_tile_y + window_height / tile_height + 2);
+
+        for (int ty = first_tile_y; ty < last_tile_y; ty++) {
+            for (int tx = first_tile_x; tx < last_tile_x; tx++) {
+                const int screen_x = camera.screen_x_for_tile(tx);
+                const int screen_y = camera.screen_y_for_tile(ty);
+                renderer->Copy(*background_texture, SDL2pp::NullOpt,
+                               SDL2pp::Rect(screen_x, screen_y, tile_width, tile_height));
+            }
+        }
+
     } else {
-        renderer->SetDrawColor(0, 255, 0, 255);
+        renderer->SetDrawColor(0, 0, 0, 255);
         renderer->Clear();
     }
 
     for (const auto& ciudad : mapa.getCiudades()) {
-        if (!camera.is_visible(ciudad.xMin, ciudad.yMin)) continue;
         const int cell_width = camera.tile_width();
         const int cell_height = camera.tile_height();
         const int city_x = camera.screen_x_for_tile(ciudad.xMin);
         const int city_y = camera.screen_y_for_tile(ciudad.yMin);
         const int city_width = (ciudad.xMax - ciudad.xMin + 1) * cell_width;
         const int city_height = (ciudad.yMax - ciudad.yMin + 1) * cell_height;
+
+        // if (!camera.is_visible_rect(city_x, city_y, cell_width, cell_height)) {
+        //     continue;
+        // }
 
         if (city_texture) {
             renderer->Copy(*city_texture, SDL2pp::NullOpt,
@@ -168,46 +189,56 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
 
     for (const auto& wall : mapa.getParedes()) {
         if (!camera.is_visible(wall.x, wall.y)) continue;
+
         const int cell_width = camera.tile_width();
         const int cell_height = camera.tile_height();
         const int wall_x = camera.screen_x_for_tile(wall.x);
         const int wall_y = camera.screen_y_for_tile(wall.y);
 
+        if (!camera.is_visible_rect(wall_x, wall_y, cell_width, cell_height)) {
+            continue;
+        }
         renderer->SetDrawColor(0, 0, 0, 255); // color de paredes es negro
         renderer->FillRect(SDL2pp::Rect(wall_x, wall_y, cell_width, cell_height));
     }
 
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
-        if (!camera.is_visible(sacerdote.getPosicion().x, sacerdote.getPosicion().y)) continue;
         const int cell_width = camera.tile_width();
         const int cell_height = camera.tile_height();
         const int sacerdote_x = camera.screen_x_for_tile(sacerdote.getPosicion().x);
         const int sacerdote_y = camera.screen_y_for_tile(sacerdote.getPosicion().y);
 
+        if (!camera.is_visible_rect(sacerdote_x, sacerdote_y, cell_width, cell_height)) {
+            continue;
+        }
         if (!npc_renderer) { continue; }
 
         npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width, cell_height, 0, 0);
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
-        if (!camera.is_visible(banquero.getPosicion().x, banquero.getPosicion().y)) continue;
         const int cell_width = camera.tile_width();
         const int cell_height = camera.tile_height();
         const int banquero_x = camera.screen_x_for_tile(banquero.getPosicion().x);
         const int banquero_y = camera.screen_y_for_tile(banquero.getPosicion().y);
 
+        if (!camera.is_visible_rect(banquero_x, banquero_y, cell_width, cell_height)) {
+            continue;
+        }
         if (!npc_renderer) { continue; }
 
         npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width, cell_height, 0, 0);
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
-        if (!camera.is_visible(comerciante.getPosicion().x, comerciante.getPosicion().y)) continue;
+
         const int cell_width = camera.tile_width();
         const int cell_height = camera.tile_height();
         const int comerciante_x = camera.screen_x_for_tile(comerciante.getPosicion().x);
         const int comerciante_y = camera.screen_y_for_tile(comerciante.getPosicion().y);
-
+        if (!camera.is_visible_rect(comerciante_x, comerciante_y, cell_width, cell_height)) {
+            continue;
+        }
         if (!npc_renderer) { continue;}
         npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width, cell_height, 0, 0);
     }

@@ -13,6 +13,8 @@ private:
     int cell_height = 1;
     int offset_x = 0;
     int offset_y = 0;
+    int map_pixel_height = 0;
+    int map_pixel_width = 0;
 
 public:
     void configure(int view_width, int view_height, int map_width, int map_height);
@@ -22,6 +24,9 @@ public:
     int tile_width() const;
     int tile_height() const;
     bool is_visible(int tile_x, int tile_y) const;
+    bool is_visible_rect(int x, int y, int w, int h) const;
+    int get_offset_x() const;
+    int get_offset_y() const;
 };
 
 #endif  // TALLER_TP_PLAYER_CAMERA_H
