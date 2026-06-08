@@ -77,6 +77,16 @@ void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         const ResultadoInput resultado = handler.handle_event(event, object_state.entities());
+        if (resultado.accion_local) {
+            switch (*resultado.accion_local) {
+                case ResultadoInput::AccionLocal::ZoomIn:
+                    object_renderer.zoom_in();
+                    break;
+                case ResultadoInput::AccionLocal::ZoomOut:
+                    object_renderer.zoom_out();
+                    break;
+            }
+        }
         if (resultado.comando) {
             despacharComando(*resultado.comando, SDL_GetTicks());
         }

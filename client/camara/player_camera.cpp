@@ -5,22 +5,29 @@
 #include "player_camera.h"
 
 #include <algorithm>
-/*
- * cuuntas tiles del mapa quiero mostrar en la camara del jugador
- * cuanto mas grande las tiles => menos zoom
- * mas chicas las tiles  => mas zoom
-*/
-#define VISIBLE_TILES_X  35 // --> cuantas tiles del mapa en x
-#define VISIBLE_TILES_Y  30 // --> cuantas tiles del mapa en y
+
+namespace {
+constexpr int MIN_VISIBLE_TILES_X = 12;
+constexpr int MIN_VISIBLE_TILES_Y = 10;
+constexpr int MAX_VISIBLE_TILES_X = 60;
+constexpr int MAX_VISIBLE_TILES_Y = 50;
+constexpr int ZOOM_STEP_TILES = 2;
+}  // namespace
+
+void PlayerCamera::recalculate_scale() {
+    cell_width = std::max(1, viewport_width / visible_tiles_x);
+    cell_height = std::max(1, viewport_height / visible_tiles_y);
+    map_pixel_width = map_width_tiles * cell_width;
+    map_pixel_height = map_height_tiles * cell_height;
+}
 
 void PlayerCamera::configure(const int view_width, const int view_height,
                              const int map_width, const int map_height) {
     viewport_width = view_width;
     viewport_height = view_height;
-    cell_width = std::max(1, viewport_width / static_cast<int>(VISIBLE_TILES_X));
-    cell_height = std::max(1, viewport_height / static_cast<int>(VISIBLE_TILES_Y));
-    map_pixel_width = map_width * cell_width;
-    map_pixel_height = map_height * cell_height;
+    map_width_tiles = map_width;
+    map_height_tiles = map_height;
+    recalculate_scale();
 }
 
 /*
@@ -90,4 +97,16 @@ int PlayerCamera::get_offset_x() const {
 }
 int PlayerCamera::get_offset_y () const {
     return offset_y;
+}
+
+void PlayerCamera::zoom_in() {
+    visible_tiles_x = std::max(MIN_VISIBLE_TILES_X, visible_tiles_x - ZOOM_STEP_TILES);
+    visible_tiles_y = std::max(MIN_VISIBLE_TILES_Y, visible_tiles_y - ZOOM_STEP_TILES);
+    recalculate_scale();
+}
+
+void PlayerCamera::zoom_out() {
+    visible_tiles_x = std::min(MAX_VISIBLE_TILES_X, visible_tiles_x + ZOOM_STEP_TILES);
+    visible_tiles_y = std::min(MAX_VISIBLE_TILES_Y, visible_tiles_y + ZOOM_STEP_TILES);
+    recalculate_scale();
 }

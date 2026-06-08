@@ -19,6 +19,26 @@ ClientInputHandler::ClientInputHandler():
 
 ClientInputHandler::~ClientInputHandler() = default;
 
+std::optional<AccionLocal> ClientInputHandler::handle_local_shortcut(
+        const SDL_Keycode key, const SDL_Keymod mods) const {
+    const bool ctrl_pressed = (mods & KMOD_CTRL) != 0;
+    if (!ctrl_pressed) {
+        return std::nullopt;
+    }
+
+    switch (key) {
+        case SDLK_PLUS:
+        case SDLK_EQUALS:
+        case SDLK_KP_PLUS:
+            return AccionLocal::ZoomIn;
+        case SDLK_MINUS:
+        case SDLK_KP_MINUS:
+            return AccionLocal::ZoomOut;
+        default:
+            return std::nullopt;
+    }
+}
+
 std::optional<ComandoJugador> ClientInputHandler::handle_keyboard(SDL_Keycode key) {
     switch (key) {
         case SDLK_ESCAPE:
@@ -111,6 +131,10 @@ ResultadoInput ClientInputHandler::handle_event(
 
     if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
         const SDL_Keycode key = event.key.keysym.sym;
+        if (auto accion_local = handle_local_shortcut(key, SDL_GetModState())) {
+            resultado.accion_local = *accion_local;
+            return resultado;
+        }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             abrir_chat();
             // Si veniamos moviendonos, frenamos: la tecla de direccion soltada
@@ -159,7 +183,8 @@ std::optional<ComandoJugador> ClientInputHandler::handle_mouse_click(
         return std::nullopt;
     }
 
-    // El click siempre selecciona a la entidad (para los comandos de chat dirigidos a un objetivo: comprar, curar, depositar, etc.).
+    // El click siempre selecciona a la entidad (para los comandos de chat dirigidos
+    // a un objetivo: comprar, curar, depositar, etc.).
     objetivo_seleccionado = idObjetivo;
 
     const auto it = entidades.find(idObjetivo);

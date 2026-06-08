@@ -9,12 +9,18 @@ class PlayerCamera {
 private:
     int viewport_width = 0;
     int viewport_height = 0;
+    int map_width_tiles = 0;
+    int map_height_tiles = 0;
     int cell_width = 1;
     int cell_height = 1;
     int offset_x = 0;
     int offset_y = 0;
     int map_pixel_height = 0;
     int map_pixel_width = 0;
+    int visible_tiles_x = 35;
+    int visible_tiles_y = 30;
+
+    void recalculate_scale();
 
 public:
     void configure(int view_width, int view_height, int map_width, int map_height);
@@ -27,6 +33,8 @@ public:
     bool is_visible_rect(int x, int y, int w, int h) const;
     int get_offset_x() const;
     int get_offset_y() const;
+    void zoom_in();
+    void zoom_out();
 };
 
 #endif  // TALLER_TP_PLAYER_CAMERA_H

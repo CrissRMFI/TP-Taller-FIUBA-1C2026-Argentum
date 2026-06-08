@@ -275,6 +275,13 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
     renderer->Present();
 }
 
+void ObjectRenderer::zoom_in() {
+    camera.zoom_in();
+}
+
+void ObjectRenderer::zoom_out() {
+    camera.zoom_out();
+}
 
 SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
     if (tipo == 0) {

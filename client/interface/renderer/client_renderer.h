@@ -57,6 +57,8 @@ public:
                           const ObjectGameWorld& state_object,
                           const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation);
+    void zoom_in();
+    void zoom_out();
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

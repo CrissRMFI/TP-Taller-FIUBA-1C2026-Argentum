@@ -18,9 +18,14 @@
 //  - producir un comando directo (atajo de teclado o click): 'comando'.
 //  - enviar una linea escrita en el mini-chat: 'lineaChat' (la parsea el loop).
 // Ambos pueden venir vacios (p.ej. al abrir el chat o tipear una letra).
+enum class AccionLocal {
+    ZoomIn, ZoomOut
+};
+
 struct ResultadoInput {
     std::optional<ComandoJugador> comando;
     std::optional<std::string> lineaChat;
+    std::optional<AccionLocal> accion_local;
 };
 
 class ClientInputHandler {
@@ -34,6 +39,8 @@ private:
     std::optional<uint16_t> objetivo_seleccionado;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
+    std::optional<AccionLocal> handle_local_shortcut(
+            SDL_Keycode key, SDL_Keymod mods) const;
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
     std::optional<uint8_t> direccion_de_tecla(SDL_Keycode key) const;
     ResultadoInput manejar_texto_chat(const SDL_Event& event);
@@ -68,4 +75,3 @@ public:
 
 
 #endif
-
