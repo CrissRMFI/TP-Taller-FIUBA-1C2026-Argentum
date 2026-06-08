@@ -85,6 +85,25 @@ MapaCargado LectorMapa::leer(const std::string& path) {
                         leerUint16(*c, "y_max", path)});
             }
         }
+
+        const auto leerZonas = [&](const char* clave, void (Mapa::*agregar)(const Ciudad&)) {
+            if (const toml::array* zonas = tbl[clave].as_array()) {
+                for (const toml::node& nodo : *zonas) {
+                    const toml::table* z = nodo.as_table();
+                    if (z == nullptr) {
+                        throw ErrorPersistencia(CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                                                path + " (entrada de zona invalida)");
+                    }
+                    (mapa.*agregar)(Ciudad{mapaId,
+                                           leerUint16(*z, "x_min", path),
+                                           leerUint16(*z, "y_min", path),
+                                           leerUint16(*z, "x_max", path),
+                                           leerUint16(*z, "y_max", path)});
+                }
+            }
+        };
+        leerZonas("bosques", &Mapa::agregarBosque);
+        leerZonas("desiertos", &Mapa::agregarDesierto);
     } catch (const std::invalid_argument& e) {
         throw ErrorPersistencia(
                 CodigoErrorPersistencia::REGISTRO_INVALIDO,

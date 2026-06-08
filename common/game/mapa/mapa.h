@@ -43,6 +43,8 @@ class Mapa {
     std::vector<OroEnSuelo> orosEnSuelo;
     std::vector<Posicion> paredes;
     std::vector<Ciudad> ciudades;
+    std::vector<Ciudad> bosques;    // rectangulos de zona boscosa (visual: arboles)
+    std::vector<Ciudad> desiertos;  // rectangulos de desierto (visual: arena)
     std::map<uint16_t, Criatura> criaturas;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
@@ -70,6 +72,8 @@ public:
     uint16_t getAlto() const  { return alto; }
     const std::vector<Posicion>& getParedes() const  { return paredes; }
     const std::vector<Ciudad>&   getCiudades() const { return ciudades; }
+    const std::vector<Ciudad>&   getBosques() const  { return bosques; }
+    const std::vector<Ciudad>&   getDesiertos() const { return desiertos; }
     const std::map<uint16_t, Sacerdote>&   getSacerdotes() const   { return sacerdotes; }
     const std::map<uint16_t, Comerciante>& getComerciantes() const { return comerciantes; }
     const std::map<uint16_t, Banquero>&    getBanqueros() const    { return banqueros; }
@@ -91,6 +95,8 @@ public:
     std::vector<OroEnSuelo> obtenerOroEnSuelo() const;
     std::vector<OroEnSuelo> actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     void agregarCiudad(const Ciudad &ciudad);
+    void agregarBosque(const Ciudad &bosque)   { bosques.push_back(bosque); }
+    void agregarDesierto(const Ciudad &desierto) { desiertos.push_back(desierto); }
     bool esCiudad(const Posicion &posicion) const;
     bool esZonaSegura(const Posicion &posicion) const;
     std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;

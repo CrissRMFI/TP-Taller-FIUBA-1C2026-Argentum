@@ -38,6 +38,18 @@ ciudades = [
   { x_min = 90, y_min = 90, x_max = 99, y_max = 99 },
 ]
 
+# Zonas boscosas (visual: pasto + arboles). Rectangulos [x_min..x_max] x [y_min..y_max].
+bosques = [
+  { x_min = 8, y_min = 55, x_max = 32, y_max = 82 },
+  { x_min = 60, y_min = 70, x_max = 85, y_max = 92 },
+]
+
+# Desiertos (visual: arena).
+desiertos = [
+  { x_min = 62, y_min = 12, x_max = 88, y_max = 38 },
+  { x_min = 12, y_min = 14, x_max = 30, y_max = 34 },
+]
+
 # NPCs: tipo = "banquero" | "comerciante" | "sacerdote".
 npcs = [
   { id = 1, tipo = "sacerdote", x = 5, y = 5 },
