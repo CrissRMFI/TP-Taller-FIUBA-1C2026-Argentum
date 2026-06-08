@@ -1446,6 +1446,13 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
         mensajes.push_back(armarEstado(*idClienteObjetivo, *objetivo));
 
+        // Golpe critico: aura sobre el atacante (segun su clase), visible para todo el mapa.
+        if (resultadoDanio.esCritico) {
+            mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(
+                    900 + static_cast<uint16_t>(atacante->getClase()), atacante->getId(),
+                    atacante->getPosicion().mapaId));
+        }
+
         if (danioAplicado > 0 && objetivo->tieneClan()) {
             mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
                                                     objetivo->getClan(), TipoEventoClan::BajoAtaque,
@@ -1462,6 +1469,11 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             }
         }
     }
+
+    // Swing del arma del atacante (visible para todo el mapa), haya pegado o esquivado.
+    mensajes.splice(mensajes.end(), armarSwingAtaqueParaMapa(*atacante));
+    // Proyectil (arco): roca que viaja del atacante al jugador objetivo.
+    mensajes.splice(mensajes.end(), armarProyectilParaMapa(*atacante, objetivo->getId()));
 
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Golpeado && !objetivo->estaVivo()) {
         const float valorAleatorio = aleatorio.uniforme();
@@ -1565,6 +1577,48 @@ std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsa
 
 EventoSalida Juego::armarListaHechizos(uint16_t idCliente, const Jugador& jugador) {
     return {TipoDestino::UNO, idCliente, EventoListaHechizos{jugador.getHechizosConocidos()}};
+}
+
+std::list<EventoSalida> Juego::armarProyectilParaMapa(const Jugador& atacante, uint16_t idObjetivo) {
+    // Solo armas a distancia (arco) lanzan un proyectil que viaja hasta el objetivo.
+    const uint16_t idArma = atacante.getArmaEquipada();
+    if (idArma == 0) {
+        return {};
+    }
+    const Arma* arma = catalogo.comoArma(idArma);
+    if (arma == nullptr || !arma->esArmaDistancia()) {
+        return {};
+    }
+    std::list<EventoSalida> mensajes;
+    const EventoProyectil proy{atacante.getId(), idObjetivo};
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (otro.getPosicion().mapaId == atacante.getPosicion().mapaId) {
+            mensajes.push_back(EventoSalida{TipoDestino::UNO, idOtro, proy});
+        }
+    }
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::armarSwingAtaqueParaMapa(const Jugador& atacante) {
+    // Sprite de swing segun el arma: arma melee -> su sprite_ataque; sin arma -> puño (2079).
+    // A distancia o con baculo (magia) no hay swing fisico. Contrato: imgs/ataques/fx/<id>.png.
+    uint16_t atk = 0;
+    const uint16_t idArma = atacante.getArmaEquipada();
+    if (idArma != 0) {
+        const Arma* arma = catalogo.comoArma(idArma);
+        if (arma == nullptr) {
+            return {};
+        }
+        atk = arma->getSpriteAtaque();  // melee o arco (tiro): cada uno con su sprite_ataque
+    } else if (atacante.getBaculoEquipado() != 0) {
+        return {};  // ataque magico, sin swing
+    } else {
+        atk = 2079;  // puño
+    }
+    if (atk == 0) {
+        return {};
+    }
+    return armarFxHechizoParaMapa(7000 + atk, atacante.getId(), atacante.getPosicion().mapaId);
 }
 
 std::list<EventoSalida> Juego::armarFxHechizoParaMapa(uint16_t idHechizo, uint16_t idObjetivo,
@@ -2481,6 +2535,18 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                     EventoDanioProducido{danioAplicado, criatura.getId(),
                                                          tipoGolpeDeAtacante(*atacante)}});
+
+    // Swing del arma (visible para todo el mapa).
+    mensajes.splice(mensajes.end(), armarSwingAtaqueParaMapa(*atacante));
+    // Proyectil (arco): roca que viaja del atacante a la criatura.
+    mensajes.splice(mensajes.end(), armarProyectilParaMapa(*atacante, criatura.getId()));
+
+    // Golpe critico: aura sobre el atacante (segun su clase), visible para todo el mapa.
+    if (resultadoDanio.esCritico) {
+        mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(
+                900 + static_cast<uint16_t>(atacante->getClase()), atacante->getId(),
+                atacante->getPosicion().mapaId));
+    }
 
     // XP por impacto
     bool atacanteGanoXp = false;

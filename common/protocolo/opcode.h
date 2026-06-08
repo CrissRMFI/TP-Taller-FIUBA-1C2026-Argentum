@@ -75,7 +75,10 @@ enum class Opcode : uint8_t {
     LANZAR_HECHIZO          = 51,
 
     // Servidor → Cliente (FX visual de un hechizo lanzado, para todos los que lo ven)
-    FX_HECHIZO              = 52
+    FX_HECHIZO              = 52,
+
+    // Servidor → Cliente (proyectil que viaja del atacante al objetivo, ataque a distancia)
+    PROYECTIL               = 53
 };
 
 #endif

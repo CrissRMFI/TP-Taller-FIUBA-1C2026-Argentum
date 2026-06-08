@@ -390,6 +390,9 @@ void ClientGameLoop::update(const int it) {
     for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
         object_renderer.iniciarFx(idHechizo, idObjetivo);
     }
+    for (const auto& [idOrigen, idDestino] : object_state.drenarProyectiles()) {
+        object_renderer.iniciarProyectil(idOrigen, idDestino);
+    }
     object_renderer.update_animation(it, object_state, object_animation);
 }
 

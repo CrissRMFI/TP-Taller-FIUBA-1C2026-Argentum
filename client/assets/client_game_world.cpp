@@ -259,6 +259,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             hechizosConocidos_ = hech->ids;
         } else if (auto* fx = std::get_if<MensajeFxHechizo>(&mensaje.payload)) {
             fxPendientes_.emplace_back(fx->idHechizo, fx->idObjetivo);
+        } else if (auto* pr = std::get_if<MensajeProyectil>(&mensaje.payload)) {
+            proyectilesPendientes_.emplace_back(pr->idOrigen, pr->idDestino);
         }
     }
 
@@ -393,4 +395,10 @@ std::vector<std::pair<uint16_t, uint16_t>> ObjectGameWorld::drenarFx() {
     std::vector<std::pair<uint16_t, uint16_t>> fx;
     fx.swap(fxPendientes_);
     return fx;
+}
+
+std::vector<std::pair<uint16_t, uint16_t>> ObjectGameWorld::drenarProyectiles() {
+    std::vector<std::pair<uint16_t, uint16_t>> pr;
+    pr.swap(proyectilesPendientes_);
+    return pr;
 }
