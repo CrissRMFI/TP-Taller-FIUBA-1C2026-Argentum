@@ -372,11 +372,11 @@ rango_aggro_base = 5
 danio_min_base = 1
 danio_max_base = 4
 
-# Cada cuántos ticks se mueven las criaturas
-movimiento_ticks = 2
+# Cada cuántos ticks se mueven las criaturas (3 x 130ms ~= 390ms, igual que antes con tick_ms=200)
+movimiento_ticks = 3
 
-# Cada cuántos ticks spawnea una criatura nueva
-spawn_ticks   = 100
+# Cada cuántos ticks spawnea una criatura nueva (~20s con tick_ms=130)
+spawn_ticks   = 154
 poblacion_max = 10           # Tope global de NPCs vivos
 
 # id de sprite de cuerpo de cada criatura con que el cliente la dibuja.
