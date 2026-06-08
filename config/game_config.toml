@@ -373,7 +373,7 @@ danio_min_base = 1
 danio_max_base = 4
 
 # Cada cuántos ticks se mueven las criaturas
-movimiento_ticks = 5
+movimiento_ticks = 2
 
 # Cada cuántos ticks spawnea una criatura nueva
 spawn_ticks   = 100
@@ -479,7 +479,6 @@ factor_tiempo_resurreccion = 0.5
 
 # ------------------------------------------------------------
 [cheats]
-# Para facilitar corrección y testing
 vida_infinita  = false
 mana_infinito  = false
 invulnerable   = false
@@ -488,5 +487,5 @@ exp_x10        = false
 
 # ------------------------------------------------------------
 [sonido]
-volumen_maximo   = 100
+volumen_maximo   = 20
 distancia_maxima = 15        # A más de N tiles, volumen = 0
