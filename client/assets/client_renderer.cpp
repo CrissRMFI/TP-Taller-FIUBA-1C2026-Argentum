@@ -182,6 +182,17 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
 
+    // Camara cenital: escala (zoom) + scroll centrado en el jugador. Todo el mundo se
+    // dibuja a traves de sx()/sy()/tileW/tileH (en vez de estirar el mapa completo).
+    camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
+    camera.center_on_tile(state_object.player_x(), state_object.player_y());
+    const int tileW = camera.tile_width();
+    const int tileH = camera.tile_height();
+    const int camX = camera.get_offset_x();
+    const int camY = gy0 + camera.get_offset_y();
+    const auto scrX = [&](double tile) { return camX + static_cast<int>(tile * tileW); };
+    const auto scrY = [&](double tile) { return camY + static_cast<int>(tile * tileH); };
+
     renderer->SetDrawColor(0, 0, 0, 255);
     renderer->Clear();
     // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se desbordan por debajo del panel ni del chat.
@@ -194,10 +205,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
     // --- Terreno por zona (sobre el pasto base): desierto y piso de ciudad, tileados ---
     const auto rectZona = [&](const Ciudad& z) {
-        const int sx = z.xMin * gw / mapa.getAncho();
-        const int sy = gy0 + z.yMin * gh / mapa.getAlto();
-        const int ex = (z.xMax + 1) * gw / mapa.getAncho();
-        const int ey = gy0 + (z.yMax + 1) * gh / mapa.getAlto();
+        const int sx = scrX(z.xMin);
+        const int sy = scrY(z.yMin);
+        const int ex = scrX(z.xMax + 1);
+        const int ey = scrY(z.yMax + 1);
         return SDL2pp::Rect(sx, sy, std::max(1, ex - sx), std::max(1, ey - sy));
     };
     const auto tileZona = [&](const std::vector<Ciudad>& zonas, const std::string& tex) {
@@ -230,8 +241,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         for (const Ciudad& b : mapa.getBosques()) {
             for (int cy = b.yMin + 1; cy <= b.yMax; cy += 5) {
                 for (int cx = b.xMin + 1; cx <= b.xMax; cx += 5) {
-                    const int pxc = cx * gw / mapa.getAncho();
-                    const int pyc = gy0 + cy * gh / mapa.getAlto();
+                    const int pxc = scrX(cx);
+                    const int pyc = scrY(cy);
                     renderer->Copy(arbol, SDL2pp::NullOpt,
                                    SDL2pp::Rect(pxc - aw / 2, pyc - ah, aw, ah));
                 }
@@ -247,10 +258,11 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     } catch (const std::exception&) {
     }
     for (const auto& wall : mapa.getParedes()) {
-        const int cell_width = std::max(1, gw / mapa.getAncho());
-        const int cell_height = std::max(1, gh / mapa.getAlto());
-        const int wall_x = wall.x * gw / mapa.getAncho();
-        const int wall_y = wall.y * gh / mapa.getAlto() + gy0;
+        if (!camera.is_visible(wall.x, wall.y)) continue;
+        const int cell_width = tileW;
+        const int cell_height = tileH;
+        const int wall_x = scrX(wall.x);
+        const int wall_y = scrY(wall.y);
         const SDL2pp::Rect destPared(wall_x, wall_y, cell_width, cell_height);
         if (texPared != nullptr) {
             renderer->Copy(*texPared, SDL2pp::NullOpt, destPared);
@@ -262,8 +274,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
 
     // --- Drops en el piso: oro -> monedas, item -> bolsa/cofre ---
     {
-        const int cw_cell = std::max(1, gw / mapa.getAncho());
-        const int ch_cell = std::max(1, gh / mapa.getAlto());
+        const int cw_cell = tileW;
+        const int ch_cell = tileH;
         const auto dibujarDrop = [&](const std::set<std::pair<uint16_t, uint16_t>>& celdas,
                                      const std::string& tex) {
             SDL2pp::Texture* t = nullptr;
@@ -273,8 +285,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                 return;
             }
             for (const auto& [cxd, cyd] : celdas) {
-                const int dx = cxd * gw / mapa.getAncho();
-                const int dy = cyd * gh / mapa.getAlto() + gy0;
+                if (!camera.is_visible(cxd, cyd)) continue;
+                const int dx = scrX(cxd);
+                const int dy = scrY(cyd);
                 renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(dx, dy, cw_cell, ch_cell));
             }
         };
@@ -283,10 +296,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
-        const int cell_width = gw / mapa.getAncho();
-        const int cell_height = gh / mapa.getAlto();
-        const int sacerdote_x = sacerdote.getPosicion().x * gw / mapa.getAncho();
-        const int sacerdote_y = sacerdote.getPosicion().y * gh / mapa.getAlto() + gy0;
+        const int cell_width = tileW;
+        const int cell_height = tileH;
+        const int sacerdote_x = scrX(sacerdote.getPosicion().x);
+        const int sacerdote_y = scrY(sacerdote.getPosicion().y);
 
         if (!npc_renderer) {
             continue;
@@ -297,10 +310,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
-        const int cell_width = gw / mapa.getAncho();
-        const int cell_height = gh / mapa.getAlto();
-        const int banquero_x = banquero.getPosicion().x * gw / mapa.getAncho();
-        const int banquero_y = banquero.getPosicion().y * gh / mapa.getAlto() + gy0;
+        const int cell_width = tileW;
+        const int cell_height = tileH;
+        const int banquero_x = scrX(banquero.getPosicion().x);
+        const int banquero_y = scrY(banquero.getPosicion().y);
 
         if (!npc_renderer) {
             continue;
@@ -311,10 +324,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
-        const int cell_width = gw / mapa.getAncho();
-        const int cell_height = gh / mapa.getAlto();
-        const int comerciante_x = comerciante.getPosicion().x * gw / mapa.getAncho();
-        const int comerciante_y = comerciante.getPosicion().y * gh / mapa.getAlto() + gy0;
+        const int cell_width = tileW;
+        const int cell_height = tileH;
+        const int comerciante_x = scrX(comerciante.getPosicion().x);
+        const int comerciante_y = scrY(comerciante.getPosicion().y);
 
         if (!npc_renderer) {
             continue;
@@ -324,12 +337,12 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     } 
 
     for (const auto& [id, entity] : state_object.entities()) {
-        const int cell_width = gw / mapa.getAncho();
-        const int cell_height = gh / mapa.getAlto();
+        const int cell_width = tileW;
+        const int cell_height = tileH;
         const InterpolatedPosition interpolated_position =
                 state_object.entity_interpolated_position(id, current_tick);
-        const int entity_x = static_cast<int>(interpolated_position.x * gw / mapa.getAncho());
-        const int entity_y = gy0 + static_cast<int>(interpolated_position.y * gh / mapa.getAlto());
+        const int entity_x = scrX(interpolated_position.x);
+        const int entity_y = scrY(interpolated_position.y);
 
         const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
 
@@ -363,8 +376,6 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     // --- FX de hechizos en curso: animacion transitoria centrada en el objetivo ---
-    const int tileW = std::max(1, gw / mapa.getAncho());
-    const int tileH = std::max(1, gh / mapa.getAlto());
     constexpr uint16_t FX_AURA_BASE = 900;    // ids 900..: auras de critico (imgs/estados/critico)
     constexpr uint16_t FX_ATAQUE_BASE = 7000;  // ids 7000..: swing de ataque (imgs/ataques/fx)
     for (auto it = fx_activos.begin(); it != fx_activos.end();) {
@@ -395,8 +406,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
         const InterpolatedPosition pos =
                 state_object.entity_interpolated_position(it->targetId, current_tick);
-        const int tx = static_cast<int>(pos.x * gw / mapa.getAncho());
-        const int ty = gy0 + static_cast<int>(pos.y * gh / mapa.getAlto());
+        const int tx = scrX(pos.x);
+        const int ty = scrY(pos.y);
         try {
             SDL2pp::Texture& sheet = cache_texture->get_or_load(path);
             const int cellW = sheet.GetWidth() / frames;
@@ -420,10 +431,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             continue;
         }
         const float t = static_cast<float>(elapsed) / PROY_DUR;
-        const float ox = (orig->second.x + 0.5f) * gw / mapa.getAncho();
-        const float oy = gy0 + (orig->second.y + 0.5f) * gh / mapa.getAlto();
-        const float dx = (dest->second.x + 0.5f) * gw / mapa.getAncho();
-        const float dy = gy0 + (dest->second.y + 0.5f) * gh / mapa.getAlto();
+        const float ox = scrX(orig->second.x + 0.5);
+        const float oy = scrY(orig->second.y + 0.5);
+        const float dx = scrX(dest->second.x + 0.5);
+        const float dy = scrY(dest->second.y + 0.5);
         const int cx = static_cast<int>(ox + (dx - ox) * t);
         const int cy = static_cast<int>(oy + (dy - oy) * t);
         try {

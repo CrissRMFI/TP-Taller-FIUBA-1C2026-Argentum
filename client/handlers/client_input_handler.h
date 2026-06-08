@@ -43,6 +43,12 @@ private:
     int mapa_ancho = 100;
     int mapa_alto = 100;
     float radio_seleccion_px = 40.0f;
+    // Transform actual de la camara (lo empuja el loop cada frame). Si cam_tile_w<=0
+    // todavia no esta seteado y el hit-test usa el calculo viejo (mapa completo).
+    int cam_off_x = 0;
+    int cam_off_y = 0;
+    int cam_tile_w = 0;
+    int cam_tile_h = 0;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
@@ -89,6 +95,12 @@ public:
     }
     void setRadioSeleccion(float radioPx) {
         if (radioPx > 0.0f) radio_seleccion_px = radioPx;
+    }
+    void setCamaraTransform(int offX, int offY, int tileW, int tileH) {
+        cam_off_x = offX;
+        cam_off_y = offY;
+        cam_tile_w = tileW;
+        cam_tile_h = tileH;
     }
 };
 

@@ -117,6 +117,8 @@ if(TALLER_CLIENT)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
         add_executable(taller_client
+                client/camara/player_camera.cpp
+                client/camara/player_camera.h
                 client/assets/sprite_manager.cpp
                 client/assets/client_game_world.cpp
                 client/assets/client_game_world.h

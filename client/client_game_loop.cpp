@@ -141,6 +141,19 @@ void ClientGameLoop::handleEvents() {
             }
             continue;
         }
+        // Zoom de la camara con Ctrl + / Ctrl - (no mientras se escribe en el chat).
+        if (event.type == SDL_KEYDOWN && !handler.chatActivo() &&
+            (SDL_GetModState() & KMOD_CTRL)) {
+            const SDL_Keycode k = event.key.keysym.sym;
+            if (k == SDLK_PLUS || k == SDLK_EQUALS || k == SDLK_KP_PLUS) {
+                object_renderer.zoomIn();
+                continue;
+            }
+            if (k == SDLK_MINUS || k == SDLK_KP_MINUS) {
+                object_renderer.zoomOut();
+                continue;
+            }
+        }
         // Click sobre el panel derecho: lo maneja el loop (tiene renderer + estado + catalogo).
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.x >= config.ancho - config.panelAncho) {
@@ -473,6 +486,8 @@ void ClientGameLoop::render() {
     }
 
     object_renderer.render(object_state, object_animation, chat, panel, banco);
+    handler.setCamaraTransform(object_renderer.camOffsetX(), object_renderer.camOffsetY(),
+                               object_renderer.camTileW(), object_renderer.camTileH());
 }
 
 void ClientGameLoop::clean() {}

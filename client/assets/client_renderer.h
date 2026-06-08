@@ -27,6 +27,7 @@
 #include "text_renderer.h"
 #include "../config/catalogo_items.h"
 #include "../../common/game/mapa/mapa.h"
+#include "../camara/player_camera.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
 class ObjectRenderer {
@@ -70,6 +71,7 @@ private:
     int window_width = 0;
     int window_height = 0;
     Mapa mapa;
+    PlayerCamera camera;  // camara cenital: zoom + scroll centrado en el jugador
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     Mapa cargarMapa() const;
     void dibujar_chat(const EstadoChatRender& chat);
@@ -105,6 +107,14 @@ public:
     ObjectRenderer();
     int anchoMapa() const { return mapa.getAncho(); }
     int altoMapa() const { return mapa.getAlto(); }
+    // Transform actual de la camara (para que el hit-test del click coincida con lo dibujado).
+    // camOffsetY ya incluye el corrimiento del chat (gy0).
+    int camOffsetX() const { return camera.get_offset_x(); }
+    int camOffsetY() const { return chat_config.panelAlto + camera.get_offset_y(); }
+    int camTileW() const { return camera.tile_width(); }
+    int camTileH() const { return camera.tile_height(); }
+    void zoomIn() { camera.zoom_in(); }
+    void zoomOut() { camera.zoom_out(); }
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
               bool vsync, int loop_fps, const ConfigChatRender& chat_config,
               const ConfigPanelRender& panel_config, const CatalogoItems* catalogo);

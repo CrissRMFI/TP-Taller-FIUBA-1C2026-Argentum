@@ -191,10 +191,18 @@ uint16_t ClientInputHandler::buscar_id_objetivo(
     }
 
     uint16_t idObjetivo = 0;
+    // Tamano de celda y origen: si la camara ya empujo su transform, lo usamos (coincide
+    // exactamente con lo dibujado, incluido el zoom/scroll). Si no, calculo viejo.
+    const bool usarCamara = (cam_tile_w > 0 && cam_tile_h > 0);
     const int alto_juego = (window_height - chat_panel_alto > 0) ? window_height - chat_panel_alto : window_height;
-    const float tamanoCeldaX = static_cast<float>(ancho_juego()) / static_cast<float>(mapa_ancho);
-    const float tamanoCeldaY = static_cast<float>(alto_juego) / static_cast<float>(mapa_alto);
-    // Radio configurable (TOML). Nunca menor que media celda para mapas chicos.
+    const float tamanoCeldaX = usarCamara ? static_cast<float>(cam_tile_w)
+                                          : static_cast<float>(ancho_juego()) / mapa_ancho;
+    const float tamanoCeldaY = usarCamara ? static_cast<float>(cam_tile_h)
+                                          : static_cast<float>(alto_juego) / mapa_alto;
+    const float origenX = usarCamara ? static_cast<float>(cam_off_x) : 0.0f;
+    const float origenY = usarCamara ? static_cast<float>(cam_off_y)
+                                     : static_cast<float>(chat_panel_alto);
+    // Radio: configurable, y al menos ~media celda (con zoom, las celdas son mas grandes).
     const float radioJusto =
             std::sqrt(tamanoCeldaX * tamanoCeldaX + tamanoCeldaY * tamanoCeldaY) / 2.0f;
     const float radioSeleccion = std::max(radio_seleccion_px, radioJusto);
@@ -205,12 +213,10 @@ uint16_t ClientInputHandler::buscar_id_objetivo(
             continue;
         }
 
-        // El sprite se dibuja hacia ARRIBA desde la celda (los pies en la celda, el
-        // cuerpo arriba). Subimos el centro de hit-test ~media celda para que clickear
-        // el cuerpo cuente, no solo los pies.
-        const float entidadX = (static_cast<float>(entidad.x) + 0.5f) * tamanoCeldaX;
-        const float entidadY = static_cast<float>(chat_panel_alto) +
-                               (static_cast<float>(entidad.y)) * tamanoCeldaY;
+        // El sprite se dibuja hacia ARRIBA desde la celda (pies en la celda, cuerpo
+        // arriba): subimos el centro ~media celda para que clickear el cuerpo cuente.
+        const float entidadX = origenX + (static_cast<float>(entidad.x) + 0.5f) * tamanoCeldaX;
+        const float entidadY = origenY + (static_cast<float>(entidad.y)) * tamanoCeldaY;
         const float dx = entidadX - static_cast<float>(x);
         const float dy = entidadY - static_cast<float>(y);
         const float distancia = std::sqrt(dx * dx + dy * dy);
