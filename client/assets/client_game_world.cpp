@@ -157,10 +157,15 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                  std::to_string(estado->experiencia - experienciaAnterior) +
                                  " de experiencia.", TipoMensajeChat::Experiencia);
             }
+            // Aumento de oro => juntar monedas (del suelo) o el cheat de oro (F4).
+            if (oroAnterior > 0 && estado->oro > oroAnterior) {
+                gestorAudio.reproducirEfecto("agarrarMoneda");
+            }
             vidaBajaAvisada = vidaCritica;
             vidaAnterior = estado->vidaActual;
             manaAnterior = estado->manaActual;
             experienciaAnterior = estado->experiencia;
+            oroAnterior = estado->oro;
             nivelAnterior = estado->nivel;
             estadoAnterior = estado->estado;
             // Stats para el panel derecho.
@@ -244,18 +249,15 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << resucitado->y << ")" << std::endl;
         } else if (auto* item_suelo = std::get_if<MensajeItemEnSuelo>(&mensaje.payload)) {
             gestorAudio.reproducirEfectoPosicional(
-                    "itemCaeCerca", distanciaAlJugador(item_suelo->x, item_suelo->y));
-            std::cout << "[cliente] item en suelo: id=" << item_suelo->idItem << ", pos=("
-                      << item_suelo->x << ", " << item_suelo->y << ")" << std::endl;
+                    "caerObjeto", distanciaAlJugador(item_suelo->x, item_suelo->y));
+            itemEnSuelo_.insert({item_suelo->x, item_suelo->y});
         } else if (auto* oro_suelo = std::get_if<MensajeOroEnSuelo>(&mensaje.payload)) {
             gestorAudio.reproducirEfectoPosicional(
-                    "itemCaeCerca", distanciaAlJugador(oro_suelo->x, oro_suelo->y));
-            std::cout << "[cliente] oro en suelo: cantidad=" << oro_suelo->cantidad
-                      << ", pos=(" << oro_suelo->x << ", " << oro_suelo->y << ")"
-                      << std::endl;
+                    "caerObjeto", distanciaAlJugador(oro_suelo->x, oro_suelo->y));
+            oroEnSuelo_.insert({oro_suelo->x, oro_suelo->y});
         } else if (auto* inv = std::get_if<MensajeActualizarInventario>(&mensaje.payload)) {
             inventario_ = inv->slots_;
-            gestorAudio.reproducirEfecto("tomarItem");
+            gestorAudio.reproducirEfecto("agarrarItem");
         } else if (auto* equip = std::get_if<MensajeActualizarEquipamiento>(&mensaje.payload)) {
             equipamiento_ = EquipamientoJugador{equip->arma, equip->baculo, equip->defensa,
                                                 equip->casco, equip->escudo};
@@ -264,13 +266,9 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 gestorAudio.reproducirEfecto("clanMiembroEntra");
             }
         } else if (auto* item_desaparecio = std::get_if<MensajeItemDesaparecioSuelo>(&mensaje.payload)) {
-            std::cout << "[cliente] item desaparecio del suelo: pos=("
-                      << item_desaparecio->x << ", " << item_desaparecio->y << ")"
-                      << std::endl;
+            itemEnSuelo_.erase({item_desaparecio->x, item_desaparecio->y});
         } else if (auto* oro_desaparecio = std::get_if<MensajeOroDesaparecioSuelo>(&mensaje.payload)) {
-            std::cout << "[cliente] oro desaparecio del suelo: pos=("
-                      << oro_desaparecio->x << ", " << oro_desaparecio->y << ")"
-                      << std::endl;
+            oroEnSuelo_.erase({oro_desaparecio->x, oro_desaparecio->y});
         } else if (auto* recibir_lista_items = std::get_if<MensajeListaItems>(&mensaje.payload)) {
             // El stock se muestra en el panel de comercio; no ensuciamos el chat con ids.
             stockNpc_ = recibir_lista_items->ids;
@@ -340,9 +338,8 @@ int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
     const auto it = animation_states.find(entity_id);
     return (it != animation_states.end()) ? it->second.animation_row : 0;
 }
-// devuelvo un punto medio entre la pos actual y vieja evitando movimiento brusco del personaje
-InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_t entity_id,
-                                                                   const uint32_t current_tick) const {
+
+InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_t entity_id, const uint32_t current_tick) const {
     const auto state_it = animation_states.find(entity_id);
     const auto entity_it = entidades.find(entity_id);
     if (state_it == animation_states.end() || entity_it == entidades.end()) {

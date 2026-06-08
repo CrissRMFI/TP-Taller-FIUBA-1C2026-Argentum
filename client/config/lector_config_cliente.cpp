@@ -131,6 +131,8 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
 
     cfg.seleccionRango = static_cast<int>(
             tbl["seleccion"]["rango"].value_or<int64_t>(cfg.seleccionRango));
+    cfg.seleccionRadioPx = static_cast<int>(
+            tbl["seleccion"]["radio_px"].value_or<int64_t>(cfg.seleccionRadioPx));
 
     return cfg;
 }

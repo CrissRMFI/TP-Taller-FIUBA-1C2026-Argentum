@@ -795,6 +795,10 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
             jugador.debeAvanzar(cfg.movimientoJugadorTicks)) {
             if (intentarPaso(id, jugador, jugador.getDireccionMov())) {
                 mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
+                // Auto-pickup: al pisar una celda con oro/items se levantan solos.
+                if (jugador.estaVivo()) {
+                    mensajes.splice(mensajes.end(), recogerObjetosDelSuelo(id, jugador));
+                }
             }
         }
     }
@@ -1203,44 +1207,41 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
+std::list<EventoSalida> Juego::recogerObjetosDelSuelo(uint16_t idCliente, Jugador& jugador) {
+    std::list<EventoSalida> mensajes;
+    const Posicion posicion = jugador.getPosicion();
 
+    // Oro: se suma todo lo que haya en la celda.
+    if (std::optional<uint32_t> cantidadOro = mapa.tomarOro(posicion); cantidadOro.has_value()) {
+        jugador.sumar_oro(*cantidadOro);
+        mensajes.push_back(armarEstado(idCliente, jugador));
+        mensajes.splice(mensajes.end(), armarOroDesaparecioSueloParaMapa(posicion));
+    }
+
+    // Item: si entra al inventario se levanta; si no (lleno/desconocido) vuelve al suelo.
+    if (std::optional<uint16_t> idItem = mapa.tomarItem(posicion); idItem.has_value()) {
+        if (catalogo.existe(*idItem) && jugador.agregar_item(*idItem)) {
+            mensajes.push_back(armarInventario(idCliente, jugador));
+            mensajes.splice(mensajes.end(), armarItemDesaparecioSueloParaMapa(posicion));
+        } else {
+            mapa.agregarItem(posicion, *idItem);
+        }
+    }
+
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
-    Posicion posicion = jugador->getPosicion();
-
-    // Prioridad: si hay una pila de oro en la celda, se levanta antes que los ítems.
-    if (std::optional<uint32_t> cantidadOro = mapa.tomarOro(posicion); cantidadOro.has_value()) {
-        jugador->sumar_oro(*cantidadOro);
-        std::list<EventoSalida> mensajes = {armarEstado(idCliente, *jugador)};
-        mensajes.splice(mensajes.end(), armarOroDesaparecioSueloParaMapa(posicion));
-        return mensajes;
-    }
-
-    std::optional<uint16_t> idItem = mapa.tomarItem(posicion);
-
-    if (!idItem.has_value()) {
+    std::list<EventoSalida> mensajes = recogerObjetosDelSuelo(idCliente, *jugador);
+    if (mensajes.empty()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
-
-    if (!catalogo.existe(*idItem)) {
-        mapa.agregarItem(posicion, *idItem);
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
-
-    if (!jugador->agregar_item(*idItem)) {
-        mapa.agregarItem(posicion, *idItem);
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
-    }
-
-    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador)};
-
-    mensajes.splice(mensajes.end(), armarItemDesaparecioSueloParaMapa(posicion));
-
     return mensajes;
 }
 

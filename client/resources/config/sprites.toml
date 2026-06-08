@@ -595,6 +595,115 @@ y = 0
 frames = 6
 step_x = 1
 
+# --- Baculos (overlay al equipar; mismo layout que las armas) ---
+[character_parts.bodies.2009]
+path = "imgs/personajes/armas/2009.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2009.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2010]
+path = "imgs/personajes/armas/2010.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2010.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2087]
+path = "imgs/personajes/armas/2087.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2087.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2106]
+path = "imgs/personajes/armas/2106.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2106.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
 [character_parts.bodies.2085]
 path = "imgs/personajes/armas/2085.png"
 src_body = [0, 0, 27, 47]

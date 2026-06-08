@@ -452,7 +452,7 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
         
         return DescriptorAtaque{
             TipoAtaque::CuerpoACuerpo,
-            /*alcanceMaximo=*/1,
+            cfg.rangoAtaqueCuerpo,
             /*costoMana=*/0
         };
     }
@@ -484,10 +484,10 @@ DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const 
         }
     }
 
-    // Sin arma ni báculo
+    // Sin arma ni báculo (puño)
     return DescriptorAtaque{
         TipoAtaque::CuerpoACuerpo,
-        /*alcanceMaximo=*/1,
+        cfg.rangoAtaqueCuerpo,
         /*costoMana=*/0
     };
 }

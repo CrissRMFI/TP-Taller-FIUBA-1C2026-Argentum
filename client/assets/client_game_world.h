@@ -2,6 +2,7 @@
 #define TALLER_TP_CLIENT_GAME_WORLD_H
 #include <cstdint>
 #include <deque>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -71,6 +72,7 @@ private:
     uint16_t vidaAnterior;
     uint16_t manaAnterior;
     uint32_t experienciaAnterior = 0;
+    uint32_t oroAnterior = 0;
 
     // Ultimas lineas de chat/feedback recibidas del server (con su tipo/color)
     std::deque<LineaChat> historialChatReciente;
@@ -86,6 +88,9 @@ private:
     uint32_t              bancoOro_ = 0;   // oro guardado en el banco
     bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
     std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
+    // Drops visibles en el piso (celda x,y). Oro -> monedas; item -> bolsa/cofre.
+    std::set<std::pair<uint16_t, uint16_t>> oroEnSuelo_;
+    std::set<std::pair<uint16_t, uint16_t>> itemEnSuelo_;
     // FX de hechizos recibidos del server (idHechizo, idObjetivo); el loop los pasa al renderer.
     std::vector<std::pair<uint16_t, uint16_t>> fxPendientes_;
     // Proyectiles recibidos (idOrigen, idDestino); el loop los pasa al renderer.
@@ -113,6 +118,8 @@ public:
     void setMaxLineasChat(size_t maximo);
     void setNick(const std::string& nick) { nick_ = nick; }
     const std::string& nick() const { return nick_; }
+    const std::set<std::pair<uint16_t, uint16_t>>& oroEnSuelo() const { return oroEnSuelo_; }
+    const std::set<std::pair<uint16_t, uint16_t>>& itemEnSuelo() const { return itemEnSuelo_; }
     // Para que el loop agregue mensajes locales con color (ej. lanzar hechizo, "no hay nada").
     void mensajeLocal(const std::string& linea, TipoMensajeChat tipo);
 

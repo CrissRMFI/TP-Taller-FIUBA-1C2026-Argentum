@@ -260,6 +260,28 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
     }
 
+    // --- Drops en el piso: oro -> monedas, item -> bolsa/cofre ---
+    {
+        const int cw_cell = std::max(1, gw / mapa.getAncho());
+        const int ch_cell = std::max(1, gh / mapa.getAlto());
+        const auto dibujarDrop = [&](const std::set<std::pair<uint16_t, uint16_t>>& celdas,
+                                     const std::string& tex) {
+            SDL2pp::Texture* t = nullptr;
+            try {
+                t = &cache_texture->get_or_load(tex);
+            } catch (const std::exception&) {
+                return;
+            }
+            for (const auto& [cxd, cyd] : celdas) {
+                const int dx = cxd * gw / mapa.getAncho();
+                const int dy = cyd * gh / mapa.getAlto() + gy0;
+                renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(dx, dy, cw_cell, ch_cell));
+            }
+        };
+        dibujarDrop(state_object.oroEnSuelo(), "imgs/suelo/monedas.png");
+        dibujarDrop(state_object.itemEnSuelo(), "imgs/suelo/bolsa.png");
+    }
+
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
         const int cell_width = gw / mapa.getAncho();
         const int cell_height = gh / mapa.getAlto();

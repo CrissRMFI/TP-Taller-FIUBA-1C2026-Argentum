@@ -103,6 +103,8 @@ private:
 
 public:
     ObjectRenderer();
+    int anchoMapa() const { return mapa.getAncho(); }
+    int altoMapa() const { return mapa.getAlto(); }
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
               bool vsync, int loop_fps, const ConfigChatRender& chat_config,
               const ConfigPanelRender& panel_config, const CatalogoItems* catalogo);

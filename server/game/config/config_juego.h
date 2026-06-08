@@ -140,8 +140,9 @@ struct ConfigJuego {
 
     // ---- Rangos de ataque (regla 5.3) ----
     // Alcance máximo en celdas para armas a distancia y hechizos de báculo.
-    // El melee siempre es adyacencia (distancia Manhattan == 1).
     uint16_t rangoVisionAtaque;
+    // Alcance del ataque cuerpo a cuerpo (melee/puño). 1 = adyacencia.
+    uint16_t rangoAtaqueCuerpo;
 
     // ---- Cheats (para testing/corrección) ----
     bool vidaInfinita;

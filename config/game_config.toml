@@ -110,8 +110,12 @@ probabilidad_critico = 0.10
 cooldown_ataque_seg = 0.5
 
 # Alcance máximo en celdas (distancia Manhattan) para armas a distancia
-# y hechizos de báculo (regla 5.3). El melee siempre es adyacencia.
-rango_vision_ataque = 8
+# y hechizos de báculo (regla 5.3).
+rango_vision_ataque = 12
+
+# Alcance (en celdas, distancia Manhattan) del ataque cuerpo a cuerpo: armas de
+# melee (espada/hacha/martillo) y puño. 1 = solo casillas adyacentes.
+rango_ataque_cuerpo = 4
 
 # ------------------------------------------------------------
 [inventario]
@@ -176,6 +180,7 @@ hechizo    = "misil"
 danio_min  = 2
 danio_max  = 4
 costo_mana = 5
+sprite_equip = 2009
 
 [items.baculo_nudoso]
 id         = 7
@@ -184,6 +189,7 @@ hechizo    = "misil"
 danio_min  = 4
 danio_max  = 8
 costo_mana = 15
+sprite_equip = 2010
 
 [items.baculo_engarzado]
 id         = 8
@@ -192,6 +198,7 @@ hechizo    = "explosion"
 danio_min  = 8
 danio_max  = 20
 costo_mana = 30
+sprite_equip = 2087
 
 [items.flauta_elfica]
 id         = 9
@@ -200,6 +207,7 @@ hechizo    = "curar"
 danio_min  = 0
 danio_max  = 0
 costo_mana = 100
+sprite_equip = 2106
 
 # Armaduras
 # sprite_cuerpo: cuerpo (vestimenta) que muestra el personaje al equiparla. Contrato con

@@ -192,11 +192,12 @@ uint16_t ClientInputHandler::buscar_id_objetivo(
 
     uint16_t idObjetivo = 0;
     const int alto_juego = (window_height - chat_panel_alto > 0) ? window_height - chat_panel_alto : window_height;
-    const float tamanoCeldaX = static_cast<float>(ancho_juego()) / 100.0f;
-    const float tamanoCeldaY = static_cast<float>(alto_juego) / 100.0f;
+    const float tamanoCeldaX = static_cast<float>(ancho_juego()) / static_cast<float>(mapa_ancho);
+    const float tamanoCeldaY = static_cast<float>(alto_juego) / static_cast<float>(mapa_alto);
+    // Radio configurable (TOML). Nunca menor que media celda para mapas chicos.
     const float radioJusto =
             std::sqrt(tamanoCeldaX * tamanoCeldaX + tamanoCeldaY * tamanoCeldaY) / 2.0f;
-    const float radioSeleccion = std::max(25.0f, radioJusto);
+    const float radioSeleccion = std::max(radio_seleccion_px, radioJusto);
     float mejorDistancia = radioSeleccion + 1.0f;
 
     for (const auto& [id, entidad] : entidades) {
@@ -204,9 +205,12 @@ uint16_t ClientInputHandler::buscar_id_objetivo(
             continue;
         }
 
+        // El sprite se dibuja hacia ARRIBA desde la celda (los pies en la celda, el
+        // cuerpo arriba). Subimos el centro de hit-test ~media celda para que clickear
+        // el cuerpo cuente, no solo los pies.
         const float entidadX = (static_cast<float>(entidad.x) + 0.5f) * tamanoCeldaX;
-        const float entidadY =
-                static_cast<float>(chat_panel_alto) + (static_cast<float>(entidad.y) + 0.5f) * tamanoCeldaY;
+        const float entidadY = static_cast<float>(chat_panel_alto) +
+                               (static_cast<float>(entidad.y)) * tamanoCeldaY;
         const float dx = entidadX - static_cast<float>(x);
         const float dy = entidadY - static_cast<float>(y);
         const float distancia = std::sqrt(dx * dx + dy * dy);

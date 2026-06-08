@@ -124,6 +124,18 @@ volumen = 90
 path = "sound/tomarItem.ogg"
 volumen = 90
 
+[efectos.agarrarItem]
+path = "sound/agarrarItem.ogg"
+volumen = 95
+
+[efectos.agarrarMoneda]
+path = "sound/agarrarMondeda.ogg"
+volumen = 95
+
+[efectos.caerObjeto]
+path = "sound/caerObjeto.ogg"
+volumen = 85
+
 [efectos.itemCae]
 path = "sound/itemCae.ogg"
 volumen = 80

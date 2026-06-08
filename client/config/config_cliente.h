@@ -56,6 +56,8 @@ struct ConfigCliente {
     // Rango (distancia Manhattan en celdas) para considerar valida la seleccion de un
     // objetivo: si esta mas lejos, no se resalta.
     int seleccionRango = 10;
+    // Radio en pixeles del area de click para seleccionar una criatura/NPC.
+    int seleccionRadioPx = 40;
 };
 
 #endif

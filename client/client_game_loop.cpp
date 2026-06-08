@@ -87,6 +87,8 @@ void ClientGameLoop::init(const char* title,
     handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAlto);
     handler.setAnchoPanel(config.panelAncho);
     handler.setIdCliente(object_state.client_id());
+    handler.setMapaDimensiones(object_renderer.anchoMapa(), object_renderer.altoMapa());
+    handler.setRadioSeleccion(static_cast<float>(config.seleccionRadioPx));
 
     const std::string resourcesRoot = std::string(CLIENT_ASSETS_DIR) + "/../resources";
     gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",

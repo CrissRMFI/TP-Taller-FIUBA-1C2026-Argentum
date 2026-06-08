@@ -444,6 +444,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.cuerpoBanquero = leerUint16Obligatorio(tbl, "npcs", "cuerpo_banquero");
     cargarStockNpcs(tbl, cfg);
     cfg.rangoVisionAtaque = leerUint16Obligatorio(tbl, "combate", "rango_vision_ataque");
+    cfg.rangoAtaqueCuerpo = leerUint16Obligatorio(tbl, "combate", "rango_ataque_cuerpo");
 
     cfg.vidaInfinita = leerBoolObligatorio(tbl, "cheats", "vida_infinita");
     cfg.manaInfinito = leerBoolObligatorio(tbl, "cheats", "mana_infinito");

@@ -89,3 +89,6 @@ cols     = 6
 # Distancia (en celdas, Manhattan) hasta la cual una seleccion de objetivo se considera
 # valida y se resalta en pantalla. Mas lejos: no se resalta.
 rango = 10
+# Radio (en pixeles) del area de click para seleccionar una criatura/NPC. Mas grande =
+# mas facil de clickear (no hace falta apuntar al pixel exacto).
+radio_px = 40

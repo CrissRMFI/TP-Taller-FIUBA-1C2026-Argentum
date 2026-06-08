@@ -51,9 +51,6 @@ ResultadoParseo ParserComandoChat::parsearComando(const std::string& cuerpo,
     if (cmd == "resucitar") {
         return soloComando(Opcode::RESUCITAR, ComandoResucitar{});
     }
-    if (cmd == "tomar") {
-        return soloComando(Opcode::TOMAR, ComandoTomar{});
-    }
     if (cmd == "revisar-clan") {
         return soloComando(Opcode::REVISAR_CLAN, ComandoRevisarClan{});
     }

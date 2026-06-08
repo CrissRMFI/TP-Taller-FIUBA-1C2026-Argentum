@@ -39,6 +39,10 @@ private:
     int chat_panel_alto = 0;
     // Ancho del panel derecho (px). El area de juego es window_width - ancho_panel.
     int ancho_panel = 0;
+    // Dimensiones del mapa (celdas) y radio de seleccion (px), desde el TOML.
+    int mapa_ancho = 100;
+    int mapa_alto = 100;
+    float radio_seleccion_px = 40.0f;
 
     std::optional<ComandoJugador> handle_keyboard(SDL_Keycode key);
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
@@ -79,6 +83,13 @@ public:
         chat_panel_alto = alto;
     }
     void setAnchoPanel(int ancho) { ancho_panel = ancho; }
+    void setMapaDimensiones(int ancho, int alto) {
+        if (ancho > 0) mapa_ancho = ancho;
+        if (alto > 0) mapa_alto = alto;
+    }
+    void setRadioSeleccion(float radioPx) {
+        if (radioPx > 0.0f) radio_seleccion_px = radioPx;
+    }
 };
 
 
