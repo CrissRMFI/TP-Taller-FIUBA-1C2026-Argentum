@@ -409,8 +409,8 @@ row = 1
 # Overrides por estado
 [states.fantasma]
 body_path = "imgs/fantasma.png"
-size = [25, 45]
-src = [6, 10, 25,45]
+size = [22, 51]
+src = [6, 0, 22, 51]
 
 
 # Catalogo de criaturas
@@ -471,11 +471,10 @@ src = [5, 1, 19, 44]
 offset = [0, 0]
 
 [npcs.sacerdote]
-head_path = "imgs/npc/sacerdotes/2000.png"
-body_path = "imgs/npc/sacerdotes/1243.png"
-src_head = [3,1, 11, 14]
-size = [18, 40]
-src = [5, 1, 18, 40]
+# Sprite nuevo body-only (sin cabeza separada): el cuerpo ya incluye la cabeza.
+body_path = "imgs/10141.png"
+size = [16, 48]
+src = [19, 0, 16, 48]
 offset = [0, 0]
 
 [npcs.banquero]

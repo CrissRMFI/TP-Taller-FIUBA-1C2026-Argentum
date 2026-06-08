@@ -60,6 +60,29 @@ void PlayerCamera::center_on_tile(const int tile_x, const int tile_y) {
     }
 }
 
+void PlayerCamera::center_on_point(const double tile_x, const double tile_y) {
+    // Igual que center_on_tile pero con posicion fraccionaria (interpolada): la camara
+    // sigue al jugador suave entre celdas, sin saltos de un tile completo.
+    const int desired_offset_x =
+            viewport_width / 2 - static_cast<int>(tile_x * cell_width + cell_width / 2.0);
+    const int desired_offset_y =
+            viewport_height / 2 - static_cast<int>(tile_y * cell_height + cell_height / 2.0);
+    const int min_offset_x = viewport_width - map_pixel_width;
+    const int min_offset_y = viewport_height - map_pixel_height;
+
+    if (map_pixel_width <= viewport_width) {
+        offset_x = (viewport_width - map_pixel_width) / 2;
+    } else {
+        offset_x = std::clamp(desired_offset_x, min_offset_x, 0);
+    }
+
+    if (map_pixel_height <= viewport_height) {
+        offset_y = (viewport_height - map_pixel_height) / 2;
+    } else {
+        offset_y = std::clamp(desired_offset_y, min_offset_y, 0);
+    }
+}
+
 int PlayerCamera::screen_x_for_tile(const int tile_x) const {
     return tile_x * cell_width + offset_x;
 }

@@ -25,6 +25,7 @@ private:
 public:
     void configure(int view_width, int view_height, int map_width, int map_height);
     void center_on_tile(int tile_x, int tile_y);
+    void center_on_point(double tile_x, double tile_y);  // centrado suave (posicion interpolada)
     int screen_x_for_tile(int tile_x) const;
     int screen_y_for_tile(int tile_y) const;
     int tile_width() const;

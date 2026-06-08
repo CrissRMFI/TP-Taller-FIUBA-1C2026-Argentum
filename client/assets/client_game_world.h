@@ -17,6 +17,8 @@ struct EntityAnimationState {
     bool is_moving = false;
     uint32_t last_motion_tick = 0;
     int animation_row = 0;
+    int walk_frame = 0;  // avanza por tile caminado (anima segun movimiento, no por tiempo)
+    uint32_t move_interval_ms = 200;  // tiempo medido entre pasos; dura lo mismo la interpolacion
     float previous_x = 0.0f;
     float previous_y = 0.0f;
     float current_x = 0.0f;
@@ -112,6 +114,7 @@ public:
     bool player_is_moving() const;
     bool entity_is_moving(uint16_t entity_id) const;
     int entity_animation_row(uint16_t entity_id) const;
+    int entity_walk_frame(uint16_t entity_id) const;
     InterpolatedPosition entity_interpolated_position(uint16_t entity_id,
                                                       uint32_t current_tick) const;
     const std::deque<LineaChat>& historialChat() const;

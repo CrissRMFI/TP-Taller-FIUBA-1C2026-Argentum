@@ -185,7 +185,11 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     // Camara cenital: escala (zoom) + scroll centrado en el jugador. Todo el mundo se
     // dibuja a traves de sx()/sy()/tileW/tileH (en vez de estirar el mapa completo).
     camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
-    camera.center_on_tile(state_object.player_x(), state_object.player_y());
+    // Centramos en la posicion INTERPOLADA del jugador (no el tile entero) para que el
+    // scroll de la camara sea fluido y no salte una celda por vez.
+    const InterpolatedPosition camPlayerPos =
+            state_object.entity_interpolated_position(state_object.client_id(), current_tick);
+    camera.center_on_point(camPlayerPos.x, camPlayerPos.y);
     const int tileW = camera.tile_width();
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
@@ -349,7 +353,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
             const int frame_index =
-                    state_object.entity_is_moving(id) ? sprite_manager->current_frame_index() : 0;
+                    state_object.entity_is_moving(id) ? state_object.entity_walk_frame(id) : 0;
             if (!character_renderer) {
                 continue;
             }

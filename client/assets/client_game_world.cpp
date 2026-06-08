@@ -86,6 +86,13 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                         static_cast<int>(entity_position->x) - previous_x,
                         static_cast<int>(entity_position->y) - previous_y,
                         animation_state.animation_row);
+                animation_state.walk_frame += 2;  // avanza el cuadro de caminata por tile
+                // Medimos cuanto tardo este paso para que la interpolacion dure lo mismo
+                // (asi el scroll es continuo, sin saltos al iniciar el paso siguiente).
+                const uint32_t intervalo = current_tick - animation_state.move_start_tick;
+                if (intervalo >= 40 && intervalo <= 1000) {
+                    animation_state.move_interval_ms = intervalo;
+                }
                 animation_state.last_motion_tick = current_tick;
                 animation_state.previous_x = animation_state.current_x;
                 animation_state.previous_y = animation_state.current_y;
@@ -339,6 +346,11 @@ int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
     return (it != animation_states.end()) ? it->second.animation_row : 0;
 }
 
+int ObjectGameWorld::entity_walk_frame(const uint16_t entity_id) const {
+    const auto it = animation_states.find(entity_id);
+    return (it != animation_states.end()) ? it->second.walk_frame : 0;
+}
+
 InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_t entity_id, const uint32_t current_tick) const {
     const auto state_it = animation_states.find(entity_id);
     const auto entity_it = entidades.find(entity_id);
@@ -348,7 +360,8 @@ InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_
 
     const EntityAnimationState& animation_state = state_it->second;
     const float elapsed = static_cast<float>(current_tick - animation_state.move_start_tick);
-    const float alpha = std::clamp(elapsed / static_cast<float>(MOTION_GRACE_MS), 0.0f, 1.0f);
+    const float duracion = static_cast<float>(std::max<uint32_t>(1, animation_state.move_interval_ms));
+    const float alpha = std::clamp(elapsed / duracion, 0.0f, 1.0f);
 
     return InterpolatedPosition{
             .x = animation_state.previous_x +
