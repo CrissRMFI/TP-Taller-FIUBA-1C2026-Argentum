@@ -275,6 +275,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
     renderer->Present();
 }
 
+// metodos para zoom in y zoom out
 void ObjectRenderer::zoom_in() {
     camera.zoom_in();
 }

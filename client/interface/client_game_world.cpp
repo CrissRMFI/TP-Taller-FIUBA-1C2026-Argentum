@@ -68,6 +68,11 @@ void ObjectGameWorld::upload_server_msg(
                     entity_position->x, entity_position->y, entity_position->tipo,
                     entity_position->estado, entity_position->cabeza, entity_position->cuerpo};
 
+            if (entity_position->id == idCliente) {
+                posX = entity_position->x;
+                posY = entity_position->y;
+            }
+
             EntityAnimationState& animation_state = animation_states[entity_position->id];
             if (position_changed) {
                 int actual_animation = animation_row_for_delta(
@@ -80,8 +85,6 @@ void ObjectGameWorld::upload_server_msg(
                 animation_state.last_motion_tick = current_tick;
 
                 if (entity_position->id == idCliente) {
-                    posX = entity_position->x;
-                    posY = entity_position->y;
                     // El sonido de pasos se maneja como loop al final, segun is_moving.
                 } else if (esNueva && entity_position->tipo == 1) {
                     gestorAudio.reproducirEfectoPosicional(

@@ -79,10 +79,10 @@ void ClientGameLoop::handleEvents() {
         const ResultadoInput resultado = handler.handle_event(event, object_state.entities());
         if (resultado.accion_local) {
             switch (*resultado.accion_local) {
-                case ResultadoInput::AccionLocal::ZoomIn:
+                case AccionLocal::ZoomIn:
                     object_renderer.zoom_in();
                     break;
-                case ResultadoInput::AccionLocal::ZoomOut:
+                case AccionLocal::ZoomOut:
                     object_renderer.zoom_out();
                     break;
             }
