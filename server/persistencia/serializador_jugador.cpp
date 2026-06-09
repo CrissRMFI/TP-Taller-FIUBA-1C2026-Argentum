@@ -70,6 +70,8 @@ RegistroJugador SerializadorJugador::aRegistro(const Jugador& jugador) {
     reg.raza = static_cast<uint8_t>(jugador.getRaza());
     reg.nivel = jugador.getNivel();
     reg.fundadoClan = jugador.fundo_clan() ? 1 : 0;
+    reg.skinCabeza = jugador.getCabeza();
+    reg.skinCuerpo = jugador.getCuerpo();
 
     Estado estado = jugador.getEstado();
     if (estado == Estado::Meditando) {

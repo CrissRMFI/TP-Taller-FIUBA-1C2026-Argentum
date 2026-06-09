@@ -73,7 +73,9 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
                                const int frame_index,
                                const bool resaltar) const {
     const auto resolved = resolver_.resolveSprite(entity);
-    const int effective_frame_index = (entity.estado == 1) ? 0 : frame_index;
+    const int effective_animation_row =
+            (entity.estado == 1 || entity.estado == 3) ? 0 : animation_row;
+    const int effective_frame_index = (entity.estado == 1 || entity.estado == 3) ? 0 : frame_index;
     int body_x = entity_x;
     int body_y = entity_y;
     int body_width = cell_width;
@@ -82,9 +84,14 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     const int anchor_y = entity_y + cell_height;
 
     if (resolved.body.has_value()) {
-        const SpriteRect body_src =
+        // const SpriteRect body_src =
+        //         body_src_rect_for(*resolved.body->definition, effective_animation_row,
+        //                           effective_frame_index);
+        // Para overrides estaticos (ej. fantasma) usamos el recorte fijo del sprite
+        // y evitamos cualquier animacion basada en filas/frames del cuerpo original.
+            const SpriteRect body_src = resolved.body->src_override.value_or(
                 body_src_rect_for(*resolved.body->definition, animation_row,
-                                  effective_frame_index);
+                                  effective_frame_index));
 
         body_width = static_cast<int>(body_src.width * CHARACTER_SCALE);
         body_height = static_cast<int>(body_src.height * CHARACTER_SCALE);
@@ -115,7 +122,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     // Overlays de arma/escudo: se dibujan en su celda completa (el item ya esta posicionado dentro del frame, p.ej. en la mano) alineada con el cuerpo por la base de la celda.
     const auto dibujar_overlay_cuerpo = [&](const ResolvedCharacterPart& part) {
         const SpriteRect ov_src =
-                body_src_rect_for(*part.definition, animation_row, effective_frame_index);
+                body_src_rect_for(*part.definition, effective_animation_row,
+                                  effective_frame_index);
         const int ov_w = static_cast<int>(ov_src.width * CHARACTER_SCALE);
         const int ov_h = static_cast<int>(ov_src.height * CHARACTER_SCALE);
         const int ov_x = anchor_x - ov_w / 2;
@@ -131,7 +139,7 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     }
     if (resolved.head.has_value()) {
         const SpriteRect head_src =
-                head_src_rect_for(*resolved.head->definition, animation_row);
+                head_src_rect_for(*resolved.head->definition, effective_animation_row);
 
         const int head_width = static_cast<int>(head_src.width * CHARACTER_SCALE);
         const int head_height = static_cast<int>(head_src.height * CHARACTER_SCALE);
@@ -147,7 +155,7 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         // Casco: overlay sobre la cabeza (mismo formato/posicion que la cabeza).
         if (resolved.casco.has_value()) {
             const SpriteRect casco_src =
-                    head_src_rect_for(*resolved.casco->definition, animation_row);
+                    head_src_rect_for(*resolved.casco->definition, effective_animation_row);
             const int casco_w = static_cast<int>(casco_src.width * CHARACTER_SCALE);
             const int casco_h = static_cast<int>(casco_src.height * CHARACTER_SCALE);
             const int casco_x = body_x + (body_width - casco_w) / 2;

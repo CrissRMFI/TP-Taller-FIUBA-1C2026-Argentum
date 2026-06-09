@@ -22,6 +22,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
                 body = ResolvedCharacterPart{
                         .texture = &texture_cache.get_or_load(*ghost_state->body_path),
                         .definition = &base_body_def,
+                        .src_override = ghost_state->body_src,
                 };
             }
         }
@@ -31,6 +32,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
             body = ResolvedCharacterPart{
                     .texture = &texture_cache.get_or_load(body_def.path),
                     .definition = &body_def,
+                    .src_override = std::nullopt,
             };
         }
     }
@@ -42,6 +44,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
         head = ResolvedCharacterPart{
                 .texture = &texture_cache.get_or_load(head_def.path),
                 .definition = &head_def,
+                .src_override = std::nullopt,
         };
     }
     // Overlays de vestimenta. Solo personajes vivos (no fantasma/resucitando).
@@ -52,7 +55,11 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
             return std::nullopt;
         }
         const auto& def = sprite_catalog.body(id);
-        return ResolvedCharacterPart{&texture_cache.get_or_load(def.path), &def};
+                return ResolvedCharacterPart{
+                    .texture = &texture_cache.get_or_load(def.path),
+                    .definition = &def,
+                    .src_override = std::nullopt,
+            };
     };
 
     std::optional<ResolvedCharacterPart> arma = overlayCuerpo(entity.arma);
@@ -61,7 +68,11 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
     std::optional<ResolvedCharacterPart> casco;
     if (puedeVestir && entity.casco != 0 && sprite_catalog.has_head(entity.casco)) {
         const auto& casco_def = sprite_catalog.head(entity.casco);
-        casco = ResolvedCharacterPart{&texture_cache.get_or_load(casco_def.path), &casco_def};
+        casco = ResolvedCharacterPart{
+            .texture = &texture_cache.get_or_load(casco_def.path),
+            .definition = &casco_def,
+            .src_override = std::nullopt,
+    };
     }
 
     return CharacterSprite{head, body, arma, escudo, casco};

@@ -13,6 +13,7 @@
 struct ResolvedCharacterPart {
     SDL2pp::Texture* texture;
     const CharacterPartDefinition* definition;
+    std::optional<SpriteRect> src_override;
 };
 
 struct CharacterSprite {

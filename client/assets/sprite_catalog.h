@@ -54,6 +54,8 @@ struct CharacterPartDefinition {
 struct StateOverride {
     std::optional<std::string> head_path;
     std::optional<std::string> body_path;
+    std::optional<SpriteRect> body_src;
+
 };
 
 struct StaticSpriteDefinition {

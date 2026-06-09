@@ -154,6 +154,14 @@ SpriteRect require_rect4(const toml::table& table, const std::string& key,
             static_cast<int>(*h)};
 }
 
+std::optional<SpriteRect> optional_rect4(const toml::table& table, const std::string& key,
+                                         const std::string& path) {
+    if (!table.contains(key)) {
+        return std::nullopt;
+    }
+    return require_rect4(table, key, path);
+}
+
 void validate_skin_parts_exist(const std::string& skin_name, const SkinPreset& preset,
                                const std::unordered_map<uint16_t, CharacterPartDefinition>& heads,
                                const std::unordered_map<uint16_t, CharacterPartDefinition>& bodies) {
@@ -347,6 +355,11 @@ std::unordered_map<std::string, StateOverride> parse_states(const toml::table& r
             if (auto body_path = item->get_as<std::string>("body_path")) {
                 state.body_path = body_path->get();
             }
+            if (!state.head_path.has_value() && !state.body_path.has_value()) {
+                throw_invalid(path_prefix, "debe definir head_path o body_path");
+            }
+            state.body_src = optional_rect4(
+                   *item, "src", join_path(path_prefix, "src"));
             if (!state.head_path.has_value() && !state.body_path.has_value()) {
                 throw_invalid(path_prefix, "debe definir head_path o body_path");
             }
