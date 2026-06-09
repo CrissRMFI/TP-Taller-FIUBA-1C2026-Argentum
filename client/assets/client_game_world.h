@@ -18,21 +18,9 @@ struct EntityAnimationState {
     uint32_t last_motion_tick = 0;
     int animation_row = 0;
     int walk_frame = 0;  // avanza por tile caminado (anima segun movimiento, no por tiempo)
-    uint32_t move_interval_ms = 200;  // tiempo medido entre pasos; dura lo mismo la interpolacion
-    float previous_x = 0.0f;
-    float previous_y = 0.0f;
-    float current_x = 0.0f;
-    float current_y = 0.0f;
     uint32_t move_start_tick = 0;
 };
 
-// para que la animacion no quede atada a tiles interpolo posiciones (x,y) del personaje
-// buscando un punto medio entre la pos actual y la anterior
-
-struct InterpolatedPosition {
-    float x = 0.0f;
-    float y = 0.0f;
-};
 
 // Lo que el jugador tiene equipado 
 struct EquipamientoJugador {
@@ -100,13 +88,13 @@ private:
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea, TipoMensajeChat tipo = TipoMensajeChat::Normal);
+    int animation_row_for_delta(int delta_x, int delta_y, int default_row);
 
 public:
     explicit ObjectGameWorld(uint16_t client_id);
     void upload_server_msg(Queue<MensajeServidor>& server_msgs, uint32_t current_tick,
                            GestorAudio& gestorAudio);
     void notify_move_requested(uint32_t current_tick);
-
     const std::unordered_map<uint16_t, EntidadRenderizable>& entities() const;
     uint16_t client_id() const;
     int player_x() const;
@@ -115,8 +103,8 @@ public:
     bool entity_is_moving(uint16_t entity_id) const;
     int entity_animation_row(uint16_t entity_id) const;
     int entity_walk_frame(uint16_t entity_id) const;
-    InterpolatedPosition entity_interpolated_position(uint16_t entity_id,
-                                                      uint32_t current_tick) const;
+
+
     const std::deque<LineaChat>& historialChat() const;
     void setMaxLineasChat(size_t maximo);
     void setNick(const std::string& nick) { nick_ = nick; }
