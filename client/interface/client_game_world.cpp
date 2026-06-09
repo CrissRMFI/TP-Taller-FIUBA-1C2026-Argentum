@@ -17,28 +17,25 @@
 
 #define UMBRAL_CURACION 5
 
-namespace {
-
-int animation_row_for_delta(const int delta_x, const int delta_y, const int default_row) {
-    // no cambios en la posicion me quedo en la fila que estaba
-    if (delta_x == 0 && delta_y == 0) {
-        return default_row;
-    }
-    // movimiento lateral --> me muevo sobre x
-    if (std::abs(delta_x) >= std::abs(delta_y)) {
-        return (delta_x > 0) ? 2 : 1;
-    }
-    // me muevo sobre y
-    return (delta_y > 0) ? 0 : 3;
-}
-
-}  // namespace
 
 ObjectGameWorld::ObjectGameWorld(const uint16_t client_id):
     idCliente(client_id), posX(0), posY(0),
     nivelAnterior(0),
     estadoAnterior(static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)),
     vidaBajaAvisada(false), vidaAnterior(0), manaAnterior(0) {}
+
+int ObjectGameWorld::animation_row_for_delta(const int delta_x, const int delta_y, const int default_row) {
+    // No cambios en la posicion: me quedo en la fila actual.
+    if (delta_x == 0 && delta_y == 0) {
+        return default_row;
+    }
+    // Movimiento lateral.
+    if (std::abs(delta_x) >= std::abs(delta_y)) {
+        return (delta_x > 0) ? 2 : 1;
+    }
+    // Movimiento vertical.
+    return (delta_y > 0) ? 0 : 3;
+}
 
 int ObjectGameWorld::distanciaAlJugador(int x, int y) const {
     return std::max(std::abs(x - posX), std::abs(y - posY));
@@ -73,35 +70,15 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                                                  entity_position->casco};
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
-
-            if (previous_entity == entidades.end()) {
-                animation_state.previous_x = static_cast<float>(entity_position->x);
-                animation_state.previous_y = static_cast<float>(entity_position->y);
-                animation_state.current_x = static_cast<float>(entity_position->x);
-                animation_state.current_y = static_cast<float>(entity_position->y);
-                animation_state.move_start_tick = current_tick;
-            }
             if (position_changed) {
-                animation_state.animation_row = animation_row_for_delta(
+                int current_row = animation_row_for_delta(
                         static_cast<int>(entity_position->x) - previous_x,
                         static_cast<int>(entity_position->y) - previous_y,
                         animation_state.animation_row);
+                animation_state.animation_row = current_row;
                 animation_state.walk_frame += 2;  // avanza el cuadro de caminata por tile
-                // Medimos cuanto tardo este paso para que la interpolacion dure lo mismo
-                // (asi el scroll es continuo, sin saltos al iniciar el paso siguiente).
-                const uint32_t intervalo = current_tick - animation_state.move_start_tick;
-                if (intervalo >= 40 && intervalo <= 1000) {
-                    animation_state.move_interval_ms = intervalo;
-                }
                 animation_state.last_motion_tick = current_tick;
-                animation_state.previous_x = animation_state.current_x;
-                animation_state.previous_y = animation_state.current_y;
-                animation_state.current_x = static_cast<float>(entity_position->x);
-                animation_state.current_y = static_cast<float>(entity_position->y);
                 animation_state.move_start_tick = current_tick;
-            } else if (previous_entity != entidades.end()) {
-                animation_state.current_x = static_cast<float>(entity_position->x);
-                animation_state.current_y = static_cast<float>(entity_position->y);
             }
             animation_state.is_moving =
                     position_changed ||
@@ -349,26 +326,6 @@ int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
 int ObjectGameWorld::entity_walk_frame(const uint16_t entity_id) const {
     const auto it = animation_states.find(entity_id);
     return (it != animation_states.end()) ? it->second.walk_frame : 0;
-}
-
-InterpolatedPosition ObjectGameWorld::entity_interpolated_position(const uint16_t entity_id, const uint32_t current_tick) const {
-    const auto state_it = animation_states.find(entity_id);
-    const auto entity_it = entidades.find(entity_id);
-    if (state_it == animation_states.end() || entity_it == entidades.end()) {
-        return {};
-    }
-
-    const EntityAnimationState& animation_state = state_it->second;
-    const float elapsed = static_cast<float>(current_tick - animation_state.move_start_tick);
-    const float duracion = static_cast<float>(std::max<uint32_t>(1, animation_state.move_interval_ms));
-    const float alpha = std::clamp(elapsed / duracion, 0.0f, 1.0f);
-
-    return InterpolatedPosition{
-            .x = animation_state.previous_x +
-                 (animation_state.current_x - animation_state.previous_x) * alpha,
-            .y = animation_state.previous_y +
-                 (animation_state.current_y - animation_state.previous_y) * alpha,
-    };
 }
 
 void ObjectGameWorld::agregarLineaChat(const std::string& linea, TipoMensajeChat tipo) {

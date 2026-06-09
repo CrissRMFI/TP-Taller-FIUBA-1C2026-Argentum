@@ -170,14 +170,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
 
-    // Camara cenital: escala (zoom) + scroll centrado en el jugador. Todo el mundo se
-    // dibuja a traves de sx()/sy()/tileW/tileH (en vez de estirar el mapa completo).
+    // Camara cenital: escala (zoom) + scroll centrado en el jugador por tile entero.
     camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
-    // Centramos en la posicion INTERPOLADA del jugador (no el tile entero) para que el
-    // scroll de la camara sea fluido y no salte una celda por vez.
-    const InterpolatedPosition camPlayerPos =
-            state_object.entity_interpolated_position(state_object.client_id(), current_tick);
-    camera.center_on_point(camPlayerPos.x, camPlayerPos.y);
+    camera.center_on_tile(state_object.player_x(), state_object.player_y());
     const int tileW = camera.tile_width();
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
@@ -331,10 +326,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     for (const auto& [id, entity] : state_object.entities()) {
         const int cell_width = tileW;
         const int cell_height = tileH;
-        const InterpolatedPosition interpolated_position =
-                state_object.entity_interpolated_position(id, current_tick);
-        const int entity_x = scrX(interpolated_position.x);
-        const int entity_y = scrY(interpolated_position.y);
+        const int entity_x = scrX(entity.x);
+        const int entity_y = scrY(entity.y);
 
         const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
 
@@ -359,6 +352,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             }
             criatura_renderer->render(*renderer, entity, entity_x, entity_y, cell_width,
                                       cell_height, 0, 0, resaltar);
+            continue;
+        }
+        if (entity.tipo == 2) {
             continue;
         }
 
@@ -396,10 +392,13 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             it = fx_activos.erase(it);
             continue;
         }
-        const InterpolatedPosition pos =
-                state_object.entity_interpolated_position(it->targetId, current_tick);
-        const int tx = scrX(pos.x);
-        const int ty = scrY(pos.y);
+        const auto target = state_object.entities().find(it->targetId);
+        if (target == state_object.entities().end()) {
+            it = fx_activos.erase(it);
+            continue;
+        }
+        const int tx = scrX(target->second.x);
+        const int ty = scrY(target->second.y);
         try {
             SDL2pp::Texture& sheet = cache_texture->get_or_load(path);
             const int cellW = sheet.GetWidth() / frames;

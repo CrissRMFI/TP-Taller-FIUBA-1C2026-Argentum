@@ -72,7 +72,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
                                const int frame_index,
                                const bool resaltar) const {
     const auto resolved = resolver_.resolveSprite(entity);
-    const int effective_frame_index = (entity.estado == 1) ? 0 : frame_index;
+    const int effective_frame_index =
+            (entity.estado == 1 || entity.estado == 3) ? 0 : frame_index;
     int body_x = entity_x;
     int body_y = entity_y;
     int body_width = cell_width;
@@ -81,9 +82,11 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     const int anchor_y = entity_y + cell_height;
 
     if (resolved.body.has_value()) {
-        const SpriteRect body_src =
+        // Para overrides estaticos (ej. fantasma) usamos el recorte fijo del sprite
+        // y evitamos cualquier animacion basada en filas/frames del cuerpo original.
+        const SpriteRect body_src = resolved.body->src_override.value_or(
                 body_src_rect_for(*resolved.body->definition, animation_row,
-                                  effective_frame_index);
+                                  effective_frame_index));
 
         body_width = static_cast<int>(body_src.width * CHARACTER_SCALE);
         body_height = static_cast<int>(body_src.height * CHARACTER_SCALE);
@@ -91,6 +94,7 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         body_x = anchor_x - body_width / 2 + resolved.body->definition->draw_offset.x;
         body_y = anchor_y - body_height + resolved.body->definition->draw_offset.y;
         SDL_SetTextureBlendMode(resolved.body->texture->Get(), SDL_BLENDMODE_BLEND);
+
         // Resaltado: contorno verde de la silueta (cuerpo desplazado en 4 direcciones).
         if (resaltar) {
             SDL_SetTextureColorMod(resolved.body->texture->Get(), 80, 255, 120);
