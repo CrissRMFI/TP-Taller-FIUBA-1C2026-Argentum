@@ -111,6 +111,9 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             animation_states.erase(dead_entity->id);
             std::cout << "[cliente] entidad muerta: " << dead_entity->id << std::endl;
         } else if (auto* estado = std::get_if<MensajeEstadoPersonaje>(&mensaje.payload)) {
+            if (const auto it = entidades.find(idCliente); it != entidades.end()) {
+                it->second.estado = estado->estado;
+            }
             if (estado->nivel > nivelAnterior) {
                 gestorAudio.reproducirEfecto("subirNivel");
             }
