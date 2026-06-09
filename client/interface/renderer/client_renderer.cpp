@@ -267,6 +267,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object, const ObjectAni
             continue;
         }
 
+        if (entity.tipo == 2) {
+            continue;
+        }
+
         const SDL_Color color = elegircolor(entity.tipo, entity.estado);
         renderer->SetDrawColor(color.r, color.g, color.b, color.a);
         renderer->FillRect(SDL2pp::Rect(entity_x, entity_y, cell_width, cell_height));
