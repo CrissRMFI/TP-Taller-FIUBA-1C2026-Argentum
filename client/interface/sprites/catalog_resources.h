@@ -4,7 +4,10 @@
 
 #ifndef TALLER_TP_CATALOG_RESOURCES_H
 #define TALLER_TP_CATALOG_RESOURCES_H
+#include <array>
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <vector>
 
 struct SpriteRect {
