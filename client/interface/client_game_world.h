@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "client/entidad_renderizable.h"
-#include "estado_chat_render.h"
+#include "renderer/estado_chat_render.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
 

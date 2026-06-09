@@ -19,6 +19,7 @@ project(taller_tp
 set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
 set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE)
 set(SDL2PP_WITH_TTF ON CACHE BOOL "" FORCE)
+set(SDL2MIXER_VENDORED ON CACHE BOOL "" FORCE)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -116,38 +117,45 @@ if(TALLER_CLIENT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-        add_executable(taller_client
-                client/camara/player_camera.cpp
-                client/camara/player_camera.h
-                client/assets/sprite_manager.cpp
-                client/assets/client_game_world.cpp
-                client/assets/client_game_world.h
-                client/assets/client_renderer.cpp
-                client/assets/client_renderer.h
-                client/assets/object_animation.cpp
-                client/assets/object_animation.h
-                client/assets/sprite_catalog.cpp
-                client/assets/sprite_catalog.h
-                client/assets/texture_cache.cpp
-                client/assets/texture_cache.h
-                client/assets/character_renderer.cpp
-                client/assets/character_renderer.h
-                client/client_game_loop.cpp
-                client/client_game_loop.cpp
-                client/client_game_loop.h
-                client/assets/character_sprite_resolver.cpp
-                client/assets/character_sprite_resolver.h
-                client/assets/criatura_renderer.cpp
-                client/assets/criatura_renderer.h
-                client/assets/npc_renderer.cpp
-                client/assets/npc_renderer.h
-                client/assets/criatura_sprite_resolver.cpp
-                client/assets/criatura_sprite_resolver.h
-                client/assets/npc_sprite_resolver.cpp
-                client/assets/npc_sprite_resolver.h
-                client/assets/text_renderer.cpp
-                client/assets/text_renderer.h
-        )
+    add_executable(taller_client
+            client/interface/sprite_manager.cpp
+            client/interface/sprite_manager.h
+            client/interface/client_game_world.cpp
+            client/interface/client_game_world.h
+            client/interface/renderer/client_renderer.cpp
+            client/interface/renderer/client_renderer.h
+            client/interface/object_animation.cpp
+            client/interface/object_animation.h
+            client/interface/sprites/sprite_catalog.cpp
+            client/interface/sprites/sprite_catalog.h
+            client/interface/sprites/sprite_catalog_helper.cpp
+            client/interface/sprites/sprite_catalog_helper.h
+            client/interface/sprites/sprite_catalog_parser.cpp
+            client/interface/sprites/sprite_catalog_parser.h
+            client/interface/sprites/catalog_resources.h
+            client/interface/texture_cache.cpp
+            client/interface/texture_cache.h
+            client/interface/renderer/character_renderer.cpp
+            client/interface/renderer/character_renderer.h
+            client/interface/renderer/criatura_renderer.cpp
+            client/interface/renderer/criatura_renderer.h
+            client/interface/renderer/npc_renderer.cpp
+            client/interface/renderer/npc_renderer.h
+            client/interface/renderer/text_renderer.cpp
+            client/interface/renderer/text_renderer.h
+            client/interface/renderer/estado_chat_render.h
+            client/interface/renderer/estado_panel_render.h
+            client/interface/sprites_resolver/character_sprite_resolver.cpp
+            client/interface/sprites_resolver/character_sprite_resolver.h
+            client/interface/sprites_resolver/criatura_sprite_resolver.cpp
+            client/interface/sprites_resolver/criatura_sprite_resolver.h
+            client/interface/sprites_resolver/npc_sprite_resolver.cpp
+            client/interface/sprites_resolver/npc_sprite_resolver.h
+            client/camara/player_camera.cpp
+            client/camara/player_camera.h
+            client/client_game_loop.cpp
+            client/client_game_loop.h
+    )
 
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
 

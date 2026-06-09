@@ -7,7 +7,7 @@
 
 #include <SDL_pixels.h>
 
-#include "client_game_world.h"
+#include "../client_game_world.h"
 
 struct ConfigPanelRender {
     int ancho = 268;

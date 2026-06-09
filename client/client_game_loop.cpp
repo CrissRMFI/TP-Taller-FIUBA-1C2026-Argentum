@@ -16,8 +16,8 @@
 #define CLIENT_GAME_CONFIG_PATH "config/game_config.toml"
 #endif
 
-#ifndef CLIENT_ASSETS_DIR
-#define CLIENT_ASSETS_DIR "client/assets"
+#ifndef CLIENT_INTERFACE_DIR
+#define CLIENT_INTERFACE_DIR "client/interface"
 #endif
 
 ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
@@ -90,7 +90,7 @@ void ClientGameLoop::init(const char* title,
     handler.setMapaDimensiones(object_renderer.anchoMapa(), object_renderer.altoMapa());
     handler.setRadioSeleccion(static_cast<float>(config.seleccionRadioPx));
 
-    const std::string resourcesRoot = std::string(CLIENT_ASSETS_DIR) + "/../resources";
+    const std::string resourcesRoot = std::string(CLIENT_INTERFACE_DIR) + "/../resources";
     gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
                                                 resourcesRoot);
     gestorAudio->reproducirMusica("campo");

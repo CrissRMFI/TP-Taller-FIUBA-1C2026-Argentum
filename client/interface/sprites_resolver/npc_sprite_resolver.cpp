@@ -27,12 +27,12 @@ std::string NpcSpriteResolver::npc_key_from_npc(const Npc& npc) const {
 ResolvedNpcSprite NpcSpriteResolver::resolve(const Npc& npc) const {
     const auto& npc_def = catalog_.npc(npc_key_from_npc(npc));
 
-    std::optional<ResolvedNpcPart> head;
-    if (npc_def.head_path.has_value()) {
-        head = ResolvedNpcPart{
-                .texture = &cache_.get_or_load(*npc_def.head_path),
-        };
-    }
+    // std::optional<ResolvedNpcPart> head;
+    // if (npc_def.head_path.has_value()) {
+    //     head = ResolvedNpcPart{
+    //             .texture = &cache_.get_or_load(*npc_def.head_path),
+    //     };
+    // }
 
     std::optional<ResolvedNpcPart> body;
     if (npc_def.body_path.has_value()) {
@@ -42,10 +42,10 @@ ResolvedNpcSprite NpcSpriteResolver::resolve(const Npc& npc) const {
     }
 
     return ResolvedNpcSprite{
-            .head = head,
+            // .head = head,
             .body = body,
             .size = npc_def.size,
-            .src_head = npc_def.src_head,
+            // .src_head = npc_def.src_head,
             .src = npc_def.src,
             .offset = npc_def.offset,
     };
