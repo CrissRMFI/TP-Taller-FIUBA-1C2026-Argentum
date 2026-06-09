@@ -66,6 +66,8 @@ function(
       -Wduplicated-branches # warn if if / else branches have duplicated code
       -Wlogical-op # warn about logical operations being used where bitwise were probably wanted
       -Wsuggest-override # warn if an overridden member function is not marked 'override' or 'final'
+      #Se desactiva para no romper el build.
+      -Wno-dangling-reference
   )
 
   if(WARNINGS_AS_ERRORS)

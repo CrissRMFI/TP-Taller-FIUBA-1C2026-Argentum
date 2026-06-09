@@ -13,9 +13,10 @@ struct ComandoResucitar   {};
 struct ComandoTomar       {};
 struct ComandoRevisarClan {};
 struct ComandoDejarClan   {};
+struct ComandoDetenerMover {};
 
 // Comandos con payload
-struct ComandoMover { 
+struct ComandoEmpezarMover {
   uint8_t direccion;
 };
 
@@ -27,8 +28,12 @@ struct ComandoTirar {
   uint8_t indiceItem;
 };
 
-struct ComandoEquipar { 
-  uint8_t indiceItem; 
+struct ComandoEquipar {
+  uint8_t indiceItem;
+};
+
+struct ComandoUsar {
+  uint8_t indiceItem;
 };
 
 struct ComandoComprar { 
@@ -65,11 +70,21 @@ struct ComandoListar {
   uint16_t idNPC; 
 };
 
-struct ComandoCurar { 
-  uint16_t idSacerdote; 
+struct ComandoCurar {
+  uint16_t idSacerdote;
 };
 
-struct ComandoChatGlobal { 
+struct ComandoComprarHechizo {
+  uint16_t idHechizo;
+  uint16_t idSacerdote;
+};
+
+struct ComandoLanzarHechizo {
+  uint16_t idHechizo;
+  uint16_t idObjetivo;
+};
+
+struct ComandoChatGlobal {
   std::string mensaje; 
 };
 
@@ -86,8 +101,21 @@ struct ComandoUnirseClan {
   std::string nombreClan; 
 };
 
-struct ComandoGestionMiembreClan { 
-  std::string nick; 
+struct ComandoGestionMiembreClan {
+  std::string nick;
+};
+
+// Cheats de prueba (vida/mana infinitos, morir al instante). El cliente los
+// dispara por teclas; el efecto lo aplica el servidor sobre el Jugador.
+enum class TipoCheat : uint8_t {
+  VidaInfinita = 0,
+  ManaInfinito = 1,
+  MorirAuto    = 2,
+  DarOro       = 3,
+};
+
+struct ComandoCheat {
+  uint8_t tipo;
 };
 
 using PayloadComando = std::variant<
@@ -96,10 +124,12 @@ using PayloadComando = std::variant<
     ComandoTomar,
     ComandoRevisarClan,
     ComandoDejarClan,
-    ComandoMover,
+    ComandoEmpezarMover,
+    ComandoDetenerMover,
     ComandoAtacar,
     ComandoTirar,
     ComandoEquipar,
+    ComandoUsar,
     ComandoComprar,
     ComandoVender,
     ComandoDepositarItem,
@@ -108,11 +138,14 @@ using PayloadComando = std::variant<
     ComandoRetirarOro,
     ComandoListar,
     ComandoCurar,
+    ComandoComprarHechizo,
+    ComandoLanzarHechizo,
     ComandoChatGlobal,
     ComandoChatPrivado,
     ComandoFundarClan,
     ComandoUnirseClan,
-    ComandoGestionMiembreClan
+    ComandoGestionMiembreClan,
+    ComandoCheat
 >;
 
 struct ComandoJugador {

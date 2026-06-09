@@ -1,0 +1,305 @@
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QmlCppExample
+
+Window {
+    minimumWidth: 640
+    minimumHeight: 480
+    maximumWidth: minimumWidth
+    maximumHeight: minimumHeight
+    visible: true
+    title: qsTr("Seleccion de Personaje")
+
+    property string raza: "Humano"
+    property string clase: "Mago"
+
+    property var skinCatalog: [
+        {
+            raza: "Humano",
+            cabezaInicio: 2000,
+            cabezaFin: 2002,
+            cuerpoInicio: 2100,
+            cuerpoFin: 2100,
+            cuerpoClipRect: Qt.rect(0, 7, 25, 38),
+            cuerpoHeight: 64
+        },
+        {
+            raza: "Elfo",
+            cabezaInicio: 2010,
+            cabezaFin: 2012,
+            cuerpoInicio: 2110,
+            cuerpoFin: 2110,
+            cuerpoClipRect: Qt.rect(0, 7, 25, 38),
+            cuerpoHeight: 64
+        },
+        {
+            raza: "Enano",
+            cabezaInicio: 2020,
+            cabezaFin: 2022,
+            cuerpoInicio: 2120,
+            cuerpoFin: 2120,
+            cuerpoClipRect: Qt.rect(0, 15, 25, 28),
+            cuerpoHeight: 50
+        },
+        {
+            raza: "Gnomo",
+            cabezaInicio: 2030,
+            cabezaFin: 2031,
+            cuerpoInicio: 2130,
+            cuerpoFin: 2130,
+            cuerpoClipRect: Qt.rect(0, 15, 25, 28),
+            cuerpoHeight: 50
+        }
+    ]
+
+    property int cabezaIndex: 2000
+    property int cuerpoIndex: 2100
+
+    function skinParaRaza(nombreRaza) {
+        for (let i = 0; i < skinCatalog.length; ++i) {
+            if (skinCatalog[i].raza === nombreRaza) {
+                return skinCatalog[i]
+            }
+        }
+
+        return skinCatalog[0]
+    }
+
+    function circularIndex(actual, inicio, fin, delta) {
+        if (delta < 0) {
+            return actual > inicio ? actual - 1 : fin
+        }
+
+        return actual < fin ? actual + 1 : inicio
+    }
+
+    function resetSkinSeleccionada() {
+        const skin = skinParaRaza(raza)
+        cabezaIndex = skin.cabezaInicio
+        cuerpoIndex = skin.cuerpoInicio
+    }
+
+    function rotarCabeza(delta) {
+        const skin = skinParaRaza(raza)
+        cabezaIndex = circularIndex(cabezaIndex, skin.cabezaInicio, skin.cabezaFin, delta)
+    }
+
+    function rotarCuerpo(delta) {
+        const skin = skinParaRaza(raza)
+        cuerpoIndex = circularIndex(cuerpoIndex, skin.cuerpoInicio, skin.cuerpoFin, delta)
+    }
+
+    Component.onCompleted: resetSkinSeleccionada()
+    onRazaChanged: resetSkinSeleccionada()
+
+    Image {
+        id: background
+        source: "../graficos/ElecciónPersonaje.png"
+        anchors.fill: parent
+    }
+
+    component ImageButton: Image {
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+    }
+
+    component ErrorText: Text {
+        width: 300
+        height: 30
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "red"
+        visible: text !== ""
+    }
+
+    component LabelText: Text {
+        color: "white"
+    }
+
+    TextField {
+        id: nickInput
+        x: parent.width / 5 * 2 - width / 2
+        y: parent.height / 4 - height / 2
+        width: 230
+        height: 30
+        placeholderText: qsTr("Ingrese su nick")
+        background: Rectangle {
+            color: "transparent"
+            border.color: "white"
+        }
+        text: ""
+    }
+
+    LabelText {
+        x: nickInput.x
+        y: nickInput.y - 24
+        text: qsTr("NUEVO NOMBRE:")
+    }
+
+    LabelText {
+        x: nickInput.x
+        y: 202
+        text: qsTr("RAZA:")
+    }
+
+    ComboBox {
+        id: razaDesplegable
+        x: nickInput.x
+        y: 226
+        width: 150
+        model: ["Humano", "Elfo", "Enano", "Gnomo"]
+        currentIndex: 0
+        onCurrentTextChanged: raza = currentText
+    }
+
+    LabelText {
+        x: nickInput.x
+        y: 286
+        text: qsTr("CLASE:")
+    }
+
+    ComboBox {
+        id: claseDesplegable
+        x: nickInput.x
+        y: 310
+        width: 150
+        model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
+        currentIndex: 0
+        onCurrentTextChanged: clase = currentText
+    }
+
+    LabelText {
+        x: 430
+        y: 202
+        text: qsTr("SKIN:")
+    }
+
+    Image {
+        id: characterHead
+        x: 457
+        y: 236
+        width: 32
+        height: 30
+        smooth: false
+        sourceClipRect: Qt.rect(0, 0, 16, 15)
+        source: personajeController.rutaCabezaPreview(cabezaIndex)
+    }
+
+    ImageButton {
+        id: headLeftButton
+        x: characterHead.x - 30
+        y: characterHead.y
+        width: 20
+        height: 30
+        source: "../graficos/leftArrow.png"
+        TapHandler {
+            onTapped: rotarCabeza(-1)
+        }
+    }
+
+    ImageButton {
+        id: headRightButton
+        x: characterHead.x + characterHead.width + 10
+        y: characterHead.y
+        width: 20
+        height: 30
+        source: "../graficos/rightArrow.png"
+        TapHandler {
+            onTapped: rotarCabeza(1)
+        }
+    }
+
+    Image {
+        id: characterBody
+        x: 449
+        y: characterHead.y + characterHead.height
+        width: 50
+        height: skinParaRaza(raza).cuerpoHeight
+        smooth: false
+        sourceClipRect: skinParaRaza(raza).cuerpoClipRect
+        source: personajeController.rutaCuerpoPreview(cuerpoIndex)
+    }
+
+    ImageButton {
+        id: bodyLeftButton
+        x: headLeftButton.x
+        y: characterBody.y + 12
+        width: 20
+        height: 30
+        source: "../graficos/leftArrow.png"
+        TapHandler {
+            onTapped: rotarCuerpo(-1)
+        }
+    }
+
+    ImageButton {
+        id: bodyRightButton
+        x: headRightButton.x
+        y: characterBody.y + 12
+        width: 20
+        height: 30
+        source: "../graficos/rightArrow.png"
+        TapHandler {
+            onTapped: rotarCuerpo(1)
+        }
+    }
+
+    ErrorText {
+        id: nickErrorText
+        x: nickInput.x + nickInput.width / 2 - width / 2
+        y: nickInput.y + nickInput.height - 2
+        text: ""
+    }
+
+    ErrorText {
+        id: generalErrorText
+        x: parent.width / 2 - width / 2
+        y: crearPersonajeButton.y - height - 5
+        text: ""
+    }
+
+    ImageButton {
+        id: crearPersonajeButton
+        x: 369
+        y: 420
+        width: 205
+        height: 50
+        source: "../graficos/crearPersonajeButton.png"
+        TapHandler {
+            onTapped: {
+                if (nickInput.text !== "" && raza !== "" && clase !== "") {
+                    const esNickValido = personajeController.esNickValido(nickInput.text)
+
+                    nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
+    
+                    if (!esNickValido) {
+                        return
+                    }
+
+                    generalErrorText.text = ""
+                    personajeController.setRaza(raza)
+                    personajeController.setClase(clase)
+                    personajeController.setNick(nickInput.text)
+                    personajeController.setCabeza(cabezaIndex)
+                    personajeController.setCuerpo(cuerpoIndex)
+                } else {
+                    generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
+                }
+            }
+        }
+    }
+
+    ImageButton {
+        id: volverButton
+        x: crearPersonajeButton.x - parent.width / 2 + 2
+        y: 420
+        width: 210
+        height: 47
+        source: "../graficos/VolverButton.png"
+        TapHandler {
+            onTapped: personajeController.volverAlMenu()
+        }
+    }
+}

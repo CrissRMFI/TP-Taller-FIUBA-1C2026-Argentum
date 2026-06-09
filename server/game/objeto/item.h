@@ -21,11 +21,19 @@ public:
     uint16_t getId() const { return idItem; }
     TipoItem getTipo() const { return tipo; }
     const std::string& getNombre() const { return nombre; }
+    // Sprite overlay que el item muestra al equiparse (arma/escudo/casco). 0 = ninguno.
+    void setSpriteEquip(uint16_t sprite) { spriteEquip = sprite; }
+    uint16_t getSpriteEquip() const { return spriteEquip; }
+    // Sprite de la animacion de ataque (swing) de esta arma. 0 = ninguno.
+    void setSpriteAtaque(uint16_t sprite) { spriteAtaque = sprite; }
+    uint16_t getSpriteAtaque() const { return spriteAtaque; }
 
 private:
     uint16_t idItem;
     std::string nombre;
     TipoItem tipo;
+    uint16_t spriteEquip = 0;
+    uint16_t spriteAtaque = 0;
 };
 
 class Arma : public Item {
@@ -64,17 +72,21 @@ private:
 
 class Defensa : public Item {
 public:
-    Defensa(uint16_t id, const std::string& nombre, uint8_t defMin, uint8_t defMax, TipoDefensa slot)
-        : Item(id, nombre, TipoItem::Defensa), defMin(defMin), defMax(defMax), slot(slot) {}
+    Defensa(uint16_t id, const std::string& nombre, uint8_t defMin, uint8_t defMax, TipoDefensa slot,
+            uint16_t spriteCuerpo = 0)
+        : Item(id, nombre, TipoItem::Defensa), defMin(defMin), defMax(defMax), slot(slot),
+          spriteCuerpo(spriteCuerpo) {}
 
     uint8_t getDefMin() const { return defMin; }
     uint8_t getDefMax() const { return defMax; }
     TipoDefensa getSlot() const { return slot; }
+    uint16_t getSpriteCuerpo() const { return spriteCuerpo; }
 
 private:
     uint8_t defMin;
     uint8_t defMax;
     TipoDefensa slot;
+    uint16_t spriteCuerpo;
 };
 
 class Pocion : public Item {

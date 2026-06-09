@@ -1,29 +1,24 @@
 #ifndef LECTOR_CONFIG_TOML_H
 #define LECTOR_CONFIG_TOML_H
 
-#include <map>
 #include <string>
 
-#include "i_lector_configuracion.h"
+#include <toml++/toml.hpp>
 
-class ParserTOML {
-    std::map<std::string, std::string> datos;
-
-    static std::string trim(const std::string& s);
-    static std::string sinComentario(const std::string& linea);
-
-public:
-    void  parsear(const std::string& ruta);
-    float getFloat(const std::string& clave, float defecto) const;
-    int   getInt(const std::string& clave, int defecto) const;
-    bool  getBool(const std::string& clave, bool defecto) const;
-};
+#include "config_completa.h"
+#include "./ilector_configuracion.h"
 
 class LectorConfigToml : public ILectorConfiguracion {
-    static StatsRaza cargarRaza(const ParserTOML& p, const std::string& nombre);
-
 public:
-    ConfigJuego cargar(const std::string& ruta) override;
+    ConfigCompleta cargar(const std::string& ruta) override;
+
+private:
+    // Lee y valida el bloque [mapa.spawn] dejando el resultado en cfg.spawnInicial. Aislado para no engordar cargar() y para tener un lugar donde crezca la validacion (por ejemplo, evitar paredes/zonas no seguras) sin romper la firma publica.
+    void cargarSpawn(const toml::table& tbl, ConfigJuego& cfg);
+
+    // Lee el stock por tipo de NPC ([npcs.comerciante] y [npcs.sacerdote])
+    // dejando los items en cfg.stockComerciante / cfg.stockSacerdote.
+    void cargarStockNpcs(const toml::table& tbl, ConfigJuego& cfg);
 };
 
 #endif

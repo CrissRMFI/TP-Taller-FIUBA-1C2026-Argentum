@@ -1,39 +1,38 @@
-#include "common/foo.h"
-
 #include <iostream>
 #include <exception>
+#include <SDL.h>
+#include <cstdio>
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
+#include "client__.h"
+#include <SDL2pp/Renderer.hh>
+
+#include "client_game_loop.h"
+#include "../common/thread/queue.h"
+#include "SDL2pp/SDL.hh"
+#include "SDL2pp/Window.hh"
+#include "Qt/conectionController.h"
 
 using namespace SDL2pp;
 
-int main() try {
-	// Initialize SDL library
-	SDL sdl(SDL_INIT_VIDEO);
+int main(int argc, char* argv[]){
+	try
+	{
+		ConnectionController connectionController;
+		return connectionController.run(argc, argv);
+	}
+	catch (const std::exception& e) {
+        std::cerr << "Error fatal: " << e.what() << std::endl;
+        return 1;
+	}
 
-	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-	Window window("SDL2pp demo",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			640, 480,
-			SDL_WINDOW_RESIZABLE);
+/*
+ * Game loop ---> que queremos hacer?
+ * manejar inputs cliente/usuario
+ * updatear tdo objeto (posicion, vestimenta, etc)
+ * render cambia display
+ *
 
-	// Create accelerated video renderer with default driver
-	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-	// Clear screen
-	renderer.Clear();
-
-	// Show rendered frame
-	renderer.Present();
-
-	// 5 second delay
-	SDL_Delay(5000);
 
 	// Here all resources are automatically released and library deinitialized
-	return 0;
-} catch (std::exception& e) {
-	// If case of error, print it and exit with error
-	std::cerr << e.what() << std::endl;
-	return 1;
+ */
 }

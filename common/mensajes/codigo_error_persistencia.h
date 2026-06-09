@@ -1,0 +1,19 @@
+#ifndef CODIGO_ERROR_PERSISTENCIA_H
+#define CODIGO_ERROR_PERSISTENCIA_H
+
+#include <cstdint>
+
+enum class CodigoErrorPersistencia : uint8_t {
+    NO_SE_PUEDE_ABRIR_ARCHIVO = 0,
+    NO_SE_PUEDE_ESCRIBIR = 1,
+    NO_SE_PUEDE_RENOMBRAR = 2,
+    EOF_PREMATURO = 3,
+    BYTES_EXTRA = 4,
+    DIMENSIONES_INVALIDAS = 5,
+    REGISTRO_INVALIDO = 6,
+    NPC_DUPLICADO_O_INVALIDO = 7,
+    TOML_MAL_FORMADO = 8,
+    CLAVE_FALTANTE = 9,
+};
+
+#endif

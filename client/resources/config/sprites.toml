@@ -1,0 +1,856 @@
+# Presets de seleccion de personaje
+[skins.humano_default]
+head_ids = [2000, 2001, 2002]
+body_ids = [2100]
+
+[skins.elfo_default]
+head_ids = [2010, 2011, 2012]
+body_ids = [2110]
+
+[skins.enano_default]
+head_ids = [2020, 2021, 2022]
+body_ids = [2120]
+
+[skins.gnomo_default]
+head_ids = [2030, 2031]
+body_ids = [2130]
+
+
+# Catalogo de partes de personaje por id de protocolo
+[character_parts.heads.2000]
+path = "imgs/personajes/cabezas/2000.png"
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+draw_offset = [0,0]
+
+[character_parts.heads.2000.directions.down]
+col = 0
+
+[character_parts.heads.2000.directions.left]
+col = 2
+
+[character_parts.heads.2000.directions.right]
+col = 1
+
+[character_parts.heads.2000.directions.up]
+col = 3
+
+[character_parts.heads.2001]
+path = "imgs/personajes/cabezas/2001.png"
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+draw_offset = [0,0]
+
+[character_parts.heads.2001.directions.down]
+col = 0
+
+[character_parts.heads.2001.directions.left]
+col = 2
+
+[character_parts.heads.2001.directions.right]
+col = 1
+
+[character_parts.heads.2001.directions.up]
+col = 3
+
+[character_parts.heads.2002]
+path = "imgs/personajes/cabezas/2002.png"
+src_head = [3,1, 11, 14]
+frame_size = [17,14]
+draw_offset = [0,0]
+
+[character_parts.heads.2002.directions.down]
+col = 0
+
+[character_parts.heads.2002.directions.left]
+col = 2
+
+[character_parts.heads.2002.directions.right]
+col = 1
+
+[character_parts.heads.2002.directions.up]
+col = 3
+
+[character_parts.heads.2010]
+path = "imgs/personajes/cabezas/2010.png"
+src_head = [1,1, 15, 15]
+frame_size = [17, 15]
+draw_offset = [1,1]
+
+[character_parts.heads.2010.directions.down]
+col = 0
+
+[character_parts.heads.2010.directions.left]
+col = 2
+
+[character_parts.heads.2010.directions.right]
+col = 1
+
+[character_parts.heads.2010.directions.up]
+col = 3
+
+[character_parts.heads.2011]
+path = "imgs/personajes/cabezas/2011.png"
+src_head = [1,1, 15, 15]
+frame_size = [17, 15]
+draw_offset = [1,1]
+
+[character_parts.heads.2011.directions.down]
+col = 0
+
+[character_parts.heads.2011.directions.left]
+col = 2
+
+[character_parts.heads.2011.directions.right]
+col = 1
+
+[character_parts.heads.2011.directions.up]
+col = 3
+
+[character_parts.heads.2012]
+path = "imgs/personajes/cabezas/2012.png"
+src_head = [1,1, 15, 15]
+frame_size = [17, 15]
+draw_offset = [1,1]
+
+[character_parts.heads.2012.directions.down]
+col = 0
+
+[character_parts.heads.2012.directions.left]
+col = 2
+
+[character_parts.heads.2012.directions.right]
+col = 1
+
+[character_parts.heads.2012.directions.up]
+col = 3
+
+[character_parts.heads.2020]
+path = "imgs/personajes/cabezas/2020.png"
+src_head = [4,2, 13, 17]
+frame_size = [17,17]
+draw_offset = [-2,8]
+
+[character_parts.heads.2020.directions.down]
+col = 0
+
+[character_parts.heads.2020.directions.left]
+col = 2
+
+[character_parts.heads.2020.directions.right]
+col = 1
+
+[character_parts.heads.2020.directions.up]
+col= 3
+
+[character_parts.heads.2021]
+path = "imgs/personajes/cabezas/2021.png"
+src_head = [4,3, 9, 14]
+frame_size = [13,14]
+draw_offset = [-2,8]
+
+[character_parts.heads.2021.directions.down]
+col = 0
+
+[character_parts.heads.2021.directions.left]
+col = 2
+
+[character_parts.heads.2021.directions.right]
+col = 1
+
+[character_parts.heads.2021.directions.up]
+col = 3
+
+[character_parts.heads.2022]
+path = "imgs/personajes/cabezas/2022.png"
+src_head = [4,3, 9, 13]
+frame_size = [13, 13]
+draw_offset = [0,8]
+
+[character_parts.heads.2022.directions.down]
+col = 0
+
+[character_parts.heads.2022.directions.left]
+col = 2
+
+[character_parts.heads.2022.directions.right]
+col = 1
+
+[character_parts.heads.2022.directions.up]
+col = 3
+
+[character_parts.heads.2030]
+path = "imgs/personajes/cabezas/2030.png"
+src_head = [3,3, 11, 12]
+frame_size  = [17, 12]
+draw_offset = [0,0]
+
+[character_parts.heads.2030.directions.down]
+col = 0
+
+[character_parts.heads.2030.directions.left]
+col = 2
+
+[character_parts.heads.2030.directions.right]
+col = 1
+
+[character_parts.heads.2030.directions.up]
+col = 3
+
+[character_parts.heads.2031]
+path = "imgs/personajes/cabezas/2031.png"
+src_head = [3,3, 11, 12]
+frame_size = [17,12]
+draw_offset = [0,0]
+
+[character_parts.heads.2031.directions.down]
+col = 0
+
+[character_parts.heads.2031.directions.left]
+col = 2
+
+[character_parts.heads.2031.directions.right]
+col = 1
+
+[character_parts.heads.2031.directions.up]
+col = 3
+
+[character_parts.bodies.2100]
+path = "imgs/personajes/cuerpos/2100.png"
+src_body = [4, 6,17, 37]
+frame_size = [25, 45]
+
+[character_parts.bodies.2100.rows.down]
+row = 0
+y = 6
+frames = 4
+step_x = 4
+
+[character_parts.bodies.2100.rows.left]
+row = 2
+y = 6
+frames = 4
+step_x = 4
+
+[character_parts.bodies.2100.rows.right]
+row = 3
+y = 6
+frames = 4
+step_x = 4
+
+[character_parts.bodies.2100.rows.up]
+row = 1
+y = 6
+frames = 4
+step_x = 4
+
+[character_parts.bodies.2110]
+path = "imgs/personajes/cuerpos/2110.png"
+src_body = [4, 6, 17, 37]
+frame_size = [25, 45]
+
+[character_parts.bodies.2110.rows.down]
+y = 6
+frames = 4
+step_x = 4
+row = 0
+
+[character_parts.bodies.2110.rows.left]
+y = 6
+frames = 4
+step_x = 4
+row = 2
+
+[character_parts.bodies.2110.rows.right]
+y = 6
+frames = 4
+step_x = 4
+row = 3
+
+[character_parts.bodies.2110.rows.up]
+y = 6
+frames = 4
+step_x = 4
+row = 1
+
+[character_parts.bodies.2120]
+path = "imgs/personajes/cuerpos/2120.png"
+src_body = [4,15,17,28]
+frame_size = [25, 43]
+
+[character_parts.bodies.2120.rows.down]
+y = 15
+frames = 4
+step_x = 4
+row = 0
+
+[character_parts.bodies.2120.rows.left]
+y = 15
+frames = 4
+step_x = 4
+row = 2
+
+[character_parts.bodies.2120.rows.right]
+y = 15
+frames = 4
+step_x = 4
+row = 3
+
+[character_parts.bodies.2120.rows.up]
+y = 15
+frames = 4
+step_x = 4
+row = 1
+
+[character_parts.bodies.2130]
+path = "imgs/personajes/cuerpos/2130.png"
+src_body = [5, 16, 17, 28]
+frame_size = [25, 44]
+
+[character_parts.bodies.2130.rows.down]
+y = 17
+frames = 4
+step_x = 5
+row = 0
+
+[character_parts.bodies.2130.rows.left]
+y = 17
+frames = 4
+step_x = 5
+row = 2
+
+[character_parts.bodies.2130.rows.right]
+y = 17
+frames = 4
+step_x = 5
+row = 3
+
+[character_parts.bodies.2130.rows.up]
+y = 17
+frames = 4
+step_x = 5
+row = 1
+
+
+# Overrides por estado
+[states.fantasma]
+#body_path = "imgs/10141.png"
+#size = [53, 52]
+#src = [0, 0, 53, 52]
+body_path = "imgs/fantasma.png"
+size = [22, 51]
+src = [6, 0, 22, 51]
+
+
+# Catalogo de criaturas
+[creatures.arana]
+id = 2203
+part = "body"
+path = "imgs/criaturas/arana.png"
+src = [7, 30, 50, 34]
+size = [47, 32]
+offset = [0, 0]
+
+[creatures.goblin]
+id = 2200
+part = "body"
+path = "imgs/criaturas/goblin.png"
+src = [3, 6, 18, 25]
+size = [27, 38]
+offset = [0, 0]
+
+[creatures.esqueleto]
+id = 2201
+part = "body"
+path = "imgs/criaturas/esqueleto.png"
+src = [10, 19, 12, 29]
+size = [17, 42]
+offset = [0, 0]
+
+[creatures.golem]
+id = 2205
+part = "body"
+path = "imgs/criaturas/golem.png"
+src = [11, 13, 73, 73]
+size = [55, 55]
+offset = [0, 0]
+
+[creatures.orco]
+id = 2204
+part = "body"
+path = "imgs/criaturas/orco.png"
+src = [20, 1, 105, 174]
+size = [42, 70]
+offset = [0, 0]
+
+[creatures.zombie]
+id = 2202
+part = "body"
+path = "imgs/criaturas/zombie.png"
+src = [5, 2, 15, 43]
+size = [15, 44]
+offset = [0, 0]
+
+
+# Catalogo de NPCs
+[npcs.comerciante]
+body_path = "imgs/npc/comerciantes/4071.png"
+size = [19, 44]
+src = [5, 1, 19, 44]
+offset = [0, 0]
+
+[npcs.sacerdote]
+body_path = "imgs/10141.png"
+size = [16, 48]
+src = [19, 0, 16, 48]
+offset = [0, 0]
+
+[npcs.banquero]
+body_path = "imgs/npc/banqueros/4057.png"
+size = [17, 44]
+src = [5, 1, 17, 44]
+offset = [0, 0]
+
+
+# --- Cuerpos de armaduras (vestimenta). Grid AO medido por sprite. ---
+[character_parts.bodies.1084]
+path = "imgs/personajes/cuerpos/1084.png"
+src_body = [5, 17, 17, 28]
+frame_size = [27, 47]
+visible_size = [17, 28]
+visible_offset = [0, 0]
+[character_parts.bodies.1084.rows.down]
+row = 0
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.up]
+row = 1
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.left]
+row = 2
+y = 17
+frames = 6
+step_x = 5
+[character_parts.bodies.1084.rows.right]
+row = 3
+y = 17
+frames = 6
+step_x = 5
+
+[character_parts.bodies.1080]
+path = "imgs/personajes/cuerpos/1080.png"
+src_body = [5, 16, 17, 30]
+frame_size = [27, 47]
+visible_size = [17, 30]
+visible_offset = [0, 0]
+[character_parts.bodies.1080.rows.down]
+row = 0
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.up]
+row = 1
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.left]
+row = 2
+y = 16
+frames = 6
+step_x = 5
+[character_parts.bodies.1080.rows.right]
+row = 3
+y = 16
+frames = 6
+step_x = 5
+
+[character_parts.bodies.1074]
+path = "imgs/personajes/cuerpos/1074.png"
+src_body = [5, 7, 17, 38]
+frame_size = [27, 47]
+visible_size = [17, 38]
+visible_offset = [0, 0]
+[character_parts.bodies.1074.rows.down]
+row = 0
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.up]
+row = 1
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.left]
+row = 2
+y = 7
+frames = 6
+step_x = 5
+[character_parts.bodies.1074.rows.right]
+row = 3
+y = 7
+frames = 6
+step_x = 5
+
+# --- Armas (overlay de vestimenta). Celda completa AO (el arma esta posicionada en la mano). ---
+[character_parts.bodies.2095]
+path = "imgs/personajes/armas/2095.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2095.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2095.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+# --- Baculos (overlay al equipar; mismo layout que las armas) ---
+[character_parts.bodies.2009]
+path = "imgs/personajes/armas/2009.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2009.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2009.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2010]
+path = "imgs/personajes/armas/2010.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2010.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2010.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2087]
+path = "imgs/personajes/armas/2087.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2087.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2087.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2106]
+path = "imgs/personajes/armas/2106.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2106.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2106.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2085]
+path = "imgs/personajes/armas/2085.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2085.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2085.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2084]
+path = "imgs/personajes/armas/2084.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2084.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2084.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2035]
+path = "imgs/personajes/armas/2035.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2035.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2035.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2036]
+path = "imgs/personajes/armas/2036.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2036.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2036.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+# --- Escudos (overlay de vestimenta). Celda completa AO. ---
+[character_parts.bodies.2327]
+path = "imgs/personajes/cuerpos/2327.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2327.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2327.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+[character_parts.bodies.2303]
+path = "imgs/personajes/cuerpos/2303.png"
+src_body = [0, 0, 27, 47]
+frame_size = [27, 47]
+visible_size = [27, 47]
+visible_offset = [0, 0]
+[character_parts.bodies.2303.rows.down]
+row = 0
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.up]
+row = 1
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.left]
+row = 2
+y = 0
+frames = 6
+step_x = 1
+[character_parts.bodies.2303.rows.right]
+row = 3
+y = 0
+frames = 6
+step_x = 1
+
+# --- Cascos (overlay sobre la cabeza). Extraidos de cascos.ini/graficos.ind. ---
+[character_parts.heads.39]
+path = "imgs/personajes/cascos/39.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.39.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.39.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.39.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.39.directions.right]
+col = 3
+src = [81, 0, 27, 32]
+
+[character_parts.heads.37]
+path = "imgs/personajes/cascos/37.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.37.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.37.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.37.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.37.directions.right]
+col = 3
+src = [81, 0, 27, 32]
+
+[character_parts.heads.54]
+path = "imgs/personajes/cascos/54.png"
+src_head = [0, 0, 27, 32]
+frame_size = [27, 32]
+visible_size = [27, 32]
+visible_offset = [0, 0]
+draw_offset = [0, -6]
+[character_parts.heads.54.directions.down]
+col = 0
+src = [0, 0, 27, 32]
+[character_parts.heads.54.directions.up]
+col = 1
+src = [27, 0, 27, 32]
+[character_parts.heads.54.directions.left]
+col = 2
+src = [54, 0, 27, 32]
+[character_parts.heads.54.directions.right]
+col = 3
+src = [81, 0, 27, 32]

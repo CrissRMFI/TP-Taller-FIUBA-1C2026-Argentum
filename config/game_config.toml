@@ -5,11 +5,20 @@
 # ============================================================
 
 [servidor]
-# a definir
 #puerto          = 7666
-#tick_ms         = 100        # Cada cuántos ms se actualiza el mundo
+tick_ms          = 130        # Cada cuántos ms se actualiza el mundo (= velocidad de caminata por celda)
+movimiento_jugador_ticks = 1  # Cada cuántos ticks el jugador avanza una celda mientras se mueve
 #max_jugadores   = 300
-#guardado_seg    = 60         # Cada cuántos segundos se persiste el estado
+
+# ------------------------------------------------------------
+[persistencia]
+# Persistencia de jugadores: dos archivos binarios. 'archivo_jugadores' guarda
+# los RegistroJugador (struct de tamaño fijo) y 'archivo_indice' el diccionario
+# nombre -> offset. El servidor carga el progreso al conectar y lo guarda al
+# desconectar, periodicamente y al apagarse.
+archivo_jugadores = "config/jugadores.bin"
+archivo_indice    = "config/jugadores_indice.bin"
+guardado_seg      = 60         # Cada cuántos segundos se persiste a los conectados (0 = desactivado)
 
 # ------------------------------------------------------------
 [vida]
@@ -76,12 +85,14 @@ limite_base   = 1000
 limite_exp    = 1.8          # Limite = 1000 * nivel^1.8
 bonus_nivel   = 10           # max(NivelOtro - Nivel + 10, 0)
 exp_kill_max  = 0.1          # rand(0, 0.1) * VidaMaxOtro * factor
-
+exp_perdida_muerte_pct = 0.10
 # ------------------------------------------------------------
 [oro]
-max_exp       = 1.1          # OroMax = 100 * nivel^1.1
+max_exp       = 1.1          # OroMax = base * nivel^1.1
 exceso_pct    = 0.50         # Puede tener hasta 50% extra "en exceso"
 drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
+# Subimos a 10000 para ver como se comporta con nuestro cheat, luego lo bajamos a 100
+oro_max_base = 100000.0
 
 # ------------------------------------------------------------
 [combate]
@@ -92,86 +103,257 @@ drop_npc_max  = 0.2          # rand(0, 0.2) * VidaMaxNPC
 
 # Esquivar: rand(0,1)^agilidad < umbral
 esquivar_umbral = 0.001
+probabilidad_critico = 0.10
+
+# Tiempo minimo de enfriamiento (en segundos) entre dos ataques de un mismo
+# jugador. Limita el ritmo de golpe para evitar el spam de ataques.
+cooldown_ataque_seg = 0.5
+
+# Alcance máximo en celdas (distancia Manhattan) para armas a distancia
+# y hechizos de báculo (regla 5.3).
+rango_vision_ataque = 12
+
+# Alcance (en celdas, distancia Manhattan) del ataque cuerpo a cuerpo: armas de
+# melee (espada/hacha/martillo) y puño. 1 = solo casillas adyacentes.
+rango_ataque_cuerpo = 4
+
+# ------------------------------------------------------------
+[inventario]
+max_items = 20
 
 # ------------------------------------------------------------
 [items]
-# se podria definir también la cant total de items que el usuario puede tener
+# Tiempo que permanece un item tirado en el suelo antes de desaparecer
+tiempo_suelo_seg = 60
+
+# tipo: "arma" | "arma_distancia" | "baculo" | "armadura" | "casco" | "escudo" | "pocion_vida" | "pocion_mana"
+# hechizo (solo baculo): "misil" | "explosion" | "curar" | "flecha_magica"
+
 # Armas cuerpo a cuerpo
+# sprite_equip: overlay que muestra el personaje al equiparla (sprites.toml bodies.<id>).
 [items.espada]
+id        = 1
+tipo      = "arma"
 danio_min = 2
 danio_max = 5
+sprite_equip = 2095
+sprite_ataque = 2110
 
 [items.hacha]
+id        = 2
+tipo      = "arma"
 danio_min = 4
 danio_max = 5
+sprite_equip = 2085
+sprite_ataque = 2048
 
 [items.martillo]
+id        = 3
+tipo      = "arma"
 danio_min = 1
 danio_max = 9
+sprite_equip = 2084
+sprite_ataque = 2048
 
 # Armas a distancia
 [items.arco_simple]
+id        = 4
+tipo      = "arma_distancia"
 danio_min = 1
 danio_max = 4
+sprite_equip = 2035
+sprite_ataque = 2017
 
 [items.arco_compuesto]
+id        = 5
+tipo      = "arma_distancia"
 danio_min = 4
 danio_max = 16
+sprite_equip = 2036
+sprite_ataque = 2017
 
-# Hechizos / báculos
+# Báculos
 [items.vara_fresno]
+id         = 6
+tipo       = "baculo"
+hechizo    = "misil"
 danio_min  = 2
 danio_max  = 4
 costo_mana = 5
+sprite_equip = 2009
 
 [items.baculo_nudoso]
+id         = 7
+tipo       = "baculo"
+hechizo    = "misil"
 danio_min  = 4
 danio_max  = 8
 costo_mana = 15
+sprite_equip = 2010
 
 [items.baculo_engarzado]
+id         = 8
+tipo       = "baculo"
+hechizo    = "explosion"
 danio_min  = 8
 danio_max  = 20
 costo_mana = 30
+sprite_equip = 2087
 
 [items.flauta_elfica]
-cura_vida  = true
+id         = 9
+tipo       = "baculo"
+hechizo    = "curar"
+danio_min  = 0
+danio_max  = 0
 costo_mana = 100
+sprite_equip = 2106
 
 # Armaduras
+# sprite_cuerpo: cuerpo (vestimenta) que muestra el personaje al equiparla. Contrato con
+# el cliente (sprites.toml -> character_parts.bodies.<id>).
 [items.armadura_cuero]
+id          = 10
+tipo        = "armadura"
 defensa_min = 2
 defensa_max = 6
+sprite_cuerpo = 1084
 
 [items.armadura_placas]
+id          = 11
+tipo        = "armadura"
 defensa_min = 15
 defensa_max = 30
+sprite_cuerpo = 1080
 
 [items.tunica_azul]
+id          = 12
+tipo        = "armadura"
 defensa_min = 6
 defensa_max = 10
+sprite_cuerpo = 1074
 
-# Cascos
+# Cascos (sprite_equip: overlay sobre la cabeza)
 [items.capucha]
+id          = 13
+tipo        = "casco"
 defensa_min = 1
 defensa_max = 4
+sprite_equip = 39
 
 [items.casco_hierro]
+id          = 14
+tipo        = "casco"
 defensa_min = 4
 defensa_max = 8
+sprite_equip = 37
 
 [items.sombrero_magico]
+id          = 15
+tipo        = "casco"
 defensa_min = 4
 defensa_max = 12
+sprite_equip = 54
 
-# Escudos
+# Escudos (sprite_equip: overlay sobre el cuerpo)
 [items.escudo_tortuga]
+id          = 16
+tipo        = "escudo"
 defensa_min = 1
 defensa_max = 2
+sprite_equip = 2303
 
 [items.escudo_hierro]
+id          = 17
+tipo        = "escudo"
 defensa_min = 1
 defensa_max = 4
+sprite_equip = 2327
+
+# Pociones
+[items.pocion_vida_chica]
+id      = 18
+tipo    = "pocion_vida"
+cantidad = 50
+
+[items.pocion_vida_grande]
+id      = 19
+tipo    = "pocion_vida"
+cantidad = 150
+
+[items.pocion_mana_chica]
+id      = 20
+tipo    = "pocion_mana"
+cantidad = 50
+
+[items.pocion_mana_grande]
+id      = 21
+tipo    = "pocion_mana"
+cantidad = 150
+
+# ------------------------------------------------------------
+# Hechizos: el sacerdote los vende y el jugador los lanza sobre un objetivo (salvo el
+# Guerrero, que no usa magia). tipo: "danio" | "cura". min/max = puntos de daño o curacion.
+# El cliente dibuja el icono imgs/hechizos/<id>.png.
+[hechizos.dardo_magico]
+id     = 1
+nombre = "Dardo Magico"
+tipo   = "danio"
+min    = 14
+max    = 18
+mana   = 10
+precio = 50
+fx_frames = 8
+
+[hechizos.flecha_magica]
+id     = 2
+nombre = "Flecha Magica"
+tipo   = "danio"
+min    = 18
+max    = 25
+mana   = 20
+precio = 120
+fx_frames = 6
+
+[hechizos.misil_magico]
+id     = 3
+nombre = "Misil Magico"
+tipo   = "danio"
+min    = 35
+max    = 45
+mana   = 45
+precio = 300
+fx_frames = 10
+
+[hechizos.tormenta_fuego]
+id     = 4
+nombre = "Tormenta de Fuego"
+tipo   = "danio"
+min    = 45
+max    = 55
+mana   = 150
+precio = 800
+fx_frames = 15
+
+[hechizos.curar_leves]
+id     = 5
+nombre = "Curar Heridas Leves"
+tipo   = "cura"
+min    = 5
+max    = 15
+mana   = 10
+precio = 50
+fx_frames = 0
+
+[hechizos.curar_graves]
+id     = 6
+nombre = "Curar Heridas Graves"
+tipo   = "cura"
+min    = 20
+max    = 50
+mana   = 40
+precio = 250
+fx_frames = 10
 
 # ------------------------------------------------------------
 [criaturas]
@@ -182,10 +364,101 @@ prob_pocion   = 0.01
 prob_item     = 0.01
 oro_drop_min  = 0.01
 oro_drop_max  = 0.20
+vida_maxima_base = 50
+nivel_base = 1
+fuerza_base = 5
+agilidad_base = 5
+rango_aggro_base = 5
+danio_min_base = 1
+danio_max_base = 4
 
-# Cada cuántos ticks spawnea una criatura nueva
-#spawn_ticks   = 50
-#poblacion_max = 200          # Tope global de NPCs vivos
+# Cada cuántos ticks se mueven las criaturas (3 x 130ms ~= 390ms, igual que antes con tick_ms=200)
+movimiento_ticks = 3
+
+# Cada cuántos ticks spawnea una criatura nueva (~20s con tick_ms=130)
+spawn_ticks   = 154
+poblacion_max = 10           # Tope global de NPCs vivos
+
+# id de sprite de cuerpo de cada criatura con que el cliente la dibuja.
+# Deben coincidir con el catalogo del cliente (criatura_sprite_resolver /
+# sprites.toml): es un contrato cliente-servidor.
+cuerpo_goblin    = 2200
+cuerpo_esqueleto = 2201
+cuerpo_zombie    = 2202
+cuerpo_arania    = 2203
+cuerpo_orco      = 2204
+cuerpo_golem     = 2205
+
+# ------------------------------------------------------------
+[mapa]
+# Dimensiones del escenario en celdas.
+# El terreno/tiles reales podrán cargarse luego desde archivo binario.
+ancho = 100
+alto  = 100
+
+# Archivo TOML del que el servidor carga el escenario (paredes, ciudades/zonas seguras y NPCs) al arrancar. Lo genera el editor y es editable a mano.
+archivo = "config/mapa.toml"
+
+# Posicion ancla del spawn de jugadores. Al conectar, el servidor intenta
+# ubicar al jugador en esta celda; si ya esta ocupada, busca la celda libre
+# mas cercana mediante BFS. Esto permite N jugadores sin pre-declarar
+# posiciones por cabeza.
+[mapa.spawn]
+x       = 50
+y       = 50
+mapa_id = 0
+
+# ------------------------------------------------------------
+[npcs]
+# Distancia Manhattan maxima para interactuar con NPCs ciudadanos.
+# 1 significa celda adyacente.
+rango_interaccion = 5
+
+# id de sprite de cuerpo con que el cliente dibuja cada NPC ciudadano.
+# Deben coincidir con el catalogo de sprites del cliente (npc_sprite_resolver):
+# es un contrato cliente-servidor (ver nota en el codigo).
+cuerpo_sacerdote   = 1243
+cuerpo_comerciante = 4071
+cuerpo_banquero    = 4057
+
+# Stock por TIPO de NPC: todos los comerciantes (y todos los sacerdotes)
+# venden lo mismo. El servidor lo aplica al cargar el mapa. Los id deben existir
+# en [items]. Para el comerciante, 'compra' es lo que paga el jugador al comprar
+# y 'venta' lo que recibe al vender (compra > venta para que no sea un exploit).
+[npcs.comerciante]
+items = [
+  { id = 1,  compra = 40,  venta = 15 },   # espada
+  { id = 2,  compra = 55,  venta = 20 },   # hacha
+  { id = 3,  compra = 70,  venta = 25 },   # martillo
+  { id = 4,  compra = 40,  venta = 15 },   # arco simple
+  { id = 5,  compra = 110, venta = 45 },   # arco compuesto
+  { id = 10, compra = 50,  venta = 18 },   # armadura de cuero
+  { id = 11, compra = 160, venta = 60 },   # armadura de placas
+  { id = 12, compra = 80,  venta = 30 },   # tunica azul
+  { id = 13, compra = 25,  venta = 9 },    # capucha
+  { id = 14, compra = 60,  venta = 22 },   # casco de hierro
+  { id = 15, compra = 120, venta = 45 },   # sombrero magico
+  { id = 16, compra = 25,  venta = 9 },    # escudo de tortuga
+  { id = 17, compra = 50,  venta = 18 },   # escudo de hierro
+  { id = 18, compra = 12,  venta = 4 },    # pocion de vida chica
+  { id = 19, compra = 30,  venta = 11 },   # pocion de vida grande
+  { id = 20, compra = 12,  venta = 4 },    # pocion de mana chica
+  { id = 21, compra = 30,  venta = 11 },   # pocion de mana grande
+]
+
+# El sacerdote vende baculos/varas (hechizos) y pociones. 'precio' es lo que
+# paga el jugador (el sacerdote no compra items).
+[npcs.sacerdote]
+items = [
+  { id = 6,  precio = 60 },    # vara de fresno
+  { id = 7,  precio = 90 },    # baculo nudoso
+  { id = 8,  precio = 180 },   # baculo engarzado
+  { id = 9,  precio = 120 },   # flauta elfica
+  { id = 18, precio = 12 },    # pocion de vida chica
+  { id = 19, precio = 30 },    # pocion de vida grande
+  { id = 20, precio = 12 },    # pocion de mana chica
+  { id = 21, precio = 30 },    # pocion de mana grande
+]
 
 # ------------------------------------------------------------
 [fair_play]
@@ -196,6 +469,8 @@ max_diff_nivel     = 10      # No se pueden atacar si diff > 10
 [clanes]
 max_miembros  = 16
 nivel_minimo  = 6            # Nivel mínimo para fundar
+radio_bonus = 5              # Distancia Manhattan para contar aliados cercanos
+bonus_por_aliado = 0.10      # Multiplicador extra por aliado cercano
 
 # ------------------------------------------------------------
 [muerte]
@@ -204,13 +479,13 @@ factor_tiempo_resurreccion = 0.5
 
 # ------------------------------------------------------------
 [cheats]
-# Para facilitar corrección y testing
 vida_infinita  = false
 mana_infinito  = false
 invulnerable   = false
+suicidio = false
 exp_x10        = false
 
 # ------------------------------------------------------------
 [sonido]
-volumen_maximo   = 100
+volumen_maximo   = 20
 distancia_maxima = 15        # A más de N tiles, volumen = 0

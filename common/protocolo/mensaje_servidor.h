@@ -17,6 +17,10 @@ struct MensajeEstadoPersonaje {
     uint32_t oro;
     uint8_t  nivel;
     uint32_t experiencia;
+    uint8_t  estado;
+    uint8_t  raza = 0;
+    uint8_t  clase = 0;
+    uint32_t expSiguienteNivel = 0;
 };
 
 struct MensajePosicionEntidad {
@@ -25,6 +29,11 @@ struct MensajePosicionEntidad {
     uint16_t y;
     uint8_t tipo;
     uint8_t estado;
+    uint16_t cabeza;
+    uint16_t cuerpo;
+    uint16_t arma = 0;
+    uint16_t escudo = 0;
+    uint16_t casco = 0;
 };
 
 struct MensajeEntidadDesaparecio {
@@ -34,11 +43,14 @@ struct MensajeEntidadDesaparecio {
 struct MensajeDanoRecibido {
   uint16_t cantidad;
   uint16_t idAtacante;
+  uint8_t  esCritico = 0;
 };
 
 struct MensajeDanoProducido {
   uint16_t cantidad;
   uint16_t idObjetivo;
+  uint8_t  tipoGolpe;
+  uint8_t  esCritico = 0;  // 1 = golpe critico
 };
 
 struct MensajeEsquive {
@@ -61,8 +73,32 @@ struct MensajeItemDesaparecioSuelo {
   uint16_t y;
 };
 
+struct MensajeOroEnSuelo {
+  uint32_t cantidad;
+  uint16_t x;
+  uint16_t y;
+};
+
+struct MensajeOroDesaparecioSuelo {
+  uint16_t x;
+  uint16_t y;
+};
+
 struct MensajeActualizarInventario {
-  std::vector<uint16_t> slots;
+  std::vector<uint16_t> slots_;
+};
+
+enum class ErrorUsuario : uint8_t {
+    NombreUsuarioNoEncontrado = 0,
+    NickYaExistente = 1,
+    UsuarioYaConectado = 2,
+    Ninguno = 3,
+};
+
+struct MensajeEstadoUsuario {
+  uint16_t id;
+  std::string nick;
+  ErrorUsuario error;
 };
 
 struct MensajeActualizarEquipamiento {
@@ -86,11 +122,15 @@ enum class TipoMensajeClan : uint8_t {
     Rechazado        = 4,
     Baneado          = 5,
     Kickeado         = 6,
+    Conectado        = 7,
+    Desconectado     = 8,
+    BajoAtaque       = 9,
+    Abandono         = 10,
 };
 
 struct MensajeClan {
     TipoMensajeClan tipo;
-    std::string nick;
+    std::string texto;
 };
 
 struct MensajeResucitado {
@@ -100,6 +140,25 @@ struct MensajeResucitado {
 
 struct MensajeListaItems {
   std::vector<uint16_t> ids;
+};
+
+struct MensajeContenidoBanco {
+  std::vector<uint16_t> items;
+  uint32_t oroBanco;
+};
+
+struct MensajeListaHechizos {
+  std::vector<uint16_t> ids;  // hechizos conocidos del jugador
+};
+
+struct MensajeFxHechizo {
+  uint16_t idHechizo;
+  uint16_t idObjetivo;
+};
+
+struct MensajeProyectil {
+  uint16_t idOrigen;
+  uint16_t idDestino;
 };
 
 struct MensajeErrorAccion {
@@ -116,13 +175,20 @@ using PayloadMensajeServidor = std::variant<
         MensajeMuerteEntidad,
         MensajeItemEnSuelo,
         MensajeItemDesaparecioSuelo,
+        MensajeOroEnSuelo,
+        MensajeOroDesaparecioSuelo,
         MensajeActualizarInventario,
         MensajeActualizarEquipamiento,
         MensajeChat,
         MensajeClan,
         MensajeResucitado,
         MensajeErrorAccion,
-        MensajeListaItems>;
+        MensajeListaItems,
+        MensajeContenidoBanco,
+        MensajeListaHechizos,
+        MensajeFxHechizo,
+        MensajeProyectil,
+        MensajeEstadoUsuario>;
 
 
 struct MensajeServidor {

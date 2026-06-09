@@ -1,32 +1,42 @@
 #ifndef GAMELOOP_H
 #define GAMELOOP_H
 
+#include <atomic>
 #include <list>
 
 #include "../../common/thread/queue.h"
 #include "../../common/thread/thread.h"
+#include "../game/config/lector_config_toml.h"
+#include "../game/evento/evento_salida.h"
 #include "../game/juego.h"
 #include "comando_cliente.h"
-#include "mensaje_salida.h"
+#include "evento_sesion.h"
 #include "monitor_clientes.h"
 
 class Gameloop: public Thread {
 private:
     Queue<ComandoCliente> colaComandos;
+    Queue<EventoSesion>   colaEventosSesion;
     MonitorClientes& monitor;
     Juego juego;
+    int tickMs;
+    int guardadoSeg;  // intervalo de persistencia periodica en segundos (0 = off)
+    std::atomic_bool colaComandosCerrada;
+    std::atomic_bool colaEventosSesionCerrada;
 
+    void procesarEventosSesion();
     void procesarComandos();
     void procesarComando(const ComandoCliente& comandoCliente);
-    void despachar(const std::list<MensajeSalida>& mensajes);
+    void despachar(const std::list<EventoSalida>& eventos);
 
 public:
-    explicit Gameloop(MonitorClientes& monitor);
+    Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mapa&& mapa);
 
     void run() override;
     void detener();
 
     Queue<ComandoCliente>& getColaComandos();
+    Queue<EventoSesion>&   getColaEventosSesion();
 };
 
 #endif

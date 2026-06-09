@@ -1,0 +1,11 @@
+# Directorios de build (artefactos de compilacion)
+/build/
+/build-server/
+
+# Persistencia de jugadores: datos de runtime, NO se versionan.
+# (config/mapa.bin SI se versiona: es un asset del juego)
+/config/jugadores.bin
+/config/jugadores_indice.bin
+
+# Archivos temporales de escritura atomica (.tmp + rename)
+*.bin.tmp

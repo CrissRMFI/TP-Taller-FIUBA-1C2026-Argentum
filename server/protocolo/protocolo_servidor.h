@@ -2,10 +2,13 @@
 #define PROTOCOLO_SERVIDOR_H
 
 #include <cstdint>
+#include <unordered_set>
 
 #include "../../common/protocolo/comando_jugador.h"
+#include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/protocolo.h"
 #include "../../common/protocolo/mensaje_servidor.h"
+#include "common/protocolo/dato_sesion_cliente.h"
 
 class ProtocoloServidor : public Protocolo {
   public:
@@ -15,6 +18,8 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComando();
 
      void enviarMensaje(const MensajeServidor& mensaje);
+    handshakeInicial recibirUsuario();
+    void enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje);
 
     void cerrarConexion();
 
@@ -23,16 +28,19 @@ class ProtocoloServidor : public Protocolo {
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
     static constexpr uint16_t MAX_CLAN = 32;
-    static constexpr uint8_t MAX_DIRECCION = 3;
+    //static constexpr uint8_t CANTIDAD_DIRECCIONES = 4;
+    static const std::unordered_set<uint8_t> DIRECCIONES_VALIDAS;
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
-    static constexpr uint8_t MAX_ESTADO_ENTIDAD = 2;
+    static constexpr uint8_t MAX_ESTADO_ENTIDAD =
+            static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
-    static constexpr uint8_t MAX_TIPO_CLAN = 4;
+    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Abandono);
 
     void validarDireccion(const uint8_t direccion) const;
 
-    ComandoJugador recibirComandoMover();
+    ComandoJugador recibirComandoEmpezarMover();
+    ComandoJugador recibirComandoDetenerMover();
     ComandoJugador recibirComandoAtacar();
     ComandoJugador recibirComandoMeditar();
     ComandoJugador recibirComandoResucitar();
@@ -40,6 +48,9 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoTomar();
     ComandoJugador recibirComandoTirar();
     ComandoJugador recibirComandoEquipar();
+    ComandoJugador recibirComandoUsar();
+    ComandoJugador recibirComandoComprarHechizo();
+    ComandoJugador recibirComandoLanzarHechizo();
     ComandoJugador recibirComandoComprar();
     ComandoJugador recibirComandoVender();
     ComandoJugador recibirComandoDepositarItem();
@@ -57,6 +68,9 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoClanBan();
     ComandoJugador recibirComandoClanKick();
     ComandoJugador recibirComandoDejarClan();
+    ComandoJugador recibirComandoCheat();
+
+
 
     void validarTipoEntidad(uint8_t tipo) const;
     void validarEstadoEntidad(uint8_t estado) const;
@@ -73,12 +87,19 @@ class ProtocoloServidor : public Protocolo {
     void enviarMuerteEntidad(const MensajeMuerteEntidad& mensaje);
     void enviarItemEnSuelo(const MensajeItemEnSuelo& mensaje);
     void enviarItemDesaparecioSuelo(const MensajeItemDesaparecioSuelo& mensaje);
+    void enviarOroEnSuelo(const MensajeOroEnSuelo& mensaje);
+    void enviarOroDesaparecioSuelo(const MensajeOroDesaparecioSuelo& mensaje);
     void enviarActualizarInventario(const MensajeActualizarInventario& mensaje);
     void enviarActualizarEquipamiento(const MensajeActualizarEquipamiento& mensaje);
     void enviarMensajeChat(const MensajeChat& mensaje);
     void enviarMensajeClan(const MensajeClan& mensaje);
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
+    void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);
+    void enviarListaHechizos(const MensajeListaHechizos& mensaje);
+    void enviarFxHechizo(const MensajeFxHechizo& mensaje);
+    void enviarProyectil(const MensajeProyectil& mensaje);
+    void enviarErrorAccion(const MensajeErrorAccion& mensaje);
 };
 
 #endif

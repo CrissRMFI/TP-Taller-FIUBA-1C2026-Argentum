@@ -8,25 +8,54 @@
 #include "../../common/mensajes/codigo_error_accion.h"
 #include "../../common/mensajes/codigo_error_protocolo.h"
 #include "../../common/mensajes/mensajes_error_protocolo.h"
-
+#include "common/protocolo/dato_sesion_cliente.h"
+const std::unordered_set<uint8_t> ProtocoloServidor::DIRECCIONES_VALIDAS = {0, 1, 2, 3};
 ProtocoloServidor::ProtocoloServidor(Socket&& skt) : Protocolo(std::move(skt)) {}
+
+handshakeInicial ProtocoloServidor::recibirUsuario() {
+    handshakeInicial dataJugador;
+    if (recibirUnByte() != 0) {
+        dataJugador.crearPersonaje = true;
+    } else {dataJugador.crearPersonaje = false;}
+    dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
+    dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
+    dataJugador.raza = static_cast<Raza>(recibirUnByte());
+    dataJugador.cabeza = recibirDosBytes();
+    dataJugador.cuerpo = recibirDosBytes();
+    return dataJugador;
+}
+
+void ProtocoloServidor::enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::ESTADO_USUARIO));
+    enviarDosBytes(mensaje.id);  // id de cliente es uint16 (puede ser >255)
+    enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
+    enviarUnByte(static_cast<uint8_t>(mensaje.error));
+}
 
 void ProtocoloServidor::cerrarConexion() {
     if (!cerrado) {
-        skt.close();
+        try {
+            skt.shutdown(2);
+        } catch (const std::runtime_error&) {}
+
+        try {
+            skt.close();
+        } catch (const std::runtime_error&) {}
+
         cerrado = true;
     }
 }
 
 ComandoJugador ProtocoloServidor::recibirComando() {
-    
-    uint8_t opcode_recibido = recibirUnByte();
 
-    Opcode opcode = (Opcode)(opcode_recibido);
-
+    auto const opcode_recibido = recibirUnByte();
+    const auto opcode = Opcode(opcode_recibido);
     switch (opcode) {
-        case Opcode::MOVER:
-            return recibirComandoMover();
+        case Opcode::EMPEZAR_MOVER:
+            return recibirComandoEmpezarMover();
+
+        case Opcode::DETENER_MOVER:
+            return recibirComandoDetenerMover();
 
         case Opcode::ATACAR:
             return recibirComandoAtacar();
@@ -48,6 +77,15 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::EQUIPAR:
             return recibirComandoEquipar();
+
+        case Opcode::USAR:
+            return recibirComandoUsar();
+
+        case Opcode::COMPRAR_HECHIZO:
+            return recibirComandoComprarHechizo();
+
+        case Opcode::LANZAR_HECHIZO:
+            return recibirComandoLanzarHechizo();
 
         case Opcode::COMPRAR:
             return recibirComandoComprar();
@@ -101,6 +139,9 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::DEJAR_CLAN:
             return recibirComandoDejarClan();
 
+        case Opcode::CHEAT:
+            return recibirComandoCheat();
+
 
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
@@ -108,7 +149,7 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 }
 
 void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
-    if (direccion > MAX_DIRECCION) {
+    if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(
                 MensajesErrorProtocolo::mensaje(
                         CodigoErrorProtocolo::DIRECCION_INVALIDA));
@@ -147,14 +188,21 @@ void ProtocoloServidor::validarTipoClan(uint8_t tipo) const {
     }
 }
 
-ComandoJugador ProtocoloServidor::recibirComandoMover() {
+ComandoJugador ProtocoloServidor::recibirComandoEmpezarMover() {
     uint8_t direccion = recibirUnByte();
 
     validarDireccion(direccion);
 
     return ComandoJugador{
-            Opcode::MOVER,
-            ComandoMover{direccion},
+            Opcode::EMPEZAR_MOVER,
+            ComandoEmpezarMover{direccion},
+    };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoDetenerMover() {
+    return ComandoJugador{
+            Opcode::DETENER_MOVER,
+            ComandoDetenerMover{},
     };
 }
 
@@ -206,6 +254,11 @@ ComandoJugador ProtocoloServidor::recibirComandoTirar() {
     };
 }
 
+ComandoJugador ProtocoloServidor::recibirComandoUsar() {
+    uint8_t indiceItem = recibirUnByte();
+    return ComandoJugador{Opcode::USAR, ComandoUsar{indiceItem}};
+}
+
 ComandoJugador ProtocoloServidor::recibirComandoEquipar() {
     uint8_t indiceItem = recibirUnByte();
 
@@ -223,6 +276,18 @@ ComandoJugador ProtocoloServidor::recibirComandoComprar() {
       Opcode::COMPRAR,
       ComandoComprar{idItem, idNPC},
     };
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoComprarHechizo() {
+    uint16_t idHechizo = recibirDosBytes();
+    uint16_t idSacerdote = recibirDosBytes();
+    return ComandoJugador{Opcode::COMPRAR_HECHIZO, ComandoComprarHechizo{idHechizo, idSacerdote}};
+}
+
+ComandoJugador ProtocoloServidor::recibirComandoLanzarHechizo() {
+    uint16_t idHechizo = recibirDosBytes();
+    uint16_t idObjetivo = recibirDosBytes();
+    return ComandoJugador{Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{idHechizo, idObjetivo}};
 }
 
 ComandoJugador ProtocoloServidor::recibirComandoVender() {
@@ -371,6 +436,16 @@ ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
     };
 }
 
+ComandoJugador ProtocoloServidor::recibirComandoCheat() {
+    uint8_t tipo = recibirUnByte();
+
+    return ComandoJugador{
+      Opcode::CHEAT,
+      ComandoCheat{tipo},
+    };
+}
+
+
 void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
     switch (mensaje.opcode) {
         
@@ -406,8 +481,16 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarItemEnSuelo(std::get<MensajeItemEnSuelo>(mensaje.payload));
             break;
 
+        case Opcode::ORO_EN_SUELO:
+            enviarOroEnSuelo(std::get<MensajeOroEnSuelo>(mensaje.payload));
+            break;
+
         case Opcode::ITEM_DESAPARECIO_SUELO:
             enviarItemDesaparecioSuelo(std::get<MensajeItemDesaparecioSuelo>(mensaje.payload));
+            break;
+
+        case Opcode::ORO_DESAPARECIO_SUELO:
+            enviarOroDesaparecioSuelo(std::get<MensajeOroDesaparecioSuelo>(mensaje.payload));
             break;
 
         case Opcode::ACTUALIZAR_INVENTARIO:
@@ -433,6 +516,26 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         case Opcode::LISTA_ITEMS:
             enviarListaItems(std::get<MensajeListaItems>(mensaje.payload));
             break;
+
+        case Opcode::CONTENIDO_BANCO:
+            enviarContenidoBanco(std::get<MensajeContenidoBanco>(mensaje.payload));
+            break;
+
+        case Opcode::LISTA_HECHIZOS:
+            enviarListaHechizos(std::get<MensajeListaHechizos>(mensaje.payload));
+            break;
+
+        case Opcode::FX_HECHIZO:
+            enviarFxHechizo(std::get<MensajeFxHechizo>(mensaje.payload));
+            break;
+
+        case Opcode::PROYECTIL:
+            enviarProyectil(std::get<MensajeProyectil>(mensaje.payload));
+            break;
+
+        case Opcode::ERROR_ACCION:
+            enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
+            break;
         
         default:
             throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
@@ -449,6 +552,10 @@ void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mens
     enviarCuatroBytes(mensaje.oro);
     enviarUnByte(mensaje.nivel);
     enviarCuatroBytes(mensaje.experiencia);
+    enviarUnByte(mensaje.estado);
+    enviarUnByte(mensaje.raza);
+    enviarUnByte(mensaje.clase);
+    enviarCuatroBytes(mensaje.expSiguienteNivel);
 }
 
 void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mensaje) {
@@ -462,6 +569,11 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     enviarDosBytes(mensaje.y);
     enviarUnByte(mensaje.tipo);
     enviarUnByte(mensaje.estado);
+    enviarDosBytes(mensaje.cabeza);
+    enviarDosBytes(mensaje.cuerpo);
+    enviarDosBytes(mensaje.arma);
+    enviarDosBytes(mensaje.escudo);
+    enviarDosBytes(mensaje.casco);
 }
 
 void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
@@ -474,6 +586,7 @@ void ProtocoloServidor::enviarDanioRecibido(const MensajeDanoRecibido& mensaje) 
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idAtacante);
+    enviarUnByte(mensaje.esCritico);
 }
 
 void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje) {
@@ -481,6 +594,8 @@ void ProtocoloServidor::enviarDanioProducido(const MensajeDanoProducido& mensaje
 
     enviarDosBytes(mensaje.cantidad);
     enviarDosBytes(mensaje.idObjetivo);
+    enviarUnByte(mensaje.tipoGolpe);
+    enviarUnByte(mensaje.esCritico);
 }
 
 void ProtocoloServidor::enviarEsquive(const MensajeEsquive& mensaje) {
@@ -513,14 +628,29 @@ void ProtocoloServidor::enviarItemDesaparecioSuelo(const MensajeItemDesaparecioS
     enviarDosBytes(mensaje.y);
 }
 
+void ProtocoloServidor::enviarOroEnSuelo(const MensajeOroEnSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ORO_EN_SUELO));
+
+    enviarCuatroBytes(mensaje.cantidad);
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
+void ProtocoloServidor::enviarOroDesaparecioSuelo(const MensajeOroDesaparecioSuelo& mensaje) {
+    enviarUnByte((uint8_t)(Opcode::ORO_DESAPARECIO_SUELO));
+
+    enviarDosBytes(mensaje.x);
+    enviarDosBytes(mensaje.y);
+}
+
 void ProtocoloServidor::enviarActualizarInventario(const MensajeActualizarInventario& mensaje) {
-    validarCantidad((uint16_t)(mensaje.slots.size()));
+    validarCantidad((uint16_t)(mensaje.slots_.size()));
 
     enviarUnByte((uint8_t)(Opcode::ACTUALIZAR_INVENTARIO));
 
-    enviarUnByte((uint8_t)(mensaje.slots.size()));
+    enviarUnByte((uint8_t)(mensaje.slots_.size()));
 
-    for (uint16_t idItem: mensaje.slots) {
+    for (uint16_t idItem: mensaje.slots_) {
         enviarDosBytes(idItem);
     }
 }
@@ -543,12 +673,12 @@ void ProtocoloServidor::enviarMensajeChat(const MensajeChat& mensaje) {
 }
 
 void ProtocoloServidor::enviarMensajeClan(const MensajeClan& mensaje) {
-    validarTipoClan(mensaje.tipo);
+    validarTipoClan(static_cast<uint8_t>(mensaje.tipo));
 
-    enviarUnByte((uint8_t)(Opcode::MENSAJE_CLAN));
+    enviarUnByte(static_cast<uint8_t>(Opcode::MENSAJE_CLAN));
 
-    enviarUnByte(mensaje.tipo);
-    enviarCadenaConMaximo(mensaje.nick, MAX_NICK);
+    enviarUnByte(static_cast<uint8_t>(mensaje.tipo));
+    enviarCadenaConMaximo(mensaje.texto, MAX_NICK);
 }
 
 void ProtocoloServidor::enviarResucitado(const MensajeResucitado& mensaje) {
@@ -568,4 +698,38 @@ void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
     for (uint16_t idItem: mensaje.ids) {
         enviarDosBytes(idItem);
     }
+}
+
+void ProtocoloServidor::enviarListaHechizos(const MensajeListaHechizos& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::LISTA_HECHIZOS));
+    enviarUnByte(static_cast<uint8_t>(mensaje.ids.size()));
+    for (uint16_t id : mensaje.ids) {
+        enviarDosBytes(id);
+    }
+}
+
+void ProtocoloServidor::enviarFxHechizo(const MensajeFxHechizo& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::FX_HECHIZO));
+    enviarDosBytes(mensaje.idHechizo);
+    enviarDosBytes(mensaje.idObjetivo);
+}
+
+void ProtocoloServidor::enviarProyectil(const MensajeProyectil& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::PROYECTIL));
+    enviarDosBytes(mensaje.idOrigen);
+    enviarDosBytes(mensaje.idDestino);
+}
+
+void ProtocoloServidor::enviarContenidoBanco(const MensajeContenidoBanco& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::CONTENIDO_BANCO));
+    enviarUnByte(static_cast<uint8_t>(mensaje.items.size()));
+    for (uint16_t idItem : mensaje.items) {
+        enviarDosBytes(idItem);
+    }
+    enviarCuatroBytes(mensaje.oroBanco);
+}
+
+void ProtocoloServidor::enviarErrorAccion(const MensajeErrorAccion& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::ERROR_ACCION));
+    enviarUnByte(static_cast<uint8_t>(mensaje.codigo));
 }

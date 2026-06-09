@@ -1,0 +1,94 @@
+# ============================================================
+#  Argentum Online — Configuración del cliente gráfico
+#  Valores ajustables sin recompilar.
+# ============================================================
+
+[video]
+# VSync sincroniza el render con el refresco del monitor
+vsync = true
+
+# Tope de FPS usado cuando VSync no está disponible
+fps_max = 120
+
+# Tamaño de la ventana. Acepta cualquier tamaño en modo ventana.
+# En pantalla completa, ancho/alto definen la resolución.
+ancho = 1024
+alto  = 768
+
+# Pantalla completa (true) o modo ventana (false).
+fullscreen = false
+
+[movimiento]
+# Cada cuántos milisegundos se envía un MOVER mientras se mantiene apretada una tecla de dirección.
+intervalo_ms = 130
+
+[chat]
+# Fuente usada
+fuente = "fonts/Cardo-Regular.ttf"
+
+# Imagen de fondo del panel de chat.
+fondo = "chat/fondoPrincipal.png"
+
+# Tamaño de la fuente en puntos.
+tam = 14
+
+# Cuántas líneas de chat/feedback se ven a la vez en pantalla.
+max_lineas = 6
+
+# Caja del chat en píxeles (esquina superior izquierda + alto).
+# El ancho es siempre la mitad del ancho de la ventana (no se configura).
+panel_x = 0
+panel_y = 0
+panel_alto = 140
+
+# Colores [r, g, b] del texto del chat.
+color_texto = [255, 255, 255]  # mensajes entrantes
+color_input = [255, 255, 0]    # lo que se está tipeando
+# Colores por tipo de mensaje (centralizados):
+color_ataque = [220, 60, 60]        # me atacan -> rojo
+color_hechizo = [240, 150, 40]      # lanzo hechizo -> naranja
+color_sistema = [40, 120, 160]      # "no hay nada aqui" -> celeste oscuro
+color_experiencia = [80, 120, 255]  # gano XP -> azul
+color_recuperacion = [40, 150, 60]  # recupero vida/mana -> verde oscuro
+color_clan = [150, 100, 50]         # mensajes con @ -> marron
+color_critico_hecho = [255, 200, 60]      # yo pego critico -> dorado
+color_critico_recibido = [255, 40, 100]   # me pegan critico -> magenta
+
+[personaje]
+# Nombres mostrados en el panel, en el ORDEN del enum del server.
+# Raza:  HUMANO, ELFO, ENANO, GNOMO
+razas  = ["Humano", "Elfo", "Enano", "Gnomo"]
+# Clase: MAGO, CLERIGO, PALADIN, GUERRERO
+clases = ["Mago", "Clerigo", "Paladin", "Guerrero"]
+
+[panel]
+# Panel derecho: inventario, equipo, stats y comercio.
+# Ancho en píxeles (el juego se dibuja a la izquierda de este panel).
+ancho = 268
+# Carpeta de iconos de ítems (relativa a client/resources); archivos <id>.png.
+icon_dir = "imgs/items"
+# Textura de fondo del panel
+fondo = "imgs/ui/leather_brown.png"
+# Colores [r, g, b].
+color_texto = [235, 225, 200]
+color_titulo = [255, 220, 120]
+
+[banco]
+# Calibracion de la grilla del banco sobre la imagen es_banco.bmp (coords relativas
+# a la esquina sup-izq de la ventana). Ajustar hasta que los iconos caigan en los
+# casilleros. boveda = grilla izquierda, inv = grilla derecha.
+boveda_x = 45
+boveda_y = 127
+inv_x    = 305
+inv_y    = 127
+slot     = 32
+gap      = 4
+cols     = 6
+
+[seleccion]
+# Distancia (en celdas, Manhattan) hasta la cual una seleccion de objetivo se considera
+# valida y se resalta en pantalla. Mas lejos: no se resalta.
+rango = 10
+# Radio (en pixeles) del area de click para seleccionar una criatura/NPC. Mas grande =
+# mas facil de clickear (no hace falta apuntar al pixel exacto).
+radio_px = 40

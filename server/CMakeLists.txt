@@ -5,32 +5,77 @@ target_sources(taller_server
 
     # Configuración
     game/config/config_juego.cpp
+    game/config/lector_config_toml.cpp
+
+    # Modelo del juego
+    game/jugador.cpp
+    game/juego.cpp
+    game/clan.cpp
+
+    # Objetos
+    game/objeto/inventario.cpp
+    game/objeto/equipamiento.cpp
+    game/objeto/catalogo_items.cpp
+
+    # Reglas
+    game/reglas/reglas_juego.cpp
+
+    # Gameloop
+    gameloop/gameloop.cpp
+    gameloop/monitor_clientes.cpp
+    gameloop/traductor_protocolo.cpp
+
+    # Persistencia de jugadores
+    persistencia/escritor_jugadores.cpp
+    persistencia/indice_jugadores.cpp
+    persistencia/lector_jugadores.cpp
+    persistencia/serializador_jugador.cpp
+
+    # Protocolo servidor
+    protocolo/protocolo_servidor.cpp
 
     PUBLIC
-    # Modelo
-    game/modelo/posicion.h
+    # Modelos planos
     game/modelo/raza.h
     game/modelo/clase_personaje.h
 
     # Configuración
     game/config/config_juego.h
+    game/config/config_completa.h
+    game/config/lector_config_toml.h
+    game/config/ilector_configuracion.h
+
+    # Objetos
+    game/objeto/item.h
+    game/objeto/inventario.h
+    game/objeto/equipamiento.h
+    game/objeto/catalogo_items.h
 
     # Juego
+    game/clan.h
+    game/jugador.h
     game/juego.h
+
+    # Reglas
+    game/reglas/reglas_juego.h
 
     # Gameloop
     gameloop/comando_cliente.h
+    gameloop/evento_sesion.h
     gameloop/gameloop.h
     gameloop/mensaje_salida.h
     gameloop/monitor_clientes.h
 
+    # Persistencia de jugadores
+    persistencia/escritor_jugadores.h
+    persistencia/indice_jugadores.h
+    persistencia/lector_jugadores.h
+    persistencia/serializador_jugador.h
+
     # Protocolo servidor
     protocolo/protocolo_servidor.h
-)
 
-target_sources(taller_server
-    PRIVATE
-    game/juego.cpp
-    gameloop/gameloop.cpp
-    protocolo/protocolo_servidor.cpp
+
+
+
 )

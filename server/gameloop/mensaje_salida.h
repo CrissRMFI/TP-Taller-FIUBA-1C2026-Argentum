@@ -4,11 +4,7 @@
 #include <cstdint>
 
 #include "../../common/protocolo/mensaje_servidor.h"
-
-enum class TipoDestino {
-    UNO,
-    TODOS
-};
+#include "../game/evento/tipo_destino.h"
 
 struct MensajeSalida {
     TipoDestino tipoDestino;
