@@ -1,0 +1,70 @@
+# Catalogo del editor de mapas: criaturas y NPCs que se pueden arrastrar al mapa.
+
+[[criatura]]
+clave       = "goblin"
+nombre      = "Goblin"
+descripcion = "Pequeña criatura salvaje y cobarde que merodea los campos en grupo, atacando cuerpo a cuerpo a cualquier viajero que se acerque demasiado."
+oro         = 15
+sprite      = ":/imgs/criaturas/goblin.png"
+src         = [3, 6, 18, 25]
+
+[[criatura]]
+clave       = "esqueleto"
+nombre      = "Esqueleto"
+descripcion = "Restos reanimados de antiguos guerreros. Atacan sin descanso y sin temor a quien invada las tierras que custodian."
+oro         = 25
+sprite      = ":/imgs/criaturas/esqueleto.png"
+src         = [10, 19, 12, 29]
+
+[[criatura]]
+clave       = "zombie"
+nombre      = "Zombie"
+descripcion = "Muerto viviente lento pero implacable. Su mordida arrastra a los incautos a una agonia interminable."
+oro         = 30
+sprite      = ":/imgs/criaturas/zombie.png"
+src         = [5, 2, 15, 43]
+
+[[criatura]]
+clave       = "arania"
+nombre      = "Arana"
+descripcion = "Acecha en los bosques. Rapida y venenosa, cae sobre el viajero distraido antes de que pueda reaccionar."
+oro         = 20
+sprite      = ":/imgs/criaturas/arana.png"
+src         = [7, 30, 50, 34]
+
+[[criatura]]
+clave       = "orco"
+nombre      = "Orco"
+descripcion = "Bruto corpulento de gran fuerza que domina las tierras salvajes a golpes. Pocos sobreviven a su embestida."
+oro         = 50
+sprite      = ":/imgs/criaturas/orco.png"
+src         = [20, 1, 105, 174]
+
+[[criatura]]
+clave       = "golem"
+nombre      = "Golem"
+descripcion = "Coloso de piedra que custodia grandes tesoros en lo profundo de las mazmorras. Resistente y devastador en combate."
+oro         = 120
+sprite      = ":/imgs/criaturas/golem.png"
+src         = [11, 13, 73, 73]
+
+[[npc]]
+clave       = "sacerdote"
+nombre      = "Sacerdote"
+descripcion = "Resucita y cura a los personajes (vida y mana) y vende baculos, varas y pociones. Imprescindible en toda ciudad."
+sprite      = ":/imgs/npc/sacerdote.png"
+src         = [19, 0, 16, 48]
+
+[[npc]]
+clave       = "comerciante"
+nombre      = "Comerciante"
+descripcion = "Compra y vende casi cualquier articulo: armas, armaduras y cascos. El corazon del comercio de Argentum."
+sprite      = ":/imgs/npc/comerciante.png"
+src         = [5, 1, 19, 44]
+
+[[npc]]
+clave       = "banquero"
+nombre      = "Banquero"
+descripcion = "Guarda las pertenencias y el oro de los jugadores en el banco, y permite retirarlos cuando lo necesiten."
+sprite      = ":/imgs/npc/banquero.png"
+src         = [5, 1, 17, 44]
