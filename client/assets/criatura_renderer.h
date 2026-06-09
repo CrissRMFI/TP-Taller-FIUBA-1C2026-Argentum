@@ -12,6 +12,8 @@
 class CriaturaRenderer {
 private:
     CreatureSpriteResolver& resolver_;
+    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
+
 
 public:
     explicit CriaturaRenderer(CreatureSpriteResolver& resolver);

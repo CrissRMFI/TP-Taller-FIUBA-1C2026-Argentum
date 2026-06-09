@@ -9,6 +9,12 @@
 class CharacterRenderer {
 private:
     CharacterSpriteResolver& resolver_;
+    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
+    SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int animation_row,
+                                 int frame_index) const;
+    SpriteRect head_src_rect_for(const CharacterPartDefinition& definition,
+                                 int animation_row) const;
+
 
 public:
     explicit CharacterRenderer(CharacterSpriteResolver& resolver);

@@ -6,13 +6,11 @@
 
 #include <algorithm>
 
-namespace {
-constexpr int MIN_VISIBLE_TILES_X = 12;
-constexpr int MIN_VISIBLE_TILES_Y = 10;
-constexpr int MAX_VISIBLE_TILES_X = 60;
-constexpr int MAX_VISIBLE_TILES_Y = 50;
-constexpr int ZOOM_STEP_TILES = 2;
-}  // namespace
+#define MIN_VISIBLE_TILES_X 12
+#define MIN_VISIBLE_TILES_Y 10
+#define MAX_VISIBLE_TILES_X 60
+#define MAX_VISIBLE_TILES_Y 50
+#define ZOOM_STEP_TILES 2
 
 void PlayerCamera::recalculate_scale() {
     cell_width = std::max(1, viewport_width / visible_tiles_x);

@@ -4,11 +4,9 @@
 
 #include "npc_renderer.h"
 
-namespace {
-    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
-        return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
-    }
-} //namespace
+SDL2pp::Rect NPCRenderer::to_sdl_rect(const SpriteRect& rect) const {
+    return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
+}
 
 NPCRenderer::NPCRenderer(NpcSpriteResolver& resolver): resolver_(resolver) {}
 

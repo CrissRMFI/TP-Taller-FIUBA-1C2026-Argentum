@@ -8,13 +8,12 @@
 
 #include "SDL_render.h"
 
-namespace {
+
 constexpr float CHARACTER_SCALE = 1.0f;
-SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
+
+SDL2pp::Rect CriaturaRenderer::to_sdl_rect(const SpriteRect& rect) const {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
-
-}  // namespace
 
 CriaturaRenderer::CriaturaRenderer(CreatureSpriteResolver& resolver):
         resolver_(resolver) {}

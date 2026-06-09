@@ -13,6 +13,7 @@
 class NPCRenderer {
 private:
     NpcSpriteResolver& resolver_;
+    SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
 
 public:
     explicit NPCRenderer(NpcSpriteResolver& resolver);

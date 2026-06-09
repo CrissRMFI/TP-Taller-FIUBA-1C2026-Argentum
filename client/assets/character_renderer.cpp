@@ -4,16 +4,17 @@
 
 #include "SDL_render.h"
 
-namespace {
 constexpr float CHARACTER_SCALE = 1.0f;
 //constexpr int OFF_POSITION = 5;
 
-SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) {
+
+SDL2pp::Rect CharacterRenderer::to_sdl_rect(const SpriteRect& rect) const {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
 
-SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int animation_row,
-                             int frame_index) {
+SpriteRect CharacterRenderer::body_src_rect_for(const CharacterPartDefinition& definition,
+                                                const int animation_row,
+                                                const int frame_index) const {
     const auto& row = definition.rows.at(animation_row);
     if (!row.has_value()) {
         return definition.scr_body;
@@ -37,7 +38,8 @@ SpriteRect body_src_rect_for(const CharacterPartDefinition& definition, int anim
             definition.scr_body.height};
 }
 
-SpriteRect head_src_rect_for(const CharacterPartDefinition& definition, int animation_row) {
+SpriteRect CharacterRenderer::head_src_rect_for(const CharacterPartDefinition& definition,
+                                                const int animation_row) const {
     const auto& direction = definition.directions.at(animation_row);
     if (!direction.has_value()) {
         return definition.scr_head;
@@ -58,8 +60,6 @@ SpriteRect head_src_rect_for(const CharacterPartDefinition& definition, int anim
             definition.scr_head.width,
             definition.scr_head.height};
 }
-
-}  // namespace
 
 CharacterRenderer::CharacterRenderer(CharacterSpriteResolver& resolver): resolver_(resolver) {}
 
@@ -84,9 +84,6 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     const int anchor_y = entity_y + cell_height;
 
     if (resolved.body.has_value()) {
-        // const SpriteRect body_src =
-        //         body_src_rect_for(*resolved.body->definition, effective_animation_row,
-        //                           effective_frame_index);
         // Para overrides estaticos (ej. fantasma) usamos el recorte fijo del sprite
         // y evitamos cualquier animacion basada en filas/frames del cuerpo original.
             const SpriteRect body_src = resolved.body->src_override.value_or(
