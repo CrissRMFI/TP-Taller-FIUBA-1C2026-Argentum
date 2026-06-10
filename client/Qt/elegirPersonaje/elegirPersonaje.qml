@@ -1,15 +1,10 @@
 import QtQuick
-import QtQuick.Window
 import QtQuick.Controls
 import QmlCppExample
 
-Window {
-    minimumWidth: 640
-    minimumHeight: 480
-    maximumWidth: minimumWidth
-    maximumHeight: minimumHeight
-    visible: true
-    title: qsTr("Seleccion de Personaje")
+// Root que llena la QQuickView; el contenido (640x480) se escala a la ventana.
+Item {
+    id: root
 
     property string raza: "Humano"
     property string clase: "Mago"
@@ -93,12 +88,6 @@ Window {
     Component.onCompleted: resetSkinSeleccionada()
     onRazaChanged: resetSkinSeleccionada()
 
-    Image {
-        id: background
-        source: "../graficos/ElecciónPersonaje.png"
-        anchors.fill: parent
-    }
-
     component ImageButton: Image {
         HoverHandler {
             cursorShape: Qt.PointingHandCursor
@@ -118,188 +107,202 @@ Window {
         color: "white"
     }
 
-    TextField {
-        id: nickInput
-        x: parent.width / 5 * 2 - width / 2
-        y: parent.height / 4 - height / 2
-        width: 230
-        height: 30
-        placeholderText: qsTr("Ingrese su nick")
-        background: Rectangle {
-            color: "transparent"
-            border.color: "white"
+    Item {
+        id: contenido
+        width: 640
+        height: 480
+        transformOrigin: Item.TopLeft
+        scale: Math.min(root.width / width, root.height / height)
+
+        Image {
+            id: background
+            source: "../graficos/ElecciónPersonaje.png"
+            anchors.fill: parent
         }
-        text: ""
-    }
 
-    LabelText {
-        x: nickInput.x
-        y: nickInput.y - 24
-        text: qsTr("NUEVO NOMBRE:")
-    }
-
-    LabelText {
-        x: nickInput.x
-        y: 202
-        text: qsTr("RAZA:")
-    }
-
-    ComboBox {
-        id: razaDesplegable
-        x: nickInput.x
-        y: 226
-        width: 150
-        model: ["Humano", "Elfo", "Enano", "Gnomo"]
-        currentIndex: 0
-        onCurrentTextChanged: raza = currentText
-    }
-
-    LabelText {
-        x: nickInput.x
-        y: 286
-        text: qsTr("CLASE:")
-    }
-
-    ComboBox {
-        id: claseDesplegable
-        x: nickInput.x
-        y: 310
-        width: 150
-        model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
-        currentIndex: 0
-        onCurrentTextChanged: clase = currentText
-    }
-
-    LabelText {
-        x: 430
-        y: 202
-        text: qsTr("SKIN:")
-    }
-
-    Image {
-        id: characterHead
-        x: 457
-        y: 236
-        width: 32
-        height: 30
-        smooth: false
-        sourceClipRect: Qt.rect(0, 0, 16, 15)
-        source: personajeController.rutaCabezaPreview(cabezaIndex)
-    }
-
-    ImageButton {
-        id: headLeftButton
-        x: characterHead.x - 30
-        y: characterHead.y
-        width: 20
-        height: 30
-        source: "../graficos/leftArrow.png"
-        TapHandler {
-            onTapped: rotarCabeza(-1)
+        TextField {
+            id: nickInput
+            x: parent.width / 5 * 2 - width / 2
+            y: parent.height / 4 - height / 2
+            width: 230
+            height: 30
+            placeholderText: qsTr("Ingrese su nick")
+            background: Rectangle {
+                color: "transparent"
+                border.color: "white"
+            }
+            text: ""
         }
-    }
 
-    ImageButton {
-        id: headRightButton
-        x: characterHead.x + characterHead.width + 10
-        y: characterHead.y
-        width: 20
-        height: 30
-        source: "../graficos/rightArrow.png"
-        TapHandler {
-            onTapped: rotarCabeza(1)
+        LabelText {
+            x: nickInput.x
+            y: nickInput.y - 24
+            text: qsTr("NUEVO NOMBRE:")
         }
-    }
 
-    Image {
-        id: characterBody
-        x: 449
-        y: characterHead.y + characterHead.height
-        width: 50
-        height: skinParaRaza(raza).cuerpoHeight
-        smooth: false
-        sourceClipRect: skinParaRaza(raza).cuerpoClipRect
-        source: personajeController.rutaCuerpoPreview(cuerpoIndex)
-    }
-
-    ImageButton {
-        id: bodyLeftButton
-        x: headLeftButton.x
-        y: characterBody.y + 12
-        width: 20
-        height: 30
-        source: "../graficos/leftArrow.png"
-        TapHandler {
-            onTapped: rotarCuerpo(-1)
+        LabelText {
+            x: nickInput.x
+            y: 202
+            text: qsTr("RAZA:")
         }
-    }
 
-    ImageButton {
-        id: bodyRightButton
-        x: headRightButton.x
-        y: characterBody.y + 12
-        width: 20
-        height: 30
-        source: "../graficos/rightArrow.png"
-        TapHandler {
-            onTapped: rotarCuerpo(1)
+        ComboBox {
+            id: razaDesplegable
+            x: nickInput.x
+            y: 226
+            width: 150
+            model: ["Humano", "Elfo", "Enano", "Gnomo"]
+            currentIndex: 0
+            onCurrentTextChanged: root.raza = currentText
         }
-    }
 
-    ErrorText {
-        id: nickErrorText
-        x: nickInput.x + nickInput.width / 2 - width / 2
-        y: nickInput.y + nickInput.height - 2
-        text: ""
-    }
+        LabelText {
+            x: nickInput.x
+            y: 286
+            text: qsTr("CLASE:")
+        }
 
-    ErrorText {
-        id: generalErrorText
-        x: parent.width / 2 - width / 2
-        y: crearPersonajeButton.y - height - 5
-        text: ""
-    }
+        ComboBox {
+            id: claseDesplegable
+            x: nickInput.x
+            y: 310
+            width: 150
+            model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
+            currentIndex: 0
+            onCurrentTextChanged: root.clase = currentText
+        }
 
-    ImageButton {
-        id: crearPersonajeButton
-        x: 369
-        y: 420
-        width: 205
-        height: 50
-        source: "../graficos/crearPersonajeButton.png"
-        TapHandler {
-            onTapped: {
-                if (nickInput.text !== "" && raza !== "" && clase !== "") {
-                    const esNickValido = personajeController.esNickValido(nickInput.text)
+        LabelText {
+            x: 430
+            y: 202
+            text: qsTr("SKIN:")
+        }
 
-                    nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
-    
-                    if (!esNickValido) {
-                        return
+        Image {
+            id: characterHead
+            x: 457
+            y: 236
+            width: 32
+            height: 30
+            smooth: false
+            sourceClipRect: Qt.rect(0, 0, 16, 15)
+            source: personajeController.rutaCabezaPreview(root.cabezaIndex)
+        }
+
+        ImageButton {
+            id: headLeftButton
+            x: characterHead.x - 30
+            y: characterHead.y
+            width: 20
+            height: 30
+            source: "../graficos/leftArrow.png"
+            TapHandler {
+                onTapped: root.rotarCabeza(-1)
+            }
+        }
+
+        ImageButton {
+            id: headRightButton
+            x: characterHead.x + characterHead.width + 10
+            y: characterHead.y
+            width: 20
+            height: 30
+            source: "../graficos/rightArrow.png"
+            TapHandler {
+                onTapped: root.rotarCabeza(1)
+            }
+        }
+
+        Image {
+            id: characterBody
+            x: 449
+            y: characterHead.y + characterHead.height
+            width: 50
+            height: root.skinParaRaza(root.raza).cuerpoHeight
+            smooth: false
+            sourceClipRect: root.skinParaRaza(root.raza).cuerpoClipRect
+            source: personajeController.rutaCuerpoPreview(root.cuerpoIndex)
+        }
+
+        ImageButton {
+            id: bodyLeftButton
+            x: headLeftButton.x
+            y: characterBody.y + 12
+            width: 20
+            height: 30
+            source: "../graficos/leftArrow.png"
+            TapHandler {
+                onTapped: root.rotarCuerpo(-1)
+            }
+        }
+
+        ImageButton {
+            id: bodyRightButton
+            x: headRightButton.x
+            y: characterBody.y + 12
+            width: 20
+            height: 30
+            source: "../graficos/rightArrow.png"
+            TapHandler {
+                onTapped: root.rotarCuerpo(1)
+            }
+        }
+
+        ErrorText {
+            id: nickErrorText
+            x: nickInput.x + nickInput.width / 2 - width / 2
+            y: nickInput.y + nickInput.height - 2
+            text: ""
+        }
+
+        ErrorText {
+            id: generalErrorText
+            x: parent.width / 2 - width / 2
+            y: crearPersonajeButton.y - height - 5
+            text: ""
+        }
+
+        ImageButton {
+            id: crearPersonajeButton
+            x: 369
+            y: 420
+            width: 205
+            height: 50
+            source: "../graficos/crearPersonajeButton.png"
+            TapHandler {
+                onTapped: {
+                    if (nickInput.text !== "" && root.raza !== "" && root.clase !== "") {
+                        const esNickValido = personajeController.esNickValido(nickInput.text)
+
+                        nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
+
+                        if (!esNickValido) {
+                            return
+                        }
+
+                        generalErrorText.text = ""
+                        personajeController.setRaza(root.raza)
+                        personajeController.setClase(root.clase)
+                        personajeController.setNick(nickInput.text)
+                        personajeController.setCabeza(root.cabezaIndex)
+                        personajeController.setCuerpo(root.cuerpoIndex)
+                    } else {
+                        generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
                     }
-
-                    generalErrorText.text = ""
-                    personajeController.setRaza(raza)
-                    personajeController.setClase(clase)
-                    personajeController.setNick(nickInput.text)
-                    personajeController.setCabeza(cabezaIndex)
-                    personajeController.setCuerpo(cuerpoIndex)
-                } else {
-                    generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
                 }
             }
         }
-    }
 
-    ImageButton {
-        id: volverButton
-        x: crearPersonajeButton.x - parent.width / 2 + 2
-        y: 420
-        width: 210
-        height: 47
-        source: "../graficos/VolverButton.png"
-        TapHandler {
-            onTapped: personajeController.volverAlMenu()
+        ImageButton {
+            id: volverButton
+            x: crearPersonajeButton.x - parent.width / 2 + 2
+            y: 420
+            width: 210
+            height: 47
+            source: "../graficos/VolverButton.png"
+            TapHandler {
+                onTapped: personajeController.volverAlMenu()
+            }
         }
     }
 }

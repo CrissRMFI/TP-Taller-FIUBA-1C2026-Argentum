@@ -13,6 +13,8 @@ enum class CargarPersonajeResultado {
     ContinuarConPersonajeExistente,
 };
 
+class QQuickView;
+
 class CargarPersonajeController : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString nick READ getNick)
@@ -20,7 +22,7 @@ class CargarPersonajeController : public QObject {
 
 public:
     explicit CargarPersonajeController(QObject* parent = nullptr);
-    void run(DatosConexion& datos, CargarPersonajeResultado& resultado);
+    void run(QQuickView& ventana, DatosConexion& datos, CargarPersonajeResultado& resultado);
 
 public slots:
     void setNick(const QString& nick);

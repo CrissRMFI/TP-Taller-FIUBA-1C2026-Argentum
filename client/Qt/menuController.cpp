@@ -3,16 +3,22 @@
 #include "login/loginController.h"
 #include "elegirPersonaje/elegirPersonajeController.h"
 
+#include <QQuickView>
+
 #include "../../common/socket/socket.h"
 
 MenuController::MenuController(){}
 
+void MenuController::setVentana(QQuickView* ventana) { this->ventana = ventana; }
+
 void MenuController::run(DatosConexion& datos) {
+
+	ventana->show();
 
 	while (!terminoRegistro) {
 		if (!loginYaRealizado) {
 			LoginController login;
-			login.run(datos);
+			login.run(*ventana, datos);
 			try {
 				Socket preflight(datos.getDatosLogin().host.c_str(),
 				                 datos.getDatosLogin().puerto.c_str());
@@ -27,7 +33,7 @@ void MenuController::run(DatosConexion& datos) {
 		while (true) {
 			CargarPersonajeController cargarPersonaje;
 			CargarPersonajeResultado cargarResultado;
-			cargarPersonaje.run(datos, cargarResultado);
+			cargarPersonaje.run(*ventana, datos, cargarResultado);
 
 			if (cargarResultado == CargarPersonajeResultado::VolverAlMenu) {
 				break;
@@ -40,7 +46,7 @@ void MenuController::run(DatosConexion& datos) {
 
 			ElegirPersonajeController elegirPersonaje;
 			ElegirPersonajeResultado elegirResultado;
-			elegirPersonaje.run(datos, elegirResultado);
+			elegirPersonaje.run(*ventana, datos, elegirResultado);
 
 			if (elegirResultado == ElegirPersonajeResultado::VolverAlMenu) {
 				continue;

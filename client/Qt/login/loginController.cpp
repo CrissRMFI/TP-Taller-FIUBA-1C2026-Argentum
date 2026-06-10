@@ -1,24 +1,22 @@
 #include "loginController.h"
 
 #include <QEventLoop>
-#include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickView>
 #include <QUrl>
 #include <QByteArray>
 #include <utility>
 
-void LoginController::run(DatosConexion& datos) {
+void LoginController::run(QQuickView& ventana, DatosConexion& datos) {
     errorLogin = datos.tieneErrorLogin();
     errorLoginMessage = QString::fromStdString(datos.getMensajeError());
-    // Cargar login.qml
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("loginController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/login/login.qml")));
+    ventana.rootContext()->setContextProperty("loginController", this);
+    ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/login/login.qml")));
 
-    // Corro eventLoop hasta que el usuario complete datos y se emita la señal formularioCompleto
+    // Corro eventLoop hasta que el usuario complete datos y se emita la señal loginCompleted
     QEventLoop loop;
     connect(this, &LoginController::loginCompleted, &loop, &QEventLoop::quit);
-    
+
     // Espero a que el eventLoop termine
     loop.exec();
 
