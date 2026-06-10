@@ -1,0 +1,126 @@
+# Catalogo unico de criaturas y NPCs de Argentum.
+# Fuente unica consumida por:
+#   - el server  : stats de combate + 'cuerpo' (sprite) al spawnear criaturas.
+#   - el editor  : figura (sprite/src), nombre, descripcion y oro para el panel.
+#   - el cliente : puede leerlo a futuro (cuerpo / datos de criatura).
+#
+# Cada [[criatura]] trae sus stats POR TIPO.
+
+[[criatura]]
+clave        = "goblin"
+nombre       = "Goblin"
+descripcion  = "Pequeña criatura salvaje y cobarde que merodea los campos en grupo, atacando cuerpo a cuerpo a cualquier viajero que se acerque demasiado."
+vida_maxima  = 30
+nivel        = 1
+fuerza       = 4
+agilidad     = 6
+rango_aggro  = 4
+danio_min    = 2
+danio_max    = 5
+cuerpo       = 2200
+oro          = 15
+sprite       = ":/imgs/criaturas/goblin.png"
+src          = [3, 6, 18, 25]
+
+[[criatura]]
+clave        = "esqueleto"
+nombre       = "Esqueleto"
+descripcion  = "Restos reanimados de antiguos guerreros. Atacan sin descanso y sin temor a quien invada las tierras que custodian."
+vida_maxima  = 45
+nivel        = 2
+fuerza       = 6
+agilidad     = 5
+rango_aggro  = 5
+danio_min    = 3
+danio_max    = 7
+cuerpo       = 2201
+oro          = 25
+sprite       = ":/imgs/criaturas/esqueleto.png"
+src          = [10, 19, 12, 29]
+
+[[criatura]]
+clave        = "zombie"
+nombre       = "Zombie"
+descripcion  = "Muerto viviente lento pero implacable. Su mordida arrastra a los incautos a una agonia interminable."
+vida_maxima  = 60
+nivel        = 2
+fuerza       = 7
+agilidad     = 2
+rango_aggro  = 4
+danio_min    = 4
+danio_max    = 8
+cuerpo       = 2202
+oro          = 30
+sprite       = ":/imgs/criaturas/zombie.png"
+src          = [5, 2, 15, 43]
+
+[[criatura]]
+clave        = "arania"
+nombre       = "Arana"
+descripcion  = "Acecha en los bosques. Rapida y venenosa, cae sobre el viajero distraido antes de que pueda reaccionar."
+vida_maxima  = 35
+nivel        = 2
+fuerza       = 5
+agilidad     = 9
+rango_aggro  = 6
+danio_min    = 3
+danio_max    = 6
+cuerpo       = 2203
+oro          = 20
+sprite       = ":/imgs/criaturas/arana.png"
+src          = [7, 30, 50, 34]
+
+[[criatura]]
+clave        = "orco"
+nombre       = "Orco"
+descripcion  = "Bruto corpulento de gran fuerza que domina las tierras salvajes a golpes. Pocos sobreviven a su embestida."
+vida_maxima  = 90
+nivel        = 4
+fuerza       = 10
+agilidad     = 5
+rango_aggro  = 5
+danio_min    = 6
+danio_max    = 12
+cuerpo       = 2204
+oro          = 50
+sprite       = ":/imgs/criaturas/orco.png"
+src          = [20, 1, 105, 174]
+
+[[criatura]]
+clave        = "golem"
+nombre       = "Golem"
+descripcion  = "Coloso de piedra que custodia grandes tesoros en lo profundo de las mazmorras. Resistente y devastador en combate."
+vida_maxima  = 200
+nivel        = 6
+fuerza       = 14
+agilidad     = 3
+rango_aggro  = 4
+danio_min    = 10
+danio_max    = 20
+cuerpo       = 2205
+oro          = 120
+sprite       = ":/imgs/criaturas/golem.png"
+src          = [11, 13, 73, 73]
+
+# --- NPCs (solo datos visuales para el editor; el server tiene su propia config) ---
+
+[[npc]]
+clave        = "sacerdote"
+nombre       = "Sacerdote"
+descripcion  = "Resucita y cura a los personajes (vida y mana) y vende baculos, varas y pociones. Imprescindible en toda ciudad."
+sprite       = ":/imgs/npc/sacerdote.png"
+src          = [19, 0, 16, 48]
+
+[[npc]]
+clave        = "comerciante"
+nombre       = "Comerciante"
+descripcion  = "Compra y vende casi cualquier articulo: armas, armaduras y cascos. El corazon del comercio de Argentum."
+sprite       = ":/imgs/npc/comerciante.png"
+src          = [5, 1, 19, 44]
+
+[[npc]]
+clave        = "banquero"
+nombre       = "Banquero"
+descripcion  = "Guarda las pertenencias y el oro de los jugadores en el banco, y permite retirarlos cuando lo necesiten."
+sprite       = ":/imgs/npc/banquero.png"
+src          = [5, 1, 17, 44]
