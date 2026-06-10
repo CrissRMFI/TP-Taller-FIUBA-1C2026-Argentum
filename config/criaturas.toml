@@ -5,6 +5,7 @@
 #   - el cliente : puede leerlo a futuro (cuerpo / datos de criatura).
 #
 # Cada [[criatura]] trae sus stats POR TIPO.
+# 'fx_ataque' es el id de sprite del efecto de golpe que muestra el cliente al atacar (imgs/ataques/fx/<id>.png).
 
 [[criatura]]
 clave        = "goblin"
@@ -18,6 +19,7 @@ rango_aggro  = 4
 danio_min    = 2
 danio_max    = 5
 cuerpo       = 2200
+fx_ataque    = 2079
 oro          = 15
 sprite       = ":/imgs/criaturas/goblin.png"
 src          = [3, 6, 18, 25]
@@ -34,6 +36,7 @@ rango_aggro  = 5
 danio_min    = 3
 danio_max    = 7
 cuerpo       = 2201
+fx_ataque    = 2110
 oro          = 25
 sprite       = ":/imgs/criaturas/esqueleto.png"
 src          = [10, 19, 12, 29]
@@ -50,6 +53,7 @@ rango_aggro  = 4
 danio_min    = 4
 danio_max    = 8
 cuerpo       = 2202
+fx_ataque    = 2079
 oro          = 30
 sprite       = ":/imgs/criaturas/zombie.png"
 src          = [5, 2, 15, 43]
@@ -66,6 +70,7 @@ rango_aggro  = 6
 danio_min    = 3
 danio_max    = 6
 cuerpo       = 2203
+fx_ataque    = 2079
 oro          = 20
 sprite       = ":/imgs/criaturas/arana.png"
 src          = [7, 30, 50, 34]
@@ -82,6 +87,7 @@ rango_aggro  = 5
 danio_min    = 6
 danio_max    = 12
 cuerpo       = 2204
+fx_ataque    = 2048
 oro          = 50
 sprite       = ":/imgs/criaturas/orco.png"
 src          = [20, 1, 105, 174]
@@ -98,6 +104,7 @@ rango_aggro  = 4
 danio_min    = 10
 danio_max    = 20
 cuerpo       = 2205
+fx_ataque    = 2048
 oro          = 120
 sprite       = ":/imgs/criaturas/golem.png"
 src          = [11, 13, 73, 73]

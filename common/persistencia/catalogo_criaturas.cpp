@@ -59,6 +59,7 @@ void CatalogoCriaturas::cargar(const std::string& path) {
         s.danioMin   = static_cast<uint8_t>((*t)["danio_min"].value_or<int64_t>(0));
         s.danioMax   = static_cast<uint8_t>((*t)["danio_max"].value_or<int64_t>(0));
         s.cuerpo     = static_cast<uint16_t>((*t)["cuerpo"].value_or<int64_t>(0));
+        s.fxAtaque   = static_cast<uint16_t>((*t)["fx_ataque"].value_or<int64_t>(0));
         stats[tipo] = s;
     }
 }

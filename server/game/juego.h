@@ -55,6 +55,7 @@ class Juego {
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
     Mapa mapa;
     uint64_t ticksTranscurridos;
+    std::unordered_map<uint16_t, uint64_t> ultimoTickAtaqueCriatura;
     Aleatorio aleatorio;
 
     // Persistencia: indice nombre->offset en RAM + lector/escritor de los

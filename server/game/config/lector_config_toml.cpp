@@ -457,6 +457,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.inventarioMaxItems = leerUint8Obligatorio(tbl, "inventario", "max_items");
     cfg.spawnCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "spawn_ticks");
     cfg.poblacionMaxCriaturas = leerUint16Obligatorio(tbl, "criaturas", "poblacion_max");
+    cfg.criaturaCooldownAtaqueSeg = leerFloatObligatorio(tbl, "criaturas", "cooldown_ataque_seg");
 
     const std::string criaturasArchivo = leerStringEnTabla(
             leerTablaObligatoria(tbl, "criaturas"), "archivo",

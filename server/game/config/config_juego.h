@@ -93,7 +93,7 @@ struct ConfigJuego {
     uint16_t movimientoCriaturasTicks;
     uint16_t spawnCriaturasTicks;
     uint16_t poblacionMaxCriaturas;
-
+    float    criaturaCooldownAtaqueSeg; 
     // ---- Muerte / resurrección ----
     float expPerdidaMuertePct;      // fracción de experiencia perdida al morir
     float factorTiempoResurreccion; // segundos_inmovilizado = distancia * factor
