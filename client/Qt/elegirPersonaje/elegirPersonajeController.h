@@ -14,6 +14,8 @@ enum class ElegirPersonajeResultado {
     FinalizarRegistro,
 };
 
+class QQuickView;
+
 class ElegirPersonajeController : public QObject {
     Q_OBJECT
     Q_PROPERTY(Raza raza READ getRaza)
@@ -22,7 +24,7 @@ class ElegirPersonajeController : public QObject {
     QML_ELEMENT
 public:
     explicit ElegirPersonajeController(QObject* parent = nullptr);
-    void run(DatosConexion& datos, ElegirPersonajeResultado& resultado);
+    void run(QQuickView& ventana, DatosConexion& datos, ElegirPersonajeResultado& resultado);
 
 public slots:
     void setRaza(const QString& raza);

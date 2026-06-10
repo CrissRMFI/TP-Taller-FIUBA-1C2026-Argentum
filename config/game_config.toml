@@ -364,30 +364,20 @@ prob_pocion   = 0.01
 prob_item     = 0.01
 oro_drop_min  = 0.01
 oro_drop_max  = 0.20
-vida_maxima_base = 50
-nivel_base = 1
-fuerza_base = 5
-agilidad_base = 5
-rango_aggro_base = 5
-danio_min_base = 1
-danio_max_base = 4
 
-# Cada cuántos ticks se mueven las criaturas (3 x 130ms ~= 390ms, igual que antes con tick_ms=200)
+# Stats POR TIPO de criatura (vida, fuerza, danio, ...) y 'cuerpo' (sprite).
+# Viven en su propio TOML: fuente unica compartida con el editor y el cliente.
+archivo = "config/criaturas.toml"
+
+# Cada cuántos ticks se mueven las criaturas 
 movimiento_ticks = 3
+
+# Tiempo minimo entre dos ataques de una misma criatura (cooldown, en segundos).
+cooldown_ataque_seg = 0.5
 
 # Cada cuántos ticks spawnea una criatura nueva (~20s con tick_ms=130)
 spawn_ticks   = 154
 poblacion_max = 10           # Tope global de NPCs vivos
-
-# id de sprite de cuerpo de cada criatura con que el cliente la dibuja.
-# Deben coincidir con el catalogo del cliente (criatura_sprite_resolver /
-# sprites.toml): es un contrato cliente-servidor.
-cuerpo_goblin    = 2200
-cuerpo_esqueleto = 2201
-cuerpo_zombie    = 2202
-cuerpo_arania    = 2203
-cuerpo_orco      = 2204
-cuerpo_golem     = 2205
 
 # ------------------------------------------------------------
 [mapa]

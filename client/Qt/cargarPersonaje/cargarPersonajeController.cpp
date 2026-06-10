@@ -1,8 +1,8 @@
 #include "cargarPersonajeController.h"
 
 #include <QEventLoop>
-#include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickView>
 #include <QUrl>
 #include <map>
 #include <string>
@@ -10,17 +10,16 @@
 CargarPersonajeController::CargarPersonajeController(QObject* parent)
     : QObject(parent){}
 
-void CargarPersonajeController::run(DatosConexion& datos, CargarPersonajeResultado& resultado) {
+void CargarPersonajeController::run(QQuickView& ventana, DatosConexion& datos, CargarPersonajeResultado& resultado) {
     _volverAlMenu = false;
     _volverACrearCuenta = false;
     resultado = CargarPersonajeResultado::ContinuarConPersonajeExistente;
     errorLoginMessage = datos.getMensajeError();
     errorLogin = datos.tieneErrorLogin();
 
-    // Cargar cargarPersonaje.qml
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("cargarPersonajeController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/cargarPersonaje/cargarPersonaje.qml")));
+    // Reemplaza el contenido de la ventana compartida por cargarPersonaje.qml.
+    ventana.rootContext()->setContextProperty("cargarPersonajeController", this);
+    ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/cargarPersonaje/cargarPersonaje.qml")));
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal cargarPersonajeCompleted
     QEventLoop loop;

@@ -7,6 +7,8 @@
 
 #include "datosConexion.h"
 
+class QQuickView;
+
 class LoginController : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString puerto READ getPuerto)
@@ -14,7 +16,7 @@ class LoginController : public QObject {
     QML_ELEMENT
 public:
     explicit LoginController(QObject* parent = nullptr);
-    void run(DatosConexion& datos);
+    void run(QQuickView& ventana, DatosConexion& datos);
 
 public slots:
     void setPuerto(const QString& puerto);

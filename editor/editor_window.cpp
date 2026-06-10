@@ -3,77 +3,113 @@
 #include <exception>
 
 #include <QAction>
-#include <QActionGroup>
+#include <QApplication>
+#include <QDir>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPixmap>
+#include <QPushButton>
 #include <QStatusBar>
-#include <QToolBar>
 
 #include "common/persistencia/escritor_mapa.h"
 #include "common/persistencia/lector_mapa.h"
+#include "dialogo_confirmar.h"
 
 #define EDITOR_MAPA_DEFAULT "config/mapa.toml"
+#define EDITOR_MAPA_DIR "config"
 #define EDITOR_ANCHO_DEFAULT 100
 #define EDITOR_ALTO_DEFAULT 100
 
+#define VENTANA_W 771
+#define VENTANA_H 719
+
 EditorWindow::EditorWindow():
-        modelo(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), canvas(nullptr) {
+        modelo(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), catalogo(),
+        fondo(nullptr), canvas(nullptr), panel(nullptr),
+        descripcion(nullptr), recompensa(nullptr), barras(nullptr) {
     setWindowTitle("Argentum - Editor de mapas");
 
-    canvas = new MapaCanvas(&modelo, this);
-    setCentralWidget(canvas);
+    fondo = new QLabel(this);
+    fondo->setPixmap(QPixmap(":/mapas/es_VentanaMapa.bmp"));
+    fondo->setFixedSize(VENTANA_W, VENTANA_H);
+    setCentralWidget(fondo);
 
-    crearHerramientas();
+    // Mapa: area negra de la ventana.
+    canvas = new MapaCanvas(&modelo, &catalogo, fondo);
+    canvas->setGeometry(31, 92, 516, 597);
+
+    crearPanel();
     crearMenu();
-    
+
+    // Cartel de controles, siempre visible (a la derecha de la barra de estado).
+    QLabel* ayuda = new QLabel(
+            "Click izq: pintar zona / arrastrar elemento  ·  "
+            "Click der: borrar  ·  Ctrl+rueda: zoom  ·  boton del medio: mover");
+    statusBar()->addPermanentWidget(ayuda);
+
     intentarCargar(EDITOR_MAPA_DEFAULT);
-    resize(820, 860);
+    actualizarInfo();
+    setFixedSize(sizeHint());
 }
 
-void EditorWindow::crearHerramientas() {
-    QToolBar* barra = addToolBar("Herramientas");
-    QActionGroup* grupo = new QActionGroup(this);
-    grupo->setExclusive(true);
+void EditorWindow::crearPanel() {
+    
+    panel = new PanelElementos(&catalogo, fondo);
+    panel->setGeometry(572, 212, 180, 112);
+    connect(panel, &PanelElementos::seleccionCambiada, this, &EditorWindow::actualizarInfo);
 
-    QAction* pared = barra->addAction("Pared");
-    QAction* ciudad = barra->addAction("Ciudad");
-    QAction* sacerdote = barra->addAction("Sacerdote");
-    QAction* comerciante = barra->addAction("Comerciante");
-    QAction* banquero = barra->addAction("Banquero");
-    QAction* borrar = barra->addAction("Borrar");
+    // INFORMACION: descripcion del elemento.
+    descripcion = new QLabel(fondo);
+    descripcion->setGeometry(580, 360, 166, 180);
+    descripcion->setWordWrap(true);
+    descripcion->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    descripcion->setStyleSheet(
+            "color: rgb(206, 184, 130); background: transparent; font-size: 11px;");
 
-    for (QAction* accion : {pared, ciudad, sacerdote, comerciante, banquero, borrar}) {
-        accion->setCheckable(true);
-        grupo->addAction(accion);
-    }
-    pared->setChecked(true);
+    // RECOMPENSAS: oro (debajo del rotulo RECOMPENSAS).
+    recompensa = new QLabel(fondo);
+    recompensa->setGeometry(652, 630, 96, 18);
+    recompensa->setStyleSheet("color: rgb(240, 210, 90); background: transparent;"" font-weight: bold;");
 
-    connect(pared, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Pared); });
-    connect(ciudad, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Ciudad); });
-    connect(sacerdote, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Sacerdote); });
-    connect(comerciante, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Comerciante); });
-    connect(banquero, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Banquero); });
-    connect(borrar, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaEditor::Borrar); });
+    // Barras de stats (vida / danio / nivel / oro) sobre los slots del bmp.
+    barras = new BarrasStats(&catalogo, fondo);
+    barras->setGeometry(600, 555, 156, 42);
+
+    // Boton "Crear Mapa": genera y guarda el .toml.
+    QPushButton* botonCrear = new QPushButton("Crear Mapa", fondo);
+    botonCrear->setGeometry(648, 652, 100, 40);
+    connect(botonCrear, &QPushButton::clicked, this, &EditorWindow::crearMapa);
 }
 
 void EditorWindow::crearMenu() {
     QMenu* archivo = menuBar()->addMenu("Archivo");
-
-    QAction* nuevo = archivo->addAction("Nuevo");
     QAction* abrir = archivo->addAction("Abrir...");
-    QAction* guardar = archivo->addAction("Guardar...");
-
-    connect(nuevo, &QAction::triggered, this, &EditorWindow::nuevoMapa);
+    QAction* crear = archivo->addAction("Crear Mapa");
     connect(abrir, &QAction::triggered, this, &EditorWindow::abrirMapa);
-    connect(guardar, &QAction::triggered, this, &EditorWindow::guardarMapa);
+    connect(crear, &QAction::triggered, this, &EditorWindow::crearMapa);
+}
+
+void EditorWindow::actualizarInfo() {
+    ElementoCatalogo elem;
+    const bool hayElem = panel->elementoActual(elem);
+    if (hayElem) {
+        descripcion->setText(elem.nombre + "\n\n" + elem.descripcion);
+        recompensa->setText(elem.tieneOro ? QString("Oro: %1").arg(elem.oro) : QString());
+        barras->setStats(elem);
+    } else {
+        descripcion->setText("(seccion en construccion)");
+        recompensa->clear();
+        barras->limpiar();
+    }
+
+    
+    if (hayElem && panel->seccionActual() == SeccionCatalogo::Pisos) {
+        canvas->setPincelPiso(true, elem.clave, elem.destino);
+    } else {
+        canvas->setPincelPiso(false, QString(), QString());
+    }
 }
 
 void EditorWindow::intentarCargar(const QString& ruta) {
@@ -84,19 +120,13 @@ void EditorWindow::intentarCargar(const QString& ruta) {
         canvas->update();
         statusBar()->showMessage("Mapa cargado: " + ruta, 4000);
     } catch (const std::exception&) {
-        // Si no existe o esta corrupto, arrancamos con el mapa vacio por defecto.
+        // Si no existe o esta corrupto, arrancamos con el mapa vacio (pasto).
     }
-}
-
-void EditorWindow::nuevoMapa() {
-    modelo.cargarDesde(Mapa(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), 0);
-    canvas->update();
-    statusBar()->showMessage("Nuevo mapa vacio", 4000);
 }
 
 void EditorWindow::abrirMapa() {
     const QString ruta = QFileDialog::getOpenFileName(
-            this, "Abrir mapa", "config", "Mapas (*.toml)");
+            this, "Abrir mapa", EDITOR_MAPA_DIR, "Mapas (*.toml)");
     if (ruta.isEmpty()) {
         return;
     }
@@ -111,18 +141,30 @@ void EditorWindow::abrirMapa() {
     }
 }
 
-void EditorWindow::guardarMapa() {
-    const QString ruta = QFileDialog::getSaveFileName(
-            this, "Guardar mapa", EDITOR_MAPA_DEFAULT, "Mapas (*.toml)");
-    if (ruta.isEmpty()) {
+void EditorWindow::crearMapa() {
+    if (!modelo.todoCubierto()) {
+        QMessageBox::warning(this, "Falta piso",
+                             "No se puede crear el mapa: hay celdas sin piso. "
+                             "Pinta el terreno hasta cubrir todo el mapa.");
         return;
     }
+
+    // Ventana CONFIRMAR: sobreescribe el mapa del server. Cancelar => seguir editando.
+    DialogoConfirmar dialogo(this);
+    if (dialogo.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    QDir().mkpath(EDITOR_MAPA_DIR);
     try {
         Mapa mapa = modelo.construirMapa();
         EscritorMapa escritorMapa;
-        escritorMapa.escribir(mapa, modelo.getMapaId(), ruta.toStdString());
-        statusBar()->showMessage("Mapa guardado en " + ruta, 4000);
+        escritorMapa.escribir(mapa, modelo.getMapaId(), EDITOR_MAPA_DEFAULT);
     } catch (const std::exception& e) {
-        QMessageBox::critical(this, "Error al guardar", e.what());
+        QMessageBox::critical(this, "Error al guardar el mapa", e.what());
+        return;
     }
+
+
+    qApp->quit();
 }

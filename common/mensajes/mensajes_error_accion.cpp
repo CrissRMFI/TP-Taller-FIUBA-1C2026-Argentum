@@ -41,6 +41,18 @@ const char* MensajesErrorAccion::mensaje(CodigoErrorAccion codigo) {
         case CodigoErrorAccion::OBJETIVO_MUERTO:
             return "El objetivo no esta vivo";
 
+        case CodigoErrorAccion::USUARIO_YA_CONECTADO:
+            return "El usuario ya esta conectado";
+
+        case CodigoErrorAccion::SIN_POSICION_LIBRE:
+            return "No hay una posicion libre donde aparecer";
+
+        case CodigoErrorAccion::ID_EN_USO:
+            return "El identificador de personaje ya esta en uso";
+
+        case CodigoErrorAccion::NO_SE_PUDO_CARGAR_PERSONAJE:
+            return "No se pudo cargar tu personaje guardado";
+
         default:
             return "Error de accion desconocido";
     }

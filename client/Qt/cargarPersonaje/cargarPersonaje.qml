@@ -1,23 +1,11 @@
 import QtQuick
-import QtQuick.Window
 import QtQuick.Controls
 import QmlCppExample
 
-Window {
-    minimumWidth: 640
-    minimumHeight: 480
-    maximumWidth: minimumWidth
-    maximumHeight: minimumHeight
-    visible: true
-    title: qsTr("Inicia Sesión")
+// Root que llena la QQuickView; el contenido (640x480) se escala a la ventana.
+Item {
+    id: root
     property bool errorLogin: cargarPersonajeController.huboErrorLogin()
-
-    Image {
-        id: seleccionPersonaje
-        source: "../graficos/InicioSesion.png"
-        anchors.fill: parent
-        z: 0
-    }
 
     component ImageButton: Image {
         HoverHandler {
@@ -50,120 +38,135 @@ Window {
         color: "white"
     }
 
-    TextField {
-        id: nickInput
-        x: parent.width / 2 - width / 2
-        y: parent.height / 2 - height / 2
-        width: 230
-        height: 30
-        placeholderText: qsTr("Ingrese su nick")
-        // Fondo transparente
-        background: Rectangle {
-            color: "transparent"
-            border.color: "white"
+    Item {
+        id: contenido
+        width: 640
+        height: 480
+        transformOrigin: Item.TopLeft
+        scale: Math.min(root.width / width, root.height / height)
+
+        Image {
+            id: seleccionPersonaje
+            source: "../graficos/InicioSesion.png"
+            anchors.fill: parent
+            z: 0
         }
-        text: ""
-    }
 
-    TitleText {
-        text: qsTr("NICKNAME")
-        x: parent.width / 2 - width / 2
-        y: nickInput.y - height * 1.5
-    }
+        TextField {
+            id: nickInput
+            x: parent.width / 2 - width / 2
+            y: parent.height / 2 - height / 2
+            width: 230
+            height: 30
+            placeholderText: qsTr("Ingrese su nick")
+            // Fondo transparente
+            background: Rectangle {
+                color: "transparent"
+                border.color: "white"
+            }
+            text: ""
+        }
 
-    ErrorText {
-        id: errorMessageNick
-        x: (nickInput.x + nickInput.width / 2) - (width / 2)
-        y: nickInput.y + nickInput.height
-        text: ""
-    }
+        TitleText {
+            text: qsTr("NICKNAME")
+            x: parent.width / 2 - width / 2
+            y: nickInput.y - height * 1.5
+        }
 
-    ErrorText {
-        id: errorLoginMessage
-        x: parent.width / 2 - width / 2
-        y: crearCuentaButton.y - height * 1.5
-        z: 2
-        visible: errorLogin && text !== ""
-        text: cargarPersonajeController.getErrorLoginMessage()
-    }
+        ErrorText {
+            id: errorMessageNick
+            x: (nickInput.x + nickInput.width / 2) - (width / 2)
+            y: nickInput.y + nickInput.height
+            text: ""
+        }
 
-    ErrorText {
-        id: errorUnirseMessage
-        x: parent.width / 2 - width / 2
-        y: crearCuentaButton.y - height * 1.5
-        text: ""
-    }
+        ErrorText {
+            id: errorLoginMessage
+            x: parent.width / 2 - width / 2
+            y: crearCuentaButton.y - height * 1.5
+            z: 2
+            visible: root.errorLogin && text !== ""
+            text: cargarPersonajeController.getErrorLoginMessage()
+        }
 
-    ImageButton {
-        TapHandler {
-            onTapped: {
-                errorLogin = false;
-                if (nickInput.text === "") {
-                    errorMessageNick.text = "";
-                    errorUnirseMessage.text = "Por favor, complete el campo de nick.";
-                } else {
-                    errorUnirseMessage.text = "";
-                    const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
+        ErrorText {
+            id: errorUnirseMessage
+            x: parent.width / 2 - width / 2
+            y: crearCuentaButton.y - height * 1.5
+            text: ""
+        }
 
-                    errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
+        ImageButton {
+            TapHandler {
+                onTapped: {
+                    root.errorLogin = false;
+                    if (nickInput.text === "") {
+                        errorMessageNick.text = "";
+                        errorUnirseMessage.text = "Por favor, complete el campo de nick.";
+                    } else {
+                        errorUnirseMessage.text = "";
+                        const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
 
-                    if (nickValido) {
-                        cargarPersonajeController.setNick(nickInput.text);
-                        console.log("Intentando unirse a la partida...");
+                        errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
+
+                        if (nickValido) {
+                            cargarPersonajeController.setNick(nickInput.text);
+                            console.log("Intentando unirse a la partida...");
+                        }
                     }
                 }
             }
+            id: iniciarSesionButton
+            x: parent.width - width
+            y: parent.height - height
+            width: 208
+            height: 50
+            source: "../graficos/emptybutton.png"
         }
-        id: iniciarSesionButton
-        x: parent.width - width
-        y: parent.height - height
-        width: 208
-        height: 50
-        source: "../graficos/emptybutton.png"
-    }
 
-    ImageButton {
-        TapHandler {
-            onTapped: {
-                console.log("Volviendo al menú principal");
-                cargarPersonajeController.volverAlMenu();
+        ImageButton {
+            TapHandler {
+                onTapped: {
+                    console.log("Volviendo al menú principal");
+                    cargarPersonajeController.volverAlMenu();
+                }
             }
+            id: volverButton
+            x: 4
+            y: parent.height - height
+            width: 208
+            height: 50
+            source: "../graficos/emptybutton.png"
         }
-        id: volverButton
-        x: 4
-        y: parent.height - height
-        width: 208
-        height: 50
-        source: "../graficos/emptybutton.png"
-    }
 
-    ImageButton {
-        TapHandler {
-            onTapped: {
-                console.log("Rediriguiendo a la pantalla de creación de cuenta");
-                cargarPersonajeController.volverACrearCuenta();
+        ImageButton {
+            TapHandler {
+                onTapped: {
+                    console.log("Rediriguiendo a la pantalla de creación de cuenta");
+                    cargarPersonajeController.volverACrearCuenta();
+                }
             }
+            id: crearCuentaButton
+            x: (parent.width / 2) - width / 2
+            y: parent.height - height
+            width: 208
+            height: 50
+            source: "../graficos/emptybutton.png"
         }
-        id: crearCuentaButton
-        x: (parent.width / 2) - width / 2 
-        y: parent.height - height
-        width: 208
-        height: 50
-        source: "../graficos/emptybutton.png"
-    }
 
-    ButtonText {
-        text: qsTr("INICIAR SESIÓN")
-        anchors.centerIn: iniciarSesionButton
-    }
+        ButtonText {
+            text: qsTr("INICIAR SESIÓN")
+            anchors.centerIn: iniciarSesionButton
+        }
 
-    ButtonText {
-        text: qsTr("VOLVER")
-        anchors.centerIn: volverButton
-    }
+        ButtonText {
+            text: qsTr("VOLVER")
+            anchors.centerIn: volverButton
+        }
 
-    ButtonText {
-        text: qsTr("CREAR CUENTA")
-        anchors.centerIn: crearCuentaButton
+        ButtonText {
+            text: qsTr("CREAR CUENTA")
+            anchors.centerIn: crearCuentaButton
+        }
     }
 }

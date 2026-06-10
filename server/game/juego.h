@@ -18,6 +18,7 @@
 #include "jugador.h"
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
+#include "../../common/persistencia/catalogo_criaturas.h"
 #include "objeto/catalogo_items.h"
 #include "objeto/hechizo.h"
 #include "../persistencia/indice_jugadores.h"
@@ -27,7 +28,7 @@
 class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, CatalogoHechizos&& hechizos,
-          Mapa&& mapa);
+          CatalogoCriaturas&& criaturas, Mapa&& mapa);
 
     // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
     std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo);
@@ -42,9 +43,10 @@ class Juego {
     void persistirTodos();
 
   private:
-    ConfigJuego      cfg;
-    CatalogoItems    catalogo;
-    CatalogoHechizos catalogoHechizos;
+    ConfigJuego       cfg;
+    CatalogoItems     catalogo;
+    CatalogoHechizos  catalogoHechizos;
+    CatalogoCriaturas catalogoCriaturas;
     uint16_t         proximoIdClan;
     uint16_t      proximoIdCriatura;
     std::map<uint16_t, Clan>     clanes;
@@ -53,6 +55,7 @@ class Juego {
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
     Mapa mapa;
     uint64_t ticksTranscurridos;
+    std::unordered_map<uint16_t, uint64_t> ultimoTickAtaqueCriatura;
     Aleatorio aleatorio;
 
     // Persistencia: indice nombre->offset en RAM + lector/escritor de los
@@ -102,7 +105,6 @@ class Juego {
             std::optional<uint16_t> idExcluido = std::nullopt) const;
     bool agregarCriatura(const Criatura& criatura);
     std::list<EventoSalida> intentarSpawnCriatura();
-    uint16_t getIndiceCuerpoCriatura(TipoCriatura tipo) const;
     std::optional<uint16_t> reservarIdCriatura();
     std::optional<Posicion> buscarPosicionSpawnCriatura();
     bool puedeSpawnearCriaturaEn(const Posicion& posicion) const;
