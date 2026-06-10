@@ -21,6 +21,19 @@ enum class CodigoErrorAccion : uint8_t {
     SIN_POSICION_LIBRE = 14,   // no hay una celda libre donde aparecer
     ID_EN_USO = 15,            // el id de personaje ya esta en uso
     NO_SE_PUDO_CARGAR_PERSONAJE = 16,  // fallo la carga del personaje guardado en disco
+    ESTAS_MUERTO = 17,             // la accion requiere estar vivo
+    NO_TENES_CLAN = 18,            // no perteneces a un clan
+    YA_TENES_CLAN = 19,            // ya perteneces a un clan
+    CLAN_NOMBRE_EN_USO = 20,       // ya existe un clan con ese nombre
+    NO_SOS_LIDER_CLAN = 21,        // solo el fundador/lider puede hacerlo
+    BANEADO_DEL_CLAN = 22,         // estas baneado de ese clan
+    NO_PODES_RESUCITAR = 23,       // no sos fantasma o estas inmovilizado
+    ESTAS_INMOVILIZADO = 24,       // no podes hacerlo mientras estas inmovilizado
+    ATAQUE_NEWBIE = 25,            // no se puede atacar a personajes nuevos
+    DIFERENCIA_NIVEL_EXCESIVA = 26,// la diferencia de nivel es demasiado grande
+    ATAQUE_ALIADO = 27,            // no podes atacar a un companero de clan
+    HECHIZO_NO_OFENSIVO = 28,      // ese hechizo no sirve para atacar
+    HECHIZO_NO_CONOCIDO = 29,      // no conoces ese hechizo
 };
 
 #endif
