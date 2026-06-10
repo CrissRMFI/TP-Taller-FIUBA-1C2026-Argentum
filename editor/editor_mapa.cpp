@@ -157,7 +157,8 @@ Mapa EditorMapa::construirMapa() const {
         mapa.agregarNpc(Npc{n.id, n.tipo, Posicion{n.x, n.y, mapaId}});
     }
     for (const CriaturaEditor& c : criaturas) {
-        mapa.agregarCriaturaPorTipo(c.tipo, c.id, Posicion{c.x, c.y, mapaId});
+        mapa.agregarCriatura(Criatura{c.id, c.tipo, 0, 0, 0, 0,
+                                      Posicion{c.x, c.y, mapaId}, 0, 0, 0, 0});
     }
     return mapa;
 }

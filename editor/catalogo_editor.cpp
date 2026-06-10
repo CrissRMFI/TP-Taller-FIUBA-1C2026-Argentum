@@ -24,7 +24,7 @@ QPixmap CatalogoEditor::recortar(const QString& sprite, int x, int y, int w, int
 }
 
 void CatalogoEditor::cargar() {
-    QFile archivo(":/config/criaturas_info.toml");
+        QFile archivo("config/criaturas.toml");
     if (!archivo.open(QIODevice::ReadOnly)) {
         return;
     }

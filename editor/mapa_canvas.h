@@ -8,8 +8,7 @@
 #include "catalogo_editor.h"
 #include "editor_mapa.h"
 
-/
-// Las criaturas y NPCs se colocan arrastrando desde el panel.
+
 enum class HerramientaCanvas {
     Pared,
     Ciudad,
