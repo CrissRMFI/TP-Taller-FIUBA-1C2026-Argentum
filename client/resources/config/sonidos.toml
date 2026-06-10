@@ -115,6 +115,11 @@ volumen = 100
 path = "sound/reviviendo.ogg"
 volumen = 90
 
+# Loop mientras transcurre el tiempo inmovil de resurreccion (aura imgs/personajes/aura/3499.png).
+[efectos.transcurrirTiempo]
+path = "sound/correrDelTiempo.ogg"
+volumen = 90
+
 [efectos.sacerdoteResucitar]
 path = "sound/sacerdoteResucitar.ogg"
 volumen = 90

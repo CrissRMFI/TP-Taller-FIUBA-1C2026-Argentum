@@ -767,6 +767,10 @@ uint16_t Jugador::getCuerpo() const {
     return cuerpo;
 }
 
+float Jugador::getTiempoRestanteInmovilizado() const {
+    return tiempoRestanteInmovilizado;
+}
+
 bool Jugador::estaInmovilizado() const {
     return tiempoRestanteInmovilizado > 0.0f;
 }

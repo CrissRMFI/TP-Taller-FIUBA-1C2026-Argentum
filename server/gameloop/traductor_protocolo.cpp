@@ -14,7 +14,8 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
                      e->manaActual, e->manaMax,
                      e->oro, e->nivel, e->experiencia,
                      static_cast<uint8_t>(e->estado),
-                     e->raza, e->clase, e->expSiguienteNivel } };
+                     e->raza, e->clase, e->expSiguienteNivel,
+                     e->tiempoResurreccionMs } };
     }
     if (auto* e = std::get_if<EventoPosicionEntidad>(&evento)) {
         return { Opcode::POSICION_ENTIDAD,

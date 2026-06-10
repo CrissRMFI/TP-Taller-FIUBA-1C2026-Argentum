@@ -197,6 +197,8 @@ public:
     ClasePersonaje getClase() const;
     Raza getRaza() const;
     bool estaInmovilizado() const;
+    // Segundos que aun le restan inmovil mientras resucita (0 si no esta resucitando).
+    float getTiempoRestanteInmovilizado() const;
     bool fundo_clan() const;
     bool es_newbie() const;
     std::string getNombre() const;

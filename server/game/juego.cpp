@@ -363,7 +363,10 @@ EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
                                   jugador.getEstado(),
                                   static_cast<uint8_t>(jugador.getRaza()),
                                   static_cast<uint8_t>(jugador.getClase()),
-                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel())}};
+                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel()),
+                                  static_cast<uint16_t>(std::min(
+                                          jugador.getTiempoRestanteInmovilizado() * 1000.0f,
+                                          65535.0f))}};
 }
 
 EventoSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) {

@@ -14,17 +14,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
     std::optional<ResolvedCharacterPart> body;
     const bool has_body = sprite_catalog.has_body(entity.cuerpo);
     const bool has_head = sprite_catalog.has_head(entity.cabeza);
-
-    // std::cerr << "[sprite_resolver] entity tipo=" << static_cast<int>(entity.tipo)
-    //           << " estado=" << static_cast<int>(entity.estado)
-    //           << " cabeza=" << entity.cabeza
-    //           << " cuerpo=" << entity.cuerpo
-    //           << " has_head=" << has_head
-    //           << " has_body=" << has_body << std::endl;
-
-    // Sin un cuerpo valido en el
-    // catalogo no se resuelve el sprite del cuerpo: se deja el body vacio (el renderer lo omite) e
-    // n lugar de llamar a body(id) y que unordered_map::at lance.
+    
     if (has_body) {
         if (entity.estado == 1 || entity.estado == 3) {
             if (const StateOverride* ghost_state = sprite_catalog.state_override("fantasma");

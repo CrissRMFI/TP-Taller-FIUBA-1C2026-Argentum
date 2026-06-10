@@ -79,6 +79,12 @@ private:
     void dibujar_banco(const EstadoBancoRender& banco);
     void dibujar_meditacion(int entity_x, int entity_y, int cell_width, int cell_height,
                             uint32_t tick);
+    
+    void dibujar_resurreccion(int entity_x, int entity_y, int cell_width, int cell_height,
+                              uint32_t tick);
+    
+    void dibujar_barra_resurreccion(int entity_x, int entity_y, int cell_width, int cell_height,
+                                    float fraccion);
     SDL2pp::Texture* icono_item(uint16_t id);
     int ancho_juego() const;
     std::vector<SDL2pp::Rect> banco_boveda;
