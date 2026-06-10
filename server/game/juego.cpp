@@ -21,10 +21,11 @@
 #include "../../common/persistencia/error_persistencia.h"
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hechizos,
-             Mapa&& mapa) :
+             CatalogoCriaturas&& criaturas, Mapa&& mapa) :
         cfg(cfg),
         catalogo(std::move(cat)),
         catalogoHechizos(std::move(hechizos)),
+        catalogoCriaturas(std::move(criaturas)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mapa(std::move(mapa)),
@@ -2370,15 +2371,9 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
 
     const size_t indiceTipo = aleatorio.enteroEnRango<size_t>(0, tiposCriatura.size() - 1);
 
-    const uint8_t danioMaximo = cfg.criaturaDanioMaxBase < cfg.criaturaDanioMinBase
-                                        ? cfg.criaturaDanioMinBase
-                                        : cfg.criaturaDanioMaxBase;
-    const uint16_t cuerpoCriatura = getIndiceCuerpoCriatura(tiposCriatura[indiceTipo]);
     
-    Criatura criatura(*idCriatura, tiposCriatura[indiceTipo],
-                      cfg.criaturaVidaMaximaBase, cfg.criaturaNivelBase, cfg.criaturaFuerzaBase,
-                      cfg.criaturaAgilidadBase, *posicion, cfg.criaturaRangoAggroBase,
-                      cfg.criaturaDanioMinBase, danioMaximo, cuerpoCriatura);
+    Criatura criatura =
+            catalogoCriaturas.crear(tiposCriatura[indiceTipo], *idCriatura, *posicion);
 
     if (!agregarCriatura(criatura)) {
         return mensajes;
@@ -2646,23 +2641,4 @@ uint8_t Juego::tipoGolpeDeAtacante(const Jugador& atacante) const {
     }
     // Sin arma (golpe basico)
     return static_cast<uint8_t>(TipoGolpe::Espada);
-}
-
-uint16_t Juego::getIndiceCuerpoCriatura(TipoCriatura tipo) const {
-    switch (tipo) {
-        case TipoCriatura::Goblin:
-            return cfg.cuerpoGoblin;
-        case TipoCriatura::Esqueleto:
-            return cfg.cuerpoEsqueleto;
-        case TipoCriatura::Zombie:
-            return cfg.cuerpoZombie;
-        case TipoCriatura::Arania:
-            return cfg.cuerpoArania;
-        case TipoCriatura::Orco:
-            return cfg.cuerpoOrco;
-        case TipoCriatura::Golem:
-            return cfg.cuerpoGolem;
-        default:
-            return 0;
-    }
 }
