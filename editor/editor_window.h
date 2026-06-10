@@ -33,7 +33,6 @@ private:
     void abrirMapa();
     void crearMapa();
     void actualizarInfo();
-    uint16_t proximoMapaId() const;
 };
 
 #endif

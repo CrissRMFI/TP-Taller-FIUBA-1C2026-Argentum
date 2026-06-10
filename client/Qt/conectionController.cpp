@@ -1,17 +1,45 @@
 #include "conectionController.h"
 
-#include <QGuiApplication>
+#include <cmath>
 #include <iostream>
 #include <string>
+
+#include <QGuiApplication>
+#include <QQuickView>
+#include <QSize>
+
+#include "../config/config_cliente.h"
+#include "../config/lector_config_cliente.h"
+
+#ifndef CLIENT_CONFIG_PATH
+#define CLIENT_CONFIG_PATH "config/client_config.toml"
+#endif
 
 ConnectionController::ConnectionController() {}
 
 int ConnectionController::run(int argc, char* argv[]){
 	QGuiApplication app(argc, argv);
+
+	// Ventana unica del menu, del tamano del juego.
+	LectorConfigCliente lectorConfig;
+	const ConfigCliente cfg = lectorConfig.cargar(CLIENT_CONFIG_PATH);
+	const int ventanaAncho = cfg.ancho;
+	const int ventanaAlto = cfg.alto;
+
+	QQuickView ventana;
+	ventana.setResizeMode(QQuickView::SizeRootObjectToView);
+	ventana.setTitle("Argentum Online");
+	ventana.setWidth(ventanaAncho);
+	ventana.setHeight(ventanaAlto);
+	ventana.setMinimumSize(QSize(ventanaAncho, ventanaAlto));
+	ventana.setMaximumSize(QSize(ventanaAncho, ventanaAlto));
+	menu.setVentana(&ventana);
+
 	menu.run(datos);
 
 	while(true) {
-		try{		
+		ventana.hide();
+		try{
 			Client client(datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str(), datos);
 			printf("Conexión exitosa al servidor en %s:%s\n Corriendo el cliente...", datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str());
 			client.run();

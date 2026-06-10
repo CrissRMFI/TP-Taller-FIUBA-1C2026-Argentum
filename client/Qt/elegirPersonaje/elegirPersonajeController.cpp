@@ -1,8 +1,8 @@
 #include "elegirPersonajeController.h"
 
 #include <QEventLoop>
-#include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickView>
 #include <QUrl>
 #include <map>
 #include <string>
@@ -49,14 +49,13 @@ ClasePersonaje parseClase(const QString& clase) {
 ElegirPersonajeController::ElegirPersonajeController(QObject* parent)
     : QObject(parent) {}
 
-void ElegirPersonajeController::run(DatosConexion& datos, ElegirPersonajeResultado& resultado) {
+void ElegirPersonajeController::run(QQuickView& ventana, DatosConexion& datos, ElegirPersonajeResultado& resultado) {
     _volverAlMenu = false;
     resultado = ElegirPersonajeResultado::FinalizarRegistro;
 
-    // Cargar elegirPersonaje.qml
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("personajeController", this);
-    engine.load(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
+    // Reemplaza el contenido de la ventana compartida por elegirPersonaje.qml.
+    ventana.rootContext()->setContextProperty("personajeController", this);
+    ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal elegirPersonajeCompleted
     QEventLoop loop;
