@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <string>
 #include <vector>
 #include "../modelo/posicion.h"
 #include "../npc/npc.h"
@@ -32,6 +33,15 @@ struct Ciudad {
   uint16_t yMax;
 };
 
+struct ZonaPiso {
+  uint16_t    mapaId;
+  uint16_t    xMin;
+  uint16_t    yMin;
+  uint16_t    xMax;
+  uint16_t    yMax;
+  std::string clave;
+};
+
 class Mapa {
   private:
     uint16_t ancho;
@@ -45,6 +55,7 @@ class Mapa {
     std::vector<Ciudad> ciudades;
     std::vector<Ciudad> bosques;    // rectangulos de zona boscosa (visual: arboles)
     std::vector<Ciudad> desiertos;  // rectangulos de desierto (visual: arena)
+    std::vector<ZonaPiso> pisos;    // zonas de piso visual (pasto/desierto/arboles/...)
     std::map<uint16_t, Criatura> criaturas;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
@@ -74,6 +85,7 @@ public:
     const std::vector<Ciudad>&   getCiudades() const { return ciudades; }
     const std::vector<Ciudad>&   getBosques() const  { return bosques; }
     const std::vector<Ciudad>&   getDesiertos() const { return desiertos; }
+    const std::vector<ZonaPiso>& getPisos() const { return pisos; }
     const std::map<uint16_t, Sacerdote>&   getSacerdotes() const   { return sacerdotes; }
     const std::map<uint16_t, Comerciante>& getComerciantes() const { return comerciantes; }
     const std::map<uint16_t, Banquero>&    getBanqueros() const    { return banqueros; }
@@ -97,6 +109,7 @@ public:
     void agregarCiudad(const Ciudad &ciudad);
     void agregarBosque(const Ciudad &bosque)   { bosques.push_back(bosque); }
     void agregarDesierto(const Ciudad &desierto) { desiertos.push_back(desierto); }
+    void agregarPiso(const ZonaPiso &piso) { pisos.push_back(piso); }
     bool esCiudad(const Posicion &posicion) const;
     bool esZonaSegura(const Posicion &posicion) const;
     std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;

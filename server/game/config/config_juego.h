@@ -89,23 +89,10 @@ struct ConfigJuego {
     uint16_t clanRadioBonus;
     float bonusClanPorAliado;
 
-    // ---- Criatiruas ----
+    // ---- Criaturas ----
     uint16_t movimientoCriaturasTicks;
     uint16_t spawnCriaturasTicks;
     uint16_t poblacionMaxCriaturas;
-    uint16_t criaturaVidaMaximaBase;
-    uint8_t criaturaNivelBase;
-    uint8_t criaturaFuerzaBase;
-    uint8_t criaturaAgilidadBase;
-    uint8_t criaturaRangoAggroBase;
-    uint8_t criaturaDanioMinBase;
-    uint8_t criaturaDanioMaxBase;
-    uint16_t cuerpoGoblin;
-    uint16_t cuerpoEsqueleto;
-    uint16_t cuerpoZombie;
-    uint16_t cuerpoArania;
-    uint16_t cuerpoOrco;
-    uint16_t cuerpoGolem;
 
     // ---- Muerte / resurrección ----
     float expPerdidaMuertePct;      // fracción de experiencia perdida al morir

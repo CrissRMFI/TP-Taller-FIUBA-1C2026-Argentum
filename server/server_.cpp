@@ -24,7 +24,8 @@ void Server::run() {
     ConfigCompleta config_completa = lector_config.cargar(SERVER_GAME_CONFIG_PATH);
 
     LectorMapa lector_mapa;
-    MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo);
+    MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo,
+                                               config_completa.criaturas);
 
     Gameloop gameloop(monitor_clientes, std::move(config_completa), std::move(mapaCargado.mapa));
     Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,

@@ -458,24 +458,15 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.spawnCriaturasTicks = leerUint16Obligatorio(tbl, "criaturas", "spawn_ticks");
     cfg.poblacionMaxCriaturas = leerUint16Obligatorio(tbl, "criaturas", "poblacion_max");
 
-    cfg.criaturaVidaMaximaBase = leerUint16Obligatorio(tbl, "criaturas", "vida_maxima_base");
-    cfg.criaturaNivelBase = leerUint8Obligatorio(tbl, "criaturas", "nivel_base");
-    cfg.criaturaFuerzaBase = leerUint8Obligatorio(tbl, "criaturas", "fuerza_base");
-    cfg.criaturaAgilidadBase = leerUint8Obligatorio(tbl, "criaturas", "agilidad_base");
-    cfg.criaturaRangoAggroBase = leerUint8Obligatorio(tbl, "criaturas", "rango_aggro_base");
-    cfg.criaturaDanioMinBase = leerUint8Obligatorio(tbl, "criaturas", "danio_min_base");
-    cfg.criaturaDanioMaxBase = leerUint8Obligatorio(tbl, "criaturas", "danio_max_base");
-    cfg.cuerpoGoblin = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_goblin");
-    cfg.cuerpoEsqueleto = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_esqueleto");
-    cfg.cuerpoZombie = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_zombie");
-    cfg.cuerpoArania = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_arania");
-    cfg.cuerpoOrco = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_orco");
-    cfg.cuerpoGolem = leerUint16Obligatorio(tbl, "criaturas", "cuerpo_golem");
+    const std::string criaturasArchivo = leerStringEnTabla(
+            leerTablaObligatoria(tbl, "criaturas"), "archivo",
+            rutaToml("criaturas", "archivo"));
 
     ConfigCompleta resultado;
     resultado.juego = cfg;
     poblarCatalogo(resultado.items, tbl);
     poblarHechizos(resultado.hechizos, tbl);
+    resultado.criaturas.cargar(criaturasArchivo);
 
     return resultado;
 }

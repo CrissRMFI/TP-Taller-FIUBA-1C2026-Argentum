@@ -252,7 +252,7 @@ if(TALLER_EDITOR)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
     add_executable(taller_editor)
-    set_target_properties(taller_editor PROPERTIES AUTOMOC ON)
+    set_target_properties(taller_editor PROPERTIES AUTOMOC ON AUTORCC ON)
 
     add_dependencies(taller_editor taller_common)
 

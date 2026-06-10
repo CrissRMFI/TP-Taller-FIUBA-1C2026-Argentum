@@ -28,6 +28,7 @@ target_sources(taller_common
     persistencia/error_persistencia.cpp
     persistencia/escritor_mapa.cpp
     persistencia/lector_mapa.cpp
+    persistencia/catalogo_criaturas.cpp
 
     PUBLIC
     # .h files
@@ -69,6 +70,7 @@ target_sources(taller_common
     persistencia/error_persistencia.h
     persistencia/escritor_mapa.h
     persistencia/lector_mapa.h
+    persistencia/catalogo_criaturas.h
 
     # Persistencia binaria de jugadores
     persistencia/formato_jugador.h)
