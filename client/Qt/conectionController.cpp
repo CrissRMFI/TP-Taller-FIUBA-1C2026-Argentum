@@ -10,6 +10,7 @@
 
 #include "../config/config_cliente.h"
 #include "../config/lector_config_cliente.h"
+#include "../registro_cliente.h"
 
 #ifndef CLIENT_CONFIG_PATH
 #define CLIENT_CONFIG_PATH "config/client_config.toml"
@@ -41,7 +42,8 @@ int ConnectionController::run(int argc, char* argv[]){
 		ventana.hide();
 		try{
 			Client client(datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str(), datos);
-			printf("Conexión exitosa al servidor en %s:%s\n Corriendo el cliente...", datos.getDatosLogin().host.c_str(), datos.getDatosLogin().puerto.c_str());
+			RegistroCliente::info("Conexion exitosa al servidor en " + datos.getDatosLogin().host +
+			                      ":" + datos.getDatosLogin().puerto + ". Corriendo el cliente...");
 			client.run();
 			return 0;
 			
@@ -62,7 +64,7 @@ int ConnectionController::run(int argc, char* argv[]){
 		} catch (const std::exception& e) {
 			std::string errorMsg = e.what();
 			// Error desconocido, se asume que es un error de conexión (puerto/host inválidos)
-			printf("Error de conexión: %s\n", errorMsg.c_str());
+			RegistroCliente::error("Error de conexion: " + errorMsg);
 			puertoHostInvalidos = true;
 		}
 		if (nombreUsuarioNoEncontrado) {

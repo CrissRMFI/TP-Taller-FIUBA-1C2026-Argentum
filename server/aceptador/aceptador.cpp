@@ -1,13 +1,13 @@
 #include "aceptador.h"
 
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <utility>
 
 #include <sys/socket.h>
 
 #include "common/socket/liberror.h"
+#include "server/game/registro_servidor.h"
 
 Aceptador::Aceptador(Socket& skt,
                      Queue<ComandoCliente>& colaComandos,
@@ -42,7 +42,7 @@ void Aceptador::run() {
                 continue;
             }
             
-            std::cout << "cliente aceptado" << std::endl;
+            RegistroServidor::info("cliente aceptado");
             auto *cliente = new Cliente(idCliente, std::move(protocolo_servidor), colaComandos,
                 monitorClientes, colaEventos, handshake);
 

@@ -4,10 +4,11 @@
 
 #include "client__.h"
 
-#include <iostream>
+#include <string>
 #include <utility>
 
 #include "client_game_loop.h"
+#include "registro_cliente.h"
 #include "client_manager.h"
 #include "client_business.h"
 #include "config/config_cliente.h"
@@ -19,7 +20,7 @@
 #endif
 
 Client::Client(const char* hostname, const char* port, DatosConexion& datos): skt(hostname, port), datos(datos) {
-    std::cout << "[cliente] socket conectado\n" << std::endl;
+    RegistroCliente::info("[cliente] socket conectado");
 }
 
 void Client::run() {
@@ -46,7 +47,7 @@ void Client::run() {
                        SDL_WINDOWPOS_CENTERED,
                        config.ancho, config.alto, config.fullscreen);
     } catch (const std::exception& e) {
-        std::cerr << "[cliente] error en el game loop: " << e.what() << std::endl;
+        RegistroCliente::error(std::string("[cliente] error en el game loop: ") + e.what());
     }
 
     manager.stop();

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 
 #include "server_.h"
@@ -6,10 +5,11 @@
 #include "server/aceptador/aceptador.h"
 #include "server/gameloop/comando_cliente.h"
 #include "server/gameloop/monitor_clientes.h"
+#include "server/game/registro_servidor.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Uso: " << argv[0] << " <puerto>\n";
+        RegistroServidor::error("Uso: " + std::string(argv[0]) + " <puerto>");
         return 1;
     }
     try {
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
         server.run();
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "fatal: " << e.what() << '\n';
+        RegistroServidor::error(std::string("fatal: ") + e.what());
         return 1;
     }
 }

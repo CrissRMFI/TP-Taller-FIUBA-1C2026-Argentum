@@ -2,7 +2,10 @@
 // Created by victoria zubieta on 22/05/2026.
 //
 
+#include <string>
+
 #include "recibidor.h"
+#include "server/game/registro_servidor.h"
 
 Recibidor::Recibidor(ProtocoloServidor &protocolo,
     Queue<ComandoCliente> &colaComando,
@@ -13,19 +16,19 @@ Recibidor::Recibidor(ProtocoloServidor &protocolo,
 
 
 void Recibidor::run() {
-    std::cout << "Recibidor corriendo \n";
+    RegistroServidor::info("Recibidor corriendo");
     try {
         while (running) {
             ComandoJugador comando = proto.recibirComando();
             colaComando.push(ComandoCliente{idCliente, comando});
         }
     } catch (std::exception &e) {
-        std::cout << "Recibidor::run() EXCEPTION: " << e.what() << std::endl;
+        RegistroServidor::error(std::string("Recibidor::run() EXCEPTION: ") + e.what());
     }
     running = false;
 
     monitor.removerCliente(idCliente);
-    std::cout << "[cliente " << idCliente << "] removido \n";
+    RegistroServidor::info("[cliente " + std::to_string(idCliente) + "] removido");
     proto.cerrarConexion();
 }
 

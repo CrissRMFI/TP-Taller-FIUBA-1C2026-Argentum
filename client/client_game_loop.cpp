@@ -1,5 +1,6 @@
 
 #include "client_game_loop.h"
+#include "registro_cliente.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -182,7 +183,7 @@ void ClientGameLoop::procesarLineaChat(const std::string& linea, const uint32_t 
     if (resultado.comando) {
         despacharComando(*resultado.comando, current_tick);
     } else if (!resultado.error.empty()) {
-        std::cerr << "[chat] " << resultado.error << std::endl;
+        RegistroCliente::error("[chat] " + resultado.error);
     }
 }
 
