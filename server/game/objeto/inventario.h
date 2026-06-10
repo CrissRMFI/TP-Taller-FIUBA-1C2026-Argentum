@@ -23,11 +23,8 @@ public:
     uint16_t getIdEnSlot(uint8_t indice) const;
     std::vector<uint16_t> getSlots() const;
 
-    // Vacia todos los slots y retorna los IDs que habia, usado al morir.
     std::vector<uint16_t> vaciar();
 
-    // Equipa un item: lo saca del inventario, lo pone en el slot correcto y devuelve al inventario los items desplazados.
-    // Para Defensa usar equiparPieza(), que requiere saber el sub-slot.
     bool equiparItem(uint16_t idItem, TipoItem tipo);
     bool equiparPieza(uint16_t idItem, TipoDefensa slot);
     bool equiparSlot(uint8_t indice, TipoItem tipo);

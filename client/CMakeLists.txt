@@ -25,6 +25,7 @@ target_sources(taller_client
         client_manager.cpp
         client_receiver.cpp
         client_sender.cpp
+        registro_cliente.cpp
         config/lector_config_cliente.cpp
         config/catalogo_items.cpp
         handlers/parser_comando_chat.cpp
@@ -43,6 +44,7 @@ target_sources(taller_client
         client_manager.h
         client_receiver.h
         client_sender.h
+        registro_cliente.h
         handshake_error.h
         Qt/conectionController.h
         Qt/menuController.h

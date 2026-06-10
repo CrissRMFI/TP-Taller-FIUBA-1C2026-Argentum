@@ -9,6 +9,7 @@
 
 #include "client_receiver.h"
 #include "client_sender.h"
+#include "registro_cliente.h"
 #include "../common/socket/liberror.h"
 #include "../common/thread/queue.h"
 
@@ -29,7 +30,7 @@ ClientManager::ClientManager(Socket&& skt,
     }
 }
 void ClientManager::run() {
-    std::cout << "Conectado como: " << handshake.nombre << "\n";
+    RegistroCliente::info("Conectado como: " + handshake.nombre);
     ClientSender sender(protocol, outbound_commands);
     ClientReceiver receiver(protocol, inbound_messages);
     receiver.start();

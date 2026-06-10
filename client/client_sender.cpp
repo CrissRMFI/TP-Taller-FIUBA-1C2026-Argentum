@@ -4,7 +4,10 @@
 
 #include "client_sender.h"
 #include "client_data.h"
+#include "registro_cliente.h"
 #include "../common/thread/queue.h"
+
+#include <string>
 
 ClientSender::ClientSender(ProtocoloCliente& protocol, Queue<ComandoJugador>& incoming_queue):
         protocol(protocol), command_queue(incoming_queue) {}
@@ -16,9 +19,9 @@ void ClientSender::run() {
             protocol.enviarComando(comando);
         }
     } catch (const ClosedQueue&) {
-        std::cout << "[sender] stopped: command queue closed" << std::endl;
+        RegistroCliente::info("[sender] stopped: command queue closed");
     } catch (const std::exception& e) {
-        std::cout << "[sender] stopped: " << e.what() << std::endl;
+        RegistroCliente::info(std::string("[sender] stopped: ") + e.what());
     }
 }
 

@@ -2,6 +2,14 @@
 
 #include <iostream>
 
+void RegistroServidor::info(const std::string& mensaje) {
+    std::cout << mensaje << std::endl;
+}
+
+void RegistroServidor::error(const std::string& mensaje) {
+    std::cerr << mensaje << std::endl;
+}
+
 void RegistroServidor::errorCargandoJugador(const std::string& nombre, const std::string& detalle) {
     std::cerr << "[persistencia] error cargando " << nombre << ": " << detalle << std::endl;
 }

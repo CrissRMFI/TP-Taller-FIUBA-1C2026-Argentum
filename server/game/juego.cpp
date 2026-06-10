@@ -260,46 +260,12 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::
 
 std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
         const Posicion& origen, std::optional<uint16_t> idJugadorExcluido) const {
-    if (!mapa.posicionValida(origen)) {
-        return std::nullopt;
-    }
-
-    std::vector<Posicion> pendientes;
-    std::set<std::pair<uint16_t, uint16_t>> visitadas;
-
-    pendientes.push_back(origen);
-    visitadas.insert({origen.x, origen.y});
-
-    static constexpr std::array<std::pair<int, int>, 4> direcciones = {
-            {{0, -1}, {0, 1}, {-1, 0}, {1, 0}}};
-
-    for (std::vector<Posicion>::size_type indice = 0; indice < pendientes.size(); ++indice) {
-        const Posicion actual = pendientes[indice];
-        if (!mapa.hayParedEn(actual) && !mapa.hayNpcEn(actual) && !mapa.hayCriaturaEn(actual) &&
-            !mapa.hayItemEn(actual) && !buscarIdJugadorEn(actual, idJugadorExcluido).has_value()) {
-            return actual;
-        }
-
-        for (const auto& [dx, dy] : direcciones) {
-            if ((dx < 0 && actual.x == 0) || (dy < 0 && actual.y == 0)) {
-                continue;
-            }
-
-            const uint16_t nx = static_cast<uint16_t>(static_cast<int>(actual.x) + dx);
-            const uint16_t ny = static_cast<uint16_t>(static_cast<int>(actual.y) + dy);
-            const Posicion vecina{nx, ny, origen.mapaId};
-
-            if (!mapa.posicionValida(vecina)) {
-                continue;
-            }
-
-            if (visitadas.insert({nx, ny}).second) {
-                pendientes.push_back(vecina);
-            }
-        }
-    }
-
-    return std::nullopt;
+    // Reusa el BFS de Mapa; el predicado suma a las reglas del mapa (pared/npc/
+    // criatura/item) la presencia de otros jugadores, que Mapa no conoce.
+    return mapa.buscarCeldaLibreCercaDe(origen, [this, idJugadorExcluido](const Posicion& celda) {
+        return mapa.hayParedEn(celda) || mapa.hayNpcEn(celda) || mapa.hayCriaturaEn(celda) ||
+               mapa.hayItemEn(celda) || buscarIdJugadorEn(celda, idJugadorExcluido).has_value();
+    });
 }
 
 size_t Juego::contarAliadosClanCercanos(const Jugador& jugador) const {
@@ -858,7 +824,7 @@ std::list<EventoSalida> Juego::ejecutarCheat(uint16_t idCliente, const ComandoCh
 
         case TipoCheat::MorirAuto: {
             if (!jugador->estaVivo()) {
-                return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+                return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
             }
             const Posicion posicionMuerte = jugador->getPosicion();
             jugador->matar();
@@ -881,7 +847,7 @@ std::list<EventoSalida> Juego::ejecutarChatGlobal(uint16_t idCliente,
                                                   const ComandoChatGlobal& comando) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     return {{TipoDestino::TODOS, 0, EventoChat{jugador->getNombre(), comando.mensaje}}};
@@ -891,7 +857,7 @@ std::list<EventoSalida> Juego::ejecutarChatPrivado(uint16_t idCliente,
                                                    const ComandoChatPrivado& comando) {
     Jugador* emisor = buscarJugador(idCliente);
     if (!emisor || !emisor->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     auto itDestino = indiceNicksConectados.find(comando.nickDestino);
@@ -912,7 +878,7 @@ std::list<EventoSalida> Juego::ejecutarFundarClan(uint16_t idCliente,
         return {};
 
     if (!jugador->estaVivo() || jugador->tieneClan()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::YA_TENES_CLAN)};
     }
 
     if (jugador->getNivel() < cfg.clanNivelMinimo) {
@@ -920,7 +886,7 @@ std::list<EventoSalida> Juego::ejecutarFundarClan(uint16_t idCliente,
     }
 
     if (buscarClanPorNombre(comando.nombreClan)) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::CLAN_NOMBRE_EN_USO)};
     }
 
 
@@ -939,7 +905,7 @@ std::list<EventoSalida> Juego::ejecutarUnirseClan(uint16_t idCliente,
         return {};
 
     if (!jugador->estaVivo() || jugador->tieneClan()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::YA_TENES_CLAN)};
     }
 
     Clan* clan = buscarClanPorNombre(comando.nombreClan);
@@ -950,7 +916,7 @@ std::list<EventoSalida> Juego::ejecutarUnirseClan(uint16_t idCliente,
     const std::string nickSolicitante = jugador->getNombre();
 
     if (clan->estaBaneado(nickSolicitante))
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::BANEADO_DEL_CLAN)};
 
 
     if ((int)(clan->cantidadMiembros()) >= cfg.clanMaxMiembros) {
@@ -976,7 +942,7 @@ std::list<EventoSalida> Juego::ejecutarDejarClan(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo() || !jugador->tieneClan())
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::NO_TENES_CLAN)};
     if (jugador->fundo_clan())
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
 
@@ -994,7 +960,7 @@ std::list<EventoSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo() || !jugador->tieneClan() || !jugador->fundo_clan())
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::NO_SOS_LIDER_CLAN)};
 
     Clan& clan = clanes.at(jugador->getClan());
     std::list<EventoSalida> mensajes;
@@ -1018,7 +984,7 @@ std::list<EventoSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente,
 
     Jugador* lider = buscarJugador(idCliente);
     if (!lider || !lider->estaVivo() || !lider->fundo_clan())
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::NO_SOS_LIDER_CLAN)};
 
     Clan& clan = clanes.at(lider->getClan());
     Jugador* objetivo = buscarJugadorPorNick(comando.nick);
@@ -1046,11 +1012,11 @@ std::list<EventoSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
 
     if (idObjetivo == idCliente)
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
 
     if ((accion == Opcode::CLAN_KICK || accion == Opcode::CLAN_BAN) &&
         clan.esFundador(comando.nick)) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     std::list<EventoSalida> msgs;
@@ -1132,7 +1098,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->esFantasma() || jugador->estaInmovilizado()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::NO_PODES_RESUCITAR)};
     }
 
     const Posicion posicionJugador = jugador->getPosicion();
@@ -1142,7 +1108,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         std::optional<Posicion> posicionResurreccion =
                 buscarPosicionLibreCercaDe(posicionJugador, idCliente);
         if (!posicionResurreccion.has_value()) {
-            return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+            return {armarError(idCliente, CodigoErrorAccion::SIN_POSICION_LIBRE)};
         }
 
         jugador->resucitar(posicionResurreccion->x, posicionResurreccion->y);
@@ -1168,7 +1134,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     std::optional<Posicion> posicionResurreccion =
             buscarPosicionLibreCercaDe(sacerdote->getPosicion(), idCliente);
     if (!posicionResurreccion.has_value()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::SIN_POSICION_LIBRE)};
     }
 
     const int distancia = posicionJugador.distanciaManhattan(sacerdote->getPosicion());
@@ -1223,7 +1189,7 @@ std::list<EventoSalida> Juego::ejecutarTomar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     std::list<EventoSalida> mensajes = recogerObjetosDelSuelo(idCliente, *jugador);
@@ -1238,7 +1204,7 @@ std::list<EventoSalida> Juego::ejecutarEmpezarMover(uint16_t idCliente,
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || (!jugador->estaVivo() && !jugador->esFantasma()) ||
         jugador->estaInmovilizado()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_INMOVILIZADO)};
     }
 
     // Marca al jugador como "moviendose" y da el primer paso al instante para que
@@ -1308,7 +1274,7 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
     Jugador* atacante = buscarJugador(idCliente);
 
     if (!atacante || !atacante->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     if (cmd.idObjetivo == atacante->getId()) {
@@ -1356,12 +1322,12 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionObjetivo)) {
         RegistroServidor::ataqueEnZonaSegura();
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ZONA_SEGURA)};
     }
 
     if (atacante->es_newbie() || objetivo->es_newbie()) {
         RegistroServidor::ataqueEntreNewbies();
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ATAQUE_NEWBIE)};
     }
 
     const int diferenciaNivel = std::abs(static_cast<int>(atacante->getNivel()) -
@@ -1369,13 +1335,13 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
     if (diferenciaNivel > cfg.maxDiffNivel) {
         RegistroServidor::ataqueDiferenciaNivelExcesiva(diferenciaNivel);
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::DIFERENCIA_NIVEL_EXCESIVA)};
     }
 
     if (atacante->tieneClan() && objetivo->tieneClan() &&
         atacante->getClan() == objetivo->getClan()) {
         RegistroServidor::ataqueMismoClan();
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ATAQUE_ALIADO)};
     }
 
     // El alcance depende del equipamiento del atacante.
@@ -1384,7 +1350,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
         RegistroServidor::ataqueHechizoNoOfensivo();
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::HECHIZO_NO_OFENSIVO)};
     }
 
     const int distanciaAlObjetivo = posicionAtacante.distanciaManhattan(posicionObjetivo);
@@ -1494,7 +1460,7 @@ std::list<EventoSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTi
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Posicion posicion = jugador->getPosicion();
@@ -1528,7 +1494,7 @@ std::list<EventoSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTi
 std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     if (!jugador->equipar_item(cmd.indiceItem, catalogo)) {
@@ -1544,7 +1510,7 @@ std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comando
 std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     const uint16_t idItem = jugador->getIdItemEnSlot(cmd.indiceItem);
@@ -1555,7 +1521,7 @@ std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsa
     // Solo las pociones son usables; cualquier otra cosa => accion no permitida.
     const Pocion* pocion = catalogo.comoPocion(idItem);
     if (pocion == nullptr) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     if (pocion->getTipoPocion() == TipoPocion::Vida) {
@@ -1630,7 +1596,7 @@ std::list<EventoSalida> Juego::ejecutarComprarHechizo(uint16_t idCliente,
                                                       const ComandoComprarHechizo& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
     // El Guerrero no usa magia (manaMax == 0): no puede comprar hechizos.
     if (!jugador->puedeUsarMagia()) {
@@ -1664,7 +1630,7 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
     }
     const Hechizo* hechizo = catalogoHechizos.buscar(cmd.idHechizo);
     if (hechizo == nullptr || !lanzador->conoceHechizo(cmd.idHechizo)) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::HECHIZO_NO_CONOCIDO)};
     }
     if (!lanzador->consumir_mana(hechizo->mana)) {
         return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
@@ -1769,7 +1735,7 @@ std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comando
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     // El cliente nos dice exactamente con qué NPC quiere transar (cmd.idNPC).
@@ -1792,7 +1758,7 @@ std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comando
 
     const bool puedeComprar = resultadoVenta.first;
     if (!puedeComprar) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     const uint8_t precioCompra = resultadoVenta.second;
@@ -1814,7 +1780,7 @@ std::list<EventoSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoV
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Comerciante* comerciante = obtenerComercianteParaInteraccion(cmd.idNPC, *jugador);
@@ -1831,7 +1797,7 @@ std::list<EventoSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoV
 
     const std::pair<bool, uint8_t> resultadoCompra = comerciante->comprarItem(idItemEnSlot);
     if (!resultadoCompra.first) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     // Validaciones pasadas: ahora sí mutamos.
@@ -1847,7 +1813,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idBanquero, *jugador);
@@ -1862,10 +1828,10 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    // Una vez validado, sí mutamos: quitar del inventario y depositar. depositarItem ya rechaza id 0
+    
     const uint16_t idItemDepositado = jugador->quitar_item_de_slot(cmd.indiceItem);
     if (!banquero->depositarItem(jugador->getId(), idItemDepositado)) {
-        // Camino teórico: peek dijo válido y depositar falló. Rollback por seguridad para no perder el ítem.
+        
         jugador->agregar_item_en_slot(idItemDepositado, cmd.indiceItem);
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
@@ -1877,7 +1843,7 @@ std::list<EventoSalida> Juego::ejecutarDepositarOro(uint16_t idCliente,
 
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idBanquero, *jugador);
@@ -1910,7 +1876,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idBanquero, *jugador);
@@ -1951,7 +1917,7 @@ std::list<EventoSalida> Juego::ejecutarRetirarOro(uint16_t idCliente,
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Banquero* banquero = obtenerBanqueroParaInteraccion(cmd.idBanquero, *jugador);
@@ -1980,7 +1946,7 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoL
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     if (Comerciante* comerciante = obtenerComercianteParaInteraccion(cmd.idNPC, *jugador)) {
@@ -2018,7 +1984,7 @@ std::list<EventoSalida> Juego::ejecutarCurar(uint16_t idCliente, const ComandoCu
     Jugador* jugador = buscarJugador(idCliente);
 
     if (!jugador || !jugador->estaVivo()) {
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
     Sacerdote* sacerdote = obtenerSacerdoteParaInteraccion(cmd.idSacerdote, *jugador);
@@ -2502,7 +2468,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
         RegistroServidor::criaturaAtaqueHechizoNoOfensivo();
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(idCliente, CodigoErrorAccion::HECHIZO_NO_OFENSIVO)};
     }
 
     const int distanciaACriatura = posicionAtacante.distanciaManhattan(posicionCriatura);

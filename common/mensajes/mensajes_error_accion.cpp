@@ -53,6 +53,45 @@ const char* MensajesErrorAccion::mensaje(CodigoErrorAccion codigo) {
         case CodigoErrorAccion::NO_SE_PUDO_CARGAR_PERSONAJE:
             return "No se pudo cargar tu personaje guardado";
 
+        case CodigoErrorAccion::ESTAS_MUERTO:
+            return "No podes hacer eso estando muerto";
+
+        case CodigoErrorAccion::NO_TENES_CLAN:
+            return "No perteneces a ningun clan";
+
+        case CodigoErrorAccion::YA_TENES_CLAN:
+            return "Ya perteneces a un clan";
+
+        case CodigoErrorAccion::CLAN_NOMBRE_EN_USO:
+            return "Ya existe un clan con ese nombre";
+
+        case CodigoErrorAccion::NO_SOS_LIDER_CLAN:
+            return "Solo el lider del clan puede hacer eso";
+
+        case CodigoErrorAccion::BANEADO_DEL_CLAN:
+            return "Estas baneado de ese clan";
+
+        case CodigoErrorAccion::NO_PODES_RESUCITAR:
+            return "No podes resucitar en este momento";
+
+        case CodigoErrorAccion::ESTAS_INMOVILIZADO:
+            return "Estas inmovilizado";
+
+        case CodigoErrorAccion::ATAQUE_NEWBIE:
+            return "No se puede atacar a personajes nuevos";
+
+        case CodigoErrorAccion::DIFERENCIA_NIVEL_EXCESIVA:
+            return "La diferencia de nivel es demasiado grande";
+
+        case CodigoErrorAccion::ATAQUE_ALIADO:
+            return "No podes atacar a un companero de clan";
+
+        case CodigoErrorAccion::HECHIZO_NO_OFENSIVO:
+            return "Ese hechizo no sirve para atacar";
+
+        case CodigoErrorAccion::HECHIZO_NO_CONOCIDO:
+            return "No conoces ese hechizo";
+
         default:
             return "Error de accion desconocido";
     }

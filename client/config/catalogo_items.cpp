@@ -1,11 +1,12 @@
 #include "catalogo_items.h"
 
 #include <cctype>
-#include <iostream>
+#include <string>
 
 #include <toml++/toml.hpp>
 
 #include "../../common/mensajes/mensajes_error_cliente.h"
+#include "../registro_cliente.h"
 
 namespace {
 
@@ -29,9 +30,9 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
     try {
         tbl = toml::parse_file(gameConfigPath);
     } catch (const toml::parse_error& e) {
-        std::cerr << "[cliente] "
-                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::ITEMS_NO_LEIDOS) << " ('"
-                  << gameConfigPath << "': " << e.description() << ")" << std::endl;
+        RegistroCliente::error(std::string("[cliente] ") +
+                               MensajesErrorCliente::mensaje(CodigoErrorCliente::ITEMS_NO_LEIDOS) +
+                               " ('" + gameConfigPath + "': " + std::string(e.description()) + ")");
         return;
     }
 
