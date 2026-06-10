@@ -16,6 +16,28 @@ const char* EscritorMapa::tipoNpcATexto(TipoNpc tipo) {
     return "desconocido";
 }
 
+const char* EscritorMapa::tipoCriaturaATexto(TipoCriatura tipo) {
+    switch (tipo) {
+        case TipoCriatura::Goblin:    return "goblin";
+        case TipoCriatura::Esqueleto: return "esqueleto";
+        case TipoCriatura::Zombie:    return "zombie";
+        case TipoCriatura::Arania:    return "arania";
+        case TipoCriatura::Orco:      return "orco";
+        case TipoCriatura::Golem:     return "golem";
+    }
+    return "desconocido";
+}
+
+void EscritorMapa::escribirCriaturas(std::ostream& out, const Mapa& mapa) {
+    for (const Criatura& criatura : mapa.obtenerCriaturas()) {
+        const Posicion pos = criatura.getPos();
+        out << "  { id = " << criatura.getId()
+            << ", tipo = \"" << tipoCriaturaATexto(criatura.getTipo()) << "\""
+            << ", x = " << pos.x
+            << ", y = " << pos.y << " },\n";
+    }
+}
+
 void EscritorMapa::escribirNpcs(std::ostream& out, const Mapa& mapa) {
     const auto emitir = [this, &out](const auto& mapaNpcs) {
         for (const auto& [id, npc] : mapaNpcs) {
@@ -32,8 +54,7 @@ void EscritorMapa::escribirNpcs(std::ostream& out, const Mapa& mapa) {
 }
 
 void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path) {
-    // tmp + rename: si el proceso muere mientras se escribe, el archivo previo
-    // (si existia) queda intacto.
+    // tmp + rename: si el proceso muere mientras se escribe, el archivo previo (si existia) queda intacto.
     const std::string pathTmp = path + ".tmp";
 
     {
@@ -70,6 +91,12 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
         out << "# NPCs: tipo = \"banquero\" | \"comerciante\" | \"sacerdote\".\n";
         out << "npcs = [\n";
         escribirNpcs(out, mapa);
+        out << "]\n\n";
+
+        out << "# Criaturas: tipo = \"goblin\" | \"esqueleto\" | \"zombie\" | "
+               "\"arania\" | \"orco\" | \"golem\".\n";
+        out << "criaturas = [\n";
+        escribirCriaturas(out, mapa);
         out << "]\n";
 
         out.flush();

@@ -5,6 +5,7 @@
 #include <iosfwd>
 #include <string>
 
+#include "../game/criatura.h"
 #include "../game/mapa/mapa.h"
 #include "../game/npc/npc.h"
 
@@ -14,8 +15,10 @@ public:
 
 private:
     const char* tipoNpcATexto(TipoNpc tipo);
+    const char* tipoCriaturaATexto(TipoCriatura tipo);
 
     void escribirNpcs(std::ostream& out, const Mapa& mapa);
+    void escribirCriaturas(std::ostream& out, const Mapa& mapa);
 };
 
 #endif

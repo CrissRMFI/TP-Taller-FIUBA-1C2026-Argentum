@@ -32,7 +32,20 @@ TipoNpc LectorMapa::tipoNpcDesdeTexto(const std::string& texto, const std::strin
             path + " (tipo de NPC desconocido: '" + texto + "')");
 }
 
-MapaCargado LectorMapa::leer(const std::string& path) {
+TipoCriatura LectorMapa::tipoCriaturaDesdeTexto(const std::string& texto, const std::string& path) {
+    if (texto == "goblin")    return TipoCriatura::Goblin;
+    if (texto == "esqueleto") return TipoCriatura::Esqueleto;
+    if (texto == "zombie")    return TipoCriatura::Zombie;
+    if (texto == "arania")    return TipoCriatura::Arania;
+    if (texto == "orco")      return TipoCriatura::Orco;
+    if (texto == "golem")     return TipoCriatura::Golem;
+    throw ErrorPersistencia(
+            CodigoErrorPersistencia::REGISTRO_INVALIDO,
+            path + " (tipo de criatura desconocido: '" + texto + "')");
+}
+
+MapaCargado LectorMapa::leer(const std::string& path,
+                             const CatalogoCriaturas& catalogoCriaturas) {
     toml::table tbl;
     try {
         tbl = toml::parse_file(path);
@@ -135,6 +148,28 @@ MapaCargado LectorMapa::leer(const std::string& path) {
                         CodigoErrorPersistencia::NPC_DUPLICADO_O_INVALIDO,
                         path + " (id=" + std::to_string(id) + ")");
             }
+        }
+    }
+
+    // 'criaturas' es opcional: mapas viejos sin la clave siguen cargando.
+    if (const toml::array* criaturas = tbl["criaturas"].as_array()) {
+        for (const toml::node& nodo : *criaturas) {
+            const toml::table* c = nodo.as_table();
+            if (c == nullptr) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (entrada de 'criaturas' invalida)");
+            }
+            const auto tipoTexto = (*c)["tipo"].value<std::string>();
+            if (!tipoTexto.has_value()) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::CLAVE_FALTANTE,
+                        path + " (criatura sin clave 'tipo')");
+            }
+            const uint16_t id = leerUint16(*c, "id", path);
+            mapa.agregarCriatura(catalogoCriaturas.crear(
+                    tipoCriaturaDesdeTexto(*tipoTexto, path), id,
+                    Posicion{leerUint16(*c, "x", path), leerUint16(*c, "y", path), mapaId}));
         }
     }
 
