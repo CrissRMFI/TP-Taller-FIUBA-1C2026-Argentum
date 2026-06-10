@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <array>
 #include <cstdlib>
 #include <limits>
@@ -19,6 +18,7 @@
 #include "objeto/catalogo_items.h"
 #include "objeto/item.h"
 #include "reglas/reglas_juego.h"
+#include "registro_servidor.h"
 #include "../persistencia/serializador_jugador.h"
 #include "../../common/persistencia/error_persistencia.h"
 
@@ -49,12 +49,12 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
 std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
-        return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(id, CodigoErrorAccion::USUARIO_YA_CONECTADO)};
     }
 
     auto itNickConectado = indiceNicksConectados.find(nombre);
     if (itNickConectado != indiceNicksConectados.end() && itNickConectado->second != id) {
-        return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(id, CodigoErrorAccion::USUARIO_YA_CONECTADO)};
     }
 
     auto itDesconectado = jugadoresDesconectados.end();
@@ -80,22 +80,18 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
                 }
             }
         } catch (const std::exception& e) {
-            std::cerr << "[persistencia] error cargando " << nombre << ": " << e.what()
-                      << std::endl;
+            RegistroServidor::errorCargandoJugador(nombre, e.what());
+            return {armarError(id, CodigoErrorAccion::NO_SE_PUDO_CARGAR_PERSONAJE)};
         }
     }
 
-    // Reconexion: la posicion deseada es la ultima conocida (RAM o disco). Conexion
-    // nueva: el ancla del TOML. En todos los casos delegamos al BFS para garantizar
-    // colision absoluta (regla 2.3) y evitar apilar avatares al spawn.
+    // Reconexion
     const Posicion posicionDeseada =
-            (itDesconectado != jugadoresDesconectados.end()) ? itDesconectado->second.getPosicion()
-            : jugadorDisco.has_value()                       ? jugadorDisco->getPosicion()
-                                                             : cfg.spawnInicial;
+            (itDesconectado != jugadoresDesconectados.end()) ? itDesconectado->second.getPosicion() : jugadorDisco.has_value() ? jugadorDisco->getPosicion() : cfg.spawnInicial;
 
     const std::optional<Posicion> posicionResuelta = buscarPosicionLibreCercaDe(posicionDeseada);
     if (!posicionResuelta.has_value()) {
-        return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+        return {armarError(id, CodigoErrorAccion::SIN_POSICION_LIBRE)};
     }
 
     if (itDesconectado != jugadoresDesconectados.end()) {
@@ -104,13 +100,13 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
     } else if (jugadorDisco.has_value()) {
         if (existeIdPersonaje(id)) {
-            return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+            return {armarError(id, CodigoErrorAccion::ID_EN_USO)};
         }
         jugadoresConectados.emplace(id, std::move(*jugadorDisco));
         jugadoresConectados.at(id).mover_a(posicionResuelta->x, posicionResuelta->y);
     } else {
         if (existeIdPersonaje(id)) {
-            return {armarError(id, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
+            return {armarError(id, CodigoErrorAccion::ID_EN_USO)};
         }
         jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, cabeza, cuerpo, *posicionResuelta, cfg));
     }
@@ -118,9 +114,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     indiceNicksConectados[nombre] = id;
 
     Jugador& jugador = jugadoresConectados.at(id);
-    std::list<EventoSalida> mensajes = {armarEstado(id, jugador), armarInventario(id, jugador),
-                                        armarEquipamiento(id, jugador),
-                                        armarListaHechizos(id, jugador)};
+    std::list<EventoSalida> mensajes = {armarEstado(id, jugador), armarInventario(id, jugador), armarEquipamiento(id, jugador), armarListaHechizos(id, jugador)};
 
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
 
@@ -141,22 +135,18 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
 
     for (const ItemEnSuelo& item : mapa.obtenerItemsEnSuelo()) {
         if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back({TipoDestino::UNO, id,
-                                EventoItemEnSuelo{item.idItem, item.posicion.x, item.posicion.y}});
+            mensajes.push_back({TipoDestino::UNO, id, EventoItemEnSuelo{item.idItem, item.posicion.x, item.posicion.y}});
         }
     }
 
     for (const OroEnSuelo& oro : mapa.obtenerOroEnSuelo()) {
         if (oro.posicion.mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back({TipoDestino::UNO, id,
-                                EventoOroEnSuelo{oro.cantidad, oro.posicion.x, oro.posicion.y}});
+            mensajes.push_back({TipoDestino::UNO, id, EventoOroEnSuelo{oro.cantidad, oro.posicion.x, oro.posicion.y}});
         }
     }
 
     if (jugador.tieneClan()) {
-        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(jugador.getClan(),
-                                                                          TipoEventoClan::Conectado,
-                                                                          jugador.getNombre(), id));
+        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(jugador.getClan(), TipoEventoClan::Conectado, jugador.getNombre(), id));
     }
 
     return mensajes;
@@ -194,8 +184,7 @@ void Juego::guardarJugador(const Jugador& jugador) {
         const RegistroJugador registro = SerializadorJugador::aRegistro(jugador);
         escritorJugadores.guardar(registro);
     } catch (const std::exception& e) {
-        std::cerr << "[persistencia] error guardando " << jugador.getNombre() << ": "
-                  << e.what() << std::endl;
+        RegistroServidor::errorGuardandoJugador(jugador.getNombre(), e.what());
     }
 }
 
@@ -788,10 +777,6 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
             }
         }
 
-        // Movimiento continuo: si el jugador esta "moviendose", el servidor lo
-        // avanza una celda en su direccion cada N ticks hasta que llegue el stop.
-        // Incluye fantasmas, que se mueven como cualquier jugador (el enunciado
-        // no los excluye y colisionan igual).
         if (jugador.estaMoviendose() &&
             (jugador.estaVivo() || jugador.esFantasma()) &&
             !jugador.estaInmovilizado() && !jugador.enMeditacion() &&
@@ -1356,7 +1341,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
     const std::optional<uint16_t> idClienteObjetivo =
             buscarIdClienteDeJugador(cmd.idObjetivo);
-    std::cout << "El jugador con id " << atacante->getId() << " ataca al jugador con id " << cmd.idObjetivo << std::endl;
+    RegistroServidor::jugadorAtacaJugador(atacante->getId(), cmd.idObjetivo);
     if (!objetivo || !idClienteObjetivo.has_value() || !objetivo->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1365,17 +1350,17 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const Posicion posicionObjetivo = objetivo->getPosicion();
 
     if (!posicionAtacante.mismaMapa(posicionObjetivo)) {
-        std::cout << "Atacante y objetivo no están en el mismo mapa" << std::endl;
+        RegistroServidor::ataqueDistintoMapa();
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionObjetivo)) {
-        std::cout << "Atacante o objetivo están en zona segura" << std::endl;
+        RegistroServidor::ataqueEnZonaSegura();
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     if (atacante->es_newbie() || objetivo->es_newbie()) {
-        std::cout << "Atacante o objetivo son nuevos" << std::endl;
+        RegistroServidor::ataqueEntreNewbies();
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -1383,13 +1368,13 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                          static_cast<int>(objetivo->getNivel()));
 
     if (diferenciaNivel > cfg.maxDiffNivel) {
-        std::cout << "La diferencia de nivel entre atacante y objetivo es demasiado grande: " << diferenciaNivel << std::endl;
+        RegistroServidor::ataqueDiferenciaNivelExcesiva(diferenciaNivel);
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     if (atacante->tieneClan() && objetivo->tieneClan() &&
         atacante->getClan() == objetivo->getClan()) {
-        std::cout << "Atacante y objetivo pertenecen al mismo clan" << std::endl;
+        RegistroServidor::ataqueMismoClan();
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
@@ -1398,21 +1383,20 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
-        std::cout << "El atacante intenta usar un hechizo no ofensivo" << std::endl;
+        RegistroServidor::ataqueHechizoNoOfensivo();
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     const int distanciaAlObjetivo = posicionAtacante.distanciaManhattan(posicionObjetivo);
     if (distanciaAlObjetivo > descriptorAtaque.alcanceMaximo) {
-        std::cout << "El objetivo está fuera del alcance del ataque: distancia " << distanciaAlObjetivo
-                  << ", alcance máximo " << descriptorAtaque.alcanceMaximo << std::endl;
+        RegistroServidor::ataqueFueraDeRango(distanciaAlObjetivo, descriptorAtaque.alcanceMaximo);
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     bool atacanteConsumioMana = false;
     if (descriptorAtaque.costoMana > 0) {
         if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
-            std::cout << "El atacante no tiene mana suficiente" << std::endl;
+            RegistroServidor::ataqueManaInsuficiente();
             return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
         }
         atacanteConsumioMana = true;
@@ -1442,7 +1426,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
     } else {
         const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
-        std::cout << "El atacante con id " << atacante->getId() << " ataca al jugador con id " << objetivo->getId() << " y causa " << danioAplicado << " de daño" << std::endl;
+        RegistroServidor::jugadorImpactaJugador(atacante->getId(), objetivo->getId(), danioAplicado);
 
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoDanioProducido{danioAplicado, objetivo->getId(),
@@ -1495,7 +1479,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             atacanteGanoXp = true;
         }
 
-        std::cout << "El jugador con id " << objetivo->getId() << " ha muerto" << std::endl;
+        RegistroServidor::jugadorMurio(objetivo->getId());
         mensajes.splice(mensajes.end(), emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
     }
 
@@ -2503,12 +2487,12 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const Posicion posicionCriatura = criatura.getPos();
 
     if (!posicionAtacante.mismaMapa(posicionCriatura)) {
-        std::cerr << "Error: atacante y criatura no están en el mismo mapa." << std::endl;
+        RegistroServidor::criaturaAtaqueDistintoMapa();
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionCriatura)) {
-        std::cerr << "Error: atacante o criatura están en zona segura." << std::endl;
+        RegistroServidor::criaturaAtaqueZonaSegura();
         return {armarError(idCliente, CodigoErrorAccion::ZONA_SEGURA)};
     }
 
@@ -2517,20 +2501,20 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
 
     if (descriptorAtaque.tipo == TipoAtaque::HechizoNoOfensivo) {
-        std::cerr << "Error: el atacante intenta usar un hechizo no ofensivo." << std::endl;
+        RegistroServidor::criaturaAtaqueHechizoNoOfensivo();
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
 
     const int distanciaACriatura = posicionAtacante.distanciaManhattan(posicionCriatura);
     if (distanciaACriatura > descriptorAtaque.alcanceMaximo) {
-        std::cerr << "Error: el objetivo está fuera del alcance del ataque." << std::endl;
+        RegistroServidor::criaturaAtaqueFueraDeRango();
         return {armarError(idCliente, CodigoErrorAccion::FUERA_DE_RANGO)};
     }
 
     bool atacanteConsumioMana = false;
     if (descriptorAtaque.costoMana > 0) {
         if (!atacante->consumir_mana(descriptorAtaque.costoMana)) {
-            std::cerr << "Error: el atacante no tiene mana suficiente." << std::endl;
+            RegistroServidor::criaturaAtaqueManaInsuficiente();
             return {armarError(idCliente, CodigoErrorAccion::MANA_INSUFICIENTE)};
         }
         atacanteConsumioMana = true;
@@ -2568,7 +2552,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t danioAplicado =
             static_cast<uint16_t>(std::min<uint32_t>(danioBruto, vidaActualCriaturaAntes));
     criatura.recibir_danio(danioBruto);
-    std::cout << "El jugador con id " << atacante->getId() << " ataca a criatura con id " << criatura.getId() << std::endl;
+    RegistroServidor::jugadorAtacaCriatura(atacante->getId(), criatura.getId());
 
     mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                     EventoDanioProducido{danioAplicado, criatura.getId(),
@@ -2619,7 +2603,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
         mapa.removerCriatura(idCriatura);
         ultimoTickAtaqueCriatura.erase(idCriatura);
-        std::cout << "La criatura con id " << idCriatura << " ha muerto" << std::endl;
+        RegistroServidor::criaturaMurio(idCriatura);
 
         if (cantidadOro > 0) {
             Posicion celdaDrop = posicionCriatura;
