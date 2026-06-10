@@ -11,6 +11,7 @@ target_sources(taller_server
     game/jugador.cpp
     game/juego.cpp
     game/clan.cpp
+    game/registro_servidor.cpp
 
     # Objetos
     game/objeto/inventario.cpp
