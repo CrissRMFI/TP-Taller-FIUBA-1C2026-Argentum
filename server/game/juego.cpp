@@ -260,46 +260,12 @@ std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::
 
 std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
         const Posicion& origen, std::optional<uint16_t> idJugadorExcluido) const {
-    if (!mapa.posicionValida(origen)) {
-        return std::nullopt;
-    }
-
-    std::vector<Posicion> pendientes;
-    std::set<std::pair<uint16_t, uint16_t>> visitadas;
-
-    pendientes.push_back(origen);
-    visitadas.insert({origen.x, origen.y});
-
-    static constexpr std::array<std::pair<int, int>, 4> direcciones = {
-            {{0, -1}, {0, 1}, {-1, 0}, {1, 0}}};
-
-    for (std::vector<Posicion>::size_type indice = 0; indice < pendientes.size(); ++indice) {
-        const Posicion actual = pendientes[indice];
-        if (!mapa.hayParedEn(actual) && !mapa.hayNpcEn(actual) && !mapa.hayCriaturaEn(actual) &&
-            !mapa.hayItemEn(actual) && !buscarIdJugadorEn(actual, idJugadorExcluido).has_value()) {
-            return actual;
-        }
-
-        for (const auto& [dx, dy] : direcciones) {
-            if ((dx < 0 && actual.x == 0) || (dy < 0 && actual.y == 0)) {
-                continue;
-            }
-
-            const uint16_t nx = static_cast<uint16_t>(static_cast<int>(actual.x) + dx);
-            const uint16_t ny = static_cast<uint16_t>(static_cast<int>(actual.y) + dy);
-            const Posicion vecina{nx, ny, origen.mapaId};
-
-            if (!mapa.posicionValida(vecina)) {
-                continue;
-            }
-
-            if (visitadas.insert({nx, ny}).second) {
-                pendientes.push_back(vecina);
-            }
-        }
-    }
-
-    return std::nullopt;
+    // Reusa el BFS de Mapa; el predicado suma a las reglas del mapa (pared/npc/
+    // criatura/item) la presencia de otros jugadores, que Mapa no conoce.
+    return mapa.buscarCeldaLibreCercaDe(origen, [this, idJugadorExcluido](const Posicion& celda) {
+        return mapa.hayParedEn(celda) || mapa.hayNpcEn(celda) || mapa.hayCriaturaEn(celda) ||
+               mapa.hayItemEn(celda) || buscarIdJugadorEn(celda, idJugadorExcluido).has_value();
+    });
 }
 
 size_t Juego::contarAliadosClanCercanos(const Jugador& jugador) const {

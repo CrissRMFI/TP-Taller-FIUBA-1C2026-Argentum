@@ -2,6 +2,7 @@
 #define MAPA_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -122,6 +123,14 @@ public:
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
     std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;
+
+    // BFS por anillos (distancia Manhattan creciente) desde 'origen': devuelve la
+    // primera celda alcanzable para la que 'celdaOcupada' sea false, o sea la mas
+    // cercana libre. El predicado decide que cuenta como ocupada (el caller le
+    // suma sus propias reglas, ej. el server tambien mira a los jugadores).
+    std::optional<Posicion> buscarCeldaLibreCercaDe(
+            const Posicion& origen,
+            const std::function<bool(const Posicion&)>& celdaOcupada) const;
 
     bool agregarCriatura(const Criatura& criatura);
     bool removerCriatura(uint16_t idCriatura);
