@@ -3,18 +3,25 @@
 #include <algorithm>
 
 #include <QColor>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QList>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
 
-MapaCanvas::MapaCanvas(EditorMapa* modelo, QWidget* parent):
-        QWidget(parent), modelo(modelo), herramienta(HerramientaEditor::Pared),
+MapaCanvas::MapaCanvas(EditorMapa* modelo, const CatalogoEditor* catalogo, QWidget* parent):
+        QWidget(parent), modelo(modelo), catalogo(catalogo),
+        herramienta(HerramientaCanvas::Ciudad),
         dibujandoCiudad(false), ciudadInicioX(0), ciudadInicioY(0),
         ciudadActualX(0), ciudadActualY(0) {
-    setMinimumSize(400, 400);
+    setMinimumSize(300, 300);
+    setAcceptDrops(true);
 }
 
-void MapaCanvas::setHerramienta(HerramientaEditor nueva) {
+void MapaCanvas::setHerramienta(HerramientaCanvas nueva) {
     herramienta = nueva;
 }
 
@@ -24,6 +31,18 @@ int MapaCanvas::anchoCelda() const {
 
 int MapaCanvas::altoCelda() const {
     return std::max(1, height() / std::max<int>(1, modelo->getAlto()));
+}
+
+void MapaCanvas::dibujarFigura(QPainter& painter, const QPixmap& icono, uint16_t celdaX, uint16_t celdaY, int celdaW, int celdaH) {
+    
+    if (icono.isNull()) {
+        return;
+    }
+    const int lado = std::max(celdaW, celdaH) * 2;
+    QPixmap escalado = icono.scaled(lado, lado, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    const int cx = celdaX * celdaW + celdaW / 2;
+    const int cy = celdaY * celdaH + celdaH / 2;
+    painter.drawPixmap(cx - escalado.width() / 2, cy - escalado.height() / 2, escalado);
 }
 
 void MapaCanvas::paintEvent(QPaintEvent*) {
@@ -52,12 +71,24 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
 
     // NPCs
     for (const NpcEditor& n : modelo->getNpcs()) {
-        switch (n.tipo) {
-            case TipoNpc::Sacerdote:   painter.setBrush(QColor(255, 255, 255)); break;
-            case TipoNpc::Comerciante: painter.setBrush(QColor(160, 60, 200)); break;
-            case TipoNpc::Banquero:    painter.setBrush(QColor(150, 150, 150)); break;
+        const QPixmap icono = catalogo->iconoNpc(n.tipo);
+        if (icono.isNull()) {
+            painter.setBrush(QColor(160, 60, 200));
+            painter.drawEllipse(n.x * celdaW, n.y * celdaH, celdaW, celdaH);
+        } else {
+            dibujarFigura(painter, icono, n.x, n.y, celdaW, celdaH);
         }
-        painter.drawEllipse(n.x * celdaW, n.y * celdaH, celdaW, celdaH);
+    }
+
+    // Criaturas
+    for (const CriaturaEditor& c : modelo->getCriaturas()) {
+        const QPixmap icono = catalogo->iconoCriatura(c.tipo);
+        if (icono.isNull()) {
+            painter.setBrush(QColor(200, 60, 60));
+            painter.drawEllipse(c.x * celdaW, c.y * celdaH, celdaW, celdaH);
+        } else {
+            dibujarFigura(painter, icono, c.x, c.y, celdaW, celdaH);
+        }
     }
 
     // Grilla
@@ -98,34 +129,67 @@ bool MapaCanvas::celdaEn(const QPoint& punto, uint16_t& x, uint16_t& y) const {
     return true;
 }
 
-void MapaCanvas::aplicarEnPunto(const QPoint& punto) {
+void MapaCanvas::aplicarTerreno(const QPoint& punto) {
     uint16_t x = 0;
     uint16_t y = 0;
     if (!celdaEn(punto, x, y)) {
         return;
     }
-
-    switch (herramienta) {
-        case HerramientaEditor::Pared:       modelo->ponerPared(x, y); break;
-        case HerramientaEditor::Sacerdote:   modelo->ponerNpc(TipoNpc::Sacerdote, x, y); break;
-        case HerramientaEditor::Comerciante: modelo->ponerNpc(TipoNpc::Comerciante, x, y); break;
-        case HerramientaEditor::Banquero:    modelo->ponerNpc(TipoNpc::Banquero, x, y); break;
-        case HerramientaEditor::Borrar:      modelo->borrarEn(x, y); break;
-        case HerramientaEditor::Ciudad:      break;  // se maneja con arrastre
+    if (herramienta == HerramientaCanvas::Pared) {
+        modelo->ponerPared(x, y);
+        update();
     }
+}
 
+void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
+    uint16_t x = 0;
+    uint16_t y = 0;
+    if (!celdaEn(punto, x, y)) {
+        return;
+    }
+    const QString texto = QString::fromUtf8(data);
+    const int sep = texto.indexOf(':');
+    if (sep < 0) {
+        return;
+    }
+    const QString prefijo = texto.left(sep);
+    const QString clave = texto.mid(sep + 1);
+
+    if (prefijo == "criatura") {
+        TipoCriatura tipo;
+        if (catalogo->criaturaPorClave(clave, tipo)) {
+            modelo->ponerCriatura(tipo, x, y);
+        }
+    } else if (prefijo == "npc") {
+        TipoNpc tipo;
+        if (catalogo->npcPorClave(clave, tipo)) {
+            modelo->ponerNpc(tipo, x, y);
+        }
+    }
     update();
 }
 
 void MapaCanvas::mousePressEvent(QMouseEvent* event) {
+    const QPoint punto = event->position().toPoint();
+
+    if (event->button() == Qt::RightButton) {
+        uint16_t x = 0;
+        uint16_t y = 0;
+        if (celdaEn(punto, x, y)) {
+            modelo->borrarEn(x, y);
+            update();
+        }
+        return;
+    }
+
     if (event->button() != Qt::LeftButton) {
         return;
     }
 
-    if (herramienta == HerramientaEditor::Ciudad) {
+    if (herramienta == HerramientaCanvas::Ciudad) {
         uint16_t x = 0;
         uint16_t y = 0;
-        if (celdaEn(event->position().toPoint(), x, y)) {
+        if (celdaEn(punto, x, y)) {
             dibujandoCiudad = true;
             ciudadInicioX = ciudadActualX = x;
             ciudadInicioY = ciudadActualY = y;
@@ -134,7 +198,7 @@ void MapaCanvas::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
-    aplicarEnPunto(event->position().toPoint());
+    aplicarTerreno(punto);
 }
 
 void MapaCanvas::mouseMoveEvent(QMouseEvent* event) {
@@ -153,7 +217,7 @@ void MapaCanvas::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    aplicarEnPunto(event->position().toPoint());
+    aplicarTerreno(event->position().toPoint());
 }
 
 void MapaCanvas::mouseReleaseEvent(QMouseEvent* event) {
@@ -162,4 +226,26 @@ void MapaCanvas::mouseReleaseEvent(QMouseEvent* event) {
         dibujandoCiudad = false;
         update();
     }
+}
+
+void MapaCanvas::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasFormat("application/x-argentum-elemento")) {
+        event->acceptProposedAction();
+    }
+}
+
+void MapaCanvas::dragMoveEvent(QDragMoveEvent* event) {
+    if (event->mimeData()->hasFormat("application/x-argentum-elemento")) {
+        event->acceptProposedAction();
+    }
+}
+
+void MapaCanvas::dropEvent(QDropEvent* event) {
+    const QMimeData* mime = event->mimeData();
+    if (!mime->hasFormat("application/x-argentum-elemento")) {
+        return;
+    }
+    colocarDesdeMime(mime->data("application/x-argentum-elemento"),
+                     event->position().toPoint());
+    event->acceptProposedAction();
 }
