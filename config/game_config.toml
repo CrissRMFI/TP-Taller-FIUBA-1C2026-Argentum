@@ -369,8 +369,11 @@ oro_drop_max  = 0.20
 # Viven en su propio TOML: fuente unica compartida con el editor y el cliente.
 archivo = "config/criaturas.toml"
 
-# Cada cuántos ticks se mueven las criaturas (3 x 130ms ~= 390ms, igual que antes con tick_ms=200)
+# Cada cuántos ticks se mueven las criaturas 
 movimiento_ticks = 3
+
+# Tiempo minimo entre dos ataques de una misma criatura (cooldown, en segundos).
+cooldown_ataque_seg = 0.5
 
 # Cada cuántos ticks spawnea una criatura nueva (~20s con tick_ms=130)
 spawn_ticks   = 154

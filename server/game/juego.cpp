@@ -1,5 +1,7 @@
 #include "juego.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <array>
 #include <cstdlib>
@@ -1760,6 +1762,7 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
         const uint32_t cantidadOro =
                 ReglasJuego::calcularDropOroNpc(cfg, vidaMaxCriaturaAntes, rngOro);
         mapa.removerCriatura(idCriatura);
+        ultimoTickAtaqueCriatura.erase(idCriatura);
         if (cantidadOro > 0) {
             Posicion celdaDrop = posicionCriatura;
             if (dropearOroEnSueloCercano(posicionCriatura, cantidadOro, celdaDrop)) {
@@ -2207,6 +2210,29 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
         return mensajes;
     }
 
+    // Cooldown de ataque de la criatura: 
+    const uint64_t cooldownTicks = std::max<uint64_t>(
+            1, static_cast<uint64_t>(
+                       std::lround(cfg.criaturaCooldownAtaqueSeg * 1000.0 / cfg.tickMs)));
+    const auto itCooldown = ultimoTickAtaqueCriatura.find(criatura.getId());
+    if (itCooldown != ultimoTickAtaqueCriatura.end() &&
+        ticksTranscurridos - itCooldown->second < cooldownTicks) {
+        return mensajes;
+    }
+    ultimoTickAtaqueCriatura[criatura.getId()] = ticksTranscurridos;
+
+    
+    // emite el evento donde el cliente lo renderiza por id de entidad. FX_ATAQUE_BASE
+    
+    constexpr uint16_t FX_ATAQUE_BASE = 7000;
+    
+    const uint16_t fxAtaque = catalogoCriaturas.statsDe(criatura.getTipo()).fxAtaque;
+    if (fxAtaque != 0) {
+        mensajes.splice(mensajes.end(),
+                        armarFxHechizoParaMapa(FX_ATAQUE_BASE + fxAtaque, criatura.getId(),
+                                               criatura.getPos().mapaId));
+    }
+
     // Las criaturas no tienen crítico
     // Pasamos esCritico=false explícito para que el defensor pueda evaluar evasión normalmente.
     const uint16_t danioBrutoCriatura = criatura.calcularDanio(aleatorio);
@@ -2592,6 +2618,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
         // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
         mapa.removerCriatura(idCriatura);
+        ultimoTickAtaqueCriatura.erase(idCriatura);
         std::cout << "La criatura con id " << idCriatura << " ha muerto" << std::endl;
 
         if (cantidadOro > 0) {

@@ -18,6 +18,7 @@ struct StatsCriatura {
     uint8_t  danioMin = 0;
     uint8_t  danioMax = 0;
     uint16_t cuerpo = 0;
+    uint16_t fxAtaque = 0; 
 };
 
 // Fuente unica de los stats de criatura.
