@@ -2,6 +2,7 @@
 #define CATALOGO_EDITOR_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <QPixmap>
@@ -25,6 +26,15 @@ struct ElementoCatalogo {
     uint32_t oro = 0;
     bool tieneOro = false;
     QPixmap icono;
+    QString destino; 
+    bool tieneStats = false;
+    uint16_t vida = 0;
+    uint8_t nivel = 0;
+    uint8_t fuerza = 0;
+    uint8_t agilidad = 0;
+    uint8_t aggro = 0;
+    uint8_t danioMin = 0;
+    uint8_t danioMax = 0;
 };
 
 class CatalogoEditor {
@@ -34,6 +44,8 @@ private:
     std::vector<ElementoCatalogo> pisos;
 
     void cargar();
+    void parsearLista(const std::string& archivoPath, const char* claveArray,
+                      SeccionCatalogo seccion, std::vector<ElementoCatalogo>& destino);
     QPixmap recortar(const QString& sprite, int x, int y, int w, int h) const;
 
 public:
@@ -45,6 +57,8 @@ public:
     
     QPixmap iconoCriatura(TipoCriatura tipo) const;
     QPixmap iconoNpc(TipoNpc tipo) const;
+    QPixmap tilePiso(const QString& clave) const;
+    QString destinoPiso(const QString& clave) const;
 
 
 };

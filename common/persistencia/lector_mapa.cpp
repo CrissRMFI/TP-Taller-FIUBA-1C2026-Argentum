@@ -173,5 +173,29 @@ MapaCargado LectorMapa::leer(const std::string& path,
         }
     }
 
+    // 'pisos' es opcional: mapas viejos sin la clave siguen cargando.
+    if (const toml::array* pisos = tbl["pisos"].as_array()) {
+        for (const toml::node& nodo : *pisos) {
+            const toml::table* p = nodo.as_table();
+            if (p == nullptr) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (entrada de 'pisos' invalida)");
+            }
+            const auto clave = (*p)["clave"].value<std::string>();
+            if (!clave.has_value()) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::CLAVE_FALTANTE,
+                        path + " (piso sin clave 'clave')");
+            }
+            mapa.agregarPiso(ZonaPiso{mapaId,
+                                      leerUint16(*p, "x_min", path),
+                                      leerUint16(*p, "y_min", path),
+                                      leerUint16(*p, "x_max", path),
+                                      leerUint16(*p, "y_max", path),
+                                      *clave});
+        }
+    }
+
     return MapaCargado{std::move(mapa), mapaId};
 }

@@ -7,7 +7,7 @@ target_sources(taller_editor
     editor_window.cpp
     catalogo_editor.cpp
     panel_elementos.cpp
-    # Qt resources (embebe bmp, flechas e imagenes de criaturas/npc).
+    barras_stats.cpp
     recursos.qrc
     PUBLIC
     # .h files
@@ -16,4 +16,5 @@ target_sources(taller_editor
     editor_window.h
     catalogo_editor.h
     panel_elementos.h
+    barras_stats.h
     )

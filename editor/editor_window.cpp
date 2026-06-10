@@ -3,7 +3,6 @@
 #include <exception>
 
 #include <QAction>
-#include <QActionGroup>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -28,7 +27,7 @@
 EditorWindow::EditorWindow():
         modelo(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), catalogo(),
         fondo(nullptr), canvas(nullptr), panel(nullptr),
-        descripcion(nullptr), recompensa(nullptr) {
+        descripcion(nullptr), recompensa(nullptr), barras(nullptr) {
     setWindowTitle("Argentum - Editor de mapas");
 
     fondo = new QLabel(this);
@@ -42,6 +41,12 @@ EditorWindow::EditorWindow():
 
     crearPanel();
     crearMenu();
+
+    // Cartel de controles, siempre visible (a la derecha de la barra de estado).
+    QLabel* ayuda = new QLabel(
+            "Click izq: pintar zona / arrastrar elemento  ·  "
+            "Click der: borrar  ·  Ctrl+rueda: zoom  ·  boton del medio: mover");
+    statusBar()->addPermanentWidget(ayuda);
 
     intentarCargar(EDITOR_MAPA_DEFAULT);
     actualizarInfo();
@@ -59,12 +64,17 @@ void EditorWindow::crearPanel() {
     descripcion->setGeometry(580, 360, 166, 180);
     descripcion->setWordWrap(true);
     descripcion->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    descripcion->setStyleSheet("color: rgb(206, 184, 130); background: transparent;");
+    descripcion->setStyleSheet(
+            "color: rgb(206, 184, 130); background: transparent; font-size: 11px;");
 
     // RECOMPENSAS: oro (debajo del rotulo RECOMPENSAS).
     recompensa = new QLabel(fondo);
     recompensa->setGeometry(652, 630, 96, 18);
     recompensa->setStyleSheet("color: rgb(240, 210, 90); background: transparent;"" font-weight: bold;");
+
+    // Barras de stats (vida / danio / nivel / oro) sobre los slots del bmp.
+    barras = new BarrasStats(&catalogo, fondo);
+    barras->setGeometry(600, 555, 156, 42);
 
     // Boton "Crear Mapa": genera y guarda el .toml.
     QPushButton* botonCrear = new QPushButton("Crear Mapa", fondo);
@@ -78,32 +88,26 @@ void EditorWindow::crearMenu() {
     QAction* crear = archivo->addAction("Crear Mapa");
     connect(abrir, &QAction::triggered, this, &EditorWindow::abrirMapa);
     connect(crear, &QAction::triggered, this, &EditorWindow::crearMapa);
-
-    // Herramientas de terreno
-    QMenu* terreno = menuBar()->addMenu("Terreno");
-    QActionGroup* grupo = new QActionGroup(this);
-    grupo->setExclusive(true);
-    QAction* ciudad = terreno->addAction("Ciudad (zona segura)");
-    QAction* pared = terreno->addAction("Pared");
-    for (QAction* a : {ciudad, pared}) {
-        a->setCheckable(true);
-        grupo->addAction(a);
-    }
-    ciudad->setChecked(true);
-    connect(ciudad, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaCanvas::Ciudad); });
-    connect(pared, &QAction::triggered, this,
-            [this]() { canvas->setHerramienta(HerramientaCanvas::Pared); });
 }
 
 void EditorWindow::actualizarInfo() {
     ElementoCatalogo elem;
-    if (panel->elementoActual(elem)) {
+    const bool hayElem = panel->elementoActual(elem);
+    if (hayElem) {
         descripcion->setText(elem.nombre + "\n\n" + elem.descripcion);
         recompensa->setText(elem.tieneOro ? QString("Oro: %1").arg(elem.oro) : QString());
+        barras->setStats(elem);
     } else {
         descripcion->setText("(seccion en construccion)");
         recompensa->clear();
+        barras->limpiar();
+    }
+
+    
+    if (hayElem && panel->seccionActual() == SeccionCatalogo::Pisos) {
+        canvas->setPincelPiso(true, elem.clave, elem.destino);
+    } else {
+        canvas->setPincelPiso(false, QString(), QString());
     }
 }
 
@@ -147,6 +151,12 @@ QString EditorWindow::proximoArchivoMapa() const {
 }
 
 void EditorWindow::crearMapa() {
+    if (!modelo.todoCubierto()) {
+        QMessageBox::warning(this, "Falta piso",
+                             "No se puede crear el mapa: hay celdas sin piso. "
+                             "Pinta el terreno hasta cubrir todo el mapa.");
+        return;
+    }
     QDir().mkpath(EDITOR_MAPA_DIR);
     const QString ruta = proximoArchivoMapa();
     try {

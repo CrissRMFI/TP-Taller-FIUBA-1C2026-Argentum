@@ -2,6 +2,7 @@
 #define EDITOR_MAPA_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "common/game/criatura.h"
@@ -34,6 +35,7 @@ private:
     std::vector<Ciudad> ciudades;
     std::vector<NpcEditor> npcs;
     std::vector<CriaturaEditor> criaturas;
+    std::vector<ZonaPiso> pisos;  // zonas de piso visual; "ultima gana"
 
     uint16_t proximoIdNpc() const;
     uint16_t proximoIdCriatura() const;
@@ -51,17 +53,22 @@ public:
     bool hayCriaturaEn(uint16_t x, uint16_t y) const;
     bool estaEnCiudad(uint16_t x, uint16_t y) const;
     bool celdaOcupada(uint16_t x, uint16_t y) const;
+    std::string pisoEn(uint16_t x, uint16_t y) const;
+    bool todoCubierto() const;
 
     void ponerPared(uint16_t x, uint16_t y);
     void ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y);
     void ponerCriatura(TipoCriatura tipo, uint16_t x, uint16_t y);
     void agregarCiudad(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+    void pintarParedes(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+    void pintarPiso(const std::string& clave, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
     void borrarEn(uint16_t x, uint16_t y);
 
     const std::vector<Posicion>&       getParedes() const;
     const std::vector<Ciudad>&         getCiudades() const;
     const std::vector<NpcEditor>&      getNpcs() const;
     const std::vector<CriaturaEditor>& getCriaturas() const;
+    const std::vector<ZonaPiso>&       getPisos() const;
 
     void cargarDesde(const Mapa& mapa, uint16_t mapaId);
     Mapa construirMapa() const;

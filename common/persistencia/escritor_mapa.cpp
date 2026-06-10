@@ -97,6 +97,16 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
                "\"arania\" | \"orco\" | \"golem\".\n";
         out << "criaturas = [\n";
         escribirCriaturas(out, mapa);
+        out << "]\n\n";
+
+        out << "# Pisos: zonas de terreno visual (clave segun config/pisos.toml).\n";
+        out << "# Se resuelven por celda 'ultima gana'; sin zona, la celda es pasto.\n";
+        out << "pisos = [\n";
+        for (const ZonaPiso& p : mapa.getPisos()) {
+            out << "  { clave = \"" << p.clave << "\""
+                << ", x_min = " << p.xMin << ", y_min = " << p.yMin
+                << ", x_max = " << p.xMax << ", y_max = " << p.yMax << " },\n";
+        }
         out << "]\n";
 
         out.flush();

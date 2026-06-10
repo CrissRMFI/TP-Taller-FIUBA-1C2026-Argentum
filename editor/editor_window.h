@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QMainWindow>
 
+#include "barras_stats.h"
 #include "catalogo_editor.h"
 #include "editor_mapa.h"
 #include "mapa_canvas.h"
@@ -23,6 +24,7 @@ private:
     PanelElementos* panel;
     QLabel* descripcion;
     QLabel* recompensa;
+    BarrasStats* barras;
 
     void crearPanel();
     void crearMenu();

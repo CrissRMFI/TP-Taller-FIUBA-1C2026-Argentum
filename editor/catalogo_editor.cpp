@@ -16,6 +16,9 @@ QPixmap CatalogoEditor::recortar(const QString& sprite, int x, int y, int w, int
     if (hoja.isNull()) {
         return hoja;
     }
+    if (w <= 0 || h <= 0) {
+        return hoja;
+    }
     const QRect rect(x, y, w, h);
     if (!hoja.rect().contains(rect)) {
         return hoja;
@@ -23,8 +26,8 @@ QPixmap CatalogoEditor::recortar(const QString& sprite, int x, int y, int w, int
     return hoja.copy(rect);
 }
 
-void CatalogoEditor::cargar() {
-        QFile archivo("config/criaturas.toml");
+void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* claveArray, SeccionCatalogo seccion, std::vector<ElementoCatalogo>& destino) {
+    QFile archivo(QString::fromStdString(archivoPath));
     if (!archivo.open(QIODevice::ReadOnly)) {
         return;
     }
@@ -37,42 +40,56 @@ void CatalogoEditor::cargar() {
         return;
     }
 
-    const auto leerLista = [this, &tbl](const char* clave, SeccionCatalogo seccion, std::vector<ElementoCatalogo>& destino) {
-        const toml::array* lista = tbl[clave].as_array();
-        if (lista == nullptr) {
-            return;
+    const toml::array* lista = tbl[claveArray].as_array();
+    if (lista == nullptr) {
+        return;
+    }
+    for (const toml::node& nodo : *lista) {
+        const toml::table* t = nodo.as_table();
+        if (t == nullptr) {
+            continue;
         }
-        for (const toml::node& nodo : *lista) {
-            const toml::table* t = nodo.as_table();
-            if (t == nullptr) {
-                continue;
-            }
-            ElementoCatalogo elem;
-            elem.seccion = seccion;
-            elem.clave = QString::fromStdString((*t)["clave"].value_or<std::string>(""));
-            elem.nombre = QString::fromStdString((*t)["nombre"].value_or<std::string>(""));
-            elem.descripcion =
-                    QString::fromStdString((*t)["descripcion"].value_or<std::string>(""));
-            if (const auto oro = (*t)["oro"].value<int64_t>()) {
-                elem.oro = static_cast<uint32_t>(*oro);
-                elem.tieneOro = true;
-            }
-            const QString sprite =
-                    QString::fromStdString((*t)["sprite"].value_or<std::string>(""));
-            int x = 0, y = 0, w = 0, h = 0;
-            if (const toml::array* src = (*t)["src"].as_array(); src && src->size() == 4) {
-                x = static_cast<int>((*src)[0].value_or<int64_t>(0));
-                y = static_cast<int>((*src)[1].value_or<int64_t>(0));
-                w = static_cast<int>((*src)[2].value_or<int64_t>(0));
-                h = static_cast<int>((*src)[3].value_or<int64_t>(0));
-            }
-            elem.icono = recortar(sprite, x, y, w, h);
-            destino.push_back(elem);
+        ElementoCatalogo elem;
+        elem.seccion = seccion;
+        elem.clave = QString::fromStdString((*t)["clave"].value_or<std::string>(""));
+        elem.nombre = QString::fromStdString((*t)["nombre"].value_or<std::string>(""));
+        elem.descripcion =
+                QString::fromStdString((*t)["descripcion"].value_or<std::string>(""));
+        elem.destino = QString::fromStdString((*t)["destino"].value_or<std::string>(""));
+        if (const auto oro = (*t)["oro"].value<int64_t>()) {
+            elem.oro = static_cast<uint32_t>(*oro);
+            elem.tieneOro = true;
         }
-    };
+        if (const auto vida = (*t)["vida_maxima"].value<int64_t>()) {
+            elem.tieneStats = true;
+            elem.vida = static_cast<uint16_t>(*vida);
+            elem.nivel = static_cast<uint8_t>((*t)["nivel"].value_or<int64_t>(0));
+            elem.fuerza = static_cast<uint8_t>((*t)["fuerza"].value_or<int64_t>(0));
+            elem.agilidad = static_cast<uint8_t>((*t)["agilidad"].value_or<int64_t>(0));
+            elem.aggro = static_cast<uint8_t>((*t)["rango_aggro"].value_or<int64_t>(0));
+            elem.danioMin = static_cast<uint8_t>((*t)["danio_min"].value_or<int64_t>(0));
+            elem.danioMax = static_cast<uint8_t>((*t)["danio_max"].value_or<int64_t>(0));
+        }
+        const QString sprite =
+                QString::fromStdString((*t)["sprite"].value_or<std::string>(""));
+        int x = 0, y = 0, w = 0, h = 0;
+        if (const toml::array* src = (*t)["src"].as_array(); src && src->size() == 4) {
+            x = static_cast<int>((*src)[0].value_or<int64_t>(0));
+            y = static_cast<int>((*src)[1].value_or<int64_t>(0));
+            w = static_cast<int>((*src)[2].value_or<int64_t>(0));
+            h = static_cast<int>((*src)[3].value_or<int64_t>(0));
+        }
+        elem.icono = recortar(sprite, x, y, w, h);
+        destino.push_back(elem);
+    }
+}
 
-    leerLista("criatura", SeccionCatalogo::Criaturas, criaturas);
-    leerLista("npc", SeccionCatalogo::Npc, npcs);
+void CatalogoEditor::cargar() {
+    // Criaturas y NPCs: fuente unica compartida con el server
+    parsearLista("config/criaturas.toml", "criatura", SeccionCatalogo::Criaturas, criaturas);
+    parsearLista("config/criaturas.toml", "npc", SeccionCatalogo::Npc, npcs);
+    // Pisos / terreno: catalogo del editor
+    parsearLista("config/pisos.toml", "piso", SeccionCatalogo::Pisos, pisos);
 }
 
 const std::vector<ElementoCatalogo>& CatalogoEditor::elementosDe(SeccionCatalogo seccion) const {
@@ -119,4 +136,22 @@ QPixmap CatalogoEditor::iconoNpc(TipoNpc tipo) const {
         }
     }
     return QPixmap();
+}
+
+QPixmap CatalogoEditor::tilePiso(const QString& clave) const {
+    for (const ElementoCatalogo& elem : pisos) {
+        if (elem.clave == clave) {
+            return elem.icono;
+        }
+    }
+    return QPixmap();
+}
+
+QString CatalogoEditor::destinoPiso(const QString& clave) const {
+    for (const ElementoCatalogo& elem : pisos) {
+        if (elem.clave == clave) {
+            return elem.destino;
+        }
+    }
+    return QString();
 }
