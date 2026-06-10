@@ -2,6 +2,7 @@
 <RCC version="1.0">
   <qresource prefix="/">
     <file alias="mapas/es_VentanaMapa.bmp">../client/resources/mapas/es_VentanaMapa.bmp</file>
+    <file alias="mapas/es_ventanaconfirmar.bmp">../client/resources/mapas/es_ventanaconfirmar.bmp</file>
     <file alias="mapas/flecha_izq.bmp">../client/resources/mapas/en_boton-sm-flecha-izq-over.bmp</file>
     <file alias="mapas/flecha_der.bmp">../client/resources/mapas/en_boton-sm-flecha-der-over.bmp</file>
 

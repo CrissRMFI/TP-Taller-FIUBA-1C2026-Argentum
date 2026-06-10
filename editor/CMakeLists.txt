@@ -8,6 +8,7 @@ target_sources(taller_editor
     catalogo_editor.cpp
     panel_elementos.cpp
     barras_stats.cpp
+    dialogo_nombre_mapa.cpp
     recursos.qrc
     PUBLIC
     # .h files
@@ -17,4 +18,5 @@ target_sources(taller_editor
     catalogo_editor.h
     panel_elementos.h
     barras_stats.h
+    dialogo_nombre_mapa.h
     )

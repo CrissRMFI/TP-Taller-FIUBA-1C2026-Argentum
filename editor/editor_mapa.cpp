@@ -8,6 +8,7 @@ EditorMapa::EditorMapa(uint16_t ancho, uint16_t alto):
 uint16_t EditorMapa::getAncho() const { return ancho; }
 uint16_t EditorMapa::getAlto() const { return alto; }
 uint16_t EditorMapa::getMapaId() const { return mapaId; }
+void EditorMapa::setMapaId(uint16_t id) { mapaId = id; }
 
 bool EditorMapa::dentroDeLimites(uint16_t x, uint16_t y) const {
     return x < ancho && y < alto;

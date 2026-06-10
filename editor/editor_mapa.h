@@ -46,6 +46,7 @@ public:
     uint16_t getAncho() const;
     uint16_t getAlto() const;
     uint16_t getMapaId() const;
+    void setMapaId(uint16_t id);
 
     bool dentroDeLimites(uint16_t x, uint16_t y) const;
     bool hayParedEn(uint16_t x, uint16_t y) const;

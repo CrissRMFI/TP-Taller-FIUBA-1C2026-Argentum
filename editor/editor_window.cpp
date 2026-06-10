@@ -2,7 +2,10 @@
 
 #include <exception>
 
+#include <algorithm>
+
 #include <QAction>
+#include <QApplication>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -13,8 +16,11 @@
 #include <QPushButton>
 #include <QStatusBar>
 
+#include <toml++/toml.hpp>
+
 #include "common/persistencia/escritor_mapa.h"
 #include "common/persistencia/lector_mapa.h"
+#include "dialogo_nombre_mapa.h"
 
 #define EDITOR_MAPA_DEFAULT "config/mapa.toml"
 #define EDITOR_MAPA_DIR "config"
@@ -140,14 +146,22 @@ void EditorWindow::abrirMapa() {
     }
 }
 
-QString EditorWindow::proximoArchivoMapa() const {
-    
-    for (int n = 2; ; ++n) {
-        const QString ruta = QString("%1/mapa%2.toml").arg(EDITOR_MAPA_DIR).arg(n);
-        if (!QFileInfo::exists(ruta)) {
-            return ruta;
+uint16_t EditorWindow::proximoMapaId() const {
+    // mapa_id unico = max de los mapa_id existentes en config/*.toml + 1.
+    int maxId = -1;
+    const QDir dir(EDITOR_MAPA_DIR);
+    for (const QString& f : dir.entryList(QStringList() << "*.toml", QDir::Files)) {
+        try {
+            const toml::table tbl =
+                    toml::parse_file((QString(EDITOR_MAPA_DIR) + "/" + f).toStdString());
+            if (const auto id = tbl["mapa_id"].value<int64_t>()) {
+                maxId = std::max(maxId, static_cast<int>(*id));
+            }
+        } catch (...) {
+            // No es un mapa valido (criaturas.toml, pisos.toml, ...): se ignora.
         }
     }
+    return static_cast<uint16_t>(maxId + 1);
 }
 
 void EditorWindow::crearMapa() {
@@ -157,14 +171,39 @@ void EditorWindow::crearMapa() {
                              "Pinta el terreno hasta cubrir todo el mapa.");
         return;
     }
+
+    // Ventana CONFIRMAR: pide el nombre. Cancelar => seguir editando.
+    DialogoNombreMapa dialogo(this);
+    if (dialogo.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    // Nombre -> archivo seguro (config/<nombre>.toml).
+    QString base;
+    for (const QChar& c : dialogo.nombre()) {
+        if (c.isLetterOrNumber() || c == '-' || c == '_') {
+            base += c;
+        } else if (c == ' ') {
+            base += '_';
+        }
+    }
+    if (base.isEmpty()) {
+        base = "mapa";
+    }
     QDir().mkpath(EDITOR_MAPA_DIR);
-    const QString ruta = proximoArchivoMapa();
+    const QString ruta = QString("%1/%2.toml").arg(EDITOR_MAPA_DIR, base);
+
+    // Id unico para el mapa nuevo (base para multi-mapa a futuro).
+    modelo.setMapaId(proximoMapaId());
     try {
         Mapa mapa = modelo.construirMapa();
         EscritorMapa escritorMapa;
         escritorMapa.escribir(mapa, modelo.getMapaId(), ruta.toStdString());
-        statusBar()->showMessage("Mapa creado: " + ruta, 5000);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error al crear el mapa", e.what());
+        return;  // si fallo el guardado, no cerramos el editor
     }
+
+    // Confirmado y guardado: se cierra el editor.
+    qApp->quit();
 }

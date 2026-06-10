@@ -33,7 +33,7 @@ private:
     void abrirMapa();
     void crearMapa();
     void actualizarInfo();
-    QString proximoArchivoMapa() const;
+    uint16_t proximoMapaId() const;
 };
 
 #endif
