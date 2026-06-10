@@ -21,6 +21,7 @@ struct MensajeEstadoPersonaje {
     uint8_t  raza = 0;
     uint8_t  clase = 0;
     uint32_t expSiguienteNivel = 0;
+    uint16_t tiempoResurreccionMs = 0;
 };
 
 struct MensajePosicionEntidad {

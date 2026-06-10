@@ -34,6 +34,10 @@ private:
     int canalPasos;
     bool pasosActivos;
 
+    // Canal dedicado para el loop del tiempo de resurreccion (-1 si no esta sonando).
+    int canalResurreccion;
+    bool resurreccionActiva;
+
     void cargarCatalogo(const std::string& rutaConfig, const std::string& resourcesRoot);
     int volumenCanalDe(int volumenBase0a100) const;
 
@@ -58,6 +62,12 @@ public:
     // Loop de pasos en un canal dedicado: arranca al empezar a caminar y se corta al detenerse
     void reproducirPasos();
     void detenerPasos();
+
+    // Resurreccion: mientras transcurre el tiempo inmovil suena 'transcurrirTiempo' en loop y
+    // es lo unico que se escucha (se cortan los demas efectos y se pausa la musica). Al revivir
+    // se detiene el loop y se reanuda la musica.
+    void iniciarResurreccion();
+    void detenerResurreccion();
 
     bool disponible() const { return audioOk; }
 

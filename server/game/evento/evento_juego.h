@@ -21,6 +21,7 @@ struct EventoEstadoPersonaje {
     uint8_t  raza = 0;
     uint8_t  clase = 0;
     uint32_t expSiguienteNivel = 0;  // experiencia necesaria para subir de nivel
+    uint16_t tiempoResurreccionMs = 0;  // ms inmovil restantes al resucitar (0 si no resucita)
 };
 
 struct EventoPosicionEntidad {

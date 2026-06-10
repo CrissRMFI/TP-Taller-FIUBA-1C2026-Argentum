@@ -433,6 +433,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
     uint8_t raza = recibirUnByte();
     uint8_t clase = recibirUnByte();
     uint32_t expSiguienteNivel = recibirCuatroBytes();
+    uint16_t tiempoResurreccionMs = recibirDosBytes();
 
     return MensajeServidor{
             Opcode::ESTADO_PERSONAJE,
@@ -448,6 +449,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoPersonaje() {
                     raza,
                     clase,
                     expSiguienteNivel,
+                    tiempoResurreccionMs,
             },
     };
 }

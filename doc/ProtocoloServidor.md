@@ -45,6 +45,10 @@ Enviado periódicamente o ante cualquier cambio en el estado del jugador.
 | nivel       | uint8  | nivel actual            |
 | experiencia | uint32 | experiencia acumulada   |
 | estado      | uint8  | 0=vivo 1=fantasma 2=meditando 3=resucitando |
+| raza        | uint8  | raza del personaje      |
+| clase       | uint8  | clase del personaje     |
+| expSiguienteNivel | uint32 | experiencia para subir de nivel |
+| tiempoResurreccionMs | uint16 | ms inmóvil restantes al resucitar (0 si no resucita) |
 
 ## POSICION_ENTIDAD (opcode 27)
 
