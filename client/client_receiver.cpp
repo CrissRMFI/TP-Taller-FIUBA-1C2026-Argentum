@@ -4,6 +4,9 @@
 
 #include "client_receiver.h"
 
+#include <string>
+
+#include "registro_cliente.h"
 #include "../common/socket/liberror.h"
 #include "../common/thread/queue.h"
 
@@ -20,11 +23,11 @@ void ClientReceiver::run() {
             queue.push(message);
         }
     } catch (const ClosedQueue& e) {
-        std::cout << "[receiver] stopped: queue closed: " << e.what() << std::endl;
+        RegistroCliente::info(std::string("[receiver] stopped: queue closed: ") + e.what());
     } catch (const LibError& e) {
-        std::cout << "[receiver] stopped: socket/protocol error: " << e.what() << std::endl;
+        RegistroCliente::info(std::string("[receiver] stopped: socket/protocol error: ") + e.what());
     } catch (const std::exception& e) {
-        std::cout << "[receiver] stopped: " << e.what() << std::endl;
+        RegistroCliente::info(std::string("[receiver] stopped: ") + e.what());
     }
 }
 void ClientReceiver::stop() { running = false; }

@@ -1,6 +1,6 @@
 #include "cliente.h"
 
-#include <iostream>
+#include <string>
 #include <utility>
 #include <sys/socket.h>
 
@@ -8,6 +8,7 @@
 #include "server/enviador.h"
 #include "server/recibidor.h"
 #include "server/gameloop/monitor_clientes.h"
+#include "server/game/registro_servidor.h"
 
 Cliente::Cliente(uint16_t idCliente, 
                                  std::unique_ptr<ProtocoloServidor> protocolo_servidor,
@@ -30,7 +31,7 @@ Queue<MensajeServidor>& Cliente::obtenerColaSalida(){
 }
 
 void Cliente::run() {
-    std::cout << "[cliente " << idCliente << "] conectado\n";
+    RegistroServidor::info("[cliente " + std::to_string(idCliente) + "] conectado");
     colaEventos.push(EventoSesion{
     TipoEventoSesion::Conectar, idCliente,
         DatosSesion{
@@ -67,5 +68,5 @@ void Cliente::stop() {
     } catch (std::runtime_error&) {
         // cualquier otro error
     }
-    std::cout << "[cliente " << idCliente << "] desconectado\n";
+    RegistroServidor::info("[cliente " + std::to_string(idCliente) + "] desconectado");
 }

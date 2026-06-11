@@ -11,6 +11,9 @@
 #include "SDL2pp/SDL.hh"
 #include "SDL2pp/Window.hh"
 #include "Qt/conectionController.h"
+#include "registro_cliente.h"
+
+#include <string>
 
 using namespace SDL2pp;
 
@@ -21,7 +24,7 @@ int main(int argc, char* argv[]){
 		return connectionController.run(argc, argv);
 	}
 	catch (const std::exception& e) {
-        std::cerr << "Error fatal: " << e.what() << std::endl;
+        RegistroCliente::error(std::string("Error fatal: ") + e.what());
         return 1;
 	}
 

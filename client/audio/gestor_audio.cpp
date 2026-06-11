@@ -1,7 +1,7 @@
 #include "gestor_audio.h"
 
 #include <algorithm>
-#include <iostream>
+#include <string>
 
 #include <SDL.h>
 #include <SDL_mixer.h>
@@ -9,6 +9,7 @@
 #include <toml++/toml.hpp>
 
 #include "../../common/mensajes/mensajes_error_audio.h"
+#include "../registro_cliente.h"
 
 // Canales de mezcla simultaneos. Si todos estan ocupados, los efectos nuevos se descartan (anti-saturacion natural cuando hay muchos eventos a la vez).
 #define CANALES_MEZCLA 24
@@ -25,8 +26,10 @@ GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resou
         canalResurreccion(-1),
         resurreccionActiva(false) {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::SUBSISTEMA_NO_INICIADO)
-                  << ": " << SDL_GetError() << std::endl;
+        RegistroCliente::error(
+                std::string("[audio] ") +
+                MensajesErrorAudio::mensaje(CodigoErrorAudio::SUBSISTEMA_NO_INICIADO) + ": " +
+                SDL_GetError());
         return;
     }
     subsistemaIniciado = true;
@@ -34,8 +37,10 @@ GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resou
     try {
         mixer = std::make_unique<SDL2pp::Mixer>(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 2048);
     } catch (const std::exception& e) {
-        std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::DISPOSITIVO_NO_ABIERTO)
-                  << ": " << e.what() << std::endl;
+        RegistroCliente::error(
+                std::string("[audio] ") +
+                MensajesErrorAudio::mensaje(CodigoErrorAudio::DISPOSITIVO_NO_ABIERTO) + ": " +
+                e.what());
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
         subsistemaIniciado = false;
         return;
@@ -65,8 +70,9 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
     try {
         tbl = toml::parse_file(rutaConfig);
     } catch (const toml::parse_error& e) {
-        std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::CONFIG_NO_LEIDA)
-                  << " ('" << rutaConfig << "': " << e.description() << ")" << std::endl;
+        RegistroCliente::error(std::string("[audio] ") +
+                               MensajesErrorAudio::mensaje(CodigoErrorAudio::CONFIG_NO_LEIDA) +
+                               " ('" + rutaConfig + "': " + std::string(e.description()) + ")");
         return;
     }
 
@@ -95,8 +101,10 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
                         std::make_unique<SDL2pp::Chunk>(resourcesRoot + "/" + *path);
                 volumenCanal[nombre] = volumenCanalDe(volumen);
             } catch (const std::exception& e) {
-                std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::EFECTO_NO_CARGADO)
-                          << " '" << nombre << "' (" << *path << "): " << e.what() << std::endl;
+                RegistroCliente::error(
+                        std::string("[audio] ") +
+                        MensajesErrorAudio::mensaje(CodigoErrorAudio::EFECTO_NO_CARGADO) + " '" +
+                        nombre + "' (" + *path + "): " + e.what());
             }
         }
     }
@@ -117,8 +125,10 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
                 musicas[nombre] =
                         std::make_unique<SDL2pp::Music>(resourcesRoot + "/" + *path);
             } catch (const std::exception& e) {
-                std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_CARGADA)
-                          << " '" << nombre << "' (" << *path << "): " << e.what() << std::endl;
+                RegistroCliente::error(
+                        std::string("[audio] ") +
+                        MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_CARGADA) + " '" +
+                        nombre + "' (" + *path + "): " + e.what());
             }
         }
     }
@@ -176,8 +186,9 @@ void GestorAudio::reproducirMusica(const std::string& clave) {
         mixer->PlayMusic(*it->second, -1);  // -1 = loop infinito
         musicaActual = clave;
     } catch (const std::exception& e) {
-        std::cerr << "[audio] " << MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_REPRODUCIDA)
-                  << " '" << clave << "': " << e.what() << std::endl;
+        RegistroCliente::error(std::string("[audio] ") +
+                               MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_REPRODUCIDA) +
+                               " '" + clave + "': " + e.what());
     }
 }
 

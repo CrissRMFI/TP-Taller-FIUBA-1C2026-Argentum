@@ -1,11 +1,12 @@
 #include "lector_config_cliente.h"
 
 #include <cstdint>
-#include <iostream>
+#include <string>
 
 #include <toml++/toml.hpp>
 
 #include "../../common/mensajes/mensajes_error_cliente.h"
+#include "../registro_cliente.h"
 
 ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     ConfigCliente cfg;
@@ -14,9 +15,9 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     try {
         tbl = toml::parse_file(path);
     } catch (const toml::parse_error& e) {
-        std::cerr << "[cliente] "
-                  << MensajesErrorCliente::mensaje(CodigoErrorCliente::CONFIG_NO_LEIDA) << " ('"
-                  << path << "': " << e.description() << ")" << std::endl;
+        RegistroCliente::error(std::string("[cliente] ") +
+                               MensajesErrorCliente::mensaje(CodigoErrorCliente::CONFIG_NO_LEIDA) +
+                               " ('" + path + "': " + std::string(e.description()) + ")");
         return cfg;
     }
 

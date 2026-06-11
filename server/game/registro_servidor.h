@@ -8,6 +8,10 @@
 // de juego (Juego) no haga I/O directo. Cada metodo escribe un evento/traza.
 class RegistroServidor {
 public:
+    // --- Genericos (infra: red, ciclo de vida de clientes, fatales) ---
+    static void info(const std::string& mensaje);   // a stdout
+    static void error(const std::string& mensaje);   // a stderr
+
     // --- Persistencia ---
     static void errorCargandoJugador(const std::string& nombre, const std::string& detalle);
     static void errorGuardandoJugador(const std::string& nombre, const std::string& detalle);

@@ -155,11 +155,11 @@ std::optional<Npc> Mapa::buscarSacerdoteMasCercano(const Posicion& posicion) con
   return masCercano;
 }
 
-std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion& origen) const {
-    // BFS por anillos desde `origen`: devuelve la primera celda libre (sin pared,
-    // NPC, criatura o ítem en el suelo) que se alcance. Itera en orden de
-    // distancia Manhattan creciente, así la primera celda válida que se descole
-    // es también la más cercana a `origen`.
+std::optional<Posicion> Mapa::buscarCeldaLibreCercaDe(
+        const Posicion& origen,
+        const std::function<bool(const Posicion&)>& celdaOcupada) const {
+    // BFS por anillos desde `origen`: itera en orden de distancia Manhattan
+    // creciente, así la primera celda no ocupada que se descole es la más cercana.
     if (!posicionValida(origen)) {
         return std::nullopt;
     }
@@ -170,7 +170,7 @@ std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion&
     cola.push(origen);
     visitadas.insert({origen.x, origen.y});
 
-    static constexpr std::array<std::pair<int, int>, 4> direcciones = {{
+    constexpr std::array<std::pair<int, int>, 4> direcciones = {{
         {0, -1}, {0, 1}, {-1, 0}, {1, 0}
     }};
 
@@ -178,8 +178,7 @@ std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion&
         const Posicion actual = cola.front();
         cola.pop();
 
-        if (!hayParedEn(actual) && !hayNpcEn(actual) &&
-            !hayCriaturaEn(actual) && !hayItemEn(actual)) {
+        if (!celdaOcupada(actual)) {
             return actual;
         }
 
@@ -203,6 +202,13 @@ std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion&
     }
 
     return std::nullopt;
+}
+
+std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion& origen) const {
+    // Celda libre = sin pared, NPC, criatura ni ítem en el suelo.
+    return buscarCeldaLibreCercaDe(origen, [this](const Posicion& celda) {
+        return hayParedEn(celda) || hayNpcEn(celda) || hayCriaturaEn(celda) || hayItemEn(celda);
+    });
 }
 
 bool Mapa::hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {

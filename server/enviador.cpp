@@ -5,6 +5,9 @@
 #include "enviador.h"
 
 #include <numbers>
+#include <string>
+
+#include "server/game/registro_servidor.h"
 
 
 Enviador::Enviador(ProtocoloServidor &proto_servidor, Queue<MensajeServidor> &colaSalida) :
@@ -20,7 +23,7 @@ void Enviador::run() {
 
         }
     } catch (std::runtime_error& e) {
-        std::cerr << "enviador: " << e.what() << std::endl;
+        RegistroServidor::error(std::string("enviador: ") + e.what());
     }
 }
 bool Enviador::isRunning() const {
@@ -32,6 +35,6 @@ void Enviador::stop() {
     try {
         colaSalida.close();
     } catch (std::runtime_error& e) {
-        std::cerr << "enviador: cola ya cerrada " << e.what() << std::endl;
+        RegistroServidor::error(std::string("enviador: cola ya cerrada ") + e.what());
     }
 }
