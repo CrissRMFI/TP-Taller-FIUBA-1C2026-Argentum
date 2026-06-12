@@ -124,6 +124,15 @@ bool Mapa::hayParedEn(const Posicion& posicion) const {
   return false;
 }
 
+bool Mapa::hayObjetoEn(const Posicion& posicion) const {
+  for (const ObjetoMapa& objeto : objetos) {
+    if (objeto.x == posicion.x && objeto.y == posicion.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::optional<Npc> Mapa::buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const {
   std::optional<Npc> resultado;
   forEachNpc([&](const Npc& npc) {
@@ -205,9 +214,8 @@ std::optional<Posicion> Mapa::buscarCeldaLibreCercaDe(
 }
 
 std::optional<Posicion> Mapa::obtenerPosicionResurreccionCercana(const Posicion& origen) const {
-    // Celda libre = sin pared, NPC, criatura ni ítem en el suelo.
     return buscarCeldaLibreCercaDe(origen, [this](const Posicion& celda) {
-        return hayParedEn(celda) || hayNpcEn(celda) || hayCriaturaEn(celda) || hayItemEn(celda);
+        return hayParedEn(celda) || hayObjetoEn(celda) || hayNpcEn(celda) || hayCriaturaEn(celda) || hayItemEn(celda);
     });
 }
 
@@ -230,7 +238,7 @@ bool Mapa::hayItemEn(const Posicion& posicion) const {
 }
 
 bool Mapa::agregarItem(const Posicion& posicion, uint16_t idItem) {
-    if (idItem == 0 || !posicionValida(posicion) || hayParedEn(posicion) ||
+    if (idItem == 0 || !posicionValida(posicion) || hayParedEn(posicion) || hayObjetoEn(posicion) ||
             hayNpcEn(posicion) || hayCriaturaEn(posicion) || hayItemEn(posicion)) {
         return false;
     }
@@ -374,7 +382,7 @@ bool Mapa::removerCriatura(uint16_t idCriatura) {
 }
 
 bool Mapa::puedeOcuparCriatura(const Posicion& posicion) const {
-  return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
+  return posicionValida(posicion) && !esZonaSegura(posicion) && !hayParedEn(posicion) && !hayObjetoEn(posicion) && !hayNpcEn(posicion) && !hayCriaturaEn(posicion);
 }
 
 bool Mapa::moverCriatura(uint16_t idCriatura, const Posicion& destino) {
@@ -408,11 +416,10 @@ bool Mapa::hayOroEn(const Posicion& posicion) const {
 }
 
 bool Mapa::agregarOroEnSuelo(const Posicion& posicion, uint32_t cantidad) {
-    if (cantidad == 0 || !posicionValida(posicion) || hayParedEn(posicion)) {
+    if (cantidad == 0 || !posicionValida(posicion) || hayParedEn(posicion) || hayObjetoEn(posicion)) {
         return false;
     }
 
-    // Si ya hay una pila en la misma celda, acumulamos (saturando en uint32_t).
     for (OroEnSuelo& pila : orosEnSuelo) {
         if (mismaPosicion(pila.posicion, posicion)) {
             const uint32_t restante = UINT32_MAX - pila.cantidad;

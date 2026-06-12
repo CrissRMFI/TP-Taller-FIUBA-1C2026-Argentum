@@ -1,41 +1,22 @@
 # Catalogo de terreno del editor de mapas (seccion PISOS del panel).
-# 'destino' indica a que estructura del mapa va la zona pintada:
-#   - "piso"   : piso visual (lista 'pisos' del mapa; sobreescribe, ultima gana).
-#   - "ciudad" : zona segura (gameplay; el server la usa).
-#   - "pared"  : celdas bloqueadas (gameplay; el server las usa).
-# 'sprite' es el alias del tile embebido en recursos.qrc.
 
 [[piso]]
 clave       = "pasto"
 nombre      = "Pasto"
-descripcion = "Piso base de pradera. Es el piso por defecto de todo el mapa."
+descripcion = "Piso base de pradera"
 sprite      = ":/mapas/tile_pasto.png"
 destino     = "piso"
 
 [[piso]]
 clave       = "desierto"
 nombre      = "Desierto"
-descripcion = "Arena seca. Reemplaza al pasto en la zona pintada."
+descripcion = "Arena seca"
 sprite      = ":/mapas/tile_desierto.png"
-destino     = "piso"
-
-[[piso]]
-clave       = "arbol"
-nombre      = "Arboles"
-descripcion = "Zona boscosa. Los arboles se dibujan sobre el pasto."
-sprite      = ":/mapas/tile_arbol.png"
 destino     = "piso"
 
 [[piso]]
 clave       = "ciudad"
 nombre      = "Ciudad (zona segura)"
-descripcion = "Zona segura: no se puede pelear dentro. El server la usa como gameplay."
+descripcion = "Zona segura: no se puede pelear dentro."
 sprite      = ":/mapas/tile_ciudad.png"
 destino     = "ciudad"
-
-[[piso]]
-clave       = "pared"
-nombre      = "Pared"
-descripcion = "Celdas bloqueadas, no transitables. No se pueden poner criaturas ni NPCs encima."
-sprite      = ":/mapas/tile_pared.png"
-destino     = "pared"

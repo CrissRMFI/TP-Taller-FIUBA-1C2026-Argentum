@@ -27,6 +27,7 @@ QString PanelElementos::nombreSeccion() const {
         case SeccionCatalogo::Criaturas: return "CRIATURAS";
         case SeccionCatalogo::Npc:       return "NPC";
         case SeccionCatalogo::Pisos:     return "PISOS";
+        case SeccionCatalogo::Elementos: return "ELEMENTOS";
     }
     return "";
 }
@@ -47,9 +48,9 @@ QRect PanelElementos::rectElementoDer() const { return QRect(width() - 61, heigh
 QRect PanelElementos::rectIcono() const { return QRect(40, 32, width() - 80, 50); }
 
 void PanelElementos::cambiarSeccion(int delta) {
-    // Orden ciclico: Criaturas -> Npc -> Pisos -> Criaturas.
+    // Orden ciclico: Criaturas -> Npc -> Pisos -> Elementos -> Criaturas.
     int s = static_cast<int>(seccion) + delta;
-    const int total = 3;
+    const int total = 4;
     s = ((s % total) + total) % total;
     seccion = static_cast<SeccionCatalogo>(s);
     indice = 0;
@@ -73,8 +74,14 @@ void PanelElementos::iniciarArrastre() {
     if (!elementoActual(elem)) {
         return;
     }
-    const QString prefijo =
-            (elem.seccion == SeccionCatalogo::Npc) ? "npc" : "criatura";
+    
+    QString prefijo;
+    switch (elem.seccion) {
+        case SeccionCatalogo::Criaturas: prefijo = "criatura"; break;
+        case SeccionCatalogo::Npc:       prefijo = "npc";      break;
+        case SeccionCatalogo::Elementos: prefijo = "elemento"; break;
+        case SeccionCatalogo::Pisos:     return;
+    }
 
     QMimeData* mime = new QMimeData();
     mime->setData("application/x-argentum-elemento",

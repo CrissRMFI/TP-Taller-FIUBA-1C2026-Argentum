@@ -197,5 +197,27 @@ MapaCargado LectorMapa::leer(const std::string& path,
         }
     }
 
+    
+    if (const toml::array* objetos = tbl["objetos"].as_array()) {
+        for (const toml::node& nodo : *objetos) {
+            const toml::table* o = nodo.as_table();
+            if (o == nullptr) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (entrada de 'objetos' invalida)");
+            }
+            const auto clave = (*o)["clave"].value<std::string>();
+            if (!clave.has_value()) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::CLAVE_FALTANTE,
+                        path + " (objeto sin clave 'clave')");
+            }
+            mapa.agregarObjeto(ObjetoMapa{mapaId,
+                                          leerUint16(*o, "x", path),
+                                          leerUint16(*o, "y", path),
+                                          *clave});
+        }
+    }
+
     return MapaCargado{std::move(mapa), mapaId};
 }

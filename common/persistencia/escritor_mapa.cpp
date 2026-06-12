@@ -107,6 +107,15 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
                 << ", x_min = " << p.xMin << ", y_min = " << p.yMin
                 << ", x_max = " << p.xMax << ", y_max = " << p.yMax << " },\n";
         }
+        out << "]\n\n";
+
+        out << "# Objetos: elementos sobre el piso (clave segun config/elementos.toml).\n";
+        out << "# Ocupan una celda y bloquean el paso (arboles, carteles, etc.).\n";
+        out << "objetos = [\n";
+        for (const ObjetoMapa& o : mapa.getObjetos()) {
+            out << "  { clave = \"" << o.clave << "\""
+                << ", x = " << o.x << ", y = " << o.y << " },\n";
+        }
         out << "]\n";
 
         out.flush();

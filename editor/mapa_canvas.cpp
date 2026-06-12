@@ -117,6 +117,11 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
         }
     }
 
+    for (const ObjetoEditor& o : modelo->getObjetos()) {
+        const QPixmap icono = catalogo->iconoElemento(QString::fromStdString(o.clave));
+        dibujarFigura(painter, icono, o.x, o.y, celdaW, celdaH);
+    }
+
     // NPCs y criaturas.
     for (const NpcEditor& n : modelo->getNpcs()) {
         const QPixmap icono = catalogo->iconoNpc(n.tipo);
@@ -235,6 +240,20 @@ void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
         TipoNpc tipo;
         if (catalogo->npcPorClave(clave, tipo)) {
             modelo->ponerNpc(tipo, x, y);
+        }
+    } else if (prefijo == "elemento") {
+        const QString piso = QString::fromStdString(modelo->pisoEn(x, y));
+        if (!catalogo->pisoPermitido(clave, piso)) {
+            ElementoCatalogo elem;
+            const QString nombre =
+                    catalogo->elementoPorClave(clave, elem) ? elem.nombre : clave;
+            emit aviso(nombre + " no se puede colocar sobre " + piso + ".");
+            return;
+        }
+        if (clave == "pared") {
+            modelo->ponerPared(x, y);
+        } else {
+            modelo->ponerObjeto(clave.toStdString(), x, y);
         }
     }
     update();

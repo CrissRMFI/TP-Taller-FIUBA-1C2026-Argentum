@@ -218,25 +218,57 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
         renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));  // restaurar clip del mundo
     };
-    tileZona(mapa.getDesiertos(), "imgs/mapas/desierto.png");
-    tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
-
-    // Arboles dispersos en las zonas boscosas (sobre el pasto).
-    try {
-        SDL2pp::Texture& arbol = cache_texture->get_or_load("imgs/mapas/arbol.png");
-        const int aw = 26;
-        const int ah = 42;
-        for (const Ciudad& b : mapa.getBosques()) {
-            for (int cy = b.yMin + 1; cy <= b.yMax; cy += 5) {
-                for (int cx = b.xMin + 1; cx <= b.xMax; cx += 5) {
-                    const int pxc = scrX(cx);
-                    const int pyc = scrY(cy);
-                    renderer->Copy(arbol, SDL2pp::NullOpt,
-                                   SDL2pp::Rect(pxc - aw / 2, pyc - ah, aw, ah));
+    // Pisos por zona (modelo del editor): cada ZonaPiso tilea su textura sobre el
+    // pasto base; el orden del vector resuelve "ultima zona gana".
+    const auto texturaPiso = [](const std::string& clave) -> std::string {
+        if (clave == "desierto") return "imgs/mapas/desierto.png";
+        if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
+        return "imgs/mapas/pasto.png";
+    };
+    {
+        const int paso = 48;
+        for (const ZonaPiso& z : mapa.getPisos()) {
+            if (z.clave == "pasto") continue;  // ya es el fondo base
+            SDL2pp::Texture* t = nullptr;
+            try {
+                t = &cache_texture->get_or_load(texturaPiso(z.clave));
+            } catch (const std::exception&) {
+                continue;
+            }
+            const int sx = scrX(z.xMin);
+            const int sy = scrY(z.yMin);
+            const SDL2pp::Rect r(sx, sy, std::max(1, scrX(z.xMax + 1) - sx),
+                                 std::max(1, scrY(z.yMax + 1) - sy));
+            renderer->SetClipRect(r);
+            for (int yy = r.y; yy < r.y + r.h; yy += paso) {
+                for (int xx = r.x; xx < r.x + r.w; xx += paso) {
+                    renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(xx, yy, paso, paso));
                 }
             }
         }
-    } catch (const std::exception&) {
+        renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));  // restaurar clip del mundo
+    }
+    tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
+
+    
+    const auto altoObjeto = [](const std::string& clave) -> double {
+        if (clave == "cartel")  return 1.2;
+        if (clave == "arbusto") return 1.4;
+        return 2.2;  // arboles altos
+    };
+    for (const ObjetoMapa& o : mapa.getObjetos()) {
+        if (!camera.is_visible(o.x, o.y)) continue;
+        SDL2pp::Texture* t = nullptr;
+        try {
+            t = &cache_texture->get_or_load("imgs/mapas/" + o.clave + ".png");
+        } catch (const std::exception&) {
+            continue;
+        }
+        const int th = std::max(1, static_cast<int>(tileH * altoObjeto(o.clave)));
+        const int tw = std::max(1, th * t->GetWidth() / std::max(1, t->GetHeight()));
+        const int cx = scrX(o.x) + tileW / 2;   // centro horizontal de la celda
+        const int by = scrY(o.y) + tileH;       // base = borde inferior de la celda
+        renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
     }
 
     // --- Paredes: ladrillo (si falla la textura, rect oscuro) ---
