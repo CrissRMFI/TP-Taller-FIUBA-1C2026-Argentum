@@ -7,6 +7,11 @@ import QmlCppExample
 Item {
     id: root
     property bool errorLogin: loginController.huboErrorLogin()
+    Component.onCompleted: {
+        if (root.errorLogin) {
+            audioMenu.reproducirEfecto("error")
+        }
+    }
 
     component ErrorText: Text {
         width: 300
@@ -137,7 +142,6 @@ Item {
                         errorMessageUnirse.text = "";
                         const hostValido = loginController.esHostIpValido(hostInput.text);
                         const puertoValido = loginController.esPuertoValido(puertoInput.text);
-                        //audioMenu.reproducirEfecto("error");
                         errorMessageHost.text = hostValido ? "" : "La dirección IP/Host no puede estar vacía";
                         errorMessagePuerto.text = puertoValido ? "" : "El puerto tiene que ser un número entre 1 y 65535";
 

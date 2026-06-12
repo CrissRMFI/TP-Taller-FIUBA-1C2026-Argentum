@@ -45,6 +45,12 @@ void MenuController::centrarVentana(QQuickView* ventana_) {
 
 void MenuController::setVentana(QQuickView* ventana_view) { this->ventana = ventana_view; }
 
+void MenuController::reproducirEfecto(const QString& nombre) {
+    if (audio) {
+        audio->reproducirEfecto(nombre);
+    }
+}
+
 void MenuController::run(DatosConexion& datos) {
     if (ventana && audio) {
         ventana->rootContext()->setContextProperty("audioMenu", audio.get());
@@ -92,6 +98,7 @@ void MenuController::run(DatosConexion& datos) {
 			}
 
 			terminoRegistro = true;
+		    reproducirEfecto("volver");
 			break;
 		}
 	}

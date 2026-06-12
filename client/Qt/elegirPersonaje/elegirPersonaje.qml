@@ -300,11 +300,11 @@ Item {
                         personajeController.setNick(nickInput.text)
                         personajeController.setCabeza(root.cabezaIndex)
                         personajeController.setCuerpo(root.cuerpoIndex)
-                        audioMenu.reproducirEfecto("click");
                     } else {
                         generalErrorText.text = "Por favor, complete todos los campos para crear el personaje";
                         audioMenu.reproducirEfecto("error");
                     }
+                    audioMenu.reproducirEfecto("click")
                 }
             }
         }

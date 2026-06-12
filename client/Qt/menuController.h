@@ -13,6 +13,7 @@ public:
     MenuController();
     void setVentana(QQuickView* ventana_view);
     void run(DatosConexion& datos);
+    void reproducirEfecto(const QString& nombre);
     DatosConexion nombreUsuarioNoEncontrado(const DatosLogin& datosLogin);
     DatosConexion nickYaExistente(const DatosLogin& datosLogin);
     DatosConexion puertoHostInvalidos();

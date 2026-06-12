@@ -6,6 +6,11 @@ import QmlCppExample
 Item {
     id: root
     property bool errorLogin: cargarPersonajeController.huboErrorLogin()
+    Component.onCompleted: {
+        if (root.errorLogin) {
+            audioMenu.reproducirEfecto("error")
+        }
+    }
 
     component ImageButton: Image {
         HoverHandler {
@@ -101,25 +106,24 @@ Item {
                 onTapped: {
                     root.errorLogin = false;
                     if (nickInput.text === "") {
+                        audioMenu.reproducirEfecto("error");
                         errorMessageNick.text = "";
                         errorUnirseMessage.text = "Por favor, complete el campo de nick.";
-                        audioMenu.reproducirEfecto("error");
+
                     } else {
-                        if (!nickValido){
-                            errorMessageNick.text = "El nick no debería tener espacios y debe ser menor o igual a 32 bytes.";
-                            audioMenu.reproducirEfecto("error");
-                        }
-
-                        errorUnirseMessage.text = "";
                         const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
-                        audioMenu.reproducirEfecto("click");
-
-
-                        if (nickValido) {
-                            cargarPersonajeController.setNick(nickInput.text);
-                            console.log("Intentando unirse a la partida...");
-                            audioMenu.reproducirEfecto("click");
+                        if (!nickValido) {
+                            audioMenu.reproducirEfecto("error");
+                            errorMessageNick.text = "El nick no debería tener espacios y debe ser menor o igual a 32 bytes.";
+                            errorUnirseMessage.text = "";
+                            return;
                         }
+
+                        errorMessageNick.text = "";
+                        errorUnirseMessage.text = "";
+                        cargarPersonajeController.setNick(nickInput.text);
+                        console.log("Intentando unirse a la partida...");
+
                     }
                 }
             }
