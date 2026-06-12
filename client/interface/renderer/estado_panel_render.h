@@ -23,13 +23,12 @@ struct ConfigPanelRender {
     std::string barraMana = "imgs/ui/en_barrademana.bmp";
     std::string barraExperiencia = "imgs/estados/es_barraexperiencia.bmp";
     std::string spriteMeditacion = "imgs/estados/3446.png"; // Aura meditar
+    std::string spriteResurreccion = "imgs/personajes/aura/3499.png";  // Aura resucitar (5x3 = 15 cuadros)
     std::string bancoImg = "imgs/ui/es_banco.bmp";
     std::string botonDepositar = "imgs/ui/es_boton-depositar.bmp";
     std::string botonRetirar = "imgs/ui/es_boton-retirar.bmp";
     std::string botonDepositarOro = "imgs/ui/es_boton-depositar-oro.bmp";
     std::string botonRetirarOro = "imgs/ui/es_boton-retirar-oro.bmp";
-    // Grilla del banco (relativa a la esquina sup-izq de la ventana es_banco.bmp).
-    // Calibrable por TOML [banco] porque depende de los recuadros del asset.
     int bancoBovedaX = 45;
     int bancoBovedaY = 127;
     int bancoInvX = 305;
@@ -52,7 +51,7 @@ struct EstadoBancoRender {
     int selBoveda = -1;
     int selInventario = -1;
     std::string monto;
-    bool montoActivo = false; // la caja de monto tiene foco
+    bool montoActivo = false;
 };
 
 

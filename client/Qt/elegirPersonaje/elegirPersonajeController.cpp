@@ -56,7 +56,7 @@ void ElegirPersonajeController::run(QQuickView& ventana, DatosConexion& datos, E
     // Reemplaza el contenido de la ventana compartida por elegirPersonaje.qml.
     ventana.rootContext()->setContextProperty("personajeController", this);
     ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
-
+    ventana.show();
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal elegirPersonajeCompleted
     QEventLoop loop;
     connect(this, &ElegirPersonajeController::elegirPersonajeCompleted, &loop, &QEventLoop::quit);

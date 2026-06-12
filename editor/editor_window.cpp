@@ -43,6 +43,11 @@ EditorWindow::EditorWindow():
     crearPanel();
     crearMenu();
 
+    
+    connect(canvas, &MapaCanvas::aviso, this, [this](const QString& mensaje) {
+        statusBar()->showMessage(mensaje, 4000);
+    });
+
     // Cartel de controles, siempre visible (a la derecha de la barra de estado).
     QLabel* ayuda = new QLabel(
             "Click izq: pintar zona / arrastrar elemento  ·  "

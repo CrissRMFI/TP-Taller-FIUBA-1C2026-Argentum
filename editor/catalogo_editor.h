@@ -15,6 +15,7 @@ enum class SeccionCatalogo {
     Criaturas,
     Npc,
     Pisos,
+    Elementos,
 };
 
 
@@ -26,7 +27,9 @@ struct ElementoCatalogo {
     uint32_t oro = 0;
     bool tieneOro = false;
     QPixmap icono;
-    QString destino; 
+    QString destino;
+    bool bloquea = false;
+    std::vector<QString> pisosPermitidos;
     bool tieneStats = false;
     uint16_t vida = 0;
     uint8_t nivel = 0;
@@ -42,6 +45,7 @@ private:
     std::vector<ElementoCatalogo> criaturas;
     std::vector<ElementoCatalogo> npcs;
     std::vector<ElementoCatalogo> pisos;
+    std::vector<ElementoCatalogo> elementos;
 
     void cargar();
     void parsearLista(const std::string& archivoPath, const char* claveArray,
@@ -59,6 +63,10 @@ public:
     QPixmap iconoNpc(TipoNpc tipo) const;
     QPixmap tilePiso(const QString& clave) const;
     QString destinoPiso(const QString& clave) const;
+
+    QPixmap iconoElemento(const QString& clave) const;
+    bool elementoPorClave(const QString& clave, ElementoCatalogo& out) const;
+    bool pisoPermitido(const QString& claveElemento, const QString& clavePiso) const;
 
 
 };

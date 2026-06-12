@@ -45,14 +45,33 @@ el tipo de dato:
 
 Estos límites son nuestras reglas del protocolo y deben validarse al recibir datos.
 
+## Handshake inicial (login / crear personaje)
+
+Antes de los comandos de juego, al conectarse el cliente envía un handshake con
+los datos del personaje. **No lleva opcode**: es lo primero que el servidor lee
+de la conexión.
+
+| Campo          | Tipo         | Descripción                                     |
+| -------------- | ------------ | ----------------------------------------------- |
+| crearPersonaje | uint8        | 1 = crear personaje nuevo, 0 = cargar existente |
+| nombre         | length+texto | nick del personaje                              |
+| clase          | uint8        | clase elegida                                   |
+| raza           | uint8        | raza elegida                                    |
+| cabeza         | uint16       | sprite de cabeza                                |
+| cuerpo         | uint16       | sprite de cuerpo                                |
+
 ## Mensajes
 
-### MOVER (opcode 1)
+### EMPEZAR_MOVER (opcode 1)
 
-| Campo     | Tipo  | Descripción                            |
-| --------- | ----- | -------------------------------------- |
-| opcode    | uint8 | valor: 1                               |
-| direccion | uint8 | 0=arriba 1=abajo 2=izquierda 3=derecha |
+Se envía al **presionar** una tecla de dirección. El servidor avanza al jugador
+una celda por tick mientras dure (movimiento *server-driven*); ya no hay un
+`MOVER` por celda.
+
+| Campo     | Tipo  | Descripción                  |
+| --------- | ----- | ---------------------------- |
+| opcode    | uint8 | valor: 1                     |
+| direccion | uint8 | 0=Norte 1=Sur 2=Oeste 3=Este |
 
 ### ATACAR (opcode 2)
 
@@ -232,3 +251,49 @@ Estos límites son nuestras reglas del protocolo y deben validarse al recibir da
 | Campo  | Tipo  | Descripción |
 | ------ | ----- | ----------- |
 | opcode | uint8 | valor: 25   |
+
+### CHEAT (opcode 45)
+
+Cheats de prueba que el cliente dispara por teclas de función (F1–F4).
+
+| Campo  | Tipo  | Descripción                                                  |
+| ------ | ----- | ------------------------------------------------------------ |
+| opcode | uint8 | valor: 45                                                    |
+| tipo   | uint8 | 0=vida infinita 1=maná infinito 2=morir al instante 3=+1000 oro |
+
+### DETENER_MOVER (opcode 46)
+
+Se envía al **soltar** la tecla de dirección; el servidor frena al jugador.
+
+| Campo  | Tipo  | Descripción |
+| ------ | ----- | ----------- |
+| opcode | uint8 | valor: 46   |
+
+### USAR (opcode 47)
+
+Usa un item del inventario (por ejemplo, una poción).
+
+| Campo      | Tipo  | Descripción                   |
+| ---------- | ----- | ----------------------------- |
+| opcode     | uint8 | valor: 47                     |
+| indiceItem | uint8 | índice del item en inventario |
+
+### COMPRAR_HECHIZO (opcode 49)
+
+Compra un hechizo a un sacerdote.
+
+| Campo       | Tipo   | Descripción            |
+| ----------- | ------ | ---------------------- |
+| opcode      | uint8  | valor: 49              |
+| idHechizo   | uint16 | id del hechizo         |
+| idSacerdote | uint16 | id del sacerdote NPC   |
+
+### LANZAR_HECHIZO (opcode 51)
+
+Lanza un hechizo conocido sobre un objetivo.
+
+| Campo      | Tipo   | Descripción              |
+| ---------- | ------ | ------------------------ |
+| opcode     | uint8  | valor: 51                |
+| idHechizo  | uint16 | id del hechizo a lanzar  |
+| idObjetivo | uint16 | id del objetivo (NPC/jugador) |

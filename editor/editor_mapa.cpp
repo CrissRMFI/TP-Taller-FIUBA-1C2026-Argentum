@@ -23,6 +23,15 @@ bool EditorMapa::hayParedEn(uint16_t x, uint16_t y) const {
     return false;
 }
 
+bool EditorMapa::hayObjetoEn(uint16_t x, uint16_t y) const {
+    for (const ObjetoEditor& o : objetos) {
+        if (o.x == x && o.y == y) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool EditorMapa::hayNpcEn(uint16_t x, uint16_t y) const {
     for (const NpcEditor& n : npcs) {
         if (n.x == x && n.y == y) {
@@ -51,7 +60,7 @@ bool EditorMapa::estaEnCiudad(uint16_t x, uint16_t y) const {
 }
 
 bool EditorMapa::celdaOcupada(uint16_t x, uint16_t y) const {
-    return hayParedEn(x, y) || hayNpcEn(x, y) || hayCriaturaEn(x, y);
+    return hayParedEn(x, y) || hayObjetoEn(x, y) || hayNpcEn(x, y) || hayCriaturaEn(x, y);
 }
 
 void EditorMapa::ponerPared(uint16_t x, uint16_t y) {
@@ -59,6 +68,13 @@ void EditorMapa::ponerPared(uint16_t x, uint16_t y) {
         return;
     }
     paredes.push_back(Posicion{x, y, mapaId});
+}
+
+void EditorMapa::ponerObjeto(const std::string& clave, uint16_t x, uint16_t y) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y)) {
+        return;
+    }
+    objetos.push_back(ObjetoEditor{clave, x, y});
 }
 
 void EditorMapa::ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y) {
@@ -151,14 +167,21 @@ void EditorMapa::borrarEn(uint16_t x, uint16_t y) {
             return;
         }
     }
-    // 3) Zona de piso que cubre la celda (la de mas arriba; revierte a pasto u otra).
+    // 3) Objeto (arbol, cartel, ...).
+    for (std::vector<ObjetoEditor>::iterator it = objetos.begin(); it != objetos.end(); ++it) {
+        if (it->x == x && it->y == y) {
+            objetos.erase(it);
+            return;
+        }
+    }
+    // 4) Zona de piso que cubre la celda (la de mas arriba; revierte a pasto u otra).
     for (std::vector<ZonaPiso>::reverse_iterator it = pisos.rbegin(); it != pisos.rend(); ++it) {
         if (x >= it->xMin && x <= it->xMax && y >= it->yMin && y <= it->yMax) {
             pisos.erase(std::next(it).base());
             return;
         }
     }
-    // 4) Ciudad (zona segura).
+    // 5) Ciudad (zona segura).
     for (std::vector<Ciudad>::iterator it = ciudades.begin(); it != ciudades.end(); ++it) {
         if (x >= it->xMin && x <= it->xMax && y >= it->yMin && y <= it->yMax) {
             ciudades.erase(it);
@@ -172,6 +195,7 @@ const std::vector<Ciudad>&         EditorMapa::getCiudades() const { return ciud
 const std::vector<NpcEditor>&      EditorMapa::getNpcs() const { return npcs; }
 const std::vector<CriaturaEditor>& EditorMapa::getCriaturas() const { return criaturas; }
 const std::vector<ZonaPiso>&       EditorMapa::getPisos() const { return pisos; }
+const std::vector<ObjetoEditor>&   EditorMapa::getObjetos() const { return objetos; }
 
 void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
     ancho = mapa.getAncho();
@@ -180,6 +204,11 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
     paredes = mapa.getParedes();
     ciudades = mapa.getCiudades();
     pisos = mapa.getPisos();
+
+    objetos.clear();
+    for (const ObjetoMapa& o : mapa.getObjetos()) {
+        objetos.push_back(ObjetoEditor{o.clave, o.x, o.y});
+    }
 
     npcs.clear();
     for (const auto& [id, npc] : mapa.getSacerdotes()) {
@@ -219,6 +248,9 @@ Mapa EditorMapa::construirMapa() const {
     }
     for (const ZonaPiso& p : pisos) {
         mapa.agregarPiso(ZonaPiso{mapaId, p.xMin, p.yMin, p.xMax, p.yMax, p.clave});
+    }
+    for (const ObjetoEditor& o : objetos) {
+        mapa.agregarObjeto(ObjetoMapa{mapaId, o.x, o.y, o.clave});
     }
     return mapa;
 }

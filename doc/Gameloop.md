@@ -113,20 +113,18 @@ Si un jugador está meditando y ejecuta una acción distinta de `/meditar`, el j
 
 ### Tick del mundo (`actualizar`)
 
-`Juego::actualizar(segundos)` se llama en cada tick del gameloop.
+`Juego::actualizar(segundos)` se llama en cada tick del gameloop y resuelve toda
+la evolución del mundo por tick:
 
-Actualmente:
-
-- Llama a `jugador.recuperar(segundos)` en todos los jugadores conectados para regenerar vida y maná.
-- Envía `ESTADO_PERSONAJE` a cada jugador con sus stats actuales.
-
-Pendiente:
-
-- Movimiento de criaturas.
-- Aggro.
-- Respawn.
-- Expiración de ítems en el suelo.
-- Interacción completa con mapa y zonas.
+- Regenera vida y maná (`jugador.recuperar`), aplica la meditación y emite
+  `ESTADO_PERSONAJE` ante cualquier cambio.
+- **Movimiento server-driven** de los jugadores: avanza una celda por tick a
+  quienes estén moviéndose (entre `EMPEZAR_MOVER` y `DETENER_MOVER`) y hace el
+  auto-pickup de oro/items al pisar la celda.
+- Resuelve las **transiciones de estado**: muerte, fin de inmovilización tras
+  morir (resurrección con tiempo proporcional a la distancia al sacerdote) y fin
+  de meditación.
+- Mueve y actualiza a las **criaturas** según su cadencia configurada.
 
 ---
 
@@ -255,25 +253,19 @@ El protocolo define qué mensajes se intercambian entre cliente y servidor.
 
 ## Estado de implementación
 
-| Componente                             | Estado                                                       |
-| -------------------------------------- | ------------------------------------------------------------ |
-| Config TOML con `toml++`               | ✅ Implementado                                              |
-| `ConfigJuego`                          | ✅ Implementado                                              |
-| `ConfigCompleta`                       | ✅ Implementado                                              |
-| `CatalogoItems`                        | ✅ Implementado                                              |
-| `Jugador`                              | ✅ Implementado parcialmente; faltan ajustes finos de reglas |
-| Inventario / Equipamiento              | ✅ Implementado parcialmente                                 |
-| Clan                                   | ✅ Implementado parcialmente                                 |
-| Gameloop (hilo, cola, tick, despacho)  | ✅ Implementado                                              |
-| Juego — chat global/privado            | ✅ Implementado                                              |
-| Juego — sistema de clanes              | ✅ Implementado parcialmente                                 |
-| Juego — meditar                        | ✅ Implementado                                              |
-| Juego — tick de recuperación + estado  | ✅ Implementado                                              |
-| Juego — equipar                        | ⏳ Pendiente o parcialmente implementado según integración   |
-| Juego — mover, atacar, comprar/vender  | ⏳ Stub o pendiente de mapa/NPC                              |
-| Juego — banco (depositar/retirar)      | ⏳ Stub; requiere verificar banquero cercano                 |
-| Juego — curar, tomar, tirar, resucitar | ⏳ Stub; requiere mapa, NPC o posición                       |
-| Criatura                               | ⏳ Parcial                                                   |
-| Mapa                                   | ❌ No implementado                                           |
-
-Los stubs que dependen de mapa, NPC o proximidad deben devolver errores explícitos mientras no estén implementados, para evitar fallas silenciosas.
+| Componente                                                 | Estado              |
+| ---------------------------------------------------------- | ------------------- |
+| Config TOML con `toml++` / `ConfigJuego` / `CatalogoItems` | ✅ Implementado     |
+| Gameloop (hilo, cola, tick, despacho)                      | ✅ Implementado     |
+| Persistencia binaria de jugadores                          | ✅ Implementado     |
+| Mapa (zonas, ciudades, paredes, NPCs)                      | ✅ Implementado     |
+| Movimiento server-driven                                   | ✅ Implementado     |
+| Combate cuerpo a cuerpo y a distancia                      | ✅ Implementado     |
+| Hechizos (comprar / lanzar / FX)                           | ✅ Implementado     |
+| Meditar · morir / resucitar (aura+barra+sonido)            | ✅ Implementado     |
+| Inventario / Equipamiento / Usar (pociones)                | ✅ Implementado     |
+| NPCs: comerciante, banquero, sacerdote                     | ✅ Implementado     |
+| Banco (depositar / retirar oro e items)                    | ✅ Implementado     |
+| Chat global / privado                                      | ✅ Implementado     |
+| Criaturas (movimiento por tick)                            | ✅ Implementado     |
+| Mazmorra                                                   | ❌ Fuera de alcance |

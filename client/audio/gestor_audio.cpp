@@ -22,7 +22,9 @@ GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resou
         volumenMusicaPct(55),
         radioAudibleCeldas(18),
         canalPasos(-1),
-        pasosActivos(false) {
+        pasosActivos(false),
+        canalResurreccion(-1),
+        resurreccionActiva(false) {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
         RegistroCliente::error(
                 std::string("[audio] ") +
@@ -133,8 +135,8 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
 }
 
 void GestorAudio::reproducirEfecto(const std::string& clave) {
-    if (!audioOk) {
-        return;
+    if (!audioOk || resurreccionActiva) {
+        return;  // mientras se resucita, el unico sonido es el del tiempo transcurriendo
     }
     const auto it = efectos.find(clave);
     if (it == efectos.end() || !it->second) {
@@ -149,8 +151,8 @@ void GestorAudio::reproducirEfecto(const std::string& clave) {
 }
 
 void GestorAudio::reproducirEfectoPosicional(const std::string& clave, int distanciaCeldas) {
-    if (!audioOk) {
-        return;
+    if (!audioOk || resurreccionActiva) {
+        return;  // mientras se resucita, el unico sonido es el del tiempo transcurriendo
     }
     if (distanciaCeldas > radioAudibleCeldas) {
         return;  // fuera del alcance: no suena
@@ -199,8 +201,8 @@ void GestorAudio::detenerMusica() {
 }
 
 void GestorAudio::reproducirPasos() {
-    if (!audioOk || pasosActivos) {
-        return;
+    if (!audioOk || pasosActivos || resurreccionActiva) {
+        return;  // inmovil resucitando: no hay pasos y el unico sonido es el del tiempo
     }
     const auto it = efectos.find("pasos");
     if (it == efectos.end() || !it->second) {
@@ -224,4 +226,45 @@ void GestorAudio::detenerPasos() {
     }
     canalPasos = -1;
     pasosActivos = false;
+}
+
+void GestorAudio::iniciarResurreccion() {
+    if (!audioOk || resurreccionActiva) {
+        return;
+    }
+    const auto it = efectos.find("transcurrirTiempo");
+    if (it == efectos.end() || !it->second) {
+        return;
+    }
+   
+    mixer->HaltChannel(-1);  // -1 = todos los canales de efectos
+    canalPasos = -1;
+    pasosActivos = false;
+    if (Mix_PlayingMusic() && !Mix_PausedMusic()) {
+        Mix_PauseMusic();
+    }
+    try {
+        canalResurreccion = mixer->PlayChannel(-1, *it->second, -1);  // loop infinito
+        mixer->SetVolume(canalResurreccion, volumenCanal["transcurrirTiempo"]);
+        resurreccionActiva = true;
+    } catch (const std::exception&) {
+        canalResurreccion = -1;
+        if (Mix_PausedMusic()) {
+            Mix_ResumeMusic();
+        }
+    }
+}
+
+void GestorAudio::detenerResurreccion() {
+    if (!audioOk || !resurreccionActiva) {
+        return;
+    }
+    if (canalResurreccion != -1) {
+        mixer->HaltChannel(canalResurreccion);
+    }
+    canalResurreccion = -1;
+    resurreccionActiva = false;
+    if (Mix_PausedMusic()) {
+        Mix_ResumeMusic();
+    }
 }

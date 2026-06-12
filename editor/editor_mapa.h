@@ -25,6 +25,13 @@ struct CriaturaEditor {
     uint16_t     y;
 };
 
+// Elemento sobre el piso (arbol, cartel, etc.)
+struct ObjetoEditor {
+    std::string clave;
+    uint16_t    x;
+    uint16_t    y;
+};
+
 
 class EditorMapa {
 private:
@@ -36,6 +43,7 @@ private:
     std::vector<NpcEditor> npcs;
     std::vector<CriaturaEditor> criaturas;
     std::vector<ZonaPiso> pisos;  // zonas de piso visual; "ultima gana"
+    std::vector<ObjetoEditor> objetos;  // elementos sobre el piso (arboles, carteles)
 
     uint16_t proximoIdNpc() const;
     uint16_t proximoIdCriatura() const;
@@ -50,6 +58,7 @@ public:
 
     bool dentroDeLimites(uint16_t x, uint16_t y) const;
     bool hayParedEn(uint16_t x, uint16_t y) const;
+    bool hayObjetoEn(uint16_t x, uint16_t y) const;
     bool hayNpcEn(uint16_t x, uint16_t y) const;
     bool hayCriaturaEn(uint16_t x, uint16_t y) const;
     bool estaEnCiudad(uint16_t x, uint16_t y) const;
@@ -58,6 +67,7 @@ public:
     bool todoCubierto() const;
 
     void ponerPared(uint16_t x, uint16_t y);
+    void ponerObjeto(const std::string& clave, uint16_t x, uint16_t y);
     void ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y);
     void ponerCriatura(TipoCriatura tipo, uint16_t x, uint16_t y);
     void agregarCiudad(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
@@ -70,6 +80,7 @@ public:
     const std::vector<NpcEditor>&      getNpcs() const;
     const std::vector<CriaturaEditor>& getCriaturas() const;
     const std::vector<ZonaPiso>&       getPisos() const;
+    const std::vector<ObjetoEditor>&   getObjetos() const;
 
     void cargarDesde(const Mapa& mapa, uint16_t mapaId);
     Mapa construirMapa() const;

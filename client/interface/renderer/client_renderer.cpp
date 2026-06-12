@@ -1,5 +1,7 @@
 #include "client_renderer.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "SDL2pp/Renderer.hh"
@@ -41,10 +43,14 @@ void ObjectRenderer::init(const char* title,
                           const int loop_fps,
                           const ConfigChatRender& chat_config,
                           const ConfigPanelRender& panel_config,
-                          const CatalogoItems* catalogo) {
+                          const CatalogoItems* catalogo,
+                          const ConfigCamara& camara_config,
+                          const uint32_t walk_tile_ms) {
     this->chat_config = chat_config;
     this->panel_config = panel_config;
     this->catalogo = catalogo;
+    this->walk_tile_ms = (walk_tile_ms > 0) ? walk_tile_ms : 130;
+    camera.aplicar_config(camara_config);
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -156,6 +162,54 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
     }
 }
 
+void ObjectRenderer::actualizar_pos_visual(const int tile_x, const int tile_y,
+                                           const uint32_t now_tick) {
+    const double speed = 1000.0 / static_cast<double>(walk_tile_ms);  // tiles por segundo
+
+    if (!vis_init) {
+        vis_player_x = tile_x;
+        vis_player_y = tile_y;
+        vis_init = true;
+        vis_last_tick = now_tick;
+        return;
+    }
+
+    double dt = (now_tick - vis_last_tick) / 1000.0;
+    vis_last_tick = now_tick;
+    dt = std::clamp(dt, 0.0, 0.1);  // si el loop se frena, no pegamos un salto
+
+    const double rem_x = tile_x - vis_player_x;
+    const double rem_y = tile_y - vis_player_y;
+    const double restante = std::abs(rem_x) + std::abs(rem_y);
+
+    constexpr double EPS = 1e-4;
+    if (restante < EPS) {
+        return;  // quieto y alineado
+    }
+    if (restante > 2.5) {  // teleport (muerte/resurreccion/login): ir de una
+        vis_player_x = tile_x;
+        vis_player_y = tile_y;
+        return;
+    }
+
+    double paso = speed * dt;
+    if (restante > 1.5) {
+        paso *= 2.0;  // quedo atras (giro/lag): alcanzar sin arrastrar
+    }
+
+    
+    const bool x_en_curso = std::abs(vis_player_x - std::round(vis_player_x)) > EPS;
+    const auto avanzar = [&](double& v, double objetivo) {
+        const double d = objetivo - v;
+        v = (std::abs(d) <= paso) ? objetivo : v + (d > 0 ? paso : -paso);
+    };
+    if (std::abs(rem_x) > EPS && (x_en_curso || std::abs(rem_y) <= EPS)) {
+        avanzar(vis_player_x, tile_x);
+    } else {
+        avanzar(vis_player_y, tile_y);
+    }
+}
+
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,
@@ -170,9 +224,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
 
-    // Camara cenital: escala (zoom) + scroll centrado en el jugador por tile entero.
     camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
-    camera.center_on_tile(state_object.player_x(), state_object.player_y());
+    actualizar_pos_visual(state_object.player_x(), state_object.player_y(), current_tick);
+    camera.center_on_point(vis_player_x, vis_player_y);
     const int tileW = camera.tile_width();
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
@@ -217,25 +271,57 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
         renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));  // restaurar clip del mundo
     };
-    tileZona(mapa.getDesiertos(), "imgs/mapas/desierto.png");
-    tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
-
-    // Arboles dispersos en las zonas boscosas (sobre el pasto).
-    try {
-        SDL2pp::Texture& arbol = cache_texture->get_or_load("imgs/mapas/arbol.png");
-        const int aw = 26;
-        const int ah = 42;
-        for (const Ciudad& b : mapa.getBosques()) {
-            for (int cy = b.yMin + 1; cy <= b.yMax; cy += 5) {
-                for (int cx = b.xMin + 1; cx <= b.xMax; cx += 5) {
-                    const int pxc = scrX(cx);
-                    const int pyc = scrY(cy);
-                    renderer->Copy(arbol, SDL2pp::NullOpt,
-                                   SDL2pp::Rect(pxc - aw / 2, pyc - ah, aw, ah));
+    // Pisos por zona (modelo del editor): cada ZonaPiso tilea su textura sobre el
+    // pasto base; el orden del vector resuelve "ultima zona gana".
+    const auto texturaPiso = [](const std::string& clave) -> std::string {
+        if (clave == "desierto") return "imgs/mapas/desierto.png";
+        if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
+        return "imgs/mapas/pasto.png";
+    };
+    {
+        const int paso = 48;
+        for (const ZonaPiso& z : mapa.getPisos()) {
+            if (z.clave == "pasto") continue;  // ya es el fondo base
+            SDL2pp::Texture* t = nullptr;
+            try {
+                t = &cache_texture->get_or_load(texturaPiso(z.clave));
+            } catch (const std::exception&) {
+                continue;
+            }
+            const int sx = scrX(z.xMin);
+            const int sy = scrY(z.yMin);
+            const SDL2pp::Rect r(sx, sy, std::max(1, scrX(z.xMax + 1) - sx),
+                                 std::max(1, scrY(z.yMax + 1) - sy));
+            renderer->SetClipRect(r);
+            for (int yy = r.y; yy < r.y + r.h; yy += paso) {
+                for (int xx = r.x; xx < r.x + r.w; xx += paso) {
+                    renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(xx, yy, paso, paso));
                 }
             }
         }
-    } catch (const std::exception&) {
+        renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));  // restaurar clip del mundo
+    }
+    tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
+
+    
+    const auto altoObjeto = [](const std::string& clave) -> double {
+        if (clave == "cartel")  return 1.2;
+        if (clave == "arbusto") return 1.4;
+        return 2.2;  // arboles altos
+    };
+    for (const ObjetoMapa& o : mapa.getObjetos()) {
+        if (!camera.is_visible(o.x, o.y)) continue;
+        SDL2pp::Texture* t = nullptr;
+        try {
+            t = &cache_texture->get_or_load("imgs/mapas/" + o.clave + ".png");
+        } catch (const std::exception&) {
+            continue;
+        }
+        const int th = std::max(1, static_cast<int>(tileH * altoObjeto(o.clave)));
+        const int tw = std::max(1, th * t->GetWidth() / std::max(1, t->GetHeight()));
+        const int cx = scrX(o.x) + tileW / 2;   // centro horizontal de la celda
+        const int by = scrY(o.y) + tileH;       // base = borde inferior de la celda
+        renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
     }
 
     // --- Paredes: ladrillo (si falla la textura, rect oscuro) ---
@@ -326,8 +412,11 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     for (const auto& [id, entity] : state_object.entities()) {
         const int cell_width = tileW;
         const int cell_height = tileH;
-        const int entity_x = scrX(entity.x);
-        const int entity_y = scrY(entity.y);
+        // El jugador local se dibuja en su posicion visual continua (suave); el resto
+        // de las entidades, en su tile (acompañan el scroll suave del mundo).
+        const bool es_jugador_local = (id == state_object.client_id());
+        const int entity_x = es_jugador_local ? scrX(vis_player_x) : scrX(entity.x);
+        const int entity_y = es_jugador_local ? scrY(vis_player_y) : scrY(entity.y);
 
         const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
 
@@ -342,6 +431,14 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                                        cell_height, animation_row, frame_index, resaltar);
             if (entity.estado == 2) {  // Meditando: aura animada encima del personaje
                 dibujar_meditacion(entity_x, entity_y, cell_width, cell_height, current_tick);
+            }
+            if (entity.estado == 3) {
+                dibujar_resurreccion(entity_x, entity_y, cell_width, cell_height, current_tick);
+                if (id == state_object.client_id() && state_object.resurreccionActiva()) {
+                    dibujar_barra_resurreccion(
+                            entity_x, entity_y, cell_width, cell_height,
+                            state_object.fraccionResurreccionRestante(current_tick));
+                }
             }
             continue;
         }
@@ -987,6 +1084,59 @@ void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_wid
     const SDL2pp::Rect dst(cx - aw / 2, feet - ah, aw, ah);
     SDL_SetTextureBlendMode(tex->Get(), SDL_BLENDMODE_BLEND);
     renderer->Copy(*tex, src, dst);
+}
+
+void ObjectRenderer::dibujar_resurreccion(int entity_x, int entity_y, int cell_width,
+                                          int cell_height, uint32_t tick) {
+    if (!cache_texture) {
+        return;
+    }
+    SDL2pp::Texture* tex = nullptr;
+    try {
+        tex = &cache_texture->get_or_load(panel_config.spriteResurreccion);
+    } catch (const std::exception&) {
+        return; 
+    }
+    
+    const int cols = 5;
+    const int frames = 15;
+    const int cell = tex->GetWidth() / cols;
+    const int contentH = cell * 3 / 4;
+    const int idx = static_cast<int>((tick / 100) % frames);
+    const int c = idx % cols;
+    const int r = idx / cols;
+    const SDL2pp::Rect src(c * cell, r * cell, cell, contentH);
+
+    const int alturaPersonajePx = 52;
+    const int cx = entity_x + cell_width / 2;
+    const int feet = entity_y + cell_height;
+    const int aw = cell_width * 2;
+    const int ah = alturaPersonajePx + 34;
+    const SDL2pp::Rect dst(cx - aw / 2, feet - ah, aw, ah);
+    SDL_SetTextureBlendMode(tex->Get(), SDL_BLENDMODE_BLEND);
+    renderer->Copy(*tex, src, dst);
+}
+
+void ObjectRenderer::dibujar_barra_resurreccion(int entity_x, int entity_y, int cell_width,
+                                                int cell_height, float fraccion) {
+    if (!renderer) {
+        return;
+    }
+    const float f = std::clamp(fraccion, 0.0f, 1.0f);
+    const int bw = cell_width;        // ancho de la celda
+    const int bh = 5;                 // alto de la barra
+    const int bx = entity_x;
+    const int alturaPersonajePx = 52;
+    const int feet = entity_y + cell_height;
+    const int by = feet - alturaPersonajePx - bh - 3;
+    // Marco oscuro.
+    renderer->SetDrawColor(20, 20, 20, 220);
+    renderer->FillRect(SDL2pp::Rect(bx - 1, by - 1, bw + 2, bh + 2));
+    const int w = static_cast<int>(bw * f);
+    if (w > 0) {
+        renderer->SetDrawColor(90, 200, 255, 255);
+        renderer->FillRect(SDL2pp::Rect(bx, by, w, bh));
+    }
 }
 
 int ObjectRenderer::bancoBovedaClickeada(int x, int y) const {

@@ -12,9 +12,7 @@ MenuController::MenuController(){}
 void MenuController::setVentana(QQuickView* ventana) { this->ventana = ventana; }
 
 void MenuController::run(DatosConexion& datos) {
-
-	ventana->show();
-
+	
 	while (!terminoRegistro) {
 		if (!loginYaRealizado) {
 			LoginController login;

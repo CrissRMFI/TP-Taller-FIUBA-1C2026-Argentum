@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "../camara/player_camera.h"  // ConfigCamara
+
 struct ConfigCliente {
     bool     vsync = true;
     int      fpsMax = 120;
@@ -52,6 +54,8 @@ struct ConfigCliente {
     int bancoSlot = 32;
     int bancoGap = 4;
     int bancoCols = 6;
+
+    ConfigCamara camara;
 
     // Rango (distancia Manhattan en celdas) para considerar valida la seleccion de un
     // objetivo: si esta mas lejos, no se resalta.

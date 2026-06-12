@@ -556,6 +556,7 @@ void ProtocoloServidor::enviarEstadoPersonaje(const MensajeEstadoPersonaje& mens
     enviarUnByte(mensaje.raza);
     enviarUnByte(mensaje.clase);
     enviarCuatroBytes(mensaje.expSiguienteNivel);
+    enviarDosBytes(mensaje.tiempoResurreccionMs);
 }
 
 void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mensaje) {

@@ -121,6 +121,20 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             if (estado->estado == meditando && estadoAnterior != meditando) {
                 gestorAudio.reproducirEfecto("meditar");
             }
+            // Resurreccion: al entrar en Resucitando arranca el aura + barra + sonido del
+            // tiempo transcurriendo; al salir (revivido) se cortan. El sonido de resurreccion
+            // silencia el resto, por eso se detiene al final (tras los demas chequeos).
+            const uint8_t resucitando = static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
+            const bool entraResurreccion =
+                    estado->estado == resucitando && estadoAnterior != resucitando;
+            const bool saleResurreccion =
+                    estadoAnterior == resucitando && estado->estado != resucitando;
+            if (entraResurreccion) {
+                resurreccionActiva_ = true;
+                resurreccionInicioTick_ = current_tick;
+                resurreccionDuracionMs_ = estado->tiempoResurreccionMs;
+                gestorAudio.iniciarResurreccion();
+            }
             const bool vivo = (estado->estado == static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo));
             const bool vidaCritica = vivo && estado->vidaMax > 0 &&
                                      (estado->vidaActual * 100 / estado->vidaMax) <= UMBRAL_VIDA_BAJA;
@@ -164,6 +178,12 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                       << estado->vidaMax << ", mana " << estado->manaActual << "/"
                       << estado->manaMax << ", oro " << estado->oro << ", nivel "
                       << static_cast<int>(estado->nivel) << std::endl;
+            // Se detiene al final para que los efectos de este mismo mensaje (ej. curacion al
+            // revivir con vida a la mitad) sigan silenciados hasta soltar el sonido del tiempo.
+            if (saleResurreccion) {
+                resurreccionActiva_ = false;
+                gestorAudio.detenerResurreccion();
+            }
         } else if (auto* dano_recibido = std::get_if<MensajeDanoRecibido>(&mensaje.payload)) {
             gestorAudio.reproducirEfecto("recibirDanio");
             
@@ -390,6 +410,15 @@ void ObjectGameWorld::cerrarBanco() {
 
 const std::vector<uint16_t>& ObjectGameWorld::hechizosConocidos() const {
     return hechizosConocidos_;
+}
+
+float ObjectGameWorld::fraccionResurreccionRestante(uint32_t tick) const {
+    if (!resurreccionActiva_ || resurreccionDuracionMs_ == 0) {
+        return 0.0f;
+    }
+    const uint32_t transcurrido = tick - resurreccionInicioTick_;
+    const float restante = 1.0f - static_cast<float>(transcurrido) / resurreccionDuracionMs_;
+    return std::clamp(restante, 0.0f, 1.0f);
 }
 
 std::vector<std::pair<uint16_t, uint16_t>> ObjectGameWorld::drenarFx() {

@@ -263,8 +263,9 @@ std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
     // Reusa el BFS de Mapa; el predicado suma a las reglas del mapa (pared/npc/
     // criatura/item) la presencia de otros jugadores, que Mapa no conoce.
     return mapa.buscarCeldaLibreCercaDe(origen, [this, idJugadorExcluido](const Posicion& celda) {
-        return mapa.hayParedEn(celda) || mapa.hayNpcEn(celda) || mapa.hayCriaturaEn(celda) ||
-               mapa.hayItemEn(celda) || buscarIdJugadorEn(celda, idJugadorExcluido).has_value();
+        return mapa.hayParedEn(celda) || mapa.hayObjetoEn(celda) || mapa.hayNpcEn(celda) ||
+               mapa.hayCriaturaEn(celda) || mapa.hayItemEn(celda) ||
+               buscarIdJugadorEn(celda, idJugadorExcluido).has_value();
     });
 }
 
@@ -329,7 +330,10 @@ EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
                                   jugador.getEstado(),
                                   static_cast<uint8_t>(jugador.getRaza()),
                                   static_cast<uint8_t>(jugador.getClase()),
-                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel())}};
+                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel()),
+                                  static_cast<uint16_t>(std::min(
+                                          jugador.getTiempoRestanteInmovilizado() * 1000.0f,
+                                          65535.0f))}};
 }
 
 EventoSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) {
@@ -1254,11 +1258,8 @@ bool Juego::intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion
             return false;
     }
 
-    // Colisión absoluta: una celda no puede ser compartida por dos entidades.
-    // Aplica tanto a jugadores vivos como a fantasmas — el enunciado no diferencia
-    // el modelo de colisión por estado del personaje.
-    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayNpcEn(destino) ||
-        mapa.hayCriaturaEn(destino)) {
+    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayObjetoEn(destino) ||
+        mapa.hayNpcEn(destino) || mapa.hayCriaturaEn(destino)) {
         return false;
     }
 

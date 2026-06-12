@@ -63,6 +63,11 @@ private:
     uint32_t experienciaAnterior = 0;
     uint32_t oroAnterior = 0;
 
+    
+    bool resurreccionActiva_ = false;
+    uint32_t resurreccionInicioTick_ = 0;
+    uint16_t resurreccionDuracionMs_ = 0;
+
     // Ultimas lineas de chat/feedback recibidas del server (con su tipo/color)
     std::deque<LineaChat> historialChatReciente;
     size_t maxLineasChat = 6;
@@ -121,7 +126,11 @@ public:
     bool bancoRecibido() const;
     void cerrarBanco();
     const std::vector<uint16_t>& hechizosConocidos() const;
-    // Devuelve y limpia los FX de hechizo recibidos desde el ultimo frame.
+    
+    bool resurreccionActiva() const { return resurreccionActiva_; }
+    
+    float fraccionResurreccionRestante(uint32_t tick) const;
+    
     std::vector<std::pair<uint16_t, uint16_t>> drenarFx();
     std::vector<std::pair<uint16_t, uint16_t>> drenarProyectiles();
 };
