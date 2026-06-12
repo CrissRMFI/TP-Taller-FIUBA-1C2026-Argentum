@@ -4,10 +4,12 @@
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
+#include "../persistencia/indice_jugadores.h"
 #include "mensaje_salida.h"
 
 // de momento el monitor no es dueño de la colas --> estoy usando punteros crudos en la cola
@@ -24,16 +26,18 @@ private:
 
     std::unordered_map<uint16_t, Queue<MensajeServidor>*> colasClientes;
     std::mutex mtx;
+    IndiceJugadores indicePersistido;
 
     uint16_t proximoID;
 
 public:
-    MonitorClientes();
+    explicit MonitorClientes(const std::string& rutaIndiceJugadores);
 
     void agregarCliente(uint16_t idCliente, Queue<MensajeServidor>& colaSalida);
     void removerCliente(uint16_t idCliente);
     bool estaConectado(uint16_t idCliente);
     uint16_t idCliente(const std::string& nombre);
+    bool nombreRegistrado(const std::string& nombre);
 
     uint16_t almacenarID();
     Queue<MensajeServidor>* getColasClientes(uint16_t idCliente);
