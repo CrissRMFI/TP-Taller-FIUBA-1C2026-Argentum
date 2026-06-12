@@ -250,8 +250,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
     tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
 
-    // Objetos sobre el piso (arboles, cartel, ...): cada uno con su sprite,
-    // anclado al borde inferior de su celda y escalado para sobresalir.
+    
     const auto altoObjeto = [](const std::string& clave) -> double {
         if (clave == "cartel")  return 1.2;
         if (clave == "arbusto") return 1.4;

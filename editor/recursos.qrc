@@ -20,6 +20,10 @@
     <file alias="mapas/tile_pasto.png">../client/resources/imgs/mapas/pasto_tile.png</file>
     <file alias="mapas/tile_desierto.png">../client/resources/imgs/mapas/desierto.png</file>
     <file alias="mapas/tile_arbol.png">../client/resources/imgs/mapas/arbol.png</file>
+    <file alias="mapas/tile_palmera.png">../client/resources/imgs/mapas/palmera.png</file>
+    <file alias="mapas/tile_cerezo.png">../client/resources/imgs/mapas/cerezo.png</file>
+    <file alias="mapas/tile_arbusto.png">../client/resources/imgs/mapas/arbusto.png</file>
+    <file alias="mapas/tile_cartel.png">../client/resources/imgs/mapas/cartel.png</file>
     <file alias="mapas/tile_ciudad.png">../client/resources/imgs/mapas/ciudad.png</file>
     <file alias="mapas/tile_pared.png">../client/resources/imgs/mapas/pared.png</file>
   </qresource>

@@ -17,6 +17,9 @@ public:
 
     void setPincelPiso(bool activo, const QString& clave, const QString& destino);
 
+signals:
+    void aviso(const QString& mensaje);
+
 protected:
     void paintEvent(QPaintEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
