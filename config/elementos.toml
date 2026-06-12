@@ -1,0 +1,52 @@
+# Catalogo de elementos del editor de mapas (seccion ELEMENTOS del panel).
+# Los elementos son objetos que se apoyan sobre el piso (no son terreno):
+# paredes, arboles, carteles, etc. Se colocan por arrastre, una celda por vez.
+#
+
+[[elemento]]
+clave            = "pared"
+nombre           = "Pared"
+descripcion      = "Muro no transitable. Se puede poner sobre cualquier piso."
+sprite           = ":/mapas/tile_pared.png"
+bloquea          = true
+pisos_permitidos = []
+
+[[elemento]]
+clave            = "arbol"
+nombre           = "Arbol (roble)"
+descripcion      = "Roble frondoso. Solo crece sobre pasto."
+sprite           = ":/mapas/tile_arbol.png"
+bloquea          = true
+pisos_permitidos = ["pasto"]
+
+[[elemento]]
+clave            = "palmera"
+nombre           = "Palmera"
+descripcion      = "Palmera alta. Solo crece sobre pasto."
+sprite           = ":/mapas/tile_palmera.png"
+bloquea          = true
+pisos_permitidos = ["pasto"]
+
+[[elemento]]
+clave            = "cerezo"
+nombre           = "Cerezo en flor"
+descripcion      = "Arbol de flores rosadas. Solo crece sobre pasto."
+sprite           = ":/mapas/tile_cerezo.png"
+bloquea          = true
+pisos_permitidos = ["pasto"]
+
+[[elemento]]
+clave            = "arbusto"
+nombre           = "Arbusto"
+descripcion      = "Matorral bajo. Solo crece sobre pasto."
+sprite           = ":/mapas/tile_arbusto.png"
+bloquea          = true
+pisos_permitidos = ["pasto"]
+
+[[elemento]]
+clave            = "cartel"
+nombre           = "Cartel"
+descripcion      = "Cartel de madera. Se puede poner sobre cualquier piso."
+sprite           = ":/mapas/tile_cartel.png"
+bloquea          = true
+pisos_permitidos = []
