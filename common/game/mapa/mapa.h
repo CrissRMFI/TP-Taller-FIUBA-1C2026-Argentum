@@ -43,6 +43,13 @@ struct ZonaPiso {
   std::string clave;
 };
 
+struct ObjetoMapa {
+  uint16_t    mapaId;
+  uint16_t    x;
+  uint16_t    y;
+  std::string clave;
+};
+
 class Mapa {
   private:
     uint16_t ancho;
@@ -56,7 +63,8 @@ class Mapa {
     std::vector<Ciudad> ciudades;
     std::vector<Ciudad> bosques;    // rectangulos de zona boscosa (visual: arboles)
     std::vector<Ciudad> desiertos;  // rectangulos de desierto (visual: arena)
-    std::vector<ZonaPiso> pisos;    // zonas de piso visual (pasto/desierto/arboles/...)
+    std::vector<ZonaPiso> pisos;    // zonas de piso visual (pasto/desierto/...)
+    std::vector<ObjetoMapa> objetos; // objetos sobre el piso (arboles, carteles); bloquean
     std::map<uint16_t, Criatura> criaturas;
 
     static bool mismaPosicion(const Posicion& primera, const Posicion& segunda);
@@ -74,9 +82,6 @@ public:
     bool agregarNpc(const Npc& npc);
     void agregarPared(const Posicion& posicion);
 
-    // Agregan una entrada de stock a TODOS los comerciantes / sacerdotes del
-    // mapa. El stock vive por tipo de NPC (todos venden lo mismo); el servidor
-    // las invoca al cargar el mapa con los datos de configuracion.
     void agregarStockComerciantes(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta);
     void agregarStockSacerdotes(uint16_t idItem, uint8_t precio);
 
@@ -87,12 +92,14 @@ public:
     const std::vector<Ciudad>&   getBosques() const  { return bosques; }
     const std::vector<Ciudad>&   getDesiertos() const { return desiertos; }
     const std::vector<ZonaPiso>& getPisos() const { return pisos; }
+    const std::vector<ObjetoMapa>& getObjetos() const { return objetos; }
     const std::map<uint16_t, Sacerdote>&   getSacerdotes() const   { return sacerdotes; }
     const std::map<uint16_t, Comerciante>& getComerciantes() const { return comerciantes; }
     const std::map<uint16_t, Banquero>&    getBanqueros() const    { return banqueros; }
 
     bool posicionValida(const Posicion& posicion) const;
     bool hayParedEn(const Posicion& posicion) const;
+    bool hayObjetoEn(const Posicion& posicion) const;
 
     bool hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
     std::optional<Npc> buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
@@ -111,23 +118,21 @@ public:
     void agregarBosque(const Ciudad &bosque)   { bosques.push_back(bosque); }
     void agregarDesierto(const Ciudad &desierto) { desiertos.push_back(desierto); }
     void agregarPiso(const ZonaPiso &piso) { pisos.push_back(piso); }
+    void agregarObjeto(const ObjetoMapa &objeto) { objetos.push_back(objeto); }
     bool esCiudad(const Posicion &posicion) const;
     bool esZonaSegura(const Posicion &posicion) const;
     std::optional<Npc> buscarNpcEn(const Posicion &posicion) const;
-    Sacerdote*         obtenerSacerdote(uint16_t idSacerdote);
-    Comerciante*       obtenerComerciante(uint16_t idComerciante);
-    Banquero*          obtenerBanquero(uint16_t idBanquero);
-    const Sacerdote*   obtenerSacerdote(uint16_t idSacerdote) const;
+    Sacerdote* obtenerSacerdote(uint16_t idSacerdote);
+    Comerciante* obtenerComerciante(uint16_t idComerciante);
+    Banquero* obtenerBanquero(uint16_t idBanquero);
+    const Sacerdote* obtenerSacerdote(uint16_t idSacerdote) const;
     const Comerciante* obtenerComerciante(uint16_t idComerciante) const;
-    const Banquero*    obtenerBanquero(uint16_t idBanquero) const;
+    const Banquero* obtenerBanquero(uint16_t idBanquero) const;
     std::optional<uint16_t> tomarItem(const Posicion &posicion);
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
     std::optional<Posicion> obtenerPosicionResurreccionCercana(const Posicion &posicion) const;
 
-    // BFS por anillos (distancia Manhattan creciente) desde 'origen': devuelve la
-    // primera celda alcanzable para la que 'celdaOcupada' sea false, o sea la mas
-    // cercana libre. El predicado decide que cuenta como ocupada (el caller le
-    // suma sus propias reglas, ej. el server tambien mira a los jugadores).
+    
     std::optional<Posicion> buscarCeldaLibreCercaDe(
             const Posicion& origen,
             const std::function<bool(const Posicion&)>& celdaOcupada) const;
