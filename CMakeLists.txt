@@ -114,7 +114,7 @@ endif()
 # Program section
 # ---------------
 if(TALLER_CLIENT)
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     add_executable(taller_client
@@ -155,6 +155,8 @@ if(TALLER_CLIENT)
             client/camara/player_camera.h
             client/client_game_loop.cpp
             client/client_game_loop.h
+            client/Qt/gestor_audio_menu.cpp
+            client/Qt/gestor_audio_menu.h
     )
 
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
@@ -206,9 +208,13 @@ if(TALLER_CLIENT)
             client/resources/imgs/personajes/cuerpos/2110.png
             client/resources/imgs/personajes/cuerpos/2120.png
             client/resources/imgs/personajes/cuerpos/2130.png
+            client/Qt/instrumental/38.wav
+            client/Qt/instrumental/24.wav
+            client/Qt/instrumental/463.wav
+            client/Qt/instrumental/210.wav
     )
 
-    target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)
+    target_link_libraries(taller_client PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Multimedia)
 
     set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 

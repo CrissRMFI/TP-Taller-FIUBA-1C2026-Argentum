@@ -3,16 +3,56 @@
 #include "login/loginController.h"
 #include "elegirPersonaje/elegirPersonajeController.h"
 
+#include <QGuiApplication>
+#include <QQmlContext>
 #include <QQuickView>
+#include <QScreen>
 
 #include "../../common/socket/socket.h"
 
-MenuController::MenuController(){}
 
-void MenuController::setVentana(QQuickView* ventana) { this->ventana = ventana; } 
+MenuController::MenuController()
+    : audio(std::make_unique<GestorAudioMenu>()) {
+    configurarAudio();
+}
+
+void MenuController::configurarAudio() {
+    audio->setVolumenMusica(0.5f);
+    audio->setVolumenEfectos(0.7f);
+
+    // Completar estas fuentes cuando agregues los archivos reales.
+    audio->configurarMusicaPrincipal(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/instrumental/38.wav")));
+    audio->registrarEfecto("click", QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/instrumental/463.wav")));
+    audio->registrarEfecto("volver", QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/instrumental/210.wav")));
+    audio->registrarEfecto("error", QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/instrumental/24.wav")));
+}
+
+void MenuController::centrarVentana(QQuickView* ventana_) {
+    if (!ventana_) {
+        return;
+    }
+
+    QScreen* pantalla = QGuiApplication::primaryScreen();
+    if (!pantalla) {
+        return;
+    }
+
+    const QRect areaDisponible = pantalla->availableGeometry();
+    const int x = areaDisponible.x() + (areaDisponible.width() - ventana_->width()) / 2;
+    const int y = areaDisponible.y() + (areaDisponible.height() - ventana_->height()) / 2;
+    ventana_->setPosition(x, y);
+}
+
+void MenuController::setVentana(QQuickView* ventana_view) { this->ventana = ventana_view; }
 
 void MenuController::run(DatosConexion& datos) {
-	
+    if (ventana && audio) {
+        ventana->rootContext()->setContextProperty("audioMenu", audio.get());
+    }
+    centrarVentana(ventana);
+
+    audio->reproducirMusicaPrincipal();
+
 	while (!terminoRegistro) {
 		if (!loginYaRealizado) {
 			LoginController login;
@@ -22,6 +62,7 @@ void MenuController::run(DatosConexion& datos) {
 				                 datos.getDatosLogin().puerto.c_str());
 				preflight.close();
 			} catch (...) {
+                audio->detenerMusica();
 				datos = puertoHostInvalidos();
 				return;
 			}
@@ -55,6 +96,7 @@ void MenuController::run(DatosConexion& datos) {
 		}
 	}
 	terminoRegistro = false;
+    audio->detenerMusica();
     return;
 }
 

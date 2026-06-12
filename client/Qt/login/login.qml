@@ -129,6 +129,7 @@ Item {
                 onTapped: {
                     root.errorLogin = false;
                     if (puertoInput.text === "" || hostInput.text === "") {
+                        audioMenu.reproducirEfecto("error");
                         errorMessageHost.text = "";
                         errorMessagePuerto.text = "";
                         errorMessageUnirse.text = "Por favor, complete todos los campos";
@@ -136,11 +137,12 @@ Item {
                         errorMessageUnirse.text = "";
                         const hostValido = loginController.esHostIpValido(hostInput.text);
                         const puertoValido = loginController.esPuertoValido(puertoInput.text);
-
+                        //audioMenu.reproducirEfecto("error");
                         errorMessageHost.text = hostValido ? "" : "La dirección IP/Host no puede estar vacía";
                         errorMessagePuerto.text = puertoValido ? "" : "El puerto tiene que ser un número entre 1 y 65535";
 
                         if (hostValido && puertoValido) {
+                            audioMenu.reproducirEfecto("click");
                             loginController.setPuerto(puertoInput.text);
                             loginController.setHost(hostInput.text);
                             console.log("Intentando unirse a la partida...");

@@ -103,15 +103,22 @@ Item {
                     if (nickInput.text === "") {
                         errorMessageNick.text = "";
                         errorUnirseMessage.text = "Por favor, complete el campo de nick.";
+                        audioMenu.reproducirEfecto("error");
                     } else {
+                        if (!nickValido){
+                            errorMessageNick.text = "El nick no debería tener espacios y debe ser menor o igual a 32 bytes.";
+                            audioMenu.reproducirEfecto("error");
+                        }
+
                         errorUnirseMessage.text = "";
                         const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
+                        audioMenu.reproducirEfecto("click");
 
-                        errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
 
                         if (nickValido) {
                             cargarPersonajeController.setNick(nickInput.text);
                             console.log("Intentando unirse a la partida...");
+                            audioMenu.reproducirEfecto("click");
                         }
                     }
                 }
@@ -129,6 +136,7 @@ Item {
                 onTapped: {
                     console.log("Volviendo al menú principal");
                     cargarPersonajeController.volverAlMenu();
+                    audioMenu.reproducirEfecto("volver");
                 }
             }
             id: volverButton
@@ -144,6 +152,7 @@ Item {
                 onTapped: {
                     console.log("Rediriguiendo a la pantalla de creación de cuenta");
                     cargarPersonajeController.volverACrearCuenta();
+                    audioMenu.reproducirEfecto("click");
                 }
             }
             id: crearCuentaButton
