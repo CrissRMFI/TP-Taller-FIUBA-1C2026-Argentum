@@ -12,6 +12,7 @@ void LoginController::run(QQuickView& ventana, DatosConexion& datos) {
     errorLoginMessage = QString::fromStdString(datos.getMensajeError());
     ventana.rootContext()->setContextProperty("loginController", this);
     ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/login/login.qml")));
+    ventana.show();
 
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal loginCompleted
     QEventLoop loop;
