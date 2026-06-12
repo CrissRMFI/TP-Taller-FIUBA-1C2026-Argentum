@@ -83,6 +83,20 @@ TEST_F(ProtocoloFixture, Resucitado) {
     EXPECT_EQ(p.y, 40);
 }
 
+TEST_F(ProtocoloFixture, Proyectil) {
+    servidor->enviarMensaje({Opcode::PROYECTIL, MensajeProyectil{1, 2}});
+    auto p = std::get<MensajeProyectil>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.idOrigen, 1);
+    EXPECT_EQ(p.idDestino, 2);
+}
+
+TEST_F(ProtocoloFixture, ProyectilIdsMaximos) {
+    servidor->enviarMensaje({Opcode::PROYECTIL, MensajeProyectil{65535, 65535}});
+    auto p = std::get<MensajeProyectil>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.idOrigen, 65535);
+    EXPECT_EQ(p.idDestino, 65535);
+}
+
 // Items del mundo
 
 TEST_F(ProtocoloFixture, ItemEnSuelo) {
@@ -98,6 +112,26 @@ TEST_F(ProtocoloFixture, ItemDesaparecioSuelo) {
     auto p = std::get<MensajeItemDesaparecioSuelo>(cliente->recibirMensaje().payload);
     EXPECT_EQ(p.x, 10);
     EXPECT_EQ(p.y, 20);
+}
+
+TEST_F(ProtocoloFixture, OroEnSuelo) {
+    servidor->enviarMensaje({Opcode::ORO_EN_SUELO, MensajeOroEnSuelo{500, 10, 20}});
+    auto p = std::get<MensajeOroEnSuelo>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.cantidad, 500u);
+    EXPECT_EQ(p.x, 10);
+    EXPECT_EQ(p.y, 20);
+}
+
+TEST_F(ProtocoloFixture, OroEnSueloCantidadMaxima) {
+    servidor->enviarMensaje({Opcode::ORO_EN_SUELO, MensajeOroEnSuelo{0xFFFFFFFF, 0, 0}});
+    EXPECT_EQ(std::get<MensajeOroEnSuelo>(cliente->recibirMensaje().payload).cantidad, 0xFFFFFFFFu);
+}
+
+TEST_F(ProtocoloFixture, OroDesaparecioSuelo) {
+    servidor->enviarMensaje({Opcode::ORO_DESAPARECIO_SUELO, MensajeOroDesaparecioSuelo{15, 25}});
+    auto p = std::get<MensajeOroDesaparecioSuelo>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.x, 15);
+    EXPECT_EQ(p.y, 25);
 }
 
 // Inventario y eqipo
@@ -145,6 +179,63 @@ TEST_F(ProtocoloFixture, ActualizarEquipamientoTodoVacio) {
     EXPECT_EQ(p.escudo, 0);
 }
 
+// Banco
+
+TEST_F(ProtocoloFixture, ContenidoBancoVacio) {
+    servidor->enviarMensaje({Opcode::CONTENIDO_BANCO, MensajeContenidoBanco{{}, 0}});
+    auto p = std::get<MensajeContenidoBanco>(cliente->recibirMensaje().payload);
+    EXPECT_TRUE(p.items.empty());
+    EXPECT_EQ(p.oroBanco, 0u);
+}
+
+TEST_F(ProtocoloFixture, ContenidoBancoConItems) {
+    MensajeContenidoBanco m;
+    m.items = {100, 200, 300};
+    m.oroBanco = 5000;
+    servidor->enviarMensaje({Opcode::CONTENIDO_BANCO, m});
+    auto p = std::get<MensajeContenidoBanco>(cliente->recibirMensaje().payload);
+    ASSERT_EQ(p.items.size(), 3u);
+    EXPECT_EQ(p.items[0], 100);
+    EXPECT_EQ(p.items[2], 300);
+    EXPECT_EQ(p.oroBanco, 5000u);
+}
+
+TEST_F(ProtocoloFixture, ContenidoBancoOroMaximo) {
+    servidor->enviarMensaje({Opcode::CONTENIDO_BANCO, MensajeContenidoBanco{{}, 0xFFFFFFFF}});
+    EXPECT_EQ(std::get<MensajeContenidoBanco>(cliente->recibirMensaje().payload).oroBanco, 0xFFFFFFFFu);
+}
+
+// Hechizos
+
+TEST_F(ProtocoloFixture, ListaHechizosVacia) {
+    servidor->enviarMensaje({Opcode::LISTA_HECHIZOS, MensajeListaHechizos{{}}});
+    EXPECT_TRUE(std::get<MensajeListaHechizos>(cliente->recibirMensaje().payload).ids.empty());
+}
+
+TEST_F(ProtocoloFixture, ListaHechizosConElementos) {
+    MensajeListaHechizos m;
+    m.ids = {1, 5, 10, 42};
+    servidor->enviarMensaje({Opcode::LISTA_HECHIZOS, m});
+    auto p = std::get<MensajeListaHechizos>(cliente->recibirMensaje().payload);
+    ASSERT_EQ(p.ids.size(), 4u);
+    EXPECT_EQ(p.ids[0], 1);
+    EXPECT_EQ(p.ids[3], 42);
+}
+
+TEST_F(ProtocoloFixture, FxHechizo) {
+    servidor->enviarMensaje({Opcode::FX_HECHIZO, MensajeFxHechizo{7, 99}});
+    auto p = std::get<MensajeFxHechizo>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.idHechizo, 7);
+    EXPECT_EQ(p.idObjetivo, 99);
+}
+
+TEST_F(ProtocoloFixture, FxHechizoIdsMaximos) {
+    servidor->enviarMensaje({Opcode::FX_HECHIZO, MensajeFxHechizo{65535, 65535}});
+    auto p = std::get<MensajeFxHechizo>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.idHechizo, 65535);
+    EXPECT_EQ(p.idObjetivo, 65535);
+}
+
 // Chat
 
 TEST_F(ProtocoloFixture, MensajeChat) {
@@ -183,14 +274,48 @@ TEST_F(ProtocoloFixture, ListaItemsConElementos) {
     EXPECT_EQ(p.ids[2], 30);
 }
 
+// Estado de usuario
+
+TEST_F(ProtocoloFixture, EstadoUsuarioSinError) {
+    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{1, "pepe", ErrorUsuario::Ninguno});
+    auto msg = cliente->recibirEstadoUsuario();
+    EXPECT_EQ(msg.opcode, Opcode::ESTADO_USUARIO);
+    auto p = std::get<MensajeEstadoUsuario>(msg.payload);
+    EXPECT_EQ(p.id, 1);
+    EXPECT_EQ(p.nick, "pepe");
+    EXPECT_EQ(p.error, ErrorUsuario::Ninguno);
+}
+
+TEST_F(ProtocoloFixture, EstadoUsuarioNickNoEncontrado) {
+    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{0, "fantasma", ErrorUsuario::NombreUsuarioNoEncontrado});
+    auto p = std::get<MensajeEstadoUsuario>(cliente->recibirEstadoUsuario().payload);
+    EXPECT_EQ(p.error, ErrorUsuario::NombreUsuarioNoEncontrado);
+}
+
+TEST_F(ProtocoloFixture, EstadoUsuarioNickYaExistente) {
+    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{2, "juan", ErrorUsuario::NickYaExistente});
+    auto p = std::get<MensajeEstadoUsuario>(cliente->recibirEstadoUsuario().payload);
+    EXPECT_EQ(p.error, ErrorUsuario::NickYaExistente);
+}
+
+TEST_F(ProtocoloFixture, EstadoUsuarioUsuarioYaConectado) {
+    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{3, "ya_logueado", ErrorUsuario::UsuarioYaConectado});
+    auto p = std::get<MensajeEstadoUsuario>(cliente->recibirEstadoUsuario().payload);
+    EXPECT_EQ(p.error, ErrorUsuario::UsuarioYaConectado);
+}
+
 // Secuencia
 
 TEST_F(ProtocoloFixture, SecuenciaDeMensajesPreservaOrden) {
     servidor->enviarMensaje({Opcode::ESTADO_PERSONAJE, MensajeEstadoPersonaje{100, 100, 50, 50, 0, 1, 0, 0}});
     servidor->enviarMensaje({Opcode::POSICION_ENTIDAD, MensajePosicionEntidad{1, 50, 50, 0, 0, 0, 0, 0, 0, 0}});
     servidor->enviarMensaje({Opcode::DANIO_RECIBIDO, MensajeDanoRecibido{10, 99}});
+    servidor->enviarMensaje({Opcode::FX_HECHIZO, MensajeFxHechizo{5, 99}});
+    servidor->enviarMensaje({Opcode::PROYECTIL, MensajeProyectil{1, 99}});
 
     EXPECT_EQ(cliente->recibirMensaje().opcode, Opcode::ESTADO_PERSONAJE);
     EXPECT_EQ(cliente->recibirMensaje().opcode, Opcode::POSICION_ENTIDAD);
     EXPECT_EQ(cliente->recibirMensaje().opcode, Opcode::DANIO_RECIBIDO);
+    EXPECT_EQ(cliente->recibirMensaje().opcode, Opcode::FX_HECHIZO);
+    EXPECT_EQ(cliente->recibirMensaje().opcode, Opcode::PROYECTIL);
 }
