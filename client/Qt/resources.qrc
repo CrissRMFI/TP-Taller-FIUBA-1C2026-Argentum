@@ -29,5 +29,9 @@
         <file>../resources/imgs/personajes/cuerpos/2110.png</file>
         <file>../resources/imgs/personajes/cuerpos/2120.png</file>
         <file>../resources/imgs/personajes/cuerpos/2130.png</file>
+        <file> instrumental/38.wav </file>
+        <file> instrumental/24.wav </file>
+        <file> instrumental/210.wav </file>
+        <file> instrumental/463.wav </file>
     </qresource>
 </RCC>
