@@ -1,6 +1,7 @@
 #include "client_renderer.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "SDL2pp/Renderer.hh"
@@ -42,10 +43,14 @@ void ObjectRenderer::init(const char* title,
                           const int loop_fps,
                           const ConfigChatRender& chat_config,
                           const ConfigPanelRender& panel_config,
-                          const CatalogoItems* catalogo) {
+                          const CatalogoItems* catalogo,
+                          const ConfigCamara& camara_config,
+                          const uint32_t walk_tile_ms) {
     this->chat_config = chat_config;
     this->panel_config = panel_config;
     this->catalogo = catalogo;
+    this->walk_tile_ms = (walk_tile_ms > 0) ? walk_tile_ms : 130;
+    camera.aplicar_config(camara_config);
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -157,6 +162,54 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
     }
 }
 
+void ObjectRenderer::actualizar_pos_visual(const int tile_x, const int tile_y,
+                                           const uint32_t now_tick) {
+    const double speed = 1000.0 / static_cast<double>(walk_tile_ms);  // tiles por segundo
+
+    if (!vis_init) {
+        vis_player_x = tile_x;
+        vis_player_y = tile_y;
+        vis_init = true;
+        vis_last_tick = now_tick;
+        return;
+    }
+
+    double dt = (now_tick - vis_last_tick) / 1000.0;
+    vis_last_tick = now_tick;
+    dt = std::clamp(dt, 0.0, 0.1);  // si el loop se frena, no pegamos un salto
+
+    const double rem_x = tile_x - vis_player_x;
+    const double rem_y = tile_y - vis_player_y;
+    const double restante = std::abs(rem_x) + std::abs(rem_y);
+
+    constexpr double EPS = 1e-4;
+    if (restante < EPS) {
+        return;  // quieto y alineado
+    }
+    if (restante > 2.5) {  // teleport (muerte/resurreccion/login): ir de una
+        vis_player_x = tile_x;
+        vis_player_y = tile_y;
+        return;
+    }
+
+    double paso = speed * dt;
+    if (restante > 1.5) {
+        paso *= 2.0;  // quedo atras (giro/lag): alcanzar sin arrastrar
+    }
+
+    
+    const bool x_en_curso = std::abs(vis_player_x - std::round(vis_player_x)) > EPS;
+    const auto avanzar = [&](double& v, double objetivo) {
+        const double d = objetivo - v;
+        v = (std::abs(d) <= paso) ? objetivo : v + (d > 0 ? paso : -paso);
+    };
+    if (std::abs(rem_x) > EPS && (x_en_curso || std::abs(rem_y) <= EPS)) {
+        avanzar(vis_player_x, tile_x);
+    } else {
+        avanzar(vis_player_y, tile_y);
+    }
+}
+
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,
@@ -171,9 +224,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
 
-    // Camara cenital: escala (zoom) + scroll centrado en el jugador por tile entero.
     camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
-    camera.center_on_tile(state_object.player_x(), state_object.player_y());
+    actualizar_pos_visual(state_object.player_x(), state_object.player_y(), current_tick);
+    camera.center_on_point(vis_player_x, vis_player_y);
     const int tileW = camera.tile_width();
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
@@ -359,8 +412,11 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     for (const auto& [id, entity] : state_object.entities()) {
         const int cell_width = tileW;
         const int cell_height = tileH;
-        const int entity_x = scrX(entity.x);
-        const int entity_y = scrY(entity.y);
+        // El jugador local se dibuja en su posicion visual continua (suave); el resto
+        // de las entidades, en su tile (acompañan el scroll suave del mundo).
+        const bool es_jugador_local = (id == state_object.client_id());
+        const int entity_x = es_jugador_local ? scrX(vis_player_x) : scrX(entity.x);
+        const int entity_y = es_jugador_local ? scrY(vis_player_y) : scrY(entity.y);
 
         const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
 

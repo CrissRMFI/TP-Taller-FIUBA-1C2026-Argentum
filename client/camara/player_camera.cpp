@@ -5,11 +5,17 @@
 #include "player_camera.h"
 
 #include <algorithm>
-#define  MIN_VISIBLE_TILES_X 12
-#define  MIN_VISIBLE_TILES_Y 10
-#define  MAX_VISIBLE_TILES_X 60
-#define  MAX_VISIBLE_TILES_Y 50
-#define  ZOOM_STEP_TILES 2
+
+void PlayerCamera::aplicar_config(const ConfigCamara& cfg) {
+    visible_tiles_x = cfg.tiles_visibles_x;
+    visible_tiles_y = cfg.tiles_visibles_y;
+    min_visible_tiles_x = cfg.zoom_min_tiles_x;
+    min_visible_tiles_y = cfg.zoom_min_tiles_y;
+    max_visible_tiles_x = cfg.zoom_max_tiles_x;
+    max_visible_tiles_y = cfg.zoom_max_tiles_y;
+    zoom_step_tiles = cfg.zoom_paso_tiles;
+    recalculate_scale();
+}
 
 void PlayerCamera::recalculate_scale() {
     cell_width = std::max(1, viewport_width / visible_tiles_x);
@@ -34,27 +40,27 @@ void PlayerCamera::configure(const int view_width, const int view_height,
         * cualquier otro caso: v = v
 */
 
-void PlayerCamera::center_on_tile(const int tile_x, const int tile_y) {
-    const int desired_offset_x =
-            viewport_width / 2 - (tile_x * cell_width + cell_width / 2);
-    const int desired_offset_y =
-            viewport_height / 2 - (tile_y * cell_height + cell_height / 2);
+void PlayerCamera::target_offset_for_tile(const int tile_x, const int tile_y, int& out_x, int& out_y) const {
+    const int desired_offset_x = viewport_width / 2 - (tile_x * cell_width + cell_width / 2);
+    const int desired_offset_y = viewport_height / 2 - (tile_y * cell_height + cell_height / 2);
     const int min_offset_x = viewport_width - map_pixel_width;
     const int min_offset_y = viewport_height - map_pixel_height;
-    const int max_offset_x = 0;
-    const int max_offset_y = 0;
 
     if (map_pixel_width <= viewport_width) {
-        offset_x = (viewport_width - map_pixel_width) / 2;
+      out_x = (viewport_width - map_pixel_width) / 2;
     } else {
-        offset_x = std::clamp(desired_offset_x, min_offset_x, max_offset_x);
+      out_x = std::clamp(desired_offset_x, min_offset_x, 0);
     }
 
     if (map_pixel_height <= viewport_height) {
-        offset_y = (viewport_height - map_pixel_height) / 2;
+        out_y = (viewport_height - map_pixel_height) / 2;
     } else {
-        offset_y = std::clamp(desired_offset_y, min_offset_y, max_offset_y);
+        out_y = std::clamp(desired_offset_y, min_offset_y, 0);
     }
+}
+
+void PlayerCamera::center_on_tile(const int tile_x, const int tile_y) {
+    target_offset_for_tile(tile_x, tile_y, offset_x, offset_y);
 }
 
 void PlayerCamera::center_on_point(const double tile_x, const double tile_y) {
@@ -120,13 +126,13 @@ int PlayerCamera::get_offset_y () const {
 }
 
 void PlayerCamera::zoom_in() {
-    visible_tiles_x = std::max(MIN_VISIBLE_TILES_X, visible_tiles_x - ZOOM_STEP_TILES);
-    visible_tiles_y = std::max(MIN_VISIBLE_TILES_Y, visible_tiles_y - ZOOM_STEP_TILES);
+    visible_tiles_x = std::max(min_visible_tiles_x, visible_tiles_x - zoom_step_tiles);
+    visible_tiles_y = std::max(min_visible_tiles_y, visible_tiles_y - zoom_step_tiles);
     recalculate_scale();
 }
 
 void PlayerCamera::zoom_out() {
-    visible_tiles_x = std::min(MAX_VISIBLE_TILES_X, visible_tiles_x + ZOOM_STEP_TILES);
-    visible_tiles_y = std::min(MAX_VISIBLE_TILES_Y, visible_tiles_y + ZOOM_STEP_TILES);
+    visible_tiles_x = std::min(max_visible_tiles_x, visible_tiles_x + zoom_step_tiles);
+    visible_tiles_y = std::min(max_visible_tiles_y, visible_tiles_y + zoom_step_tiles);
     recalculate_scale();
 }

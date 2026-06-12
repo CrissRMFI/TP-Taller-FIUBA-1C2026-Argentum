@@ -82,7 +82,8 @@ void ClientGameLoop::init(const char* title,
     panelCfg.bancoCols = config.bancoCols;
 
     object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
-                         config.fpsMax, chatCfg, panelCfg, &catalogo);
+                         config.fpsMax, chatCfg, panelCfg, &catalogo, config.camara,
+                         config.intervaloMovimientoMs);
     object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
     handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAlto);

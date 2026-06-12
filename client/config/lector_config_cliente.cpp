@@ -130,6 +130,21 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     leerInt("gap", cfg.bancoGap);
     leerInt("cols", cfg.bancoCols);
 
+    // --- Camara (zoom: tiles visibles y limites) ---
+    const auto leerCamara = [&tbl](const char* clave, int& destino) {
+        const int64_t v = tbl["camara"][clave].value_or<int64_t>(destino);
+        if (v > 0) {
+            destino = static_cast<int>(v);
+        }
+    };
+    leerCamara("tiles_visibles_x", cfg.camara.tiles_visibles_x);
+    leerCamara("tiles_visibles_y", cfg.camara.tiles_visibles_y);
+    leerCamara("zoom_min_tiles_x", cfg.camara.zoom_min_tiles_x);
+    leerCamara("zoom_min_tiles_y", cfg.camara.zoom_min_tiles_y);
+    leerCamara("zoom_max_tiles_x", cfg.camara.zoom_max_tiles_x);
+    leerCamara("zoom_max_tiles_y", cfg.camara.zoom_max_tiles_y);
+    leerCamara("zoom_paso_tiles", cfg.camara.zoom_paso_tiles);
+
     cfg.seleccionRango = static_cast<int>(
             tbl["seleccion"]["rango"].value_or<int64_t>(cfg.seleccionRango));
     cfg.seleccionRadioPx = static_cast<int>(

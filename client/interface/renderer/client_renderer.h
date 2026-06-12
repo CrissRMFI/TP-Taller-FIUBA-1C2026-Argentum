@@ -68,6 +68,12 @@ private:
     std::vector<ProyectilActivo> proyectiles_;
     uint16_t objetivo_resaltado = 0;  // entidad seleccionada a resaltar (0 = ninguna)
     int last_animation_row = -1;
+    double vis_player_x = 0.0;
+    double vis_player_y = 0.0;
+    bool vis_init = false;
+    uint32_t vis_last_tick = 0;
+    uint32_t walk_tile_ms = 130;
+    void actualizar_pos_visual(int tile_x, int tile_y, uint32_t now_tick);
     int window_width = 0;
     int window_height = 0;
     Mapa mapa;
@@ -123,7 +129,8 @@ public:
     void zoomOut() { camera.zoom_out(); }
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
               bool vsync, int loop_fps, const ConfigChatRender& chat_config,
-              const ConfigPanelRender& panel_config, const CatalogoItems* catalogo);
+              const ConfigPanelRender& panel_config, const CatalogoItems* catalogo,
+              const ConfigCamara& camara_config, uint32_t walk_tile_ms);
     void update_animation(int it, const ObjectGameWorld& state_object, const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
                 const EstadoChatRender& chat, const EstadoPanelRender& panel,
