@@ -9,7 +9,7 @@
 
 MenuController::MenuController(){}
 
-void MenuController::setVentana(QQuickView* ventana) { this->ventana = ventana; }
+void MenuController::setVentana(QQuickView* ventana) { this->ventana = ventana; } 
 
 void MenuController::run(DatosConexion& datos) {
 	
