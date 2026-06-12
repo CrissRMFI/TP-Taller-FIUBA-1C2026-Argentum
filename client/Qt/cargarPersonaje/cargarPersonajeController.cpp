@@ -20,7 +20,7 @@ void CargarPersonajeController::run(QQuickView& ventana, DatosConexion& datos, C
     // Reemplaza el contenido de la ventana compartida por cargarPersonaje.qml.
     ventana.rootContext()->setContextProperty("cargarPersonajeController", this);
     ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/cargarPersonaje/cargarPersonaje.qml")));
-
+    ventana.show();
     // Corro eventLoop hasta que el usuario complete datos y se emita la señal cargarPersonajeCompleted
     QEventLoop loop;
     connect(this, &CargarPersonajeController::cargarPersonajeCompleted, &loop, &QEventLoop::quit);

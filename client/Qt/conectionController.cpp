@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include <QColor>
 #include <QGuiApplication>
 #include <QQuickView>
 #include <QSize>
@@ -28,6 +29,7 @@ int ConnectionController::run(int argc, char* argv[]){
 	const int ventanaAlto = cfg.alto;
 
 	QQuickView ventana;
+	ventana.setColor(QColor(0, 0, 0));
 	ventana.setResizeMode(QQuickView::SizeRootObjectToView);
 	ventana.setTitle("Argentum Online");
 	ventana.setWidth(ventanaAncho);
