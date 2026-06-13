@@ -154,6 +154,7 @@ Item {
             model: ["Humano", "Elfo", "Enano", "Gnomo"]
             currentIndex: 0
             onCurrentTextChanged: root.raza = currentText
+            onActivated: audioMenu.reproducirEfecto("volver")
         }
 
         LabelText {
@@ -170,6 +171,7 @@ Item {
             model: ["Mago", "Paladín", "Clérigo", "Guerrero"]
             currentIndex: 0
             onCurrentTextChanged: root.clase = currentText
+            onActivated: audioMenu.reproducirEfecto("volver")
         }
 
         LabelText {
@@ -197,7 +199,10 @@ Item {
             height: 30
             source: "../graficos/leftArrow.png"
             TapHandler {
-                onTapped: root.rotarCabeza(-1)
+                onTapped: {
+                    root.rotarCabeza(-1);
+                    audioMenu.reproducirEfecto("volver");
+                }
             }
         }
 
@@ -209,7 +214,10 @@ Item {
             height: 30
             source: "../graficos/rightArrow.png"
             TapHandler {
-                onTapped: root.rotarCabeza(1)
+                onTapped: {
+                    root.rotarCabeza(1);
+                    audioMenu.reproducirEfecto("volver");
+                }
             }
         }
 
@@ -232,7 +240,10 @@ Item {
             height: 30
             source: "../graficos/leftArrow.png"
             TapHandler {
-                onTapped: root.rotarCuerpo(-1)
+                onTapped: {
+                    root.rotarCuerpo(-1);
+                    audioMenu.reproducirEfecto("volver");
+                }
             }
         }
 
@@ -244,7 +255,10 @@ Item {
             height: 30
             source: "../graficos/rightArrow.png"
             TapHandler {
-                onTapped: root.rotarCuerpo(1)
+                onTapped: {
+                    root.rotarCuerpo(1);
+                    audioMenu.reproducirEfecto("volver");
+                }
             }
         }
 
@@ -273,10 +287,10 @@ Item {
                 onTapped: {
                     if (nickInput.text !== "" && root.raza !== "" && root.clase !== "") {
                         const esNickValido = personajeController.esNickValido(nickInput.text)
-
                         nickErrorText.text = !esNickValido ? "El nick no puede tener espacios y debe ser menor o igual a 32 bytes." : ""
 
                         if (!esNickValido) {
+                            audioMenu.reproducirEfecto("error");
                             return
                         }
 
@@ -287,8 +301,10 @@ Item {
                         personajeController.setCabeza(root.cabezaIndex)
                         personajeController.setCuerpo(root.cuerpoIndex)
                     } else {
-                        generalErrorText.text = "Por favor, complete todos los campos para crear el personaje"
+                        generalErrorText.text = "Por favor, complete todos los campos para crear el personaje";
+                        audioMenu.reproducirEfecto("error");
                     }
+                    audioMenu.reproducirEfecto("click")
                 }
             }
         }
@@ -301,7 +317,10 @@ Item {
             height: 47
             source: "../graficos/VolverButton.png"
             TapHandler {
-                onTapped: personajeController.volverAlMenu()
+                onTapped: {
+                    personajeController.volverAlMenu();
+                    audioMenu.reproducirEfecto("volver");
+                }
             }
         }
     }

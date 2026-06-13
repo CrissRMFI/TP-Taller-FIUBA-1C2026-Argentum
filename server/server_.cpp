@@ -19,9 +19,9 @@
 Server::Server(const char* servname) : skt(servname) {}
 
 void Server::run() {
-    MonitorClientes monitor_clientes;
     LectorConfigToml lector_config;
     ConfigCompleta config_completa = lector_config.cargar(SERVER_GAME_CONFIG_PATH);
+    MonitorClientes monitor_clientes(config_completa.juego.rutaIndiceJugadores);
 
     LectorMapa lector_mapa;
     MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo,

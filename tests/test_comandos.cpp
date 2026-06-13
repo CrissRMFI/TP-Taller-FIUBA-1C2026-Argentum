@@ -123,6 +123,23 @@ TEST_F(ProtocoloFixture, Equipar) {
     EXPECT_EQ(std::get<ComandoEquipar>(cmd.payload).indiceItem, 3);
 }
 
+TEST_F(ProtocoloFixture, Usar) {
+    cliente->enviarComando({Opcode::USAR, ComandoUsar{3}});
+    auto cmd = servidor->recibirComando();
+    EXPECT_EQ(cmd.opcode, Opcode::USAR);
+    EXPECT_EQ(std::get<ComandoUsar>(cmd.payload).indiceItem, 3);
+}
+
+TEST_F(ProtocoloFixture, UsarIndiceCero) {
+    cliente->enviarComando({Opcode::USAR, ComandoUsar{0}});
+    EXPECT_EQ(std::get<ComandoUsar>(servidor->recibirComando().payload).indiceItem, 0);
+}
+
+TEST_F(ProtocoloFixture, UsarIndiceMaximo) {
+    cliente->enviarComando({Opcode::USAR, ComandoUsar{255}});
+    EXPECT_EQ(std::get<ComandoUsar>(servidor->recibirComando().payload).indiceItem, 255);
+}
+
 // Comercio y banco
 
 TEST_F(ProtocoloFixture, Comprar) {
@@ -180,6 +197,40 @@ TEST_F(ProtocoloFixture, RetirarOro) {
 TEST_F(ProtocoloFixture, Listar) {
     cliente->enviarComando({Opcode::LISTAR, ComandoListar{99}});
     EXPECT_EQ(std::get<ComandoListar>(servidor->recibirComando().payload).idNPC, 99);
+}
+
+// Hechizos
+
+TEST_F(ProtocoloFixture, ComprarHechizo) {
+    cliente->enviarComando({Opcode::COMPRAR_HECHIZO, ComandoComprarHechizo{42, 100}});
+    auto cmd = servidor->recibirComando();
+    EXPECT_EQ(cmd.opcode, Opcode::COMPRAR_HECHIZO);
+    auto p = std::get<ComandoComprarHechizo>(cmd.payload);
+    EXPECT_EQ(p.idHechizo, 42);
+    EXPECT_EQ(p.idSacerdote, 100);
+}
+
+TEST_F(ProtocoloFixture, ComprarHechizoValoresMaximos) {
+    cliente->enviarComando({Opcode::COMPRAR_HECHIZO, ComandoComprarHechizo{65535, 65535}});
+    auto p = std::get<ComandoComprarHechizo>(servidor->recibirComando().payload);
+    EXPECT_EQ(p.idHechizo, 65535);
+    EXPECT_EQ(p.idSacerdote, 65535);
+}
+
+TEST_F(ProtocoloFixture, LanzarHechizo) {
+    cliente->enviarComando({Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{7, 99}});
+    auto cmd = servidor->recibirComando();
+    EXPECT_EQ(cmd.opcode, Opcode::LANZAR_HECHIZO);
+    auto p = std::get<ComandoLanzarHechizo>(cmd.payload);
+    EXPECT_EQ(p.idHechizo, 7);
+    EXPECT_EQ(p.idObjetivo, 99);
+}
+
+TEST_F(ProtocoloFixture, LanzarHechizoValoresMaximos) {
+    cliente->enviarComando({Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{65535, 65535}});
+    auto p = std::get<ComandoLanzarHechizo>(servidor->recibirComando().payload);
+    EXPECT_EQ(p.idHechizo, 65535);
+    EXPECT_EQ(p.idObjetivo, 65535);
 }
 
 // Chat
@@ -246,6 +297,20 @@ TEST_F(ProtocoloFixture, ClanKick) {
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::CLAN_KICK);
 }
 
+// Cheats
+
+TEST_F(ProtocoloFixture, Cheat) {
+    cliente->enviarComando({Opcode::CHEAT, ComandoCheat{1}});
+    auto cmd = servidor->recibirComando();
+    EXPECT_EQ(cmd.opcode, Opcode::CHEAT);
+    EXPECT_EQ(std::get<ComandoCheat>(cmd.payload).tipo, 1);
+}
+
+TEST_F(ProtocoloFixture, CheatTipoMaximo) {
+    cliente->enviarComando({Opcode::CHEAT, ComandoCheat{255}});
+    EXPECT_EQ(std::get<ComandoCheat>(servidor->recibirComando().payload).tipo, 255);
+}
+
 // Varios comandos en el mismo socket
 
 TEST_F(ProtocoloFixture, SecuenciaDeComandosPreservaOrden) {
@@ -258,4 +323,16 @@ TEST_F(ProtocoloFixture, SecuenciaDeComandosPreservaOrden) {
     EXPECT_EQ(std::get<ComandoAtacar>(servidor->recibirComando().payload).idObjetivo, 99);
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::MEDITAR);
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::DETENER_MOVER);
+}
+
+TEST_F(ProtocoloFixture, SecuenciaMezcladaNuevosYViejos) {
+    cliente->enviarComando({Opcode::USAR, ComandoUsar{1}});
+    cliente->enviarComando({Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{5, 50}});
+    cliente->enviarComando({Opcode::EMPEZAR_MOVER, ComandoEmpezarMover{0}});
+    cliente->enviarComando({Opcode::CHEAT, ComandoCheat{3}});
+
+    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::USAR);
+    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::LANZAR_HECHIZO);
+    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::EMPEZAR_MOVER);
+    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::CHEAT);
 }

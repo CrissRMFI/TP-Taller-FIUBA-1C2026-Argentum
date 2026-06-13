@@ -6,6 +6,11 @@ import QmlCppExample
 Item {
     id: root
     property bool errorLogin: cargarPersonajeController.huboErrorLogin()
+    Component.onCompleted: {
+        if (root.errorLogin) {
+            audioMenu.reproducirEfecto("error")
+        }
+    }
 
     component ImageButton: Image {
         HoverHandler {
@@ -101,18 +106,24 @@ Item {
                 onTapped: {
                     root.errorLogin = false;
                     if (nickInput.text === "") {
+                        audioMenu.reproducirEfecto("error");
                         errorMessageNick.text = "";
                         errorUnirseMessage.text = "Por favor, complete el campo de nick.";
+
                     } else {
-                        errorUnirseMessage.text = "";
                         const nickValido = cargarPersonajeController.esNickValido(nickInput.text);
-
-                        errorMessageNick.text = !nickValido ? "El nick no debería tener espacios y debe ser menor o igual a 32 bytes." : "";
-
-                        if (nickValido) {
-                            cargarPersonajeController.setNick(nickInput.text);
-                            console.log("Intentando unirse a la partida...");
+                        if (!nickValido) {
+                            audioMenu.reproducirEfecto("error");
+                            errorMessageNick.text = "El nick no debería tener espacios y debe ser menor o igual a 32 bytes.";
+                            errorUnirseMessage.text = "";
+                            return;
                         }
+
+                        errorMessageNick.text = "";
+                        errorUnirseMessage.text = "";
+                        cargarPersonajeController.setNick(nickInput.text);
+                        console.log("Intentando unirse a la partida...");
+
                     }
                 }
             }
@@ -129,6 +140,7 @@ Item {
                 onTapped: {
                     console.log("Volviendo al menú principal");
                     cargarPersonajeController.volverAlMenu();
+                    audioMenu.reproducirEfecto("volver");
                 }
             }
             id: volverButton
@@ -144,6 +156,7 @@ Item {
                 onTapped: {
                     console.log("Rediriguiendo a la pantalla de creación de cuenta");
                     cargarPersonajeController.volverACrearCuenta();
+                    audioMenu.reproducirEfecto("click");
                 }
             }
             id: crearCuentaButton

@@ -2,12 +2,15 @@
 
 #include <memory>
 #include <ranges>
+#include <string>
 #include <utility>
 #include <vector>
 
 
 // Los ids de jugador arrancan en 1000 para no colisionar con los ids de los NPCs
-MonitorClientes::MonitorClientes(): proximoID(1000){}
+MonitorClientes::MonitorClientes(const std::string& rutaIndiceJugadores):
+    indicePersistido(rutaIndiceJugadores),
+    proximoID(1000) {}
 
 uint16_t MonitorClientes::almacenarID() {
     std::lock_guard<std::mutex> lock(mtx);
@@ -48,6 +51,21 @@ uint16_t MonitorClientes::idCliente(const std::string& nombre) {
         }
     }
     return 0;
+}
+
+bool MonitorClientes::nombreRegistrado(const std::string& nombre) {
+    std::lock_guard<std::mutex> lock(mtx);
+    for (const auto& [idCliente, clienteData] : nombresUsuariosConectados) {
+        if (clienteData == nombre) {
+            return true;
+        }
+    }
+    for (const auto& [idCliente, clienteData] : nombresUsuariosDesconectados) {
+        if (clienteData == nombre) {
+            return true;
+        }
+    }
+    return indicePersistido.obtenerOffset(nombre).has_value();
 }
 
 Queue<MensajeServidor>* MonitorClientes::getColasClientes(const uint16_t idCliente) {

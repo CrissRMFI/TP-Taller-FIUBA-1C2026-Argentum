@@ -400,9 +400,20 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
         case Opcode::VENDER:
             gestorAudio->reproducirEfecto("comercianteVender");
             break;
-        case Opcode::LISTAR:
-            gestorAudio->reproducirEfecto("comercianteBienvenida");
+        case Opcode::LISTAR: {
+            const std::optional<uint16_t> objetivo = handler.objetivoSeleccionado();
+            if (!objetivo.has_value()) {
+                break;
+            }
+            if (object_renderer.esBanquero(*objetivo)) {
+                gestorAudio->reproducirEfecto("banqueroBienvenida");
+            } else if (object_renderer.esSacerdote(*objetivo)) {
+                gestorAudio->reproducirEfecto("sacerdoteBienvenida");
+            } else if (object_renderer.esComerciante(*objetivo)) {
+                gestorAudio->reproducirEfecto("comercianteBienvenida");
+            }
             break;
+        }
         case Opcode::CURAR:
             gestorAudio->reproducirEfecto("sacerdoteInteraccion");
             break;
@@ -410,7 +421,7 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
         case Opcode::DEPOSITAR_ORO:
         case Opcode::RETIRAR_ITEM:
         case Opcode::RETIRAR_ORO:
-            gestorAudio->reproducirEfecto("banqueroBienvenida");
+            gestorAudio->reproducirEfecto("banqueroInteraccion");
             break;
         default:
             break;

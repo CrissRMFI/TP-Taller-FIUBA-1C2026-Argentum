@@ -65,22 +65,26 @@ bool Aceptador::verificarConexionCliente(uint16_t& idCliente,
                                          const handshakeInicial& handshake,
                                          ProtocoloServidor& protocolo_servidor) {
     if (!handshake.crearPersonaje) {
+        const uint16_t idExistente = monitorClientes.idCliente(handshake.nombre);
+        const bool nombreRegistrado = monitorClientes.nombreRegistrado(handshake.nombre);
+
         // checkear si el cliente existe
-            if (idCliente == 0) {
+            if (!nombreRegistrado) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
-                        .id = idCliente,
+                        .id = 0,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::NombreUsuarioNoEncontrado
                 });
                 return false;
-            } else if (monitorClientes.estaConectado(idCliente)) {
+            } else if (idExistente != 0 && monitorClientes.estaConectado(idExistente)) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
-                        .id = idCliente,
+                        .id = idExistente,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::UsuarioYaConectado
                 });
                 return false;
             }
+            idCliente = (idExistente != 0) ? idExistente : monitorClientes.almacenarID();
             protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
                     .id = idCliente,
                     .nick = handshake.nombre,
@@ -88,9 +92,9 @@ bool Aceptador::verificarConexionCliente(uint16_t& idCliente,
             });     
     } else {
         // checkear si el el nick no esta en uso
-        if (idCliente != 0) {
+        if (monitorClientes.nombreRegistrado(handshake.nombre)) {
                 protocolo_servidor.enviarEstadoUsuario(MensajeEstadoUsuario{
-                        .id = idCliente,
+                        .id = 0,
                         .nick = handshake.nombre,
                         .error = ErrorUsuario::NickYaExistente
                 });
