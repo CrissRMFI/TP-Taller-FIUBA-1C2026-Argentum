@@ -147,6 +147,8 @@ public:
     bool clickTabInventario(int x, int y) const;
     bool clickTabHechizos(int x, int y) const;
     bool esSacerdote(uint16_t id) const;
+    bool esBanquero(uint16_t id) const;
+    bool esComerciante(uint16_t id) const;
     // Inicia la animacion de FX de un hechizo sobre un objetivo (se dibuja unos frames).
     void iniciarFx(uint16_t spellId, uint16_t targetId);
     // Inicia un proyectil que viaja del origen al destino (ataque a distancia).

@@ -6,7 +6,7 @@
 
 [general]
 volumen_maestro = 90    # 0-100, escala todos los efectos
-volumen_musica  = 55    # 0-100
+volumen_musica  = 20    # 0-100
 radio_audible   = 18    # celdas: mas alla de esto, no suena
 
 # ------------------------------------------------------------
@@ -151,7 +151,8 @@ volumen = 85
 
 # --- Comerciante ---
 [efectos.comercianteBienvenida]
-path = "sound/comercianteBienvenida.ogg"
+#path = "sound/comercianteBienvenida.ogg"
+path = "sound/600.wav"
 volumen = 90
 
 [efectos.comercianteDespedida]
@@ -184,7 +185,12 @@ volumen = 70
 
 # --- Banquero ---
 [efectos.banqueroBienvenida]
-path = "sound/banqueroBienvenida.ogg"
+#path = "sound/banqueroBienvenida.ogg"
+path = "sound/611.wav"
+volumen = 90
+
+[efectos.banqueroInteraccion]
+path = "sound/612.wav"
 volumen = 90
 
 [efectos.banqueroDespedida]
@@ -196,9 +202,13 @@ path = "sound/banqueroAmbiente.ogg"
 volumen = 70
 
 # --- Sacerdote ---
+[efectos.sacerdoteBienvenida]
+path = "sound/622.wav"
+volumen = 100
+
 [efectos.sacerdoteInteraccion]
 path = "sound/sacerdoteInteraccion.ogg"
-volumen = 90
+volumen = 70
 
 [efectos.sacerdoteAmbiente]
 path = "sound/sacerdoteAmbiente.ogg"

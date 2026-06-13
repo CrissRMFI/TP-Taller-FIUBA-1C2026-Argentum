@@ -880,6 +880,14 @@ bool ObjectRenderer::esSacerdote(uint16_t id) const {
     return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
 }
 
+bool ObjectRenderer::esBanquero(uint16_t id) const {
+    return mapa.getBanqueros().find(id) != mapa.getBanqueros().end();
+}
+
+bool ObjectRenderer::esComerciante(uint16_t id) const {
+    return mapa.getComerciantes().find(id) != mapa.getComerciantes().end();
+}
+
 void ObjectRenderer::iniciarFx(uint16_t spellId, uint16_t targetId) {
     fx_activos.push_back({spellId, targetId, SDL_GetTicks()});
 }
