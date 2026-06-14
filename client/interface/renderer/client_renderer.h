@@ -1,9 +1,6 @@
-//
-// Created by victoria zubieta on 29/05/2026.
-//
-
 #ifndef TALLER_TP_CLIENT_RENDERER_H
 #define TALLER_TP_CLIENT_RENDERER_H
+#include <map>
 #include <memory>
 #include <unordered_set>
 #include <vector>
@@ -76,10 +73,12 @@ private:
     void actualizar_pos_visual(int tile_x, int tile_y, uint32_t now_tick);
     int window_width = 0;
     int window_height = 0;
-    Mapa mapa;
-    PlayerCamera camera;  // camara cenital: zoom + scroll centrado en el jugador
+    std::map<uint16_t, Mapa> mapas;
+    uint16_t mapaActual = 0;
+    PlayerCamera camera;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
-    Mapa cargarMapa() const;
+    std::map<uint16_t, Mapa> cargarMapas() const;
+    const Mapa& mapaVigente() const;
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
     void dibujar_banco(const EstadoBancoRender& banco);
@@ -117,10 +116,9 @@ private:
 
 public:
     ObjectRenderer();
-    int anchoMapa() const { return mapa.getAncho(); }
-    int altoMapa() const { return mapa.getAlto(); }
-    // Transform actual de la camara (para que el hit-test del click coincida con lo dibujado).
-    // camOffsetY ya incluye el corrimiento del chat (gy0).
+    int anchoMapa() const { return mapaVigente().getAncho(); }
+    int altoMapa() const { return mapaVigente().getAlto(); }
+    void setMapaActual(uint16_t id) { mapaActual = id; }
     int camOffsetX() const { return camera.get_offset_x(); }
     int camOffsetY() const { return chat_config.panelAlto + camera.get_offset_y(); }
     int camTileW() const { return camera.tile_width(); }

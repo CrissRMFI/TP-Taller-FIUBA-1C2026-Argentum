@@ -431,7 +431,10 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
     object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
-    // FX de hechizos que el server difundio (para que todos vean los lanzamientos).
+    // El jugador cambia de mapa (pasa por el portal)
+    object_renderer.setMapaActual(object_state.mapaActual());
+    handler.setMapaDimensiones(object_renderer.anchoMapa(), object_renderer.altoMapa());
+    
     for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
         object_renderer.iniciarFx(idHechizo, idObjetivo);
     }

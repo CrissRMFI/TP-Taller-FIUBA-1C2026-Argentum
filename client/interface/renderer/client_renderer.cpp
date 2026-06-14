@@ -20,18 +20,31 @@
 #define CLIENT_MAP_PATH "config/mapa.toml"
 #endif
 
-Mapa ObjectRenderer::cargarMapa() const {
+std::map<uint16_t, Mapa> ObjectRenderer::cargarMapas() const {
     try {
         LectorMapa lector_mapa;
-        return lector_mapa.leer(CLIENT_MAP_PATH).mapa;
+        // El cliente carga el escenario completo (exterior + mazmorras) para poder
+        // cambiar la capa de tiles cuando el jugador atraviesa un portal.
+        return lector_mapa.leerMundo(CLIENT_MAP_PATH).mapas;
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el mapa '" << CLIENT_MAP_PATH << "': " << e.what()
                   << ". Se usa un mapa vacio." << std::endl;
-        return Mapa(100, 100);
+        std::map<uint16_t, Mapa> fallback;
+        fallback.emplace(0, Mapa(100, 100));
+        return fallback;
     }
 }
 
-ObjectRenderer::ObjectRenderer() : mapa(cargarMapa()) {}
+const Mapa& ObjectRenderer::mapaVigente() const {
+    const auto it = mapas.find(mapaActual);
+    if (it != mapas.end()) {
+        return it->second;
+    }
+    // Si el mapa pedido no existe (no deberia pasar), caemos al primero disponible.
+    return mapas.begin()->second;
+}
+
+ObjectRenderer::ObjectRenderer() : mapas(cargarMapas()) {}
 
 void ObjectRenderer::init(const char* title,
                           const int xpos,
@@ -218,8 +231,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (!renderer) {
         return;
     }
+    
+    const Mapa& mapa = mapaVigente();
     const uint32_t current_tick = SDL_GetTicks();
-    // El mundo se dibuja en el area de juego: a la izquierda del panel y DEBAJO del chat.
+    
     const int gw = ancho_juego();
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
@@ -877,14 +892,17 @@ uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
 }
 
 bool ObjectRenderer::esSacerdote(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
 }
 
 bool ObjectRenderer::esBanquero(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getBanqueros().find(id) != mapa.getBanqueros().end();
 }
 
 bool ObjectRenderer::esComerciante(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getComerciantes().find(id) != mapa.getComerciantes().end();
 }
 
