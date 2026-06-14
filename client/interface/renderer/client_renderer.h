@@ -76,8 +76,9 @@ private:
     int window_width = 0;
     int window_height = 0;
     std::map<uint16_t, Mapa> mapas;
-    std::vector<Portal> portales;  // para dibujar el marcador en la celda de cada portal
+    std::vector<Portal> portales;
     uint16_t mapaActual = 0;
+    uint16_t mapaPrincipalId = 0;
     PlayerCamera camera;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     WorldCargado cargarMundo() const;
@@ -122,6 +123,7 @@ public:
     int anchoMapa() const { return mapaVigente().getAncho(); }
     int altoMapa() const { return mapaVigente().getAlto(); }
     void setMapaActual(uint16_t id) { mapaActual = id; }
+    uint16_t getMapaPrincipal() const { return mapaPrincipalId; }  // exterior; otros = mazmorra
     int camOffsetX() const { return camera.get_offset_x(); }
     int camOffsetY() const { return chat_config.panelAlto + camera.get_offset_y(); }
     int camTileW() const { return camera.tile_width(); }

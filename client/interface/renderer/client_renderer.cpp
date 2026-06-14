@@ -48,6 +48,7 @@ ObjectRenderer::ObjectRenderer() {
     mapas = std::move(mundo.mapas);
     portales = std::move(mundo.portales);
     mapaActual = mundo.mapaPrincipalId;
+    mapaPrincipalId = mundo.mapaPrincipalId;
 }
 
 void ObjectRenderer::init(const char* title,
@@ -252,14 +253,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int camY = gy0 + camera.get_offset_y();
     const auto scrX = [&](double tile) { return camX + static_cast<int>(tile * tileW); };
     const auto scrY = [&](double tile) { return camY + static_cast<int>(tile * tileH); };
-
-    bool esCaverna = false;
-    for (const ZonaPiso& z : mapa.getPisos()) {
-        if (z.clave == "caverna") {
-            esCaverna = true;
-            break;
-        }
-    }
+    const bool esCaverna = (mapaActual != mapaPrincipalId);
 
     renderer->SetDrawColor(0, 0, 0, 255);
     renderer->Clear();
@@ -303,8 +297,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const auto texturaPiso = [](const std::string& clave) -> std::string {
         if (clave == "desierto") return "imgs/mapas/desierto.png";
         if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
-        if (clave == "caverna")  return "imgs/mazmorras/entrada1Piso.png";
-        return "imgs/mapas/pasto.png";
+        if (clave == "pasto")    return "imgs/mapas/pasto.png";
+        return "imgs/mazmorras/piso_" + clave + ".png";
     };
     {
         const int paso = 48;
@@ -352,7 +346,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
     }
 
-    
+
     {
         SDL2pp::Texture* texPortal = nullptr;
         try {
@@ -360,7 +354,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         } catch (const std::exception&) {
             texPortal = nullptr;
         }
-        const double altoPortal = 2.6;
+        const double altoPortal = 6.0;  // alto en celdas (landmark grande, bien visible)
         if (texPortal) {
             for (const Portal& portal : portales) {
                 if (portal.origen.mapaId != mapaActual) continue;

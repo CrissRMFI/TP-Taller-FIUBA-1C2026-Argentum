@@ -72,10 +72,12 @@ alto    = 40
 entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }
 salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }
 
-# Toda la mazmorra se pinta como caverna (visual propio; el tile se agrega al
-# renderizar la mazmorra en un paso posterior).
+# Pisos de la mazmorra
 pisos = [
-  { x_min = 0, y_min = 0, x_max = 39, y_max = 39, clave = "caverna" },
+  { x_min = 0,  y_min = 0,  x_max = 39, y_max = 39, clave = "piedra_oscura" },   # base de la caverna
+  { x_min = 26, y_min = 26, x_max = 39, y_max = 39, clave = "ladrillo_oscuro" },  # sala del jefe (fondo)
+  { x_min = 0,  y_min = 0,  x_max = 9,  y_max = 9,  clave = "adoquin_gris" },     # zona de entrada/salida
+  { x_min = 13, y_min = 24, x_max = 23, y_max = 34, clave = "piedra_musgosa" },   # rincon humedo con musgo
 ]
 
 # Algunas paredes interiores para darle forma de caverna.
