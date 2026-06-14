@@ -99,6 +99,7 @@ private:
     MensajeServidor recibirListaHechizos();
     MensajeServidor recibirFxHechizo();
     MensajeServidor recibirProyectil();
+    MensajeServidor recibirCambioMapa();
     MensajeServidor recibirErrorAccion();
 };
 

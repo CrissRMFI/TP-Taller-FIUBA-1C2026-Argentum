@@ -59,3 +59,46 @@ npcs = [
   { id = 5, tipo = "comerciante", x = 40, y = 40 },
   { id = 6, tipo = "banquero", x = 60, y = 60 },
 ]
+
+# ── Mazmorra 
+# Submapa independiente (mapa_id 1) vinculado al exterior por una entrada/salida.
+# El servidor lo carga via leerMundo() como un Mapa aparte; al pisar 'entrada' el jugador es transportado a la mazmorra. 
+# entrada: celda del exterior -> aparece en (destino_x, destino_y) de la mazmorra.
+# salida : celda de la mazmorra -> vuelve a (destino_x, destino_y) del exterior.
+[[mazmorra]]
+mapa_id = 1
+ancho   = 40
+alto    = 40
+entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }
+salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }
+
+# Pisos de la mazmorra
+pisos = [
+  { x_min = 0,  y_min = 0,  x_max = 39, y_max = 39, clave = "piedra_oscura" },   # base de la caverna
+  { x_min = 26, y_min = 26, x_max = 39, y_max = 39, clave = "ladrillo_oscuro" },  # sala del jefe (fondo)
+  { x_min = 0,  y_min = 0,  x_max = 9,  y_max = 9,  clave = "adoquin_gris" },     # zona de entrada/salida
+  { x_min = 13, y_min = 24, x_max = 23, y_max = 34, clave = "piedra_musgosa" },   # rincon humedo con musgo
+]
+
+# Algunas paredes interiores para darle forma de caverna.
+paredes = [
+  { x = 18, y = 18 }, { x = 19, y = 18 }, { x = 20, y = 18 }, { x = 21, y = 18 },
+  { x = 18, y = 21 }, { x = 19, y = 21 }, { x = 20, y = 21 }, { x = 21, y = 21 },
+]
+
+# Criaturas de la mazmorra: posicion de INICIO fija, pero se mueven
+# (deambulan y persiguen/atacan dentro de su rango de aggro). Nunca
+# cruzan el portal ni agreden a jugadores de otro mapa. Respawnean segun 'respawn_ticks'
+criaturas = [
+  { tipo = "centinela_piedra",   id = 50001, x = 8,  y = 6  },
+  { tipo = "centinela_piedra",   id = 50002, x = 6,  y = 12 },
+  { tipo = "centinela_piedra",   id = 50003, x = 12, y = 8  },
+  { tipo = "guerrero_ancestral", id = 50004, x = 24, y = 8  },
+  { tipo = "guerrero_ancestral", id = 50005, x = 30, y = 14 },
+  { tipo = "guerrero_ancestral", id = 50006, x = 16, y = 28 },
+  { tipo = "aberracion",         id = 50007, x = 28, y = 26 },
+  { tipo = "aberracion",         id = 50008, x = 10, y = 32 },
+  { tipo = "coloso_roca",        id = 50009, x = 33, y = 20 },
+  { tipo = "coloso_roca",        id = 50010, x = 20, y = 33 },
+  { tipo = "senor_abismo",       id = 50011, x = 35, y = 35 },
+]

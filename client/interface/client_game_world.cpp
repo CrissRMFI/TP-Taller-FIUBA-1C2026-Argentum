@@ -67,7 +67,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                                                  entity_position->cuerpo,
                                                                  entity_position->arma,
                                                                  entity_position->escudo,
-                                                                 entity_position->casco};
+                                                                 entity_position->casco,
+                                                                 entity_position->mapaId};
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
             if (position_changed) {
@@ -87,12 +88,28 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             if (entity_position->id == idCliente) {
                 posX = entity_position->x;
                 posY = entity_position->y;
-                // El sonido de pasos se maneja como loop al final, segun is_moving.
+                mapaActual_ = entity_position->mapaId;
             } else if (esNueva && entity_position->tipo == 1) {  // criatura nueva en pantalla
                 gestorAudio.reproducirEfectoPosicional(
                         "criaturaAparece",
                         distanciaAlJugador(entity_position->x, entity_position->y));
             }
+        } else if (auto* cambio_mapa = std::get_if<MensajeCambioMapa>(&mensaje.payload)) {
+            // El jugador local cruzo un portal. El server no manda ENTIDAD_DESAPARECIO
+            // de las entidades del mapa viejo (solo avisa a los que se quedan), asi que
+            // las purgamos nosotros y dejamos solo al jugador local; el snapshot del
+            // mapa destino (que llega a continuacion) repuebla la escena.
+            mapaActual_ = cambio_mapa->mapaId;
+            for (auto it = entidades.begin(); it != entidades.end();) {
+                if (it->first == idCliente) {
+                    ++it;
+                } else {
+                    animation_states.erase(it->first);
+                    it = entidades.erase(it);
+                }
+            }
+            oroEnSuelo_.clear();
+            itemEnSuelo_.clear();
         } else if (auto* entity_disappeared = std::get_if<MensajeEntidadDesaparecio>(&mensaje.payload)) {
             entidades.erase(entity_disappeared->id);
             animation_states.erase(entity_disappeared->id);

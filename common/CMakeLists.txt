@@ -23,6 +23,7 @@ target_sources(taller_common
     game/npc/comerciante.cpp
     game/npc/banquero.cpp
     game/mapa/mapa.cpp
+    game/mapa/mundo.cpp
 
     # Persistencia binaria de mapas (.bin)
     persistencia/error_persistencia.cpp
@@ -65,6 +66,8 @@ target_sources(taller_common
     game/npc/comerciante.h
     game/npc/banquero.h
     game/mapa/mapa.h
+    game/mapa/mundo.h
+    game/mapa/portal.h
 
     # Persistencia de mapas (escenario en TOML)
     persistencia/error_persistencia.h

@@ -96,6 +96,7 @@ void ClientGameLoop::init(const char* title,
     gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
                                                 resourcesRoot);
     gestorAudio->reproducirMusica("campo");
+    mapaAnteriorAudio = object_renderer.getMapaPrincipal();
 
     const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
     int it = 0;
@@ -431,7 +432,20 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
     object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
-    // FX de hechizos que el server difundio (para que todos vean los lanzamientos).
+    // El jugador cambia de mapa (pasa por el portal)
+    const uint16_t mapaAhora = object_state.mapaActual();
+    object_renderer.setMapaActual(mapaAhora);
+    handler.setMapaDimensiones(object_renderer.anchoMapa(), object_renderer.altoMapa());
+
+    // Audio por contexto de mapa: musica de mazmorra vs campo, y pasos de caverna vs normales (ambos idempotentes). Al cambiar de mapa, un golpe de transicion de portal.
+    const bool enMazmorra = (mapaAhora != object_renderer.getMapaPrincipal());
+    gestorAudio->reproducirMusica(enMazmorra ? "mazmorra" : "campo");
+    gestorAudio->setClavePasos(enMazmorra ? "entrarCaverna" : "pasos");
+    if (mapaAhora != mapaAnteriorAudio) {
+        gestorAudio->reproducirEfecto("transicionPortal");
+        mapaAnteriorAudio = mapaAhora;
+    }
+    
     for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
         object_renderer.iniciarFx(idHechizo, idObjetivo);
     }

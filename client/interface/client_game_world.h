@@ -54,6 +54,8 @@ private:
     uint16_t idCliente;
     int posX;
     int posY;
+    // Nestro contrado va a ser mapaActual = 0 es el exterior, y > 0 son mazmorrras 
+    uint16_t mapaActual_ = 0;
 
     uint8_t nivelAnterior;
     uint8_t estadoAnterior;
@@ -102,6 +104,7 @@ public:
 
     const std::unordered_map<uint16_t, EntidadRenderizable>& entities() const;
     uint16_t client_id() const;
+    uint16_t mapaActual() const { return mapaActual_; }
     int player_x() const;
     int player_y() const;
     bool player_is_moving() const;

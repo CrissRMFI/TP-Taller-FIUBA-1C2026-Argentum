@@ -18,6 +18,7 @@
 #include "jugador.h"
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
+#include "../../common/game/mapa/mundo.h"
 #include "../../common/persistencia/catalogo_criaturas.h"
 #include "objeto/catalogo_items.h"
 #include "objeto/hechizo.h"
@@ -28,7 +29,7 @@
 class Juego {
   public:
     Juego(const ConfigJuego& cfg, CatalogoItems&& catalogo, CatalogoHechizos&& hechizos,
-          CatalogoCriaturas&& criaturas, Mapa&& mapa);
+          CatalogoCriaturas&& criaturas, Mundo&& mundo);
 
     // La posicion inicial la decide el dominio leyendo cfg.spawnInicial; la capa de red no la dicta. Eso mantiene a Server/Aceptador/Cliente agnosticos del concepto de Posicion.
     std::list<EventoSalida> conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo);
@@ -53,9 +54,17 @@ class Juego {
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
-    Mapa mapa;
+    Mundo mundo;
     uint64_t ticksTranscurridos;
     std::unordered_map<uint16_t, uint64_t> ultimoTickAtaqueCriatura;
+    struct RespawnPendiente {
+        uint64_t                tickObjetivo;
+        TipoCriatura            tipo;
+        uint16_t                mapaId;
+        std::optional<Posicion> posicionFija;
+    };
+    std::vector<RespawnPendiente> respawnsPendientes;
+    std::map<TipoCriatura, Posicion> tronosPorTipo;
     Aleatorio aleatorio;
 
     // Persistencia: indice nombre->offset en RAM + lector/escritor de los
@@ -92,6 +101,8 @@ class Juego {
     EventoSalida armarPosicionNpcPara(uint16_t idCliente, uint16_t idNpc,
                                       const Posicion& posicion, uint16_t cuerpo);
     std::list<EventoSalida> armarPosicionesNpcPara(uint16_t idCliente);
+    std::list<EventoSalida> armarSnapshotMapaPara(uint16_t idCliente, const Jugador& jugador);
+    std::list<EventoSalida> procesarPortalSiCorresponde(uint16_t idCliente, Jugador& jugador);
     uint8_t estadoEntidadDe(const Jugador& jugador) const;
     std::list<EventoSalida> armarDesaparicionParaMapa(const Jugador& jugador);
     std::list<EventoSalida> armarPosicionParaMapa(const Jugador& jugador);
@@ -106,12 +117,19 @@ class Juego {
     bool agregarCriatura(const Criatura& criatura);
     std::list<EventoSalida> intentarSpawnCriatura();
     std::optional<uint16_t> reservarIdCriatura();
-    std::optional<Posicion> buscarPosicionSpawnCriatura();
+    std::optional<Posicion> buscarPosicionSpawnCriaturaEn(uint16_t mapaId);
     bool puedeSpawnearCriaturaEn(const Posicion& posicion) const;
+    // Agenda el respawn de una criatura recien muerta si su tipo tiene respawn_ticks > 0.
+    void programarRespawnSiCorresponde(TipoCriatura tipo, uint16_t mapaId);
+    // Reaparece las criaturas cuyo tick de respawn ya se cumplio (una por mapa libre).
+    std::list<EventoSalida> procesarRespawns();
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
     std::list<EventoSalida> ejecutarMeditar(uint16_t idCliente);
     std::list<EventoSalida> ejecutarResucitar(uint16_t idCliente);
+    // Resucita a un fantasma cuyo mapa no tiene sacerdote (mazmorra): lo cruza al
+    // exterior junto al sacerdote mas cercano a la ciudad ancla y lo revive ahi.
+    std::list<EventoSalida> resucitarEnExterior(uint16_t idCliente, Jugador& jugador);
     std::list<EventoSalida> ejecutarTomar(uint16_t idCliente);
     // Levanta el oro y/o item de la celda del jugador (silencioso, sin errores).
     // Devuelve los eventos a difundir; vacio si no habia nada.

@@ -33,6 +33,8 @@ private:
     // Canal dedicado para el loop de pasos (-1 si no esta sonando).
     int canalPasos;
     bool pasosActivos;
+    // Clave del efecto de pasos segun el contexto (exterior = "pasos", mazmorra = otro).
+    std::string clavePasos = "pasos";
 
     // Canal dedicado para el loop del tiempo de resurreccion (-1 si no esta sonando).
     int canalResurreccion;
@@ -62,6 +64,9 @@ public:
     // Loop de pasos en un canal dedicado: arranca al empezar a caminar y se corta al detenerse
     void reproducirPasos();
     void detenerPasos();
+    // Cambia el efecto de pasos segun el contexto (p. ej. caverna dentro de la mazmorra).
+    // Si cambia mientras suena, corta el loop actual para que el proximo paso use el nuevo.
+    void setClavePasos(const std::string& clave);
 
     // Resurreccion: mientras transcurre el tiempo inmovil suena 'transcurrirTiempo' en loop y
     // es lo unico que se escucha (se cortan los demas efectos y se pausa la musica). Al revivir

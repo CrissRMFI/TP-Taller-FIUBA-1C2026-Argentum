@@ -24,9 +24,18 @@ path = "sound/ambienteCiudad.ogg"
 [musica.combate]
 path = "sound/musicaCombate.ogg"
 
+[musica.mazmorra]
+path = "sound/mazmorra.ogg"
+
 # ------------------------------------------------------------
 #  Efectos de sonido. 'volumen' es 0-100 (volumen base del efecto).
 # ------------------------------------------------------------
+
+# --- Mazmorra: golpe de transicion al cruzar el portal (entrada/salida).
+# Los pasos dentro de la caverna reusan [efectos.entrarCaverna] (definido mas abajo).
+[efectos.transicionPortal]
+path = "sound/transicionPortal.ogg"
+volumen = 70
 
 # --- Combate ---
 [efectos.ataqueEspada]
@@ -238,7 +247,7 @@ volumen = 55
 
 [efectos.entrarCaverna]
 path = "sound/entrarCaverna.ogg"
-volumen = 90
+volumen = 15
 
 # --- Clan ---
 [efectos.clanMiembroEntra]

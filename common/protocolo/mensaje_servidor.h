@@ -35,6 +35,7 @@ struct MensajePosicionEntidad {
     uint16_t arma = 0;
     uint16_t escudo = 0;
     uint16_t casco = 0;
+    uint16_t mapaId = 0;
 };
 
 struct MensajeEntidadDesaparecio {
@@ -162,6 +163,11 @@ struct MensajeProyectil {
   uint16_t idDestino;
 };
 
+// Servidor -> Cliente: el jugador local cambio de mapa (atraveso un portal).
+struct MensajeCambioMapa {
+  uint16_t mapaId;
+};
+
 struct MensajeErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -189,6 +195,7 @@ using PayloadMensajeServidor = std::variant<
         MensajeListaHechizos,
         MensajeFxHechizo,
         MensajeProyectil,
+        MensajeCambioMapa,
         MensajeEstadoUsuario>;
 
 

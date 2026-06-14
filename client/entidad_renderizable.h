@@ -13,6 +13,7 @@ struct EntidadRenderizable {
     uint16_t arma = 0;    // sprite del arma/baculo equipado (overlay; 0 = ninguno)
     uint16_t escudo = 0;  // sprite del escudo equipado (overlay; 0 = ninguno)
     uint16_t casco = 0;   // sprite del casco equipado (overlay; 0 = ninguno)
+    uint16_t mapaId = 0;  // mapa al que pertenece la entidad (para no dibujar la de otro mapa)
 };
 
 #endif

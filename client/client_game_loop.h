@@ -38,6 +38,7 @@ private:
     std::string bancoMonto;
     bool bancoMontoActivo = false;
     bool is_running;
+    uint16_t mapaAnteriorAudio = 0;
 
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
     void manejarClickPanel(int x, int y);

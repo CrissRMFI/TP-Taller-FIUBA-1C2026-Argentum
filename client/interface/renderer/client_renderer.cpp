@@ -20,18 +20,36 @@
 #define CLIENT_MAP_PATH "config/mapa.toml"
 #endif
 
-Mapa ObjectRenderer::cargarMapa() const {
+WorldCargado ObjectRenderer::cargarMundo() const {
     try {
         LectorMapa lector_mapa;
-        return lector_mapa.leer(CLIENT_MAP_PATH).mapa;
+        return lector_mapa.leerMundo(CLIENT_MAP_PATH);
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el mapa '" << CLIENT_MAP_PATH << "': " << e.what()
                   << ". Se usa un mapa vacio." << std::endl;
-        return Mapa(100, 100);
+        WorldCargado fallback;
+        fallback.mapas.emplace(0, Mapa(100, 100));
+        fallback.mapaPrincipalId = 0;
+        return fallback;
     }
 }
 
-ObjectRenderer::ObjectRenderer() : mapa(cargarMapa()) {}
+const Mapa& ObjectRenderer::mapaVigente() const {
+    const auto it = mapas.find(mapaActual);
+    if (it != mapas.end()) {
+        return it->second;
+    }
+    // Si el mapa pedido no existe (no deberia pasar), caemos al primero disponible.
+    return mapas.begin()->second;
+}
+
+ObjectRenderer::ObjectRenderer() {
+    WorldCargado mundo = cargarMundo();
+    mapas = std::move(mundo.mapas);
+    portales = std::move(mundo.portales);
+    mapaActual = mundo.mapaPrincipalId;
+    mapaPrincipalId = mundo.mapaPrincipalId;
+}
 
 void ObjectRenderer::init(const char* title,
                           const int xpos,
@@ -218,8 +236,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (!renderer) {
         return;
     }
+    
+    const Mapa& mapa = mapaVigente();
     const uint32_t current_tick = SDL_GetTicks();
-    // El mundo se dibuja en el area de juego: a la izquierda del panel y DEBAJO del chat.
+    
     const int gw = ancho_juego();
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
@@ -233,12 +253,13 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int camY = gy0 + camera.get_offset_y();
     const auto scrX = [&](double tile) { return camX + static_cast<int>(tile * tileW); };
     const auto scrY = [&](double tile) { return camY + static_cast<int>(tile * tileH); };
+    const bool esCaverna = (mapaActual != mapaPrincipalId);
 
     renderer->SetDrawColor(0, 0, 0, 255);
     renderer->Clear();
     // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se desbordan por debajo del panel ni del chat.
     renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));
-    if (background_texture) {
+    if (background_texture && !esCaverna) {
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
         SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
@@ -276,7 +297,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const auto texturaPiso = [](const std::string& clave) -> std::string {
         if (clave == "desierto") return "imgs/mapas/desierto.png";
         if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
-        return "imgs/mapas/pasto.png";
+        if (clave == "pasto")    return "imgs/mapas/pasto.png";
+        return "imgs/mazmorras/piso_" + clave + ".png";
     };
     {
         const int paso = 48;
@@ -322,6 +344,30 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int cx = scrX(o.x) + tileW / 2;   // centro horizontal de la celda
         const int by = scrY(o.y) + tileH;       // base = borde inferior de la celda
         renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
+    }
+
+
+    {
+        SDL2pp::Texture* texPortal = nullptr;
+        try {
+            texPortal = &cache_texture->get_or_load("imgs/mazmorras/entrada_marcador.png");
+        } catch (const std::exception&) {
+            texPortal = nullptr;
+        }
+        const double altoPortal = 6.0;  // alto en celdas (landmark grande, bien visible)
+        if (texPortal) {
+            for (const Portal& portal : portales) {
+                if (portal.origen.mapaId != mapaActual) continue;
+                if (!camera.is_visible(portal.origen.x, portal.origen.y)) continue;
+                const int th = std::max(1, static_cast<int>(tileH * altoPortal));
+                const int tw = std::max(1, th * texPortal->GetWidth() /
+                                                std::max(1, texPortal->GetHeight()));
+                const int cx = scrX(portal.origen.x) + tileW / 2;
+                const int by = scrY(portal.origen.y) + tileH;
+                renderer->Copy(*texPortal, SDL2pp::NullOpt,
+                               SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
+            }
+        }
     }
 
     // --- Paredes: ladrillo (si falla la textura, rect oscuro) ---
@@ -410,6 +456,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     } 
 
     for (const auto& [id, entity] : state_object.entities()) {
+        if (entity.mapaId != mapaActual) {
+            continue;
+        }
         const int cell_width = tileW;
         const int cell_height = tileH;
         // El jugador local se dibuja en su posicion visual continua (suave); el resto
@@ -877,14 +926,17 @@ uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
 }
 
 bool ObjectRenderer::esSacerdote(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
 }
 
 bool ObjectRenderer::esBanquero(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getBanqueros().find(id) != mapa.getBanqueros().end();
 }
 
 bool ObjectRenderer::esComerciante(uint16_t id) const {
+    const Mapa& mapa = mapaVigente();
     return mapa.getComerciantes().find(id) != mapa.getComerciantes().end();
 }
 

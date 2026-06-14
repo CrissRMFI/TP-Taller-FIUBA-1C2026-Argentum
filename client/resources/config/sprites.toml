@@ -391,6 +391,47 @@ src = [5, 2, 15, 43]
 size = [15, 44]
 offset = [0, 0]
 
+# --- Criaturas de mazmorra (frames estaticos recortados de los spritesheets de entrada1) ---
+[creatures.centinela_piedra]
+id = 2206
+part = "body"
+path = "imgs/criaturas/mazmorra_centinela.png"
+src = [0, 0, 28, 62]
+size = [25, 55]
+offset = [0, 0]
+
+[creatures.guerrero_ancestral]
+id = 2207
+part = "body"
+path = "imgs/criaturas/mazmorra_ancestral.png"
+src = [0, 0, 82, 207]
+size = [23, 58]
+offset = [0, 0]
+
+[creatures.aberracion]
+id = 2208
+part = "body"
+path = "imgs/criaturas/mazmorra_aberracion.png"
+src = [0, 0, 130, 198]
+size = [39, 60]
+offset = [0, 0]
+
+[creatures.coloso_roca]
+id = 2209
+part = "body"
+path = "imgs/criaturas/mazmorra_coloso.png"
+src = [0, 0, 85, 155]
+size = [32, 58]
+offset = [0, 0]
+
+[creatures.senor_abismo]
+id = 2210
+part = "body"
+path = "imgs/criaturas/mazmorra_abismal.png"
+src = [0, 0, 115, 150]
+size = [65, 85]
+offset = [0, 0]
+
 
 # Catalogo de NPCs
 [npcs.comerciante]

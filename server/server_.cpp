@@ -24,10 +24,10 @@ void Server::run() {
     MonitorClientes monitor_clientes(config_completa.juego.rutaIndiceJugadores);
 
     LectorMapa lector_mapa;
-    MapaCargado mapaCargado = lector_mapa.leer(config_completa.juego.mapaArchivo,
-                                               config_completa.criaturas);
+    WorldCargado mundoCargado = lector_mapa.leerMundo(config_completa.juego.mapaArchivo, config_completa.criaturas);
+    Mundo mundo(std::move(mundoCargado.mapas), std::move(mundoCargado.portales), mundoCargado.mapaPrincipalId);
 
-    Gameloop gameloop(monitor_clientes, std::move(config_completa), std::move(mapaCargado.mapa));
+    Gameloop gameloop(monitor_clientes, std::move(config_completa), std::move(mundo));
     Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,
                         gameloop.getColaEventosSesion());
     aceptador.start();
@@ -43,9 +43,3 @@ void Server::run() {
 }
 
 Server::~Server() = default;
-
-/*
- * Todavia no puedo conectar gameloop me falla porque al iniciar el juego se instancia el mapa y lanza la excepcion:
-*./cmake-build-debug/taller_server 5000
- --> fatal: Las dimensiones del mapa deben ser mayores a cero
- */

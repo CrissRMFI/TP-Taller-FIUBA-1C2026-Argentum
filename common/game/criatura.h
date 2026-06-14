@@ -13,7 +13,13 @@ enum class TipoCriatura {
     Zombie,
     Arania,
     Orco,
-    Golem
+    Golem,
+    // Criaturas exclusivas de mazmorra (mucho mas fuertes; recompensas mayores).
+    CentinelaPiedra,
+    GuerreroAncestral,
+    Aberracion,
+    ColosoRoca,
+    SenorAbismo
 };
 
 class Criatura {

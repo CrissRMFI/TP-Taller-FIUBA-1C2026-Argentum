@@ -32,9 +32,10 @@ struct EventoPosicionEntidad {
     uint8_t  estado;
     uint16_t cabeza;
     uint16_t cuerpo;
-    uint16_t arma = 0; // sprite del arma/baculo equipado (0 = ninguno)
-    uint16_t escudo = 0; // sprite del escudo equipado (0 = ninguno)
-    uint16_t casco = 0; // sprite del casco equipado (0 = ninguno)
+    uint16_t arma = 0;
+    uint16_t escudo = 0;
+    uint16_t casco = 0;
+    uint16_t mapaId = 0;
 };
 
 struct EventoEntidadDesaparecio {
@@ -149,6 +150,10 @@ struct EventoProyectil {
     uint16_t idDestino;
 };
 
+struct EventoCambioMapa {
+    uint16_t mapaId;
+};
+
 struct EventoErrorAccion {
     CodigoErrorAccion codigo;
 };
@@ -175,6 +180,7 @@ using EventoJuego = std::variant<
         EventoListaHechizos,
         EventoFxHechizo,
         EventoProyectil,
+        EventoCambioMapa,
         EventoErrorAccion>;
 
 #endif

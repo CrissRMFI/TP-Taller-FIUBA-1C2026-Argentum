@@ -533,6 +533,10 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
             enviarProyectil(std::get<MensajeProyectil>(mensaje.payload));
             break;
 
+        case Opcode::CAMBIO_MAPA:
+            enviarCambioMapa(std::get<MensajeCambioMapa>(mensaje.payload));
+            break;
+
         case Opcode::ERROR_ACCION:
             enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
             break;
@@ -575,6 +579,7 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     enviarDosBytes(mensaje.arma);
     enviarDosBytes(mensaje.escudo);
     enviarDosBytes(mensaje.casco);
+    enviarDosBytes(mensaje.mapaId);
 }
 
 void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
@@ -719,6 +724,11 @@ void ProtocoloServidor::enviarProyectil(const MensajeProyectil& mensaje) {
     enviarUnByte(static_cast<uint8_t>(Opcode::PROYECTIL));
     enviarDosBytes(mensaje.idOrigen);
     enviarDosBytes(mensaje.idDestino);
+}
+
+void ProtocoloServidor::enviarCambioMapa(const MensajeCambioMapa& mensaje) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::CAMBIO_MAPA));
+    enviarDosBytes(mensaje.mapaId);
 }
 
 void ProtocoloServidor::enviarContenidoBanco(const MensajeContenidoBanco& mensaje) {

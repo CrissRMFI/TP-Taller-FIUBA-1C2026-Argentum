@@ -204,17 +204,27 @@ void GestorAudio::reproducirPasos() {
     if (!audioOk || pasosActivos || resurreccionActiva) {
         return;  // inmovil resucitando: no hay pasos y el unico sonido es el del tiempo
     }
-    const auto it = efectos.find("pasos");
+    const auto it = efectos.find(clavePasos);
     if (it == efectos.end() || !it->second) {
         return;
     }
     try {
         canalPasos = mixer->PlayChannel(-1, *it->second, -1);  // -1 loops = loop infinito
-        mixer->SetVolume(canalPasos, volumenCanal["pasos"]);
+        mixer->SetVolume(canalPasos, volumenCanal[clavePasos]);
         pasosActivos = true;
     } catch (const std::exception&) {
         canalPasos = -1;
     }
+}
+
+void GestorAudio::setClavePasos(const std::string& clave) {
+    if (clave == clavePasos) {
+        return;
+    }
+    clavePasos = clave;
+    // Si veniamos caminando, cortamos el loop actual para que el proximo paso ya use
+    // el nuevo sonido (p. ej. al cruzar a la mazmorra mientras se camina).
+    detenerPasos();
 }
 
 void GestorAudio::detenerPasos() {

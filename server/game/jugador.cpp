@@ -337,6 +337,10 @@ void Jugador::mover_a(uint16_t x, uint16_t y) {
     posicion.y = y;
 }
 
+void Jugador::reubicar(const Posicion& nuevaPosicion) {
+    posicion = nuevaPosicion;
+}
+
 void Jugador::empezarMover(uint8_t direccion) {
     moviendose = true;
     direccionMov = direccion;

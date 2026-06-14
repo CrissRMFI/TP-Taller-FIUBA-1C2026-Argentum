@@ -410,6 +410,9 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
         case Opcode::PROYECTIL:
             return recibirProyectil();
 
+        case Opcode::CAMBIO_MAPA:
+            return recibirCambioMapa();
+
         case Opcode::ERROR_ACCION:
             return recibirErrorAccion();
 
@@ -465,13 +468,14 @@ MensajeServidor ProtocoloCliente::recibirPosicionEntidad() {
     uint16_t arma = recibirDosBytes();
     uint16_t escudo = recibirDosBytes();
     uint16_t casco = recibirDosBytes();
+    uint16_t mapaId = recibirDosBytes();
 
     validarTipoEntidad(tipo);
     validarEstadoEntidad(estado);
 
     return MensajeServidor{
             Opcode::POSICION_ENTIDAD,
-            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo, arma, escudo, casco},
+            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo, arma, escudo, casco, mapaId},
     };
 }
 
@@ -612,6 +616,11 @@ MensajeServidor ProtocoloCliente::recibirProyectil() {
     uint16_t idOrigen = recibirDosBytes();
     uint16_t idDestino = recibirDosBytes();
     return MensajeServidor{Opcode::PROYECTIL, MensajeProyectil{idOrigen, idDestino}};
+}
+
+MensajeServidor ProtocoloCliente::recibirCambioMapa() {
+    uint16_t mapaId = recibirDosBytes();
+    return MensajeServidor{Opcode::CAMBIO_MAPA, MensajeCambioMapa{mapaId}};
 }
 
 MensajeServidor ProtocoloCliente::recibirListaHechizos() {
