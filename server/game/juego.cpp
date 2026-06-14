@@ -118,32 +118,9 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
 
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
 
-    for (const auto& [idOtro, otro] : jugadoresConectados) {
-        if (idOtro != id && otro.getPosicion().mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back(armarPosicionPara(id, otro));
-        }
-    }
-
-    for (const Criatura& criatura : mundo.obtenerCriaturas()) {
-        if (criatura.getPos().mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back(armarPosicionCriaturaPara(id, criatura));
-        }
-    }
-
-    
-    mensajes.splice(mensajes.end(), armarPosicionesNpcPara(id));
-
-    for (const ItemEnSuelo& item : mundo.obtenerItemsEnSuelo()) {
-        if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back({TipoDestino::UNO, id, EventoItemEnSuelo{item.idItem, item.posicion.x, item.posicion.y}});
-        }
-    }
-
-    for (const OroEnSuelo& oro : mundo.obtenerOroEnSuelo()) {
-        if (oro.posicion.mapaId == jugador.getPosicion().mapaId) {
-            mensajes.push_back({TipoDestino::UNO, id, EventoOroEnSuelo{oro.cantidad, oro.posicion.x, oro.posicion.y}});
-        }
-    }
+    // El jugador recibe el estado del mapa donde aparece (otros jugadores,
+    // criaturas, NPCs y drops). Mismo snapshot que se reenvia al cruzar un portal.
+    mensajes.splice(mensajes.end(), armarSnapshotMapaPara(id, jugador));
 
     if (jugador.tieneClan()) {
         mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(jugador.getClan(), TipoEventoClan::Conectado, jugador.getNombre(), id));
@@ -389,18 +366,84 @@ std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
     // El id de sprite de cuerpo de cada NPC sale del TOML (cfg): es un contrato
     // con el cliente, que mapea ese numero a su grafico en el NpcSpriteResolver.
     std::list<EventoSalida> mensajes;
-    for (const auto& [idNpc, sacerdote] : mundo.getSacerdotes()) {
+    const Jugador* jugador = buscarJugador(idCliente);
+    if (jugador == nullptr) {
+        return mensajes;
+    }
+    // Solo los NPCs del mapa donde esta el jugador (el exterior tiene los NPCs amigables; la mazmorra no tiene).
+    const Mapa& mapa = mundo.mapaDe(jugador->getPosicion());
+    for (const auto& [idNpc, sacerdote] : mapa.getSacerdotes()) {
         mensajes.push_back(
                 armarPosicionNpcPara(idCliente, idNpc, sacerdote.getPosicion(), cfg.cuerpoSacerdote));
     }
-    for (const auto& [idNpc, comerciante] : mundo.getComerciantes()) {
+    for (const auto& [idNpc, comerciante] : mapa.getComerciantes()) {
         mensajes.push_back(armarPosicionNpcPara(idCliente, idNpc, comerciante.getPosicion(),
                                                 cfg.cuerpoComerciante));
     }
-    for (const auto& [idNpc, banquero] : mundo.getBanqueros()) {
+    for (const auto& [idNpc, banquero] : mapa.getBanqueros()) {
         mensajes.push_back(
                 armarPosicionNpcPara(idCliente, idNpc, banquero.getPosicion(), cfg.cuerpoBanquero));
     }
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::armarSnapshotMapaPara(uint16_t idCliente, const Jugador& jugador) {
+    std::list<EventoSalida> mensajes;
+    const uint16_t mapaId = jugador.getPosicion().mapaId;
+
+    for (const auto& [idOtro, otro] : jugadoresConectados) {
+        if (idOtro != idCliente && otro.getPosicion().mapaId == mapaId) {
+            mensajes.push_back(armarPosicionPara(idCliente, otro));
+        }
+    }
+
+    for (const Criatura& criatura : mundo.obtenerCriaturas()) {
+        if (criatura.getPos().mapaId == mapaId) {
+            mensajes.push_back(armarPosicionCriaturaPara(idCliente, criatura));
+        }
+    }
+
+    mensajes.splice(mensajes.end(), armarPosicionesNpcPara(idCliente));
+
+    for (const ItemEnSuelo& item : mundo.obtenerItemsEnSuelo()) {
+        if (item.posicion.mapaId == mapaId) {
+            mensajes.push_back({TipoDestino::UNO, idCliente,
+                                EventoItemEnSuelo{item.idItem, item.posicion.x, item.posicion.y}});
+        }
+    }
+
+    for (const OroEnSuelo& oro : mundo.obtenerOroEnSuelo()) {
+        if (oro.posicion.mapaId == mapaId) {
+            mensajes.push_back({TipoDestino::UNO, idCliente,
+                                EventoOroEnSuelo{oro.cantidad, oro.posicion.x, oro.posicion.y}});
+        }
+    }
+
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::procesarPortalSiCorresponde(uint16_t idCliente, Jugador& jugador) {
+    std::optional<Posicion> destino = mundo.destinoPortalEn(jugador.getPosicion());
+    if (!destino.has_value()) {
+        return {};
+    }
+
+    // La celda exacta del destino puede estar ocupada (pared/criatura/otro jugador) por eso buscamos una celda libre cercana en el mapa destino.
+    std::optional<Posicion> destinoLibre = buscarPosicionLibreCercaDe(*destino, idCliente);
+    if (!destinoLibre.has_value()) {
+        return {};  // destino bloqueado: el jugador se queda donde esta y reintenta luego.
+    }
+
+    std::list<EventoSalida> mensajes;
+    // 1) Desaparece para los jugadores del mapa de origen (aun no se movio).
+    mensajes.splice(mensajes.end(), armarDesaparicionParaMapa(jugador));
+    // 2) Se reubica en el mapa destino y deja de moverse (que no arrastre la direccion).
+    jugador.detenerMover();
+    jugador.reubicar(*destinoLibre);
+    // 3) Recibe el estado del nuevo mapa (otros jugadores, criaturas, NPCs, drops).
+    mensajes.splice(mensajes.end(), armarSnapshotMapaPara(idCliente, jugador));
+    // 4) Aparece para los jugadores del mapa destino (y recibe su propia posicion).
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
     return mensajes;
 }
 
@@ -757,6 +800,8 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
                 if (jugador.estaVivo()) {
                     mensajes.splice(mensajes.end(), recogerObjetosDelSuelo(id, jugador));
                 }
+                // Si la celda pisada es la entrada de un portal, teletransporta.
+                mensajes.splice(mensajes.end(), procesarPortalSiCorresponde(id, jugador));
             }
         }
     }
@@ -1216,7 +1261,10 @@ std::list<EventoSalida> Juego::ejecutarEmpezarMover(uint16_t idCliente,
     jugador->empezarMover(cmd.direccion);
 
     if (intentarPaso(idCliente, *jugador, cmd.direccion)) {
-        return armarPosicionParaMapa(*jugador);
+        std::list<EventoSalida> mensajes = armarPosicionParaMapa(*jugador);
+        // Si el primer paso cae sobre la entrada de un portal, teletransporta.
+        mensajes.splice(mensajes.end(), procesarPortalSiCorresponde(idCliente, *jugador));
+        return mensajes;
     }
 
     return {};

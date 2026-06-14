@@ -93,6 +93,8 @@ class Juego {
     EventoSalida armarPosicionNpcPara(uint16_t idCliente, uint16_t idNpc,
                                       const Posicion& posicion, uint16_t cuerpo);
     std::list<EventoSalida> armarPosicionesNpcPara(uint16_t idCliente);
+    std::list<EventoSalida> armarSnapshotMapaPara(uint16_t idCliente, const Jugador& jugador);
+    std::list<EventoSalida> procesarPortalSiCorresponde(uint16_t idCliente, Jugador& jugador);
     uint8_t estadoEntidadDe(const Jugador& jugador) const;
     std::list<EventoSalida> armarDesaparicionParaMapa(const Jugador& jugador);
     std::list<EventoSalida> armarPosicionParaMapa(const Jugador& jugador);

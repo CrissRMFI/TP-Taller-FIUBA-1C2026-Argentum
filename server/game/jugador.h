@@ -113,6 +113,8 @@ public:
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
+    // Teletransporte: cambia la posicion completa (mapaId + x + y), p. ej. al cruzar un portal hacia otra mazmorra.
+    void reubicar(const Posicion& nuevaPosicion);
     // Movimiento continuo server-driven: el cliente avisa empezar/detener y el
     // servidor avanza una celda cada N ticks mientras el jugador siga moviendose.
     void empezarMover(uint8_t direccion);
