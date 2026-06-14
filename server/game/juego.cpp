@@ -43,6 +43,14 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
     for (const EntradaStockSacerdote& e : cfg.stockSacerdote) {
         this->mundo.agregarStockSacerdotes(e.id, e.precio);
     }
+
+    // Trono de las criaturas de respawn fijo (jefe): guardamos su posicion de inicio
+    // del mapa para que, al morir, reaparezcan siempre ahi (no en una celda al azar).
+    for (const Criatura& criatura : this->mundo.obtenerCriaturas()) {
+        if (catalogoCriaturas.statsDe(criatura.getTipo()).respawnFijo) {
+            tronosPorTipo[criatura.getTipo()] = criatura.getPos();
+        }
+    }
 }
 
 
@@ -797,10 +805,13 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     }
 
     if (cfg.spawnCriaturasTicks > 0 && ticksTranscurridos % cfg.spawnCriaturasTicks == 0 &&
-        mundo.cantidadCriaturas() < cfg.poblacionMaxCriaturas) {
+        mundo.cantidadCriaturasEn(mundo.mapaPrincipalId()) < cfg.poblacionMaxCriaturas) {
         std::list<EventoSalida> mensajesSpawn = intentarSpawnCriatura();
         mensajes.splice(mensajes.end(), mensajesSpawn);
     }
+
+    // Respawn de criaturas de mazmorra que ya cumplieron su tiempo (mobs y jefe).
+    mensajes.splice(mensajes.end(), procesarRespawns());
 
     std::vector<ItemEnSuelo> itemsExpirados =
             mundo.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
@@ -1744,6 +1755,7 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
         const float rngOro = aleatorio.uniforme();
         const uint32_t cantidadOro =
                 ReglasJuego::calcularDropOroNpc(cfg, vidaMaxCriaturaAntes, rngOro);
+        programarRespawnSiCorresponde(criatura->getTipo(), posicionCriatura.mapaId);
         mundo.removerCriatura(idCriatura);
         ultimoTickAtaqueCriatura.erase(idCriatura);
         if (cantidadOro > 0) {
@@ -2337,9 +2349,16 @@ bool Juego::puedeSpawnearCriaturaEn(const Posicion& posicion) const {
            !mundo.hayOroEn(posicion) && !buscarIdJugadorEn(posicion).has_value();
 }
 
-std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() {
-    const uint64_t cantidadCeldas =
-            static_cast<uint64_t>(cfg.mapaAncho) * static_cast<uint64_t>(cfg.mapaAlto);
+std::optional<Posicion> Juego::buscarPosicionSpawnCriaturaEn(uint16_t mapaId) {
+    if (!mundo.existeMapa(mapaId)) {
+        return std::nullopt;
+    }
+    // Las dimensiones salen del propio mapa: el exterior y la mazmorra tienen tamaños
+    // distintos (N×M), por eso no se usa cfg.mapaAncho/Alto (que es solo el exterior).
+    const Mapa& mapa = mundo.mapaDe(mapaId);
+    const uint16_t ancho = mapa.getAncho();
+    const uint16_t alto = mapa.getAlto();
+    const uint64_t cantidadCeldas = static_cast<uint64_t>(ancho) * static_cast<uint64_t>(alto);
 
     if (cantidadCeldas == 0) {
         return std::nullopt;
@@ -2349,9 +2368,9 @@ std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() {
 
     for (uint64_t offset = 0; offset < cantidadCeldas; ++offset) {
         const uint64_t indice = (inicio + offset) % cantidadCeldas;
-        const uint16_t x = static_cast<uint16_t>(indice % cfg.mapaAncho);
-        const uint16_t y = static_cast<uint16_t>(indice / cfg.mapaAncho);
-        const Posicion posicion{x, y, 0};
+        const uint16_t x = static_cast<uint16_t>(indice % ancho);
+        const uint16_t y = static_cast<uint16_t>(indice / ancho);
+        const Posicion posicion{x, y, mapaId};
 
         if (puedeSpawnearCriaturaEn(posicion)) {
             return posicion;
@@ -2364,7 +2383,8 @@ std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() {
 std::list<EventoSalida> Juego::intentarSpawnCriatura() {
     std::list<EventoSalida> mensajes;
 
-    std::optional<Posicion> posicion = buscarPosicionSpawnCriatura();
+    std::optional<Posicion> posicion =
+            buscarPosicionSpawnCriaturaEn(mundo.mapaPrincipalId());
     if (!posicion.has_value()) {
         return mensajes;
     }
@@ -2389,6 +2409,68 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
     }
 
     mensajes.splice(mensajes.end(), armarPosicionCriaturaParaMapa(criatura));
+    return mensajes;
+}
+
+void Juego::programarRespawnSiCorresponde(TipoCriatura tipo, uint16_t mapaId) {
+    const StatsCriatura stats = catalogoCriaturas.statsDe(tipo);
+    if (stats.respawnTicks == 0) {
+        return; 
+    }
+    // Respawn fijo (jefe) reaparece en su trono.
+    std::optional<Posicion> posicionFija;
+    if (stats.respawnFijo) {
+        const auto it = tronosPorTipo.find(tipo);
+        if (it != tronosPorTipo.end()) {
+            posicionFija = it->second;
+        }
+    }
+    respawnsPendientes.push_back(
+            RespawnPendiente{ticksTranscurridos + stats.respawnTicks, tipo, mapaId, posicionFija});
+}
+
+std::list<EventoSalida> Juego::procesarRespawns() {
+    std::list<EventoSalida> mensajes;
+    if (respawnsPendientes.empty()) {
+        return mensajes;
+    }
+
+    std::vector<RespawnPendiente> siguenPendientes;
+    siguenPendientes.reserve(respawnsPendientes.size());
+
+    for (const RespawnPendiente& pendiente : respawnsPendientes) {
+        if (ticksTranscurridos < pendiente.tickObjetivo) {
+            siguenPendientes.push_back(pendiente);  // todavia no le toca
+            continue;
+        }
+
+        // Respawn fijo (jefe) siempre en su trono; si esta ocupado, reintentar
+        std::optional<Posicion> posicion;
+        if (pendiente.posicionFija.has_value()) {
+            if (puedeSpawnearCriaturaEn(*pendiente.posicionFija)) {
+                posicion = pendiente.posicionFija;
+            }
+        } else {
+            posicion = buscarPosicionSpawnCriaturaEn(pendiente.mapaId);
+        }
+
+        std::optional<uint16_t> idCriatura =
+                posicion.has_value() ? reservarIdCriatura() : std::nullopt;
+        if (!posicion.has_value() || !idCriatura.has_value()) {
+            siguenPendientes.push_back(pendiente);
+            continue;
+        }
+
+        Criatura criatura = catalogoCriaturas.crear(pendiente.tipo, *idCriatura, *posicion);
+        if (!agregarCriatura(criatura)) {
+            siguenPendientes.push_back(pendiente);
+            continue;
+        }
+
+        mensajes.splice(mensajes.end(), armarPosicionCriaturaParaMapa(criatura));
+    }
+
+    respawnsPendientes = std::move(siguenPendientes);
     return mensajes;
 }
 
@@ -2599,7 +2681,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         const uint32_t cantidadOro = ReglasJuego::calcularDropOroNpc(cfg, vidaMaximaCriaturaAntes,
                                                                      valorAleatorioDropOro);
 
-        // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
+        programarRespawnSiCorresponde(criatura.getTipo(), posicionCriatura.mapaId);
         mundo.removerCriatura(idCriatura);
         ultimoTickAtaqueCriatura.erase(idCriatura);
         RegistroServidor::criaturaMurio(idCriatura);

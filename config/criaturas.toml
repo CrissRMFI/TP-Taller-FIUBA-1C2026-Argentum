@@ -109,6 +109,104 @@ oro          = 120
 sprite       = ":/imgs/criaturas/golem.png"
 src          = [11, 13, 73, 73]
 
+# --- Criaturas EXCLUSIVAS de mazmorra (mucho mas fuertes que las del exterior)
+# El oro y la experiencia que sueltan los calcula el server a partir de 'vida_maxima'
+# 'respawn_ticks': ticks que tardan en reaparecer tras morir
+# 'respawn_fijo': si es true reaparece en su posicion de inicio (su trono); si es
+# false/ausente, en una celda libre al azar del mapa (como el exterior). Solo el jefe
+# lo usa; conviene que un tipo con respawn_fijo tenga UNA sola criatura colocada.
+
+[[criatura]]
+clave        = "centinela_piedra"
+nombre       = "Centinela de Piedra"
+descripcion  = "Guardian petreo que vigila la entrada de la caverna. Lento pero de golpe demoledor."
+vida_maxima  = 280
+nivel        = 9
+fuerza       = 22
+agilidad     = 4
+rango_aggro  = 6
+danio_min    = 16
+danio_max    = 26
+cuerpo       = 2206
+respawn_ticks= 230
+fx_ataque    = 7
+oro          = 180
+sprite       = ":/imgs/mazmorras/entrada1Golem1.png"
+src          = [0, 0, 64, 64]
+
+[[criatura]]
+clave        = "guerrero_ancestral"
+nombre       = "Guerrero Ancestral"
+descripcion  = "Espectro armado de una era olvidada. Combina velocidad y furia contra el intruso."
+vida_maxima  = 340
+nivel        = 11
+fuerza       = 28
+agilidad     = 8
+rango_aggro  = 7
+danio_min    = 20
+danio_max    = 32
+cuerpo       = 2207
+respawn_ticks= 230
+fx_ataque    = 7
+oro          = 240
+sprite       = ":/imgs/mazmorras/entrada1Golem2.png"
+src          = [0, 0, 256, 256]
+
+[[criatura]]
+clave        = "aberracion"
+nombre       = "Aberracion"
+descripcion  = "Amasijo de huesos y metal surgido de las profundidades. Su sola presencia hiela la sangre."
+vida_maxima  = 420
+nivel        = 13
+fuerza       = 34
+agilidad     = 6
+rango_aggro  = 8
+danio_min    = 26
+danio_max    = 40
+cuerpo       = 2208
+respawn_ticks= 230
+fx_ataque    = 7
+oro          = 320
+sprite       = ":/imgs/mazmorras/entrada1Golem3.png"
+src          = [0, 0, 256, 256]
+
+[[criatura]]
+clave        = "coloso_roca"
+nombre       = "Coloso de Roca"
+descripcion  = "Montana viviente que custodia el corazon de la mazmorra. Resistencia y daño descomunales."
+vida_maxima  = 520
+nivel        = 15
+fuerza       = 40
+agilidad     = 3
+rango_aggro  = 6
+danio_min    = 32
+danio_max    = 50
+cuerpo       = 2209
+respawn_ticks= 230
+fx_ataque    = 7
+oro          = 450
+sprite       = ":/imgs/mazmorras/entrada1Golem4Parte1.png"
+src          = [0, 0, 170, 170]
+
+[[criatura]]
+clave        = "senor_abismo"
+nombre       = "Senor del Abismo"
+descripcion  = "El jefe de la mazmorra. Un demonio antiguo de poder abrumador; derrotarlo deja una fortuna."
+vida_maxima  = 800
+nivel        = 20
+fuerza       = 55
+agilidad     = 7
+rango_aggro  = 10
+danio_min    = 45
+danio_max    = 70
+cuerpo       = 2210
+respawn_ticks= 4600
+respawn_fijo = true          # el jefe reaparece SIEMPRE en su trono (su posicion del mapa)
+fx_ataque    = 7
+oro          = 1500
+sprite       = ":/imgs/mazmorras/entrada1GolemJefe.png"
+src          = [0, 0, 256, 256]
+
 # --- NPCs (solo datos visuales para el editor; el server tiene su propia config) ---
 
 [[npc]]

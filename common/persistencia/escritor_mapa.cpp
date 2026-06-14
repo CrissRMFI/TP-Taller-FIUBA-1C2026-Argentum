@@ -24,6 +24,11 @@ const char* EscritorMapa::tipoCriaturaATexto(TipoCriatura tipo) {
         case TipoCriatura::Arania:    return "arania";
         case TipoCriatura::Orco:      return "orco";
         case TipoCriatura::Golem:     return "golem";
+        case TipoCriatura::CentinelaPiedra:   return "centinela_piedra";
+        case TipoCriatura::GuerreroAncestral: return "guerrero_ancestral";
+        case TipoCriatura::Aberracion:        return "aberracion";
+        case TipoCriatura::ColosoRoca:        return "coloso_roca";
+        case TipoCriatura::SenorAbismo:       return "senor_abismo";
     }
     return "desconocido";
 }

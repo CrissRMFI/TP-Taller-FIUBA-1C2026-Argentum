@@ -39,6 +39,11 @@ TipoCriatura LectorMapa::tipoCriaturaDesdeTexto(const std::string& texto, const 
     if (texto == "arania")    return TipoCriatura::Arania;
     if (texto == "orco")      return TipoCriatura::Orco;
     if (texto == "golem")     return TipoCriatura::Golem;
+    if (texto == "centinela_piedra")   return TipoCriatura::CentinelaPiedra;
+    if (texto == "guerrero_ancestral") return TipoCriatura::GuerreroAncestral;
+    if (texto == "aberracion")         return TipoCriatura::Aberracion;
+    if (texto == "coloso_roca")        return TipoCriatura::ColosoRoca;
+    if (texto == "senor_abismo")       return TipoCriatura::SenorAbismo;
     throw ErrorPersistencia(
             CodigoErrorPersistencia::REGISTRO_INVALIDO,
             path + " (tipo de criatura desconocido: '" + texto + "')");

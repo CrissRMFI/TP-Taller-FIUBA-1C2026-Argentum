@@ -199,6 +199,15 @@ size_t Mundo::cantidadCriaturas() const {
     return total;
 }
 
+size_t Mundo::cantidadCriaturasEn(uint16_t mapaId) const {
+    const auto it = mapas.find(mapaId);
+    return (it != mapas.end()) ? it->second.cantidadCriaturas() : 0;
+}
+
+uint16_t Mundo::mapaPrincipalId() const {
+    return principalId;
+}
+
 std::vector<ItemEnSuelo> Mundo::actualizarItemsEnSuelo(float deltaSegundos,
                                                        uint16_t tiempoMaximoSeg) {
     std::vector<ItemEnSuelo> expirados;

@@ -83,3 +83,20 @@ paredes = [
   { x = 18, y = 18 }, { x = 19, y = 18 }, { x = 20, y = 18 }, { x = 21, y = 18 },
   { x = 18, y = 21 }, { x = 19, y = 21 }, { x = 20, y = 21 }, { x = 21, y = 21 },
 ]
+
+# Criaturas de la mazmorra: posicion de INICIO fija y 
+# agreden a jugadores de otro mapa (sus destinos siempre llevan su propio mapaId).
+# spawner dinamico del exterior (cuenta desde 65535).
+criaturas = [
+  { tipo = "centinela_piedra",   id = 50001, x = 8,  y = 6  },
+  { tipo = "centinela_piedra",   id = 50002, x = 6,  y = 12 },
+  { tipo = "centinela_piedra",   id = 50003, x = 12, y = 8  },
+  { tipo = "guerrero_ancestral", id = 50004, x = 24, y = 8  },
+  { tipo = "guerrero_ancestral", id = 50005, x = 30, y = 14 },
+  { tipo = "guerrero_ancestral", id = 50006, x = 16, y = 28 },
+  { tipo = "aberracion",         id = 50007, x = 28, y = 26 },
+  { tipo = "aberracion",         id = 50008, x = 10, y = 32 },
+  { tipo = "coloso_roca",        id = 50009, x = 33, y = 20 },
+  { tipo = "coloso_roca",        id = 50010, x = 20, y = 33 },
+  { tipo = "senor_abismo",       id = 50011, x = 35, y = 35 },
+]

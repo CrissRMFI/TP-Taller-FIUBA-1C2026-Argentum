@@ -75,6 +75,8 @@ public:
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
     std::vector<OroEnSuelo>  obtenerOroEnSuelo() const;
     size_t cantidadCriaturas() const;
+    size_t cantidadCriaturasEn(uint16_t mapaId) const;
+    uint16_t mapaPrincipalId() const;
     std::vector<ItemEnSuelo> actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     std::vector<OroEnSuelo>  actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     void agregarStockComerciantes(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta);

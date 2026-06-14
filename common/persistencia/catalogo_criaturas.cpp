@@ -13,6 +13,11 @@ bool CatalogoCriaturas::tipoDesdeClave(const std::string& clave, TipoCriatura& t
     if (clave == "arania")    { tipo = TipoCriatura::Arania;    return true; }
     if (clave == "orco")      { tipo = TipoCriatura::Orco;      return true; }
     if (clave == "golem")     { tipo = TipoCriatura::Golem;     return true; }
+    if (clave == "centinela_piedra")   { tipo = TipoCriatura::CentinelaPiedra;   return true; }
+    if (clave == "guerrero_ancestral") { tipo = TipoCriatura::GuerreroAncestral; return true; }
+    if (clave == "aberracion")         { tipo = TipoCriatura::Aberracion;        return true; }
+    if (clave == "coloso_roca")        { tipo = TipoCriatura::ColosoRoca;         return true; }
+    if (clave == "senor_abismo")       { tipo = TipoCriatura::SenorAbismo;        return true; }
     return false;
 }
 
@@ -60,6 +65,8 @@ void CatalogoCriaturas::cargar(const std::string& path) {
         s.danioMax   = static_cast<uint8_t>((*t)["danio_max"].value_or<int64_t>(0));
         s.cuerpo     = static_cast<uint16_t>((*t)["cuerpo"].value_or<int64_t>(0));
         s.fxAtaque   = static_cast<uint16_t>((*t)["fx_ataque"].value_or<int64_t>(0));
+        s.respawnTicks = static_cast<uint32_t>((*t)["respawn_ticks"].value_or<int64_t>(0));
+        s.respawnFijo  = (*t)["respawn_fijo"].value_or<bool>(false);
         stats[tipo] = s;
     }
 }

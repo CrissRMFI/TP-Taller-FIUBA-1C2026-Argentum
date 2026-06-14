@@ -57,6 +57,14 @@ class Juego {
     Mundo mundo;
     uint64_t ticksTranscurridos;
     std::unordered_map<uint16_t, uint64_t> ultimoTickAtaqueCriatura;
+    struct RespawnPendiente {
+        uint64_t                tickObjetivo;
+        TipoCriatura            tipo;
+        uint16_t                mapaId;
+        std::optional<Posicion> posicionFija;
+    };
+    std::vector<RespawnPendiente> respawnsPendientes;
+    std::map<TipoCriatura, Posicion> tronosPorTipo;
     Aleatorio aleatorio;
 
     // Persistencia: indice nombre->offset en RAM + lector/escritor de los
@@ -109,8 +117,12 @@ class Juego {
     bool agregarCriatura(const Criatura& criatura);
     std::list<EventoSalida> intentarSpawnCriatura();
     std::optional<uint16_t> reservarIdCriatura();
-    std::optional<Posicion> buscarPosicionSpawnCriatura();
+    std::optional<Posicion> buscarPosicionSpawnCriaturaEn(uint16_t mapaId);
     bool puedeSpawnearCriaturaEn(const Posicion& posicion) const;
+    // Agenda el respawn de una criatura recien muerta si su tipo tiene respawn_ticks > 0.
+    void programarRespawnSiCorresponde(TipoCriatura tipo, uint16_t mapaId);
+    // Reaparece las criaturas cuyo tick de respawn ya se cumplio (una por mapa libre).
+    std::list<EventoSalida> procesarRespawns();
     bool agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem, Posicion& posicionFinal);
 
     std::list<EventoSalida> ejecutarMeditar(uint16_t idCliente);
