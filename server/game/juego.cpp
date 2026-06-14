@@ -30,7 +30,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
         catalogoCriaturas(std::move(criaturas)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
-        mapa(std::move(mapa)),
+        mundo(std::move(mapa)),
         ticksTranscurridos(0),
         aleatorio(),
         indiceJugadores(cfg.rutaIndiceJugadores),
@@ -38,10 +38,10 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
         escritorJugadores(cfg.rutaJugadores, indiceJugadores) {
     
     for (const EntradaStockComerciante& e : cfg.stockComerciante) {
-        this->mapa.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
+        this->mundo.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
     }
     for (const EntradaStockSacerdote& e : cfg.stockSacerdote) {
-        this->mapa.agregarStockSacerdotes(e.id, e.precio);
+        this->mundo.agregarStockSacerdotes(e.id, e.precio);
     }
 }
 
@@ -124,7 +124,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         }
     }
 
-    for (const Criatura& criatura : mapa.obtenerCriaturas()) {
+    for (const Criatura& criatura : mundo.obtenerCriaturas()) {
         if (criatura.getPos().mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back(armarPosicionCriaturaPara(id, criatura));
         }
@@ -133,13 +133,13 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     
     mensajes.splice(mensajes.end(), armarPosicionesNpcPara(id));
 
-    for (const ItemEnSuelo& item : mapa.obtenerItemsEnSuelo()) {
+    for (const ItemEnSuelo& item : mundo.obtenerItemsEnSuelo()) {
         if (item.posicion.mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back({TipoDestino::UNO, id, EventoItemEnSuelo{item.idItem, item.posicion.x, item.posicion.y}});
         }
     }
 
-    for (const OroEnSuelo& oro : mapa.obtenerOroEnSuelo()) {
+    for (const OroEnSuelo& oro : mundo.obtenerOroEnSuelo()) {
         if (oro.posicion.mapaId == jugador.getPosicion().mapaId) {
             mensajes.push_back({TipoDestino::UNO, id, EventoOroEnSuelo{oro.cantidad, oro.posicion.x, oro.posicion.y}});
         }
@@ -262,9 +262,9 @@ std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
         const Posicion& origen, std::optional<uint16_t> idJugadorExcluido) const {
     // Reusa el BFS de Mapa; el predicado suma a las reglas del mapa (pared/npc/
     // criatura/item) la presencia de otros jugadores, que Mapa no conoce.
-    return mapa.buscarCeldaLibreCercaDe(origen, [this, idJugadorExcluido](const Posicion& celda) {
-        return mapa.hayParedEn(celda) || mapa.hayObjetoEn(celda) || mapa.hayNpcEn(celda) ||
-               mapa.hayCriaturaEn(celda) || mapa.hayItemEn(celda) ||
+    return mundo.buscarCeldaLibreCercaDe(origen, [this, idJugadorExcluido](const Posicion& celda) {
+        return mundo.hayParedEn(celda) || mundo.hayObjetoEn(celda) || mundo.hayNpcEn(celda) ||
+               mundo.hayCriaturaEn(celda) || mundo.hayItemEn(celda) ||
                buscarIdJugadorEn(celda, idJugadorExcluido).has_value();
     });
 }
@@ -389,15 +389,15 @@ std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
     // El id de sprite de cuerpo de cada NPC sale del TOML (cfg): es un contrato
     // con el cliente, que mapea ese numero a su grafico en el NpcSpriteResolver.
     std::list<EventoSalida> mensajes;
-    for (const auto& [idNpc, sacerdote] : mapa.getSacerdotes()) {
+    for (const auto& [idNpc, sacerdote] : mundo.getSacerdotes()) {
         mensajes.push_back(
                 armarPosicionNpcPara(idCliente, idNpc, sacerdote.getPosicion(), cfg.cuerpoSacerdote));
     }
-    for (const auto& [idNpc, comerciante] : mapa.getComerciantes()) {
+    for (const auto& [idNpc, comerciante] : mundo.getComerciantes()) {
         mensajes.push_back(armarPosicionNpcPara(idCliente, idNpc, comerciante.getPosicion(),
                                                 cfg.cuerpoComerciante));
     }
-    for (const auto& [idNpc, banquero] : mapa.getBanqueros()) {
+    for (const auto& [idNpc, banquero] : mundo.getBanqueros()) {
         mensajes.push_back(
                 armarPosicionNpcPara(idCliente, idNpc, banquero.getPosicion(), cfg.cuerpoBanquero));
     }
@@ -503,13 +503,13 @@ std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline( uint16_t idCla
 
 bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
                                       Posicion& posicionFinal) {
-    if (mapa.agregarItem(origen, idItem)) {
+    if (mundo.agregarItem(origen, idItem)) {
         posicionFinal = origen;
         return true;
     }
 
     for (const Posicion& posicionCandidata : calcularDestinosAdyacentes(origen)) {
-        if (mapa.agregarItem(posicionCandidata, idItem)) {
+        if (mundo.agregarItem(posicionCandidata, idItem)) {
             posicionFinal = posicionCandidata;
             return true;
         }
@@ -768,13 +768,13 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     }
 
     if (cfg.spawnCriaturasTicks > 0 && ticksTranscurridos % cfg.spawnCriaturasTicks == 0 &&
-        mapa.cantidadCriaturas() < cfg.poblacionMaxCriaturas) {
+        mundo.cantidadCriaturas() < cfg.poblacionMaxCriaturas) {
         std::list<EventoSalida> mensajesSpawn = intentarSpawnCriatura();
         mensajes.splice(mensajes.end(), mensajesSpawn);
     }
 
     std::vector<ItemEnSuelo> itemsExpirados =
-            mapa.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
+            mundo.actualizarItemsEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
 
     for (const ItemEnSuelo& item : itemsExpirados) {
         std::list<EventoSalida> mensajesItem = armarItemDesaparecioSueloParaMapa(item.posicion);
@@ -782,7 +782,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     }
 
     std::vector<OroEnSuelo> orosExpirados =
-            mapa.actualizarOroEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
+            mundo.actualizarOroEnSuelo(deltaSegundos, cfg.tiempoItemSueloSeg);
 
     for (const OroEnSuelo& pila : orosExpirados) {
         std::list<EventoSalida> mensajesOro = armarOroDesaparecioSueloParaMapa(pila.posicion);
@@ -1108,7 +1108,7 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     const Posicion posicionJugador = jugador->getPosicion();
 
     // En ciudad la resurrección es inmediata. Fuera de ciudad se aplica la mecánica remota: espera proporcional a la distancia al sacerdote.
-    if (mapa.esCiudad(posicionJugador)) {
+    if (mundo.esCiudad(posicionJugador)) {
         std::optional<Posicion> posicionResurreccion =
                 buscarPosicionLibreCercaDe(posicionJugador, idCliente);
         if (!posicionResurreccion.has_value()) {
@@ -1124,13 +1124,13 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     }
 
     // Fuera de ciudad: buscar al sacerdote más cercano en el mapa del jugador.
-    std::optional<Npc> npcSacerdote = mapa.buscarSacerdoteMasCercano(posicionJugador);
+    std::optional<Npc> npcSacerdote = mundo.buscarSacerdoteMasCercano(posicionJugador);
     if (!npcSacerdote.has_value()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
     // Valida via el accessor con puntero observador que el sacerdote efectivamente exista como entidad concreta en el mapa.
-    const Sacerdote* sacerdote = mapa.obtenerSacerdote(npcSacerdote->getId());
+    const Sacerdote* sacerdote = mundo.obtenerSacerdote(npcSacerdote->getId());
     if (sacerdote == nullptr) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1170,19 +1170,19 @@ std::list<EventoSalida> Juego::recogerObjetosDelSuelo(uint16_t idCliente, Jugado
     const Posicion posicion = jugador.getPosicion();
 
     // Oro: se suma todo lo que haya en la celda.
-    if (std::optional<uint32_t> cantidadOro = mapa.tomarOro(posicion); cantidadOro.has_value()) {
+    if (std::optional<uint32_t> cantidadOro = mundo.tomarOro(posicion); cantidadOro.has_value()) {
         jugador.sumar_oro(*cantidadOro);
         mensajes.push_back(armarEstado(idCliente, jugador));
         mensajes.splice(mensajes.end(), armarOroDesaparecioSueloParaMapa(posicion));
     }
 
     // Item: si entra al inventario se levanta; si no (lleno/desconocido) vuelve al suelo.
-    if (std::optional<uint16_t> idItem = mapa.tomarItem(posicion); idItem.has_value()) {
+    if (std::optional<uint16_t> idItem = mundo.tomarItem(posicion); idItem.has_value()) {
         if (catalogo.existe(*idItem) && jugador.agregar_item(*idItem)) {
             mensajes.push_back(armarInventario(idCliente, jugador));
             mensajes.splice(mensajes.end(), armarItemDesaparecioSueloParaMapa(posicion));
         } else {
-            mapa.agregarItem(posicion, *idItem);
+            mundo.agregarItem(posicion, *idItem);
         }
     }
 
@@ -1258,8 +1258,8 @@ bool Juego::intentarPaso(uint16_t idCliente, Jugador& jugador, uint8_t direccion
             return false;
     }
 
-    if (!mapa.posicionValida(destino) || mapa.hayParedEn(destino) || mapa.hayObjetoEn(destino) ||
-        mapa.hayNpcEn(destino) || mapa.hayCriaturaEn(destino)) {
+    if (!mundo.posicionValida(destino) || mundo.hayParedEn(destino) || mundo.hayObjetoEn(destino) ||
+        mundo.hayNpcEn(destino) || mundo.hayCriaturaEn(destino)) {
         return false;
     }
 
@@ -1294,7 +1294,7 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
     }
 
-    if (Criatura* criaturaObjetivo = mapa.obtenerCriaturaPor(cmd.idObjetivo)) {
+    if (Criatura* criaturaObjetivo = mundo.obtenerCriaturaPor(cmd.idObjetivo)) {
         atacante->registrarAtaque();
         return ejecutarAtaqueACriatura(idCliente, *atacante, *criaturaObjetivo);
     }
@@ -1321,7 +1321,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionObjetivo)) {
+    if (mundo.esZonaSegura(posicionAtacante) || mundo.esZonaSegura(posicionObjetivo)) {
         RegistroServidor::ataqueEnZonaSegura();
         return {armarError(idCliente, CodigoErrorAccion::ZONA_SEGURA)};
     }
@@ -1466,7 +1466,7 @@ std::list<EventoSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTi
 
     Posicion posicion = jugador->getPosicion();
 
-    if (mapa.hayItemEn(posicion)) {
+    if (mundo.hayItemEn(posicion)) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
@@ -1481,7 +1481,7 @@ std::list<EventoSalida> Juego::ejecutarTirar(uint16_t idCliente, const ComandoTi
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    if (!mapa.agregarItem(posicion, idItem)) {
+    if (!mundo.agregarItem(posicion, idItem)) {
         jugador->agregar_item(idItem);
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1677,7 +1677,7 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
         return mensajes;
     }
 
-    Criatura* criatura = mapa.obtenerCriaturaPor(cmd.idObjetivo);
+    Criatura* criatura = mundo.obtenerCriaturaPor(cmd.idObjetivo);
     if (criatura == nullptr) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1712,7 +1712,7 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
         const float rngOro = aleatorio.uniforme();
         const uint32_t cantidadOro =
                 ReglasJuego::calcularDropOroNpc(cfg, vidaMaxCriaturaAntes, rngOro);
-        mapa.removerCriatura(idCriatura);
+        mundo.removerCriatura(idCriatura);
         ultimoTickAtaqueCriatura.erase(idCriatura);
         if (cantidadOro > 0) {
             Posicion celdaDrop = posicionCriatura;
@@ -1974,9 +1974,9 @@ std::list<EventoSalida> Juego::ejecutarListar(uint16_t idCliente, const ComandoL
     }
 
     // Si el id es un NPC conocido pero ninguno quedo "para interaccion", esta fuera de rango.
-    const bool esNpcConocido = mapa.getSacerdotes().count(cmd.idNPC) ||
-                               mapa.getComerciantes().count(cmd.idNPC) ||
-                               mapa.getBanqueros().count(cmd.idNPC);
+    const bool esNpcConocido = mundo.getSacerdotes().count(cmd.idNPC) ||
+                               mundo.getComerciantes().count(cmd.idNPC) ||
+                               mundo.getBanqueros().count(cmd.idNPC);
     return {armarError(idCliente, esNpcConocido ? CodigoErrorAccion::FUERA_DE_RANGO
                                                 : CodigoErrorAccion::OBJETIVO_INVALIDO)};
 }
@@ -2002,12 +2002,12 @@ std::list<EventoSalida> Juego::actualizarCriaturas() {
     std::list<EventoSalida> mensajes;
     std::vector<uint16_t> idsCriaturas;
 
-    for (const Criatura& criatura : mapa.obtenerCriaturas()) {
+    for (const Criatura& criatura : mundo.obtenerCriaturas()) {
         idsCriaturas.push_back(criatura.getId());
     }
 
     for (uint16_t idCriatura : idsCriaturas) {
-        Criatura* criatura = mapa.obtenerCriaturaPor(idCriatura);
+        Criatura* criatura = mundo.obtenerCriaturaPor(idCriatura);
         if (criatura == nullptr) {
             continue;
         }
@@ -2038,7 +2038,7 @@ std::optional<Jugador> Juego::buscarJugadorCercano(const Criatura& criatura) con
             continue;
         }
 
-        if (mapa.esZonaSegura(posicionJugador)) {
+        if (mundo.esZonaSegura(posicionJugador)) {
             continue;
         }
 
@@ -2102,11 +2102,11 @@ std::list<EventoSalida> Juego::moverCriaturaAleatoriamente(const Criatura& criat
 
     const size_t indiceDestino = aleatorio.enteroEnRango<size_t>(0, destinosValidos.size() - 1);
     const Posicion destino = destinosValidos[indiceDestino];
-    if (!mapa.moverCriatura(criatura.getId(), destino)) {
+    if (!mundo.moverCriatura(criatura.getId(), destino)) {
         return {};
     }
 
-    const Criatura* criaturaActualizada = mapa.obtenerCriaturaPor(criatura.getId());
+    const Criatura* criaturaActualizada = mundo.obtenerCriaturaPor(criatura.getId());
     if (criaturaActualizada == nullptr) {
         return {};
     }
@@ -2130,8 +2130,8 @@ std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura,
 
     for (const Posicion& destino : calcularDestinosHacia(origen, objetivo)) {
         if (puedeMoverCriaturaA(destino)) {
-            if (mapa.moverCriatura(criatura.getId(), destino)) {
-                const Criatura* criaturaActualizada = mapa.obtenerCriaturaPor(criatura.getId());
+            if (mundo.moverCriatura(criatura.getId(), destino)) {
+                const Criatura* criaturaActualizada = mundo.obtenerCriaturaPor(criatura.getId());
                 if (criaturaActualizada == nullptr) {
                     return {};
                 }
@@ -2144,7 +2144,7 @@ std::list<EventoSalida> Juego::moverCriaturaHacia(const Criatura& criatura,
 }
 
 bool Juego::puedeMoverCriaturaA(const Posicion& destino) const {
-    return mapa.puedeOcuparCriatura(destino) && !buscarIdJugadorEn(destino).has_value();
+    return mundo.puedeOcuparCriatura(destino) && !buscarIdJugadorEn(destino).has_value();
 }
 
 std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura,
@@ -2157,7 +2157,7 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
         return mensajes;
     }
 
-    if (mapa.esZonaSegura(jugador->getPosicion()) || mapa.esZonaSegura(criatura.getPos())) {
+    if (mundo.esZonaSegura(jugador->getPosicion()) || mundo.esZonaSegura(criatura.getPos())) {
         return mensajes;
     }
 
@@ -2249,23 +2249,23 @@ static TipoNpcConcreto* obtenerNpcParaInteraccionEnMapa(
 
 Comerciante* Juego::obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
     return obtenerNpcParaInteraccionEnMapa<Comerciante>(
-            mapa, cfg, idNpc, jugador, &Mapa::obtenerComerciante);
+            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerComerciante);
 }
 
 Sacerdote* Juego::obtenerSacerdoteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
     return obtenerNpcParaInteraccionEnMapa<Sacerdote>(
-            mapa, cfg, idNpc, jugador, &Mapa::obtenerSacerdote);
+            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerSacerdote);
 }
 
 Banquero* Juego::obtenerBanqueroParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
     return obtenerNpcParaInteraccionEnMapa<Banquero>(
-            mapa, cfg, idNpc, jugador, &Mapa::obtenerBanquero);
+            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerBanquero);
 }
 
 bool Juego::agregarCriatura(const Criatura& criatura) {
     const Posicion posicion = criatura.getPos();
 
-    if (!mapa.puedeOcuparCriatura(posicion)) {
+    if (!mundo.puedeOcuparCriatura(posicion)) {
         return false;
     }
 
@@ -2273,7 +2273,7 @@ bool Juego::agregarCriatura(const Criatura& criatura) {
         return false;
     }
 
-    return mapa.agregarCriatura(criatura);
+    return mundo.agregarCriatura(criatura);
 }
 
 std::optional<uint16_t> Juego::reservarIdCriatura() {
@@ -2289,7 +2289,7 @@ std::optional<uint16_t> Juego::reservarIdCriatura() {
             proximoIdCriatura--;
         }
 
-        if (candidato == 0 || mapa.obtenerCriaturaPor(candidato) != nullptr ||
+        if (candidato == 0 || mundo.obtenerCriaturaPor(candidato) != nullptr ||
             existeIdPersonaje(candidato)) {
             continue;
         }
@@ -2301,8 +2301,8 @@ std::optional<uint16_t> Juego::reservarIdCriatura() {
 }
 
 bool Juego::puedeSpawnearCriaturaEn(const Posicion& posicion) const {
-    return mapa.puedeOcuparCriatura(posicion) && !mapa.hayItemEn(posicion) &&
-           !mapa.hayOroEn(posicion) && !buscarIdJugadorEn(posicion).has_value();
+    return mundo.puedeOcuparCriatura(posicion) && !mundo.hayItemEn(posicion) &&
+           !mundo.hayOroEn(posicion) && !buscarIdJugadorEn(posicion).has_value();
 }
 
 std::optional<Posicion> Juego::buscarPosicionSpawnCriatura() {
@@ -2385,14 +2385,14 @@ std::list<EventoSalida> Juego::armarOroDesaparecioSueloParaMapa(const Posicion& 
 
 bool Juego::dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad,
                                      Posicion& posicionFinal) {
-    if (mapa.agregarOroEnSuelo(origen, cantidad)) {
+    if (mundo.agregarOroEnSuelo(origen, cantidad)) {
         posicionFinal = origen;
         return true;
     }
 
     // Probamos en celdas adyacentes válidas. Esto es útil si la celda del NPC queda bloqueada por una pared post-spawn o por un ítem ya tirado.
     for (const Posicion& celdaCandidata : calcularDestinosAdyacentes(origen)) {
-        if (mapa.agregarOroEnSuelo(celdaCandidata, cantidad)) {
+        if (mundo.agregarOroEnSuelo(celdaCandidata, cantidad)) {
             posicionFinal = celdaCandidata;
             return true;
         }
@@ -2458,7 +2458,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    if (mapa.esZonaSegura(posicionAtacante) || mapa.esZonaSegura(posicionCriatura)) {
+    if (mundo.esZonaSegura(posicionAtacante) || mundo.esZonaSegura(posicionCriatura)) {
         RegistroServidor::criaturaAtaqueZonaSegura();
         return {armarError(idCliente, CodigoErrorAccion::ZONA_SEGURA)};
     }
@@ -2568,7 +2568,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
                                                                      valorAleatorioDropOro);
 
         // Eliminar la criatura del mapa ANTES de buscar celda libre para el oro, así la propia celda del NPC pasa a ser candidata válida.
-        mapa.removerCriatura(idCriatura);
+        mundo.removerCriatura(idCriatura);
         ultimoTickAtaqueCriatura.erase(idCriatura);
         RegistroServidor::criaturaMurio(idCriatura);
 

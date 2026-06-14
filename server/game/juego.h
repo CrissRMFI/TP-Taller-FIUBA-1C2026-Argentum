@@ -18,6 +18,7 @@
 #include "jugador.h"
 #include "../../common/game/criatura.h"
 #include "../../common/game/mapa/mapa.h"
+#include "../../common/game/mapa/mundo.h"
 #include "../../common/persistencia/catalogo_criaturas.h"
 #include "objeto/catalogo_items.h"
 #include "objeto/hechizo.h"
@@ -53,7 +54,7 @@ class Juego {
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
-    Mapa mapa;
+    Mundo mundo;
     uint64_t ticksTranscurridos;
     std::unordered_map<uint16_t, uint64_t> ultimoTickAtaqueCriatura;
     Aleatorio aleatorio;
