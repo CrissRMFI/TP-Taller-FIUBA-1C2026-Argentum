@@ -75,6 +75,12 @@ function(
     list(APPEND CLANG_WARNINGS -Werror)
     list(APPEND GCC_WARNINGS -Werror)
     list(APPEND MSVC_WARNINGS /WX)
+    # GCC >= 13 emite un falso positivo -Wnull-dereference dentro de headers
+    # de Qt6 (qhash.h) en codigo autogenerado por Qt (qmlcache_loader). Se
+    # mantiene el warning pero no se trata como error para no romper el build
+    # en toolchains mas nuevos. Debe ir DESPUES de -Werror para tener efecto.
+    list(APPEND CLANG_WARNINGS -Wno-error=null-dereference)
+    list(APPEND GCC_WARNINGS -Wno-error=null-dereference)
   endif()
 
   # Allow the caller to remove any flag set here
