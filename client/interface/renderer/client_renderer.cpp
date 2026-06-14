@@ -20,17 +20,16 @@
 #define CLIENT_MAP_PATH "config/mapa.toml"
 #endif
 
-std::map<uint16_t, Mapa> ObjectRenderer::cargarMapas() const {
+WorldCargado ObjectRenderer::cargarMundo() const {
     try {
         LectorMapa lector_mapa;
-        // El cliente carga el escenario completo (exterior + mazmorras) para poder
-        // cambiar la capa de tiles cuando el jugador atraviesa un portal.
-        return lector_mapa.leerMundo(CLIENT_MAP_PATH).mapas;
+        return lector_mapa.leerMundo(CLIENT_MAP_PATH);
     } catch (const std::exception& e) {
         std::cerr << "Error al cargar el mapa '" << CLIENT_MAP_PATH << "': " << e.what()
                   << ". Se usa un mapa vacio." << std::endl;
-        std::map<uint16_t, Mapa> fallback;
-        fallback.emplace(0, Mapa(100, 100));
+        WorldCargado fallback;
+        fallback.mapas.emplace(0, Mapa(100, 100));
+        fallback.mapaPrincipalId = 0;
         return fallback;
     }
 }
@@ -44,7 +43,12 @@ const Mapa& ObjectRenderer::mapaVigente() const {
     return mapas.begin()->second;
 }
 
-ObjectRenderer::ObjectRenderer() : mapas(cargarMapas()) {}
+ObjectRenderer::ObjectRenderer() {
+    WorldCargado mundo = cargarMundo();
+    mapas = std::move(mundo.mapas);
+    portales = std::move(mundo.portales);
+    mapaActual = mundo.mapaPrincipalId;
+}
 
 void ObjectRenderer::init(const char* title,
                           const int xpos,
@@ -249,11 +253,19 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const auto scrX = [&](double tile) { return camX + static_cast<int>(tile * tileW); };
     const auto scrY = [&](double tile) { return camY + static_cast<int>(tile * tileH); };
 
+    bool esCaverna = false;
+    for (const ZonaPiso& z : mapa.getPisos()) {
+        if (z.clave == "caverna") {
+            esCaverna = true;
+            break;
+        }
+    }
+
     renderer->SetDrawColor(0, 0, 0, 255);
     renderer->Clear();
     // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se desbordan por debajo del panel ni del chat.
     renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));
-    if (background_texture) {
+    if (background_texture && !esCaverna) {
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
         SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
         renderer->Copy(*background_texture, SDL2pp::NullOpt,
@@ -291,6 +303,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const auto texturaPiso = [](const std::string& clave) -> std::string {
         if (clave == "desierto") return "imgs/mapas/desierto.png";
         if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
+        if (clave == "caverna")  return "imgs/mazmorras/entrada1Piso.png";
         return "imgs/mapas/pasto.png";
     };
     {
@@ -337,6 +350,30 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int cx = scrX(o.x) + tileW / 2;   // centro horizontal de la celda
         const int by = scrY(o.y) + tileH;       // base = borde inferior de la celda
         renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
+    }
+
+    
+    {
+        SDL2pp::Texture* texPortal = nullptr;
+        try {
+            texPortal = &cache_texture->get_or_load("imgs/mazmorras/entrada_marcador.png");
+        } catch (const std::exception&) {
+            texPortal = nullptr;
+        }
+        const double altoPortal = 2.6;
+        if (texPortal) {
+            for (const Portal& portal : portales) {
+                if (portal.origen.mapaId != mapaActual) continue;
+                if (!camera.is_visible(portal.origen.x, portal.origen.y)) continue;
+                const int th = std::max(1, static_cast<int>(tileH * altoPortal));
+                const int tw = std::max(1, th * texPortal->GetWidth() /
+                                                std::max(1, texPortal->GetHeight()));
+                const int cx = scrX(portal.origen.x) + tileW / 2;
+                const int by = scrY(portal.origen.y) + tileH;
+                renderer->Copy(*texPortal, SDL2pp::NullOpt,
+                               SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
+            }
+        }
     }
 
     // --- Paredes: ladrillo (si falla la textura, rect oscuro) ---
@@ -425,6 +462,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     } 
 
     for (const auto& [id, entity] : state_object.entities()) {
+        if (entity.mapaId != mapaActual) {
+            continue;
+        }
         const int cell_width = tileW;
         const int cell_height = tileH;
         // El jugador local se dibuja en su posicion visual continua (suave); el resto

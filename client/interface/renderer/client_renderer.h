@@ -24,6 +24,8 @@
 #include "text_renderer.h"
 #include "../../config/catalogo_items.h"
 #include "../../../common/game/mapa/mapa.h"
+#include "../../../common/game/mapa/portal.h"
+#include "../../../common/persistencia/lector_mapa.h"
 #include "../../camara/player_camera.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
@@ -74,10 +76,11 @@ private:
     int window_width = 0;
     int window_height = 0;
     std::map<uint16_t, Mapa> mapas;
+    std::vector<Portal> portales;  // para dibujar el marcador en la celda de cada portal
     uint16_t mapaActual = 0;
     PlayerCamera camera;
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
-    std::map<uint16_t, Mapa> cargarMapas() const;
+    WorldCargado cargarMundo() const;
     const Mapa& mapaVigente() const;
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
