@@ -59,3 +59,27 @@ npcs = [
   { id = 5, tipo = "comerciante", x = 40, y = 40 },
   { id = 6, tipo = "banquero", x = 60, y = 60 },
 ]
+
+# ── Mazmorra 
+# Submapa independiente (mapa_id 1) vinculado al exterior por una entrada/salida.
+# El servidor lo carga via leerMundo() como un Mapa aparte; al pisar 'entrada' el jugador es transportado a la mazmorra. 
+# entrada: celda del exterior -> aparece en (destino_x, destino_y) de la mazmorra.
+# salida : celda de la mazmorra -> vuelve a (destino_x, destino_y) del exterior.
+[[mazmorra]]
+mapa_id = 1
+ancho   = 40
+alto    = 40
+entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }
+salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }
+
+# Toda la mazmorra se pinta como caverna (visual propio; el tile se agrega al
+# renderizar la mazmorra en un paso posterior).
+pisos = [
+  { x_min = 0, y_min = 0, x_max = 39, y_max = 39, clave = "caverna" },
+]
+
+# Algunas paredes interiores para darle forma de caverna.
+paredes = [
+  { x = 18, y = 18 }, { x = 19, y = 18 }, { x = 20, y = 18 }, { x = 21, y = 18 },
+  { x = 18, y = 21 }, { x = 19, y = 21 }, { x = 20, y = 21 }, { x = 21, y = 21 },
+]

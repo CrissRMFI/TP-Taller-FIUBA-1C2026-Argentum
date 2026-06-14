@@ -9,20 +9,29 @@
 
 #include "../modelo/posicion.h"
 #include "mapa.h"
+#include "portal.h"
 
 // Mundo agrupa los mapas del juego indexados por su mapaId.
 class Mundo {
 private:
     std::map<uint16_t, Mapa> mapas;
+    std::vector<Portal> portales;
     uint16_t principalId;
 
 public:
-    
+    // Mundo de un solo mapa (el exterior). Sin portales.
     explicit Mundo(Mapa&& mapaPrincipal, uint16_t mapaId = 0);
+
+    // Mundo con varios mapas (exterior + mazmorras) y los portales que los unen.
+    Mundo(std::map<uint16_t, Mapa>&& mapas, std::vector<Portal>&& portales,
+          uint16_t mapaPrincipalId);
 
     bool existeMapa(uint16_t mapaId) const;
 
-    
+    // Si 'origen' es la celda de entrada de un portal, devuelve su destino.
+    std::optional<Posicion> destinoPortalEn(const Posicion& origen) const;
+
+
     Mapa& mapaDe(const Posicion& posicion);
     const Mapa& mapaDe(const Posicion& posicion) const;
     Mapa& mapaDe(uint16_t mapaId);

@@ -67,6 +67,7 @@ target_sources(taller_common
     game/npc/banquero.h
     game/mapa/mapa.h
     game/mapa/mundo.h
+    game/mapa/portal.h
 
     # Persistencia de mapas (escenario en TOML)
     persistencia/error_persistencia.h

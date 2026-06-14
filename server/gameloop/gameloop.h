@@ -30,7 +30,7 @@ private:
     void despachar(const std::list<EventoSalida>& eventos);
 
 public:
-    Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mapa&& mapa);
+    Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mundo&& mundo);
 
     void run() override;
     void detener();

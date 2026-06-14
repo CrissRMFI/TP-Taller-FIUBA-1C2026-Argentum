@@ -44,17 +44,8 @@ TipoCriatura LectorMapa::tipoCriaturaDesdeTexto(const std::string& texto, const 
             path + " (tipo de criatura desconocido: '" + texto + "')");
 }
 
-MapaCargado LectorMapa::leer(const std::string& path,
-                             const CatalogoCriaturas& catalogoCriaturas) {
-    toml::table tbl;
-    try {
-        tbl = toml::parse_file(path);
-    } catch (const toml::parse_error& e) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::TOML_MAL_FORMADO,
-                path + " (" + std::string(e.description()) + ")");
-    }
-
+MapaCargado LectorMapa::parsearTabla(const toml::table& tbl, const std::string& path,
+                                     const CatalogoCriaturas& catalogoCriaturas) {
     const uint16_t mapaId = leerUint16(tbl, "mapa_id", path);
     const uint16_t ancho  = leerUint16(tbl, "ancho", path);
     const uint16_t alto   = leerUint16(tbl, "alto", path);
@@ -220,4 +211,89 @@ MapaCargado LectorMapa::leer(const std::string& path,
     }
 
     return MapaCargado{std::move(mapa), mapaId};
+}
+
+MapaCargado LectorMapa::leer(const std::string& path,
+                             const CatalogoCriaturas& catalogoCriaturas) {
+    toml::table tbl;
+    try {
+        tbl = toml::parse_file(path);
+    } catch (const toml::parse_error& e) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::TOML_MAL_FORMADO,
+                path + " (" + std::string(e.description()) + ")");
+    }
+
+    return parsearTabla(tbl, path, catalogoCriaturas);
+}
+
+void LectorMapa::agregarPortalesMazmorra(const toml::table& mazmorra, uint16_t mapaPrincipalId,
+                                         uint16_t mazmorraId, const std::string& path,
+                                         std::vector<Portal>& portales) {
+    // Entrada (obligatoria): celda del exterior que transporta a la mazmorra.
+    const toml::table* entrada = mazmorra["entrada"].as_table();
+    if (entrada == nullptr) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::CLAVE_FALTANTE,
+                path + " (mazmorra id=" + std::to_string(mazmorraId) + " sin 'entrada')");
+    }
+    portales.push_back(Portal{
+            Posicion{leerUint16(*entrada, "x", path), leerUint16(*entrada, "y", path),
+                     mapaPrincipalId},
+            Posicion{leerUint16(*entrada, "destino_x", path),
+                     leerUint16(*entrada, "destino_y", path), mazmorraId}});
+
+    // Salida (opcional): celda de la mazmorra que devuelve al exterior.
+    if (const toml::table* salida = mazmorra["salida"].as_table()) {
+        portales.push_back(Portal{
+                Posicion{leerUint16(*salida, "x", path), leerUint16(*salida, "y", path),
+                         mazmorraId},
+                Posicion{leerUint16(*salida, "destino_x", path),
+                         leerUint16(*salida, "destino_y", path), mapaPrincipalId}});
+    }
+}
+
+WorldCargado LectorMapa::leerMundo(const std::string& path,
+                                   const CatalogoCriaturas& catalogoCriaturas) {
+    toml::table tbl;
+    try {
+        tbl = toml::parse_file(path);
+    } catch (const toml::parse_error& e) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::TOML_MAL_FORMADO,
+                path + " (" + std::string(e.description()) + ")");
+    }
+
+    WorldCargado mundo;
+
+    // Mapa exterior (raiz del archivo).
+    MapaCargado principal = parsearTabla(tbl, path, catalogoCriaturas);
+    mundo.mapaPrincipalId = principal.mapaId;
+    mundo.mapas.emplace(principal.mapaId, std::move(principal.mapa));
+
+    // Mazmorras: cada [[mazmorra]] es otro mapa vinculado por portales.
+    if (const toml::array* mazmorras = tbl["mazmorra"].as_array()) {
+        for (const toml::node& nodo : *mazmorras) {
+            const toml::table* m = nodo.as_table();
+            if (m == nullptr) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (entrada de 'mazmorra' invalida)");
+            }
+
+            MapaCargado mazmorra = parsearTabla(*m, path, catalogoCriaturas);
+            if (mazmorra.mapaId == mundo.mapaPrincipalId || mundo.mapas.count(mazmorra.mapaId)) {
+                throw ErrorPersistencia(
+                        CodigoErrorPersistencia::REGISTRO_INVALIDO,
+                        path + " (mapa_id de mazmorra repetido: " +
+                                std::to_string(mazmorra.mapaId) + ")");
+            }
+
+            agregarPortalesMazmorra(*m, mundo.mapaPrincipalId, mazmorra.mapaId, path,
+                                    mundo.portales);
+            mundo.mapas.emplace(mazmorra.mapaId, std::move(mazmorra.mapa));
+        }
+    }
+
+    return mundo;
 }

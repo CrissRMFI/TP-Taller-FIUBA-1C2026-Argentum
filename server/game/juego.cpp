@@ -23,14 +23,14 @@
 #include "../../common/persistencia/error_persistencia.h"
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hechizos,
-             CatalogoCriaturas&& criaturas, Mapa&& mapa) :
+             CatalogoCriaturas&& criaturas, Mundo&& mundo) :
         cfg(cfg),
         catalogo(std::move(cat)),
         catalogoHechizos(std::move(hechizos)),
         catalogoCriaturas(std::move(criaturas)),
         proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
-        mundo(std::move(mapa)),
+        mundo(std::move(mundo)),
         ticksTranscurridos(0),
         aleatorio(),
         indiceJugadores(cfg.rutaIndiceJugadores),

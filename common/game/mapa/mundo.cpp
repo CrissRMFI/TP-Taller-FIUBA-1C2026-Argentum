@@ -6,8 +6,23 @@ Mundo::Mundo(Mapa&& mapaPrincipal, uint16_t mapaId) : principalId(mapaId) {
     mapas.emplace(mapaId, std::move(mapaPrincipal));
 }
 
+Mundo::Mundo(std::map<uint16_t, Mapa>&& mapas, std::vector<Portal>&& portales,
+             uint16_t mapaPrincipalId) :
+        mapas(std::move(mapas)),
+        portales(std::move(portales)),
+        principalId(mapaPrincipalId) {}
+
 bool Mundo::existeMapa(uint16_t mapaId) const {
     return mapas.find(mapaId) != mapas.end();
+}
+
+std::optional<Posicion> Mundo::destinoPortalEn(const Posicion& origen) const {
+    for (const Portal& portal : portales) {
+        if (portal.origen == origen) {
+            return portal.destino;
+        }
+    }
+    return std::nullopt;
 }
 
 Mapa& Mundo::mapaDe(const Posicion& posicion) { return mapas.at(posicion.mapaId); }
