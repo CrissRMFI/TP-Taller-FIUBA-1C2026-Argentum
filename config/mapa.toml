@@ -84,9 +84,9 @@ paredes = [
   { x = 18, y = 21 }, { x = 19, y = 21 }, { x = 20, y = 21 }, { x = 21, y = 21 },
 ]
 
-# Criaturas de la mazmorra: posicion de INICIO fija y 
-# agreden a jugadores de otro mapa (sus destinos siempre llevan su propio mapaId).
-# spawner dinamico del exterior (cuenta desde 65535).
+# Criaturas de la mazmorra: posicion de INICIO fija, pero se mueven
+# (deambulan y persiguen/atacan dentro de su rango de aggro). Nunca
+# cruzan el portal ni agreden a jugadores de otro mapa. Respawnean segun 'respawn_ticks'
 criaturas = [
   { tipo = "centinela_piedra",   id = 50001, x = 8,  y = 6  },
   { tipo = "centinela_piedra",   id = 50002, x = 6,  y = 12 },

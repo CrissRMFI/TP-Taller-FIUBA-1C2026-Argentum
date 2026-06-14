@@ -1166,7 +1166,9 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     // Fuera de ciudad: buscar al sacerdote más cercano en el mapa del jugador.
     std::optional<Npc> npcSacerdote = mundo.buscarSacerdoteMasCercano(posicionJugador);
     if (!npcSacerdote.has_value()) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+        // El mapa actual no tiene sacerdote (p. ej. la mazmorra): se resucita cruzando
+        // al exterior, junto a la ciudad ancla. Es lógica cruzada entre mapas, como el portal.
+        return resucitarEnExterior(idCliente, *jugador);
     }
 
     // Valida via el accessor con puntero observador que el sacerdote efectivamente exista como entidad concreta en el mapa.
@@ -1202,6 +1204,40 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     };
 
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
+}
+
+std::list<EventoSalida> Juego::resucitarEnExterior(uint16_t idCliente, Jugador& jugador) {
+    // Sacerdote del exterior mas cercano a la ciudad ancla (cfg.spawnInicial, mapaId 0).
+    std::optional<Npc> npcSacerdote = mundo.buscarSacerdoteMasCercano(cfg.spawnInicial);
+    if (!npcSacerdote.has_value()) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+    const Sacerdote* sacerdote = mundo.obtenerSacerdote(npcSacerdote->getId());
+    if (sacerdote == nullptr) {
+        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    }
+    std::optional<Posicion> destino =
+            buscarPosicionLibreCercaDe(sacerdote->getPosicion(), idCliente);
+    if (!destino.has_value()) {
+        return {armarError(idCliente, CodigoErrorAccion::SIN_POSICION_LIBRE)};
+    }
+
+    // Cruce de mapa + resurreccion inmediata (la espera por distancia es intra-mapa y aqui
+    // el sacerdote esta en otro mapa). Reusa la misma secuencia que el teletransporte por portal.
+    std::list<EventoSalida> mensajes;
+    // 1) Desaparece para los del mapa actual (la mazmorra) antes de moverse.
+    mensajes.splice(mensajes.end(), armarDesaparicionParaMapa(jugador));
+    // 2) Cruza al exterior y revive ahi (reubicar fija mapaId+x+y; resucitar revive en x,y).
+    jugador.detenerMover();
+    jugador.reubicar(*destino);
+    jugador.resucitar(destino->x, destino->y);
+    // 3) Avisa al cliente del cambio de capa + nuevo estado + snapshot del exterior.
+    mensajes.push_back({TipoDestino::UNO, idCliente, EventoCambioMapa{destino->mapaId}});
+    mensajes.push_back(armarEstado(idCliente, jugador));
+    mensajes.splice(mensajes.end(), armarSnapshotMapaPara(idCliente, jugador));
+    // 4) Aparece para los del exterior (y recibe su propia posicion).
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
     return mensajes;
 }
 

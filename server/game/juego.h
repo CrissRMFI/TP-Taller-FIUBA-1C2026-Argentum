@@ -127,6 +127,9 @@ class Juego {
 
     std::list<EventoSalida> ejecutarMeditar(uint16_t idCliente);
     std::list<EventoSalida> ejecutarResucitar(uint16_t idCliente);
+    // Resucita a un fantasma cuyo mapa no tiene sacerdote (mazmorra): lo cruza al
+    // exterior junto al sacerdote mas cercano a la ciudad ancla y lo revive ahi.
+    std::list<EventoSalida> resucitarEnExterior(uint16_t idCliente, Jugador& jugador);
     std::list<EventoSalida> ejecutarTomar(uint16_t idCliente);
     // Levanta el oro y/o item de la celda del jugador (silencioso, sin errores).
     // Devuelve los eventos a difundir; vacio si no habia nada.
