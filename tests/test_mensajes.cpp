@@ -33,7 +33,7 @@ TEST_F(ProtocoloFixture, EstadoPersonajeValoresMaximos) {
 }
 
 TEST_F(ProtocoloFixture, PosicionEntidadRoundTrip) {
-    MensajePosicionEntidad m{7, 50, 50, 0, 0, 0, 0, 0, 0, 0};
+    MensajePosicionEntidad m{7, 50, 50, 0, 0, 0, 0, 0, 0, 0, 3};
     servidor->enviarMensaje({Opcode::POSICION_ENTIDAD, m});
     auto p = std::get<MensajePosicionEntidad>(cliente->recibirMensaje().payload);
     EXPECT_EQ(p.id, 7);
@@ -41,6 +41,7 @@ TEST_F(ProtocoloFixture, PosicionEntidadRoundTrip) {
     EXPECT_EQ(p.y, 50);
     EXPECT_EQ(p.tipo, 0);
     EXPECT_EQ(p.estado, 0);
+    EXPECT_EQ(p.mapaId, 3);
 }
 
 TEST_F(ProtocoloFixture, EntidadDesaparecio) {
@@ -95,6 +96,18 @@ TEST_F(ProtocoloFixture, ProyectilIdsMaximos) {
     auto p = std::get<MensajeProyectil>(cliente->recibirMensaje().payload);
     EXPECT_EQ(p.idOrigen, 65535);
     EXPECT_EQ(p.idDestino, 65535);
+}
+
+TEST_F(ProtocoloFixture, CambioMapa) {
+    servidor->enviarMensaje({Opcode::CAMBIO_MAPA, MensajeCambioMapa{1}});
+    auto p = std::get<MensajeCambioMapa>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.mapaId, 1);
+}
+
+TEST_F(ProtocoloFixture, CambioMapaIdMaximo) {
+    servidor->enviarMensaje({Opcode::CAMBIO_MAPA, MensajeCambioMapa{65535}});
+    auto p = std::get<MensajeCambioMapa>(cliente->recibirMensaje().payload);
+    EXPECT_EQ(p.mapaId, 65535);
 }
 
 // Items del mundo

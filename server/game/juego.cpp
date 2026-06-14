@@ -332,45 +332,27 @@ EventoSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugador
 EventoSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador) {
     Posicion posicion = jugador.getPosicion();
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{jugador.getId(), posicion.x, posicion.y,
-                                  static_cast<uint8_t>(TipoEntidad::Personaje),
-                                  estadoEntidadDe(jugador),
-                                  jugador.getCabeza(),
-                                  jugador.getCuerpo(),
-                                  jugador.getSpriteArma(),
-                                  jugador.getSpriteEscudo(),
-                                  jugador.getSpriteCasco()}};
+            EventoPosicionEntidad{jugador.getId(), posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Personaje), estadoEntidadDe(jugador), jugador.getCabeza(), jugador.getCuerpo(), jugador.getSpriteArma(), jugador.getSpriteEscudo(), jugador.getSpriteCasco(), posicion.mapaId}};
 }
 
 EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura) {
     Posicion posicion = criatura.getPos();
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y,
-                                  static_cast<uint8_t>(TipoEntidad::Criatura),
-                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo),
-                                  0, // Cabeza de criatura es 0
-                                  criatura.getCuerpo()}};
+            EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Criatura), static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0, criatura.getCuerpo(), 0, 0, 0, posicion.mapaId}};
 }
 
 EventoSalida Juego::armarPosicionNpcPara(uint16_t idCliente, uint16_t idNpc,
                                          const Posicion& posicion, uint16_t cuerpo) {
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{idNpc, posicion.x, posicion.y,
-                                  static_cast<uint8_t>(TipoEntidad::Npc),
-                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo),
-                                  0,  // los NPCs no usan cabeza separada
-                                  cuerpo}};
+            EventoPosicionEntidad{idNpc, posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Npc), static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0, cuerpo, 0, 0, 0, posicion.mapaId}};
 }
 
 std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
-    // El id de sprite de cuerpo de cada NPC sale del TOML (cfg): es un contrato
-    // con el cliente, que mapea ese numero a su grafico en el NpcSpriteResolver.
     std::list<EventoSalida> mensajes;
     const Jugador* jugador = buscarJugador(idCliente);
     if (jugador == nullptr) {
         return mensajes;
     }
-    // Solo los NPCs del mapa donde esta el jugador (el exterior tiene los NPCs amigables; la mazmorra no tiene).
     const Mapa& mapa = mundo.mapaDe(jugador->getPosicion());
     for (const auto& [idNpc, sacerdote] : mapa.getSacerdotes()) {
         mensajes.push_back(
@@ -435,12 +417,14 @@ std::list<EventoSalida> Juego::procesarPortalSiCorresponde(uint16_t idCliente, J
     }
 
     std::list<EventoSalida> mensajes;
-    // 1) Desaparece para los jugadores del mapa de origen (aun no se movio).
+    // 1) Desaparece para los jugadores del mapa de origen (aun no se movio)
     mensajes.splice(mensajes.end(), armarDesaparicionParaMapa(jugador));
-    // 2) Se reubica en el mapa destino y deja de moverse (que no arrastre la direccion).
+    // 2) Se reubica en el mapa destino y deja de moverse (para que no arrastre la direccion)
     jugador.detenerMover();
     jugador.reubicar(*destinoLibre);
-    // 3) Recibe el estado del nuevo mapa (otros jugadores, criaturas, NPCs, drops).
+    // 2.5) Le avisa  que cambio de mapa para que cambie la capa de tiles
+    mensajes.push_back({TipoDestino::UNO, idCliente, EventoCambioMapa{destinoLibre->mapaId}});
+    // 3) Recibe el estado del nuevo mapa (otros jugadores, criaturas, NPCs, drops etc)
     mensajes.splice(mensajes.end(), armarSnapshotMapaPara(idCliente, jugador));
     // 4) Aparece para los jugadores del mapa destino (y recibe su propia posicion).
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));

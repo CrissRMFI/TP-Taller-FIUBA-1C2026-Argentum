@@ -20,7 +20,7 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     if (auto* e = std::get_if<EventoPosicionEntidad>(&evento)) {
         return { Opcode::POSICION_ENTIDAD,
                  MensajePosicionEntidad{ e->id, e->x, e->y, e->tipo, e->estado, e->cabeza,
-                                         e->cuerpo, e->arma, e->escudo, e->casco } };
+                                         e->cuerpo, e->arma, e->escudo, e->casco, e->mapaId } };
     }
     if (auto* e = std::get_if<EventoEntidadDesaparecio>(&evento)) {
         return { Opcode::ENTIDAD_DESAPARECIO,
@@ -94,6 +94,9 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     }
     if (auto* e = std::get_if<EventoFxHechizo>(&evento)) {
         return { Opcode::FX_HECHIZO, MensajeFxHechizo{ e->idHechizo, e->idObjetivo } };
+    }
+    if (auto* e = std::get_if<EventoCambioMapa>(&evento)) {
+        return { Opcode::CAMBIO_MAPA, MensajeCambioMapa{ e->mapaId } };
     }
     if (auto* e = std::get_if<EventoProyectil>(&evento)) {
         return { Opcode::PROYECTIL, MensajeProyectil{ e->idOrigen, e->idDestino } };
