@@ -28,3 +28,74 @@ nombre      = "Ciudad (zona segura)"
 descripcion = "Zona segura: no se puede pelear dentro."
 sprite      = ":/mapas/tile_ciudad.png"
 destino     = "ciudad"
+
+# Pisos de mazmorra/caverna.
+[[piso]]
+clave       = "piedra_oscura"
+nombre      = "Piedra oscura"
+descripcion = "Piso base de caverna."
+sprite      = ":/mapas/piso_piedra_oscura.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "piedra_clara"
+nombre      = "Piedra clara"
+descripcion = "Roca clara de caverna."
+sprite      = ":/mapas/piso_piedra_clara.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "piedra_gris"
+nombre      = "Piedra gris"
+descripcion = "Roca gris de caverna."
+sprite      = ":/mapas/piso_piedra_gris.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "piedra_musgosa"
+nombre      = "Piedra musgosa"
+descripcion = "Roca humeda con musgo."
+sprite      = ":/mapas/piso_piedra_musgosa.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "piedra_hexagonal"
+nombre      = "Piedra hexagonal"
+descripcion = "Baldosas hexagonales de piedra."
+sprite      = ":/mapas/piso_piedra_hexagonal.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "ladrillo_oscuro"
+nombre      = "Ladrillo oscuro"
+descripcion = "Ladrillos oscuros (sala interior)."
+sprite      = ":/mapas/piso_ladrillo_oscuro.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "adoquin_gris"
+nombre      = "Adoquin gris"
+descripcion = "Adoquinado gris (entrada/salida)."
+sprite      = ":/mapas/piso_adoquin_gris.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "madera_oscura"
+nombre      = "Madera oscura"
+descripcion = "Tablones de madera oscura."
+sprite      = ":/mapas/piso_madera_oscura.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "marmol_blanco"
+nombre      = "Marmol blanco"
+descripcion = "Piso de marmol blanco."
+sprite      = ":/mapas/piso_marmol_blanco.png"
+destino     = "piso"
+
+[[piso]]
+clave       = "agua"
+nombre      = "Agua"
+descripcion = "Charco/agua de caverna."
+sprite      = ":/mapas/piso_agua.png"
+destino     = "piso"
