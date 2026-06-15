@@ -1,6 +1,7 @@
 # config/mapa.toml — escenario de Argentum (paredes, ciudades/zonas seguras y NPCs).
 # Generado por el editor de mapas. Editable a mano.
 
+formato = "A.FI.G2"
 mapa_id = 0
 ancho   = 100
 alto    = 100
