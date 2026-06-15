@@ -1,5 +1,13 @@
 # Catalogo de terreno del editor de mapas (seccion PISOS del panel).
 
+# Piso de relleno
+[[piso]]
+clave       = "vacio"
+nombre      = "Vacio (relleno)"
+descripcion = "-"
+sprite      = ":/mapas/tile_vacio.png"
+destino     = "piso"
+
 [[piso]]
 clave       = "pasto"
 nombre      = "Pasto"

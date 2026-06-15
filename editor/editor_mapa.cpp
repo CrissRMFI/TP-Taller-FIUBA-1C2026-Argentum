@@ -131,7 +131,7 @@ std::string EditorMapa::pisoEn(uint16_t x, uint16_t y) const {
             return it->clave;
         }
     }
-    return "pasto";
+    return "vacio";
 }
 
 bool EditorMapa::todoCubierto() const {
@@ -233,6 +233,10 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
 
 Mapa EditorMapa::construirMapa() const {
     Mapa mapa(ancho, alto);
+    // Iniciamos tod con piso vacio
+    mapa.agregarPiso(ZonaPiso{mapaId, 0, 0,
+                              static_cast<uint16_t>(ancho - 1),
+                              static_cast<uint16_t>(alto - 1), "vacio"});
     for (const Posicion& p : paredes) {
         mapa.agregarPared(Posicion{p.x, p.y, mapaId});
     }

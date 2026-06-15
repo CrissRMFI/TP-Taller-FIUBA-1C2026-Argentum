@@ -34,5 +34,6 @@
     <file alias="mapas/tile_cartel.png">../client/resources/imgs/mapas/cartel.png</file>
     <file alias="mapas/tile_ciudad.png">../client/resources/imgs/mapas/ciudad.png</file>
     <file alias="mapas/tile_pared.png">../client/resources/imgs/mapas/pared.png</file>
+    <file alias="mapas/tile_vacio.png">assets/piso_vacio.png</file>
   </qresource>
 </RCC>
