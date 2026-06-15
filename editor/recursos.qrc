@@ -46,5 +46,7 @@
     <file alias="mapas/piso_madera_oscura.png">../client/resources/imgs/mazmorras/piso_madera_oscura.png</file>
     <file alias="mapas/piso_marmol_blanco.png">../client/resources/imgs/mazmorras/piso_marmol_blanco.png</file>
     <file alias="mapas/piso_agua.png">../client/resources/imgs/mazmorras/piso_agua.png</file>
+
+    <file alias="mapas/marcador_portal.png">../client/resources/imgs/mazmorras/entrada_marcador.png</file>
   </qresource>
 </RCC>

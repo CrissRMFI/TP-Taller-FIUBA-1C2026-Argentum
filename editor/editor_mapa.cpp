@@ -3,7 +3,8 @@
 #include <algorithm>
 
 EditorMapa::EditorMapa(uint16_t ancho, uint16_t alto):
-        ancho(ancho), alto(alto), mapaId(0), pisoBase("vacio") {}
+        ancho(ancho), alto(alto), mapaId(0), pisoBase("vacio"),
+        marcadorX(0), marcadorY(0) {}
 
 uint16_t EditorMapa::getAncho() const { return ancho; }
 uint16_t EditorMapa::getAlto() const { return alto; }
@@ -14,6 +15,17 @@ const std::optional<VinculoMazmorra>& EditorMapa::getVinculoMazmorra() const {
     return vinculoMazmorra;
 }
 bool EditorMapa::esMazmorra() const { return mapaId != 0; }
+uint16_t EditorMapa::getMarcadorX() const { return marcadorX; }
+uint16_t EditorMapa::getMarcadorY() const { return marcadorY; }
+void EditorMapa::setMarcador(uint16_t x, uint16_t y) {
+    if (dentroDeLimites(x, y)) {
+        marcadorX = x;
+        marcadorY = y;
+    }
+}
+bool EditorMapa::esMarcador(uint16_t x, uint16_t y) const {
+    return x == marcadorX && y == marcadorY;
+}
 
 bool EditorMapa::dentroDeLimites(uint16_t x, uint16_t y) const {
     return x < ancho && y < alto;
@@ -74,21 +86,21 @@ bool EditorMapa::esVacio(uint16_t x, uint16_t y) const {
 
 void EditorMapa::ponerPared(uint16_t x, uint16_t y) {
     // En "vacio" solo se puede pintar piso; nada de paredes/objetos/entidades.
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y) || esMarcador(x, y)) {
         return;
     }
     paredes.push_back(Posicion{x, y, mapaId});
 }
 
 void EditorMapa::ponerObjeto(const std::string& clave, uint16_t x, uint16_t y) {
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y) || esMarcador(x, y)) {
         return;
     }
     objetos.push_back(ObjetoEditor{clave, x, y});
 }
 
 void EditorMapa::ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y) {
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y) || esMarcador(x, y)) {
         return;
     }
     npcs.push_back(NpcEditor{proximoIdNpc(), tipo, x, y});
@@ -98,7 +110,8 @@ void EditorMapa::ponerCriatura(TipoCriatura tipo, uint16_t x, uint16_t y) {
     // Las criaturas no pueden ir en zona segura (ciudad): el modelo del juego
     // las rechaza, asi que tampoco las dejamos colocar aca para que el guardado
     // y la recarga sean consistentes. Tampoco sobre "vacio".
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || estaEnCiudad(x, y) || esVacio(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || estaEnCiudad(x, y) || esVacio(x, y) ||
+        esMarcador(x, y)) {
         return;
     }
     criaturas.push_back(CriaturaEditor{proximoIdCriatura(), tipo, x, y});
@@ -119,7 +132,8 @@ void EditorMapa::pintarParedes(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
     const uint16_t yMax = std::max(y1, y2);
     for (uint16_t y = yMin; y <= yMax; ++y) {
         for (uint16_t x = xMin; x <= xMax; ++x) {
-            if (dentroDeLimites(x, y) && !celdaOcupada(x, y) && !esVacio(x, y)) {
+            if (dentroDeLimites(x, y) && !celdaOcupada(x, y) && !esVacio(x, y) &&
+                !esMarcador(x, y)) {
                 paredes.push_back(Posicion{x, y, mapaId});
             }
         }

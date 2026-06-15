@@ -71,6 +71,7 @@ EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta):
         cargarEscenario(ruta);
     } else {
         mazmorraDefaultEn(modeloMazmorra, EDITOR_MAZMORRA_ID);
+        sincronizarMarcadores();
     }
     actualizarInfo();
     setFixedSize(sizeHint());
@@ -238,6 +239,7 @@ void EditorWindow::cargarEscenario(const QString& rutaElegida) {
             cargarEnModeloODefault(modeloExterior, pathExterior, /*comoMazmorra=*/false);
             rutaActual = pathExterior;
         }
+        sincronizarMarcadores();
         cambiarSolapa(false);  // arrancamos en la solapa Exterior
         statusBar()->showMessage("Escenario cargado: " + rutaActual, 4000);
     } catch (const std::exception& e) {
@@ -255,6 +257,17 @@ void EditorWindow::cambiarSolapa(bool aMazmorra) {
     }
     canvas->setModelo(activo);  // reencuadra solo
     actualizarInfo();
+}
+
+void EditorWindow::sincronizarMarcadores() {
+    const std::optional<VinculoMazmorra>& v = modeloExterior.getVinculoMazmorra();
+    if (v.has_value()) {
+        modeloExterior.setMarcador(v->entradaX, v->entradaY);
+        modeloMazmorra.setMarcador(v->salidaX, v->salidaY);
+    } else {
+        modeloExterior.setMarcador(2, 2);
+        modeloMazmorra.setMarcador(1, 1);
+    }
 }
 
 void EditorWindow::abrirMapa() {
@@ -282,7 +295,11 @@ void EditorWindow::guardarEscenario(const QString& rutaExteriorDestino) {
         vinculo.salidaX = 1; vinculo.salidaY = 1;
         vinculo.salidaDestinoX = 3; vinculo.salidaDestinoY = 2;
     }
-    vinculo.archivo = mazmorraNombre;  // relativo al directorio del mapa
+    vinculo.archivo = mazmorraNombre;
+    vinculo.entradaX = modeloExterior.getMarcadorX();
+    vinculo.entradaY = modeloExterior.getMarcadorY();
+    vinculo.salidaX = modeloMazmorra.getMarcadorX();
+    vinculo.salidaY = modeloMazmorra.getMarcadorY();
 
     EscritorMapa escritor;
     escritor.escribir(modeloExterior.construirMapa(), modeloExterior.getMapaId(),

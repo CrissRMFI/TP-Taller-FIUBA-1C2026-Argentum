@@ -2,6 +2,7 @@
 #define MAPA_CANVAS_H
 
 #include <QByteArray>
+#include <QPixmap>
 #include <QPoint>
 #include <QString>
 #include <QWidget>
@@ -58,6 +59,10 @@ private:
     // Paneo "manito" con el boton del medio (rueda) apretado.
     bool paneando;
     QPoint panUltimo;
+
+    
+    QPixmap marcadorPortal;
+    bool arrastrandoMarcador;
 
     void colocarDesdeMime(const QByteArray& data, const QPoint& punto);
     void aplicarZona(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);

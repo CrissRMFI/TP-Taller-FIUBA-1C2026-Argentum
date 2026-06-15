@@ -48,6 +48,8 @@ private:
     std::vector<ObjetoEditor> objetos;  // elementos sobre el piso (arboles, carteles)
     std::string pisoBase;
     std::optional<VinculoMazmorra> vinculoMazmorra;
+    uint16_t marcadorX;
+    uint16_t marcadorY;
 
     uint16_t proximoIdNpc() const;
     uint16_t proximoIdCriatura() const;
@@ -62,6 +64,11 @@ public:
     const std::string& getPisoBase() const;
     const std::optional<VinculoMazmorra>& getVinculoMazmorra() const;
     bool esMazmorra() const;
+    // Celda del portal (entrada/salida) en este mapa: marcador arrastrable.
+    uint16_t getMarcadorX() const;
+    uint16_t getMarcadorY() const;
+    void setMarcador(uint16_t x, uint16_t y);
+    bool esMarcador(uint16_t x, uint16_t y) const;
 
     bool dentroDeLimites(uint16_t x, uint16_t y) const;
     bool hayParedEn(uint16_t x, uint16_t y) const;

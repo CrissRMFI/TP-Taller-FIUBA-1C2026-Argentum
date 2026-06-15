@@ -50,6 +50,7 @@ private:
     void mazmorraDefaultEn(EditorMapa& modelo, uint16_t id);
     void exteriorDefaultEn(EditorMapa& modelo);
     void cambiarSolapa(bool aMazmorra);
+    void sincronizarMarcadores();
 
     void guardarEscenario(const QString& rutaExteriorDestino);
 

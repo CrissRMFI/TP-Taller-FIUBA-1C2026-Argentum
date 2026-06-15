@@ -17,7 +17,8 @@ MapaCanvas::MapaCanvas(EditorMapa* modelo, const CatalogoEditor* catalogo, QWidg
         pisoActivo(false), pisoClave(), pisoDestino(),
         dibujandoZona(false), zonaInicioX(0), zonaInicioY(0),
         zonaActualX(0), zonaActualY(0),
-        zoomPx(0), offX(0), offY(0), paneando(false), panUltimo() {
+        zoomPx(0), offX(0), offY(0), paneando(false), panUltimo(),
+        marcadorPortal(":/mapas/marcador_portal.png"), arrastrandoMarcador(false) {
     setMinimumSize(300, 300);
     setAcceptDrops(true);
 }
@@ -167,6 +168,19 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
         }
     }
 
+    
+    {
+        const uint16_t mcx = modelo->getMarcadorX();
+        const uint16_t mcy = modelo->getMarcadorY();
+        if (!marcadorPortal.isNull()) {
+            dibujarFigura(painter, marcadorPortal, mcx, mcy, celdaW, celdaH);
+        } else {
+            painter.setBrush(QColor(80, 160, 255, 170));
+            painter.setPen(QColor(230, 240, 255));
+            painter.drawRect(mcx * celdaW, mcy * celdaH, celdaW, celdaH);
+        }
+    }
+
     // Preview de la zona mientras se arrastra.
     if (dibujandoZona) {
         const uint16_t cxMin = std::min(zonaInicioX, zonaActualX);
@@ -237,6 +251,10 @@ void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
     if (!celdaEn(punto, x, y)) {
         return;
     }
+    if (modelo->esMarcador(x, y)) {
+        emit aviso("Esa celda es el portal de la mazmorra: no se puede colocar ahi.");
+        return;
+    }
     const QString texto = QString::fromUtf8(data);
     const int sep = texto.indexOf(':');
     if (sep < 0) {
@@ -299,11 +317,20 @@ void MapaCanvas::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
-    // Pintar zona de terreno solo si hay un piso activo (seccion PISOS).
-    if (event->button() == Qt::LeftButton && pisoActivo) {
+    if (event->button() == Qt::LeftButton) {
         uint16_t x = 0;
         uint16_t y = 0;
-        if (celdaEn(punto, x, y)) {
+        if (!celdaEn(punto, x, y)) {
+            return;
+        }
+        
+        if (modelo->esMarcador(x, y)) {
+            arrastrandoMarcador = true;
+            setCursor(Qt::ClosedHandCursor);
+            return;
+        }
+        
+        if (pisoActivo) {
             dibujandoZona = true;
             zonaInicioX = zonaActualX = x;
             zonaInicioY = zonaActualY = y;
@@ -325,6 +352,17 @@ void MapaCanvas::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
+    
+    if (arrastrandoMarcador && (event->buttons() & Qt::LeftButton)) {
+        uint16_t x = 0;
+        uint16_t y = 0;
+        if (celdaEn(punto, x, y)) {
+            modelo->setMarcador(x, y);
+            update();
+        }
+        return;
+    }
+
     if (!(event->buttons() & Qt::LeftButton) || !dibujandoZona) {
         return;
     }
@@ -341,6 +379,12 @@ void MapaCanvas::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::MiddleButton && paneando) {
         paneando = false;
         unsetCursor();
+        return;
+    }
+    if (event->button() == Qt::LeftButton && arrastrandoMarcador) {
+        arrastrandoMarcador = false;
+        unsetCursor();
+        update();
         return;
     }
     if (event->button() == Qt::LeftButton && dibujandoZona) {
