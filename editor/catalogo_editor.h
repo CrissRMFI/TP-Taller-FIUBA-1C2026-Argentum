@@ -29,6 +29,7 @@ struct ElementoCatalogo {
     QPixmap icono;
     QString destino;
     bool bloquea = false;
+    bool soloMazmorra = false;  // criatura exclusiva de mazmorra: no va en el exterior
     std::vector<QString> pisosPermitidos;
     bool tieneStats = false;
     uint16_t vida = 0;
@@ -57,6 +58,7 @@ public:
 
     const std::vector<ElementoCatalogo>& elementosDe(SeccionCatalogo seccion) const;
     bool criaturaPorClave(const QString& clave, TipoCriatura& tipo) const;
+    bool esSoloMazmorra(const QString& claveCriatura) const;
     bool npcPorClave(const QString& clave, TipoNpc& tipo) const;
     
     QPixmap iconoCriatura(TipoCriatura tipo) const;

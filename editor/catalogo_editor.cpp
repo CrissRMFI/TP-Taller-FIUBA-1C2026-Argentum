@@ -57,6 +57,7 @@ void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* cl
                 QString::fromStdString((*t)["descripcion"].value_or<std::string>(""));
         elem.destino = QString::fromStdString((*t)["destino"].value_or<std::string>(""));
         elem.bloquea = (*t)["bloquea"].value_or<bool>(false);
+        elem.soloMazmorra = (*t)["solo_mazmorra"].value_or<bool>(false);
         if (const toml::array* permitidos = (*t)["pisos_permitidos"].as_array()) {
             for (const toml::node& piso : *permitidos) {
                 if (const auto clave = piso.value<std::string>()) {
@@ -124,6 +125,15 @@ bool CatalogoEditor::criaturaPorClave(const QString& clave, TipoCriatura& tipo) 
     if (clave == "aberracion")         { tipo = TipoCriatura::Aberracion;        return true; }
     if (clave == "coloso_roca")        { tipo = TipoCriatura::ColosoRoca;        return true; }
     if (clave == "senor_abismo")       { tipo = TipoCriatura::SenorAbismo;       return true; }
+    return false;
+}
+
+bool CatalogoEditor::esSoloMazmorra(const QString& claveCriatura) const {
+    for (const ElementoCatalogo& elem : criaturas) {
+        if (elem.clave == claveCriatura) {
+            return elem.soloMazmorra;
+        }
+    }
     return false;
 }
 
