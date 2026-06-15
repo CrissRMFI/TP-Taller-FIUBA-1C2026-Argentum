@@ -21,6 +21,7 @@ struct StatsCriatura {
     uint16_t fxAtaque = 0;
     uint32_t respawnTicks = 0;
     bool respawnFijo = false;
+    bool soloMazmorra = false;  // si true, no puede ubicarse en el mapa exterior
 };
 
 // Fuente unica de los stats de criatura.
@@ -33,6 +34,7 @@ public:
     void cargar(const std::string& path);
 
     bool tiene(TipoCriatura tipo) const;
+    bool esSoloMazmorra(TipoCriatura tipo) const;
     StatsCriatura statsDe(TipoCriatura tipo) const;
     Criatura crear(TipoCriatura tipo, uint16_t id, const Posicion& pos) const;
 

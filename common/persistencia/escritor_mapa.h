@@ -8,10 +8,15 @@
 #include "../game/criatura.h"
 #include "../game/mapa/mapa.h"
 #include "../game/npc/npc.h"
+#include "vinculo_mazmorra.h"
 
 class EscritorMapa {
 public:
-    void escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path);
+    void escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path,
+                  const VinculoMazmorra* vinculo = nullptr);
+
+    void escribirMazmorraDefault(const std::string& path, uint16_t mapaId,
+                                 uint16_t ancho, uint16_t alto);
 
 private:
     const char* tipoNpcATexto(TipoNpc tipo);

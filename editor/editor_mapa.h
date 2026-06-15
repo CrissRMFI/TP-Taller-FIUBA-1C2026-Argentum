@@ -2,6 +2,7 @@
 #define EDITOR_MAPA_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -9,6 +10,7 @@
 #include "common/game/mapa/mapa.h"
 #include "common/game/modelo/posicion.h"
 #include "common/game/npc/npc.h"
+#include "common/persistencia/vinculo_mazmorra.h"
 
 //El id se asigna solo (incremental) para que sea unico dentro del mapa.
 struct NpcEditor {
@@ -45,6 +47,7 @@ private:
     std::vector<ZonaPiso> pisos;  // zonas de piso visual; "ultima gana"
     std::vector<ObjetoEditor> objetos;  // elementos sobre el piso (arboles, carteles)
     std::string pisoBase;
+    std::optional<VinculoMazmorra> vinculoMazmorra;
 
     uint16_t proximoIdNpc() const;
     uint16_t proximoIdCriatura() const;
@@ -57,6 +60,8 @@ public:
     uint16_t getMapaId() const;
     void setMapaId(uint16_t id);
     const std::string& getPisoBase() const;
+    const std::optional<VinculoMazmorra>& getVinculoMazmorra() const;
+    bool esMazmorra() const;
 
     bool dentroDeLimites(uint16_t x, uint16_t y) const;
     bool hayParedEn(uint16_t x, uint16_t y) const;
@@ -89,7 +94,8 @@ public:
 
     void redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto);
 
-    void cargarDesde(const Mapa& mapa, uint16_t mapaId);
+    void cargarDesde(const Mapa& mapa, uint16_t mapaId,
+                     const std::optional<VinculoMazmorra>& vinculo);
     Mapa construirMapa() const;
 
 

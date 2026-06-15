@@ -28,6 +28,12 @@ void MapaCanvas::setPincelPiso(bool activo, const QString& clave, const QString&
     pisoDestino = destino;
 }
 
+void MapaCanvas::setModelo(EditorMapa* nuevo) {
+    modelo = nuevo;
+    dibujandoZona = false;
+    reencuadrar();
+}
+
 int MapaCanvas::zoomAjuste() const {
     const int fx = width() / std::max<int>(1, modelo->getAncho());
     const int fy = height() / std::max<int>(1, modelo->getAlto());
@@ -240,6 +246,11 @@ void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
     const QString clave = texto.mid(sep + 1);
 
     if (prefijo == "criatura") {
+        
+        if (catalogo->esSoloMazmorra(clave) && !modelo->esMazmorra()) {
+            emit aviso("Esa criatura es exclusiva de mazmorra: no va en el mapa exterior.");
+            return;
+        }
         TipoCriatura tipo;
         if (catalogo->criaturaPorClave(clave, tipo)) {
             modelo->ponerCriatura(tipo, x, y);

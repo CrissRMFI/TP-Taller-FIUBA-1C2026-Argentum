@@ -118,6 +118,7 @@ src          = [11, 13, 73, 73]
 
 [[criatura]]
 clave        = "centinela_piedra"
+solo_mazmorra= true
 nombre       = "Centinela de Piedra"
 descripcion  = "Guardian petreo que vigila la entrada de la caverna. Lento pero de golpe demoledor."
 vida_maxima  = 280
@@ -136,6 +137,7 @@ src          = [0, 0, 64, 64]
 
 [[criatura]]
 clave        = "guerrero_ancestral"
+solo_mazmorra= true
 nombre       = "Guerrero Ancestral"
 descripcion  = "Espectro armado de una era olvidada. Combina velocidad y furia contra el intruso."
 vida_maxima  = 340
@@ -154,6 +156,7 @@ src          = [0, 0, 256, 256]
 
 [[criatura]]
 clave        = "aberracion"
+solo_mazmorra= true
 nombre       = "Aberracion"
 descripcion  = "Amasijo de huesos y metal surgido de las profundidades. Su sola presencia hiela la sangre."
 vida_maxima  = 420
@@ -172,6 +175,7 @@ src          = [0, 0, 256, 256]
 
 [[criatura]]
 clave        = "coloso_roca"
+solo_mazmorra= true
 nombre       = "Coloso de Roca"
 descripcion  = "Montana viviente que custodia el corazon de la mazmorra. Resistencia y daño descomunales."
 vida_maxima  = 520
@@ -190,6 +194,7 @@ src          = [0, 0, 170, 170]
 
 [[criatura]]
 clave        = "senor_abismo"
+solo_mazmorra= true
 nombre       = "Senor del Abismo"
 descripcion  = "El jefe de la mazmorra. Un demonio antiguo de poder abrumador; derrotarlo deja una fortuna."
 vida_maxima  = 800

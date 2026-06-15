@@ -17,6 +17,8 @@ public:
 
     void setPincelPiso(bool activo, const QString& clave, const QString& destino);
 
+    void setModelo(EditorMapa* nuevo);
+
     // Ajustamos el zoom para ver todo el mapa y lo centramos en la vistana.
     void reencuadrar();
 

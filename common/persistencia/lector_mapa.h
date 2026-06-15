@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -14,10 +15,12 @@
 #include "../game/mapa/portal.h"
 #include "../game/npc/npc.h"
 #include "catalogo_criaturas.h"
+#include "vinculo_mazmorra.h"
 
 struct MapaCargado {
     Mapa     mapa;
     uint16_t mapaId;
+    std::optional<VinculoMazmorra> vinculoMazmorra;
 };
 
 struct WorldCargado {
@@ -36,15 +39,15 @@ private:
     TipoNpc tipoNpcDesdeTexto(const std::string& texto, const std::string& path);
     TipoCriatura tipoCriaturaDesdeTexto(const std::string& texto, const std::string& path);
 
-    // Construye un Mapa (con su mapaId) a partir de una tabla TOML: sirve tanto
-    // para el mapa raiz como para cada sub-tabla [[mazmorra]].
     MapaCargado parsearTabla(const toml::table& tabla, const std::string& path,
-                             const CatalogoCriaturas& catalogoCriaturas);
+                             const CatalogoCriaturas& catalogoCriaturas, bool esExterior);
 
-    // Arma los dos portales (entrada exterior->mazmorra y salida mazmorra->exterior) a partir de la sub-tabla [[mazmorra]]. 'mazmorraId' es el id de esa mazmorra.
-    void agregarPortalesMazmorra(const toml::table& mazmorra, uint16_t mapaPrincipalId,
+    void agregarPortalesMazmorra(const toml::table& tablaPrincipal, uint16_t mapaPrincipalId,
                                  uint16_t mazmorraId, const std::string& path,
                                  std::vector<Portal>& portales);
+
+    std::optional<VinculoMazmorra> leerVinculo(const toml::table& tablaPrincipal,
+                                               const std::string& path);
 
 public:
     void validarFirma(const std::string& path);

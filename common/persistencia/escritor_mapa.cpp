@@ -59,7 +59,18 @@ void EscritorMapa::escribirNpcs(std::ostream& out, const Mapa& mapa) {
     emitir(mapa.getBanqueros());
 }
 
-void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path) {
+void EscritorMapa::escribirMazmorraDefault(const std::string& path, uint16_t mapaId,
+                                           uint16_t ancho, uint16_t alto) {
+    // Mazmorra minima: solo piso base de caverna en todo el rectangulo.
+    Mapa mazmorra(ancho, alto);
+    mazmorra.agregarPiso(ZonaPiso{mapaId, 0, 0,
+                                  static_cast<uint16_t>(ancho - 1),
+                                  static_cast<uint16_t>(alto - 1), "piedra_oscura"});
+    escribir(mazmorra, mapaId, path);
+}
+
+void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string& path,
+                            const VinculoMazmorra* vinculo) {
     // tmp + rename: si el proceso muere mientras se escribe, el archivo previo (si existia) queda intacto.
     const std::string pathTmp = path + ".tmp";
 
@@ -79,6 +90,18 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
         out << "mapa_id = " << mapaId << "\n";
         out << "ancho   = " << mapa.getAncho() << "\n";
         out << "alto    = " << mapa.getAlto() << "\n\n";
+
+        // Vinculo con la mazmorra (solo en el mapa exterior): archivo aparte + portales.
+        if (vinculo != nullptr) {
+            out << "# Mazmorra de este mapa: vive en su propio archivo (una por mapa).\n";
+            out << "mazmorra_archivo = \"" << vinculo->archivo << "\"\n";
+            out << "entrada = { x = " << vinculo->entradaX << ", y = " << vinculo->entradaY
+                << ", destino_x = " << vinculo->entradaDestinoX
+                << ", destino_y = " << vinculo->entradaDestinoY << " }\n";
+            out << "salida  = { x = " << vinculo->salidaX << ", y = " << vinculo->salidaY
+                << ", destino_x = " << vinculo->salidaDestinoX
+                << ", destino_y = " << vinculo->salidaDestinoY << " }\n\n";
+        }
 
         out << "# Celdas bloqueadas (no transitables).\n";
         out << "paredes = [\n";
