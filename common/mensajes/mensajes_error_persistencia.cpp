@@ -32,6 +32,9 @@ const char* MensajesErrorPersistencia::mensaje(CodigoErrorPersistencia codigo) {
         case CodigoErrorPersistencia::CLAVE_FALTANTE:
             return "Falta una clave obligatoria o tiene tipo invalido";
 
+        case CodigoErrorPersistencia::FIRMA_INVALIDA:
+            return "Este archivo no es un mapa de Argentum valido (firma faltante o incorrecta)";
+
         default:
             return "Error de persistencia desconocido";
     }

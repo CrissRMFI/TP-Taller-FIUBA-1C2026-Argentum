@@ -115,13 +115,25 @@ bool Mapa::posicionValida(const Posicion& posicion) const {
   return posicion.x < ancho && posicion.y < alto;
 }
 
+bool Mapa::esVacio(const Posicion& posicion) const {
+  // "Ultima gana": la zona de piso mas reciente que cubre la celda decide.
+  for (auto it = pisos.rbegin(); it != pisos.rend(); ++it) {
+    if (posicion.x >= it->xMin && posicion.x <= it->xMax &&
+        posicion.y >= it->yMin && posicion.y <= it->yMax) {
+      return it->clave == "vacio";
+    }
+  }
+  return false;  // sin zona de piso: no es vacio (mapas viejos siguen transitables).
+}
+
 bool Mapa::hayParedEn(const Posicion& posicion) const {
   for (const Posicion& pared : paredes) {
     if (mismaPosicion(pared, posicion)) {
       return true;
     }
   }
-  return false;
+  // Las celdas "vacio" (fuera del mapa usable) bloquean como una pared.
+  return esVacio(posicion);
 }
 
 bool Mapa::hayObjetoEn(const Posicion& posicion) const {

@@ -100,6 +100,9 @@ public:
     bool posicionValida(const Posicion& posicion) const;
     bool hayParedEn(const Posicion& posicion) const;
     bool hayObjetoEn(const Posicion& posicion) const;
+    // Celda cuyo piso resuelto ("ultima gana") es "vacio": no es parte usable del
+    // mapa y es intransitable para todos. Una celda sin zona de piso no es vacio.
+    bool esVacio(const Posicion& posicion) const;
 
     bool hayNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
     std::optional<Npc> buscarNpcCercano(const Posicion& posicion, TipoNpc tipo, uint16_t rango) const;
