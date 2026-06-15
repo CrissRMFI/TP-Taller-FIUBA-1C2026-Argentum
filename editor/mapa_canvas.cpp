@@ -67,8 +67,7 @@ void MapaCanvas::dibujarTileZona(QPainter& painter, const QString& clave,
 }
 
 void MapaCanvas::pintarPisos(QPainter& painter, int celdaW, int celdaH) {
-    // Base "vacio" en todo el mapa; luego cada zona pintada va encima (ultima gana).
-    dibujarTileZona(painter, "vacio", 0, 0,
+    dibujarTileZona(painter, QString::fromStdString(modelo->getPisoBase()), 0, 0,
                     modelo->getAncho() - 1, modelo->getAlto() - 1, celdaW, celdaH);
     for (const ZonaPiso& z : modelo->getPisos()) {
         dibujarTileZona(painter, QString::fromStdString(z.clave),
