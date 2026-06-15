@@ -67,12 +67,18 @@ void CatalogoCriaturas::cargar(const std::string& path) {
         s.fxAtaque   = static_cast<uint16_t>((*t)["fx_ataque"].value_or<int64_t>(0));
         s.respawnTicks = static_cast<uint32_t>((*t)["respawn_ticks"].value_or<int64_t>(0));
         s.respawnFijo  = (*t)["respawn_fijo"].value_or<bool>(false);
+        s.soloMazmorra = (*t)["solo_mazmorra"].value_or<bool>(false);
         stats[tipo] = s;
     }
 }
 
 bool CatalogoCriaturas::tiene(TipoCriatura tipo) const {
     return stats.find(tipo) != stats.end();
+}
+
+bool CatalogoCriaturas::esSoloMazmorra(TipoCriatura tipo) const {
+    const auto it = stats.find(tipo);
+    return it != stats.end() && it->second.soloMazmorra;
 }
 
 StatsCriatura CatalogoCriaturas::statsDe(TipoCriatura tipo) const {
