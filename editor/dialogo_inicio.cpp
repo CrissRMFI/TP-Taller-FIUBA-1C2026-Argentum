@@ -1,11 +1,16 @@
 #include "dialogo_inicio.h"
 
+#include <exception>
+
 #include <QFileDialog>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
 
-// Tamano de la ventana de inicio: el marco nativo (215x185) escalado ~2.5x.
+#include "common/persistencia/lector_mapa.h"
+
+// Tamano de la ventana de inicio
 #define INICIO_W 538
 #define INICIO_H 463
 
@@ -56,6 +61,15 @@ void DialogoInicio::elegirCargar() {
     const QString elegida = QFileDialog::getOpenFileName(
             this, "Abrir mapa", INICIO_MAPA_DIR, "Mapas (*.toml)");
     if (elegida.isEmpty()) {
+        return;
+    }
+    // Solo aceptamos archivos con la firma del formato; si no, avisamos y dejamos
+    // que el usuario elija otro
+    try {
+        LectorMapa lectorMapa;
+        lectorMapa.validarFirma(elegida.toStdString());
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Archivo invalido", e.what());
         return;
     }
     eleccion = OpcionInicio::Cargar;
