@@ -35,5 +35,16 @@
     <file alias="mapas/tile_ciudad.png">../client/resources/imgs/mapas/ciudad.png</file>
     <file alias="mapas/tile_pared.png">../client/resources/imgs/mapas/pared.png</file>
     <file alias="mapas/tile_vacio.png">assets/piso_vacio.png</file>
+
+    <file alias="mapas/piso_piedra_oscura.png">../client/resources/imgs/mazmorras/piso_piedra_oscura.png</file>
+    <file alias="mapas/piso_piedra_clara.png">../client/resources/imgs/mazmorras/piso_piedra_clara.png</file>
+    <file alias="mapas/piso_piedra_gris.png">../client/resources/imgs/mazmorras/piso_piedra_gris.png</file>
+    <file alias="mapas/piso_piedra_musgosa.png">../client/resources/imgs/mazmorras/piso_piedra_musgosa.png</file>
+    <file alias="mapas/piso_piedra_hexagonal.png">../client/resources/imgs/mazmorras/piso_piedra_hexagonal.png</file>
+    <file alias="mapas/piso_ladrillo_oscuro.png">../client/resources/imgs/mazmorras/piso_ladrillo_oscuro.png</file>
+    <file alias="mapas/piso_adoquin_gris.png">../client/resources/imgs/mazmorras/piso_adoquin_gris.png</file>
+    <file alias="mapas/piso_madera_oscura.png">../client/resources/imgs/mazmorras/piso_madera_oscura.png</file>
+    <file alias="mapas/piso_marmol_blanco.png">../client/resources/imgs/mazmorras/piso_marmol_blanco.png</file>
+    <file alias="mapas/piso_agua.png">../client/resources/imgs/mazmorras/piso_agua.png</file>
   </qresource>
 </RCC>
