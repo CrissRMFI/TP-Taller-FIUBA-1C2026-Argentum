@@ -95,8 +95,10 @@ void EditorWindow::crearPanel() {
 void EditorWindow::crearMenu() {
     QMenu* archivo = menuBar()->addMenu("Archivo");
     QAction* abrir = archivo->addAction("Abrir...");
+    QAction* guardarComoAccion = archivo->addAction("Guardar como...");
     QAction* crear = archivo->addAction("Crear Mapa");
     connect(abrir, &QAction::triggered, this, &EditorWindow::abrirMapa);
+    connect(guardarComoAccion, &QAction::triggered, this, &EditorWindow::guardarComo);
     connect(crear, &QAction::triggered, this, &EditorWindow::crearMapa);
 
     QMenu* mapa = menuBar()->addMenu("Mapa");
@@ -154,6 +156,26 @@ void EditorWindow::abrirMapa() {
     }
 }
 
+void EditorWindow::guardarComo() {
+    QString ruta = QFileDialog::getSaveFileName(
+            this, "Guardar mapa como", EDITOR_MAPA_DIR, "Mapas (*.toml)");
+    if (ruta.isEmpty()) {
+        return;
+    }
+    if (!ruta.endsWith(".toml", Qt::CaseInsensitive)) {
+        ruta += ".toml";
+    }
+    try {
+        Mapa mapa = modelo.construirMapa();
+        EscritorMapa escritorMapa;
+        escritorMapa.escribir(mapa, modelo.getMapaId(), ruta.toStdString());
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Error al guardar el mapa", e.what());
+        return;
+    }
+    statusBar()->showMessage("Mapa guardado en: " + ruta, 4000);
+}
+
 void EditorWindow::redimensionarMapa() {
     bool ok = false;
     const int nuevoAncho = QInputDialog::getInt(
@@ -179,7 +201,7 @@ void EditorWindow::redimensionarMapa() {
     }
 
     modelo.redimensionar(static_cast<uint16_t>(nuevoAncho), static_cast<uint16_t>(nuevoAlto));
-    canvas->update();
+    canvas->reencuadrar();
     statusBar()->showMessage(
             QString("Mapa redimensionado a %1 x %2").arg(nuevoAncho).arg(nuevoAlto), 4000);
 }

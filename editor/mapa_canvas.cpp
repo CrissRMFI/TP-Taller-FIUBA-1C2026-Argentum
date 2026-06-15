@@ -40,10 +40,19 @@ int MapaCanvas::celdaLado() const {
 
 void MapaCanvas::limitarPaneo() {
     const int lado = celdaLado();
-    const int maxX = std::max(0, modelo->getAncho() * lado - width());
-    const int maxY = std::max(0, modelo->getAlto() * lado - height());
-    offX = std::clamp(offX, 0, maxX);
-    offY = std::clamp(offY, 0, maxY);
+    
+    const int sobranteX = modelo->getAncho() * lado - width();
+    const int sobranteY = modelo->getAlto() * lado - height();
+    offX = (sobranteX <= 0) ? sobranteX / 2 : std::clamp(offX, 0, sobranteX);
+    offY = (sobranteY <= 0) ? sobranteY / 2 : std::clamp(offY, 0, sobranteY);
+}
+
+void MapaCanvas::reencuadrar() {
+    zoomPx = 0;
+    offX = 0;
+    offY = 0;
+    limitarPaneo();
+    update();
 }
 
 void MapaCanvas::dibujarTileZona(QPainter& painter, const QString& clave,
