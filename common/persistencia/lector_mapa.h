@@ -20,9 +20,6 @@ struct MapaCargado {
     uint16_t mapaId;
 };
 
-// Resultado de cargar el escenario completo: el mapa exterior mas las mazmorras,
-// indexadas por su mapaId, y los portales que las vinculan. 'mapaPrincipalId' es
-// el id del exterior (donde aparecen los jugadores).
 struct WorldCargado {
     std::map<uint16_t, Mapa> mapas;
     std::vector<Portal>      portales;
@@ -34,6 +31,8 @@ private:
     uint16_t leerUint16(
             const toml::table& tabla, std::string_view clave, const std::string& path);
 
+    void verificarFirma(const toml::table& tabla, const std::string& path);
+
     TipoNpc tipoNpcDesdeTexto(const std::string& texto, const std::string& path);
     TipoCriatura tipoCriaturaDesdeTexto(const std::string& texto, const std::string& path);
 
@@ -42,13 +41,14 @@ private:
     MapaCargado parsearTabla(const toml::table& tabla, const std::string& path,
                              const CatalogoCriaturas& catalogoCriaturas);
 
-    // Arma los dos portales (entrada exterior->mazmorra y salida mazmorra->exterior)
-    // a partir de la sub-tabla [[mazmorra]]. 'mazmorraId' es el id de esa mazmorra.
+    // Arma los dos portales (entrada exterior->mazmorra y salida mazmorra->exterior) a partir de la sub-tabla [[mazmorra]]. 'mazmorraId' es el id de esa mazmorra.
     void agregarPortalesMazmorra(const toml::table& mazmorra, uint16_t mapaPrincipalId,
                                  uint16_t mazmorraId, const std::string& path,
                                  std::vector<Portal>& portales);
 
 public:
+    void validarFirma(const std::string& path);
+
     // 'catalogoCriaturas' aporta los stats por tipo para instanciar las criaturas colocadas en el mapa
     MapaCargado leer(const std::string& path,
                      const CatalogoCriaturas& catalogoCriaturas = CatalogoCriaturas{});
