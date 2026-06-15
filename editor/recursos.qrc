@@ -6,6 +6,8 @@
     <file alias="mapas/flecha_izq.bmp">../client/resources/mapas/en_boton-sm-flecha-izq-over.bmp</file>
     <file alias="mapas/flecha_der.bmp">../client/resources/mapas/en_boton-sm-flecha-der-over.bmp</file>
 
+    <file alias="editor/marco.bmp">assets/Marco.bmp</file>
+
     <file alias="imgs/criaturas/goblin.png">../client/resources/imgs/criaturas/goblin.png</file>
     <file alias="imgs/criaturas/esqueleto.png">../client/resources/imgs/criaturas/esqueleto.png</file>
     <file alias="imgs/criaturas/zombie.png">../client/resources/imgs/criaturas/zombie.png</file>

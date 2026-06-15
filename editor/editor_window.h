@@ -6,6 +6,7 @@
 
 #include "barras_stats.h"
 #include "catalogo_editor.h"
+#include "dialogo_inicio.h"
 #include "editor_mapa.h"
 #include "mapa_canvas.h"
 #include "panel_elementos.h"
@@ -14,7 +15,7 @@ class EditorWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    EditorWindow();
+    EditorWindow(OpcionInicio opcion, const QString& ruta);
 
 private:
     EditorMapa modelo;

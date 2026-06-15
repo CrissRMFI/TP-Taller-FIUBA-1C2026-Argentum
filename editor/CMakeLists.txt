@@ -9,6 +9,7 @@ target_sources(taller_editor
     panel_elementos.cpp
     barras_stats.cpp
     dialogo_confirmar.cpp
+    dialogo_inicio.cpp
     recursos.qrc
     PUBLIC
     # .h files
@@ -19,4 +20,5 @@ target_sources(taller_editor
     panel_elementos.h
     barras_stats.h
     dialogo_confirmar.h
+    dialogo_inicio.h
     )

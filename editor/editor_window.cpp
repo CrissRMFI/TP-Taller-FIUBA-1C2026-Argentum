@@ -25,7 +25,7 @@
 #define VENTANA_W 771
 #define VENTANA_H 719
 
-EditorWindow::EditorWindow():
+EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta):
         modelo(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), catalogo(),
         fondo(nullptr), canvas(nullptr), panel(nullptr),
         descripcion(nullptr), recompensa(nullptr), barras(nullptr) {
@@ -54,7 +54,10 @@ EditorWindow::EditorWindow():
             "Click der: borrar  ·  Ctrl+rueda: zoom  ·  boton del medio: mover");
     statusBar()->addPermanentWidget(ayuda);
 
-    intentarCargar(EDITOR_MAPA_DEFAULT);
+    // Arranque segun lo elegido en la pantalla de inicio
+    if (opcion == OpcionInicio::Cargar && !ruta.isEmpty()) {
+        intentarCargar(ruta);
+    }
     actualizarInfo();
     setFixedSize(sizeHint());
 }
