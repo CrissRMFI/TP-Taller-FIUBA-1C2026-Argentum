@@ -15,6 +15,7 @@ std::string escribirEscenarioTemporal() {
     const std::string ruta = "test_mazmorra_tmp.toml";
     std::ofstream archivo(ruta, std::ios::trunc);
     archivo <<
+            "formato = \"A.FI.G2\"\n"
             "mapa_id = 0\n"
             "ancho = 100\n"
             "alto = 100\n"
