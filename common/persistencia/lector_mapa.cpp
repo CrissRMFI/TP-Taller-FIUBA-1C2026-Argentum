@@ -6,6 +6,29 @@
 #include <string>
 
 #include "error_persistencia.h"
+#include "firma_mapa.h"
+
+void LectorMapa::verificarFirma(const toml::table& tabla, const std::string& path) {
+    const auto firma = tabla[ARGENTUM_MAPA_FIRMA_CLAVE].value<std::string>();
+    if (!firma.has_value() || *firma != ARGENTUM_MAPA_FIRMA) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::FIRMA_INVALIDA,
+                path + " (clave '" ARGENTUM_MAPA_FIRMA_CLAVE "' debe ser '"
+                        ARGENTUM_MAPA_FIRMA "')");
+    }
+}
+
+void LectorMapa::validarFirma(const std::string& path) {
+    toml::table tbl;
+    try {
+        tbl = toml::parse_file(path);
+    } catch (const toml::parse_error& e) {
+        throw ErrorPersistencia(
+                CodigoErrorPersistencia::TOML_MAL_FORMADO,
+                path + " (" + std::string(e.description()) + ")");
+    }
+    verificarFirma(tbl, path);
+}
 
 uint16_t LectorMapa::leerUint16(
         const toml::table& tabla, std::string_view clave, const std::string& path) {
@@ -229,6 +252,7 @@ MapaCargado LectorMapa::leer(const std::string& path,
                 path + " (" + std::string(e.description()) + ")");
     }
 
+    verificarFirma(tbl, path);
     return parsearTabla(tbl, path, catalogoCriaturas);
 }
 
@@ -268,6 +292,8 @@ WorldCargado LectorMapa::leerMundo(const std::string& path,
                 CodigoErrorPersistencia::TOML_MAL_FORMADO,
                 path + " (" + std::string(e.description()) + ")");
     }
+
+    verificarFirma(tbl, path);
 
     WorldCargado mundo;
 
