@@ -10,6 +10,10 @@ uint16_t EditorMapa::getAlto() const { return alto; }
 uint16_t EditorMapa::getMapaId() const { return mapaId; }
 void EditorMapa::setMapaId(uint16_t id) { mapaId = id; }
 const std::string& EditorMapa::getPisoBase() const { return pisoBase; }
+const std::optional<VinculoMazmorra>& EditorMapa::getVinculoMazmorra() const {
+    return vinculoMazmorra;
+}
+bool EditorMapa::esMazmorra() const { return mapaId != 0; }
 
 bool EditorMapa::dentroDeLimites(uint16_t x, uint16_t y) const {
     return x < ancho && y < alto;
@@ -241,10 +245,12 @@ void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
     recortarZonas(ciudades);
 }
 
-void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
+void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId,
+                             const std::optional<VinculoMazmorra>& vinculo) {
     ancho = mapa.getAncho();
     alto = mapa.getAlto();
     mapaId = nuevoMapaId;
+    vinculoMazmorra = vinculo;
     paredes = mapa.getParedes();
     ciudades = mapa.getCiudades();
     pisos = mapa.getPisos();
