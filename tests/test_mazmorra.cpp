@@ -10,34 +10,44 @@
 
 namespace {
 
-// Escribe un escenario TOML temporal (exterior + una mazmorra) y devuelve su ruta.
+// Escribe un escenario TOML temporal: el mapa exterior (con vinculo + portales) y
+// su mazmorra en un archivo aparte. Devuelve la ruta del mapa principal.
 std::string escribirEscenarioTemporal() {
     const std::string ruta = "test_mazmorra_tmp.toml";
-    std::ofstream archivo(ruta, std::ios::trunc);
-    archivo <<
+    std::ofstream principal(ruta, std::ios::trunc);
+    principal <<
             "formato = \"A.FI.G2\"\n"
             "mapa_id = 0\n"
             "ancho = 100\n"
             "alto = 100\n"
-            "\n"
-            "[[mazmorra]]\n"
+            "mazmorra_archivo = \"test_mazmorra_tmp.mazmorra.toml\"\n"
+            "entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }\n"
+            "salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }\n";
+
+    std::ofstream mazmorra("test_mazmorra_tmp.mazmorra.toml", std::ios::trunc);
+    mazmorra <<
+            "formato = \"A.FI.G2\"\n"
             "mapa_id = 1\n"
             "ancho = 40\n"
             "alto = 40\n"
-            "entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }\n"
-            "salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }\n"
             "pisos = [ { x_min = 0, y_min = 0, x_max = 39, y_max = 39, clave = \"caverna\" } ]\n";
     return ruta;
 }
 
-} 
+// Borra los dos archivos del escenario temporal.
+void limpiarEscenario(const std::string& rutaPrincipal) {
+    std::remove(rutaPrincipal.c_str());
+    std::remove("test_mazmorra_tmp.mazmorra.toml");
+}
+
+}
 
 // leerMundo carga el exterior y la mazmorra como dos mapas distintos.
 TEST(Mazmorra, LeerMundoCargaExteriorYMazmorra) {
     const std::string ruta = escribirEscenarioTemporal();
     LectorMapa lector;
     WorldCargado mundo = lector.leerMundo(ruta);
-    std::remove(ruta.c_str());
+    limpiarEscenario(ruta);
 
     EXPECT_EQ(mundo.mapaPrincipalId, 0);
     ASSERT_EQ(mundo.mapas.size(), 2u);
@@ -53,7 +63,7 @@ TEST(Mazmorra, LeerMundoArmaPortalesEntradaYSalida) {
     const std::string ruta = escribirEscenarioTemporal();
     LectorMapa lector;
     WorldCargado cargado = lector.leerMundo(ruta);
-    std::remove(ruta.c_str());
+    limpiarEscenario(ruta);
 
     ASSERT_EQ(cargado.portales.size(), 2u);
 
@@ -86,7 +96,7 @@ TEST(Mazmorra, LeerPrincipalIgnoraMazmorras) {
     const std::string ruta = escribirEscenarioTemporal();
     LectorMapa lector;
     MapaCargado principal = lector.leer(ruta);
-    std::remove(ruta.c_str());
+    limpiarEscenario(ruta);
 
     EXPECT_EQ(principal.mapaId, 0);
     EXPECT_EQ(principal.mapa.getAncho(), 100);
