@@ -6,12 +6,20 @@
     <file alias="mapas/flecha_izq.bmp">../client/resources/mapas/en_boton-sm-flecha-izq-over.bmp</file>
     <file alias="mapas/flecha_der.bmp">../client/resources/mapas/en_boton-sm-flecha-der-over.bmp</file>
 
+    <file alias="editor/marco.bmp">assets/Marco.bmp</file>
+
     <file alias="imgs/criaturas/goblin.png">../client/resources/imgs/criaturas/goblin.png</file>
     <file alias="imgs/criaturas/esqueleto.png">../client/resources/imgs/criaturas/esqueleto.png</file>
     <file alias="imgs/criaturas/zombie.png">../client/resources/imgs/criaturas/zombie.png</file>
     <file alias="imgs/criaturas/arana.png">../client/resources/imgs/criaturas/arana.png</file>
     <file alias="imgs/criaturas/orco.png">../client/resources/imgs/criaturas/orco.png</file>
     <file alias="imgs/criaturas/golem.png">../client/resources/imgs/criaturas/golem.png</file>
+
+    <file alias="imgs/mazmorras/entrada1Golem1.png">../client/resources/imgs/mazmorras/entrada1Golem1.png</file>
+    <file alias="imgs/mazmorras/entrada1Golem2.png">../client/resources/imgs/mazmorras/entrada1Golem2.png</file>
+    <file alias="imgs/mazmorras/entrada1Golem3.png">../client/resources/imgs/mazmorras/entrada1Golem3.png</file>
+    <file alias="imgs/mazmorras/entrada1Golem4Parte1.png">../client/resources/imgs/mazmorras/entrada1Golem4Parte1.png</file>
+    <file alias="imgs/mazmorras/entrada1GolemJefe.png">../client/resources/imgs/mazmorras/entrada1GolemJefe.png</file>
 
     <file alias="imgs/npc/sacerdote.png">../client/resources/imgs/10141.png</file>
     <file alias="imgs/npc/comerciante.png">../client/resources/imgs/npc/comerciantes/4071.png</file>
@@ -26,5 +34,6 @@
     <file alias="mapas/tile_cartel.png">../client/resources/imgs/mapas/cartel.png</file>
     <file alias="mapas/tile_ciudad.png">../client/resources/imgs/mapas/ciudad.png</file>
     <file alias="mapas/tile_pared.png">../client/resources/imgs/mapas/pared.png</file>
+    <file alias="mapas/tile_vacio.png">assets/piso_vacio.png</file>
   </qresource>
 </RCC>

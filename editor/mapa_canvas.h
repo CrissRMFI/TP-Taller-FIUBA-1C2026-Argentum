@@ -17,6 +17,9 @@ public:
 
     void setPincelPiso(bool activo, const QString& clave, const QString& destino);
 
+    // Ajustamos el zoom para ver todo el mapa y lo centramos en la vistana.
+    void reencuadrar();
+
 signals:
     void aviso(const QString& mensaje);
 

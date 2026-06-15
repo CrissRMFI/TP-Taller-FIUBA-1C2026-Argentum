@@ -14,6 +14,7 @@ enum class CodigoErrorPersistencia : uint8_t {
     NPC_DUPLICADO_O_INVALIDO = 7,
     TOML_MAL_FORMADO = 8,
     CLAVE_FALTANTE = 9,
+    FIRMA_INVALIDA = 10,
 };
 
 #endif

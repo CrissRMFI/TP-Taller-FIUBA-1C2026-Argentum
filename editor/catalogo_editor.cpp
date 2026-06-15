@@ -119,6 +119,11 @@ bool CatalogoEditor::criaturaPorClave(const QString& clave, TipoCriatura& tipo) 
     if (clave == "arania")    { tipo = TipoCriatura::Arania;    return true; }
     if (clave == "orco")      { tipo = TipoCriatura::Orco;      return true; }
     if (clave == "golem")     { tipo = TipoCriatura::Golem;     return true; }
+    if (clave == "centinela_piedra")   { tipo = TipoCriatura::CentinelaPiedra;   return true; }
+    if (clave == "guerrero_ancestral") { tipo = TipoCriatura::GuerreroAncestral; return true; }
+    if (clave == "aberracion")         { tipo = TipoCriatura::Aberracion;        return true; }
+    if (clave == "coloso_roca")        { tipo = TipoCriatura::ColosoRoca;        return true; }
+    if (clave == "senor_abismo")       { tipo = TipoCriatura::SenorAbismo;       return true; }
     return false;
 }
 

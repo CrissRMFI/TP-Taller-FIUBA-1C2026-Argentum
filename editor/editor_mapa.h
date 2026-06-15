@@ -44,6 +44,7 @@ private:
     std::vector<CriaturaEditor> criaturas;
     std::vector<ZonaPiso> pisos;  // zonas de piso visual; "ultima gana"
     std::vector<ObjetoEditor> objetos;  // elementos sobre el piso (arboles, carteles)
+    std::string pisoBase;
 
     uint16_t proximoIdNpc() const;
     uint16_t proximoIdCriatura() const;
@@ -55,6 +56,7 @@ public:
     uint16_t getAlto() const;
     uint16_t getMapaId() const;
     void setMapaId(uint16_t id);
+    const std::string& getPisoBase() const;
 
     bool dentroDeLimites(uint16_t x, uint16_t y) const;
     bool hayParedEn(uint16_t x, uint16_t y) const;
@@ -63,6 +65,9 @@ public:
     bool hayCriaturaEn(uint16_t x, uint16_t y) const;
     bool estaEnCiudad(uint16_t x, uint16_t y) const;
     bool celdaOcupada(uint16_t x, uint16_t y) const;
+    // Celda sin piso pintado: queda como "vacio" (relleno intransitable). Solo se
+    // puede pintar piso encima; no admite paredes, objetos, NPCs ni criaturas.
+    bool esVacio(uint16_t x, uint16_t y) const;
     std::string pisoEn(uint16_t x, uint16_t y) const;
     bool todoCubierto() const;
 
@@ -81,6 +86,8 @@ public:
     const std::vector<CriaturaEditor>& getCriaturas() const;
     const std::vector<ZonaPiso>&       getPisos() const;
     const std::vector<ObjetoEditor>&   getObjetos() const;
+
+    void redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto);
 
     void cargarDesde(const Mapa& mapa, uint16_t mapaId);
     Mapa construirMapa() const;

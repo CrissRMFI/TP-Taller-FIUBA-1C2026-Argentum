@@ -6,6 +6,7 @@
 #include <ostream>
 
 #include "error_persistencia.h"
+#include "firma_mapa.h"
 
 const char* EscritorMapa::tipoNpcATexto(TipoNpc tipo) {
     switch (tipo) {
@@ -73,6 +74,8 @@ void EscritorMapa::escribir(const Mapa& mapa, uint16_t mapaId, const std::string
                "ciudades/zonas seguras y NPCs).\n"
                "# Generado por el editor de mapas. Editable a mano.\n\n";
 
+        // Firma del formato: identifica el archivo como un mapa de Argentum.
+        out << ARGENTUM_MAPA_FIRMA_CLAVE " = \"" ARGENTUM_MAPA_FIRMA "\"\n";
         out << "mapa_id = " << mapaId << "\n";
         out << "ancho   = " << mapa.getAncho() << "\n";
         out << "alto    = " << mapa.getAlto() << "\n\n";

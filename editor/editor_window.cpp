@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -25,7 +26,7 @@
 #define VENTANA_W 771
 #define VENTANA_H 719
 
-EditorWindow::EditorWindow():
+EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta):
         modelo(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT), catalogo(),
         fondo(nullptr), canvas(nullptr), panel(nullptr),
         descripcion(nullptr), recompensa(nullptr), barras(nullptr) {
@@ -54,7 +55,10 @@ EditorWindow::EditorWindow():
             "Click der: borrar  ·  Ctrl+rueda: zoom  ·  boton del medio: mover");
     statusBar()->addPermanentWidget(ayuda);
 
-    intentarCargar(EDITOR_MAPA_DEFAULT);
+    // Arranque segun lo elegido en la pantalla de inicio
+    if (opcion == OpcionInicio::Cargar && !ruta.isEmpty()) {
+        intentarCargar(ruta);
+    }
     actualizarInfo();
     setFixedSize(sizeHint());
 }
@@ -91,9 +95,15 @@ void EditorWindow::crearPanel() {
 void EditorWindow::crearMenu() {
     QMenu* archivo = menuBar()->addMenu("Archivo");
     QAction* abrir = archivo->addAction("Abrir...");
+    QAction* guardarComoAccion = archivo->addAction("Guardar como...");
     QAction* crear = archivo->addAction("Crear Mapa");
     connect(abrir, &QAction::triggered, this, &EditorWindow::abrirMapa);
+    connect(guardarComoAccion, &QAction::triggered, this, &EditorWindow::guardarComo);
     connect(crear, &QAction::triggered, this, &EditorWindow::crearMapa);
+
+    QMenu* mapa = menuBar()->addMenu("Mapa");
+    QAction* redimensionar = mapa->addAction("Redimensionar...");
+    connect(redimensionar, &QAction::triggered, this, &EditorWindow::redimensionarMapa);
 }
 
 void EditorWindow::actualizarInfo() {
@@ -144,6 +154,56 @@ void EditorWindow::abrirMapa() {
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error al abrir", e.what());
     }
+}
+
+void EditorWindow::guardarComo() {
+    QString ruta = QFileDialog::getSaveFileName(
+            this, "Guardar mapa como", EDITOR_MAPA_DIR, "Mapas (*.toml)");
+    if (ruta.isEmpty()) {
+        return;
+    }
+    if (!ruta.endsWith(".toml", Qt::CaseInsensitive)) {
+        ruta += ".toml";
+    }
+    try {
+        Mapa mapa = modelo.construirMapa();
+        EscritorMapa escritorMapa;
+        escritorMapa.escribir(mapa, modelo.getMapaId(), ruta.toStdString());
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Error al guardar el mapa", e.what());
+        return;
+    }
+    statusBar()->showMessage("Mapa guardado en: " + ruta, 4000);
+}
+
+void EditorWindow::redimensionarMapa() {
+    bool ok = false;
+    const int nuevoAncho = QInputDialog::getInt(
+            this, "Redimensionar mapa", "Ancho (celdas):", modelo.getAncho(), 1, 1000, 1, &ok);
+    if (!ok) {
+        return;
+    }
+    const int nuevoAlto = QInputDialog::getInt(
+            this, "Redimensionar mapa", "Alto (celdas):", modelo.getAlto(), 1, 1000, 1, &ok);
+    if (!ok) {
+        return;
+    }
+
+    // Si achica, avisamos: se descarta lo que quede fuera del nuevo rectangulo.
+    if (nuevoAncho < modelo.getAncho() || nuevoAlto < modelo.getAlto()) {
+        const auto r = QMessageBox::question(
+                this, "Achicar mapa",
+                "Al achicar el mapa se descarta el contenido que quede fuera del "
+                "nuevo tamano. Continuar?");
+        if (r != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    modelo.redimensionar(static_cast<uint16_t>(nuevoAncho), static_cast<uint16_t>(nuevoAlto));
+    canvas->reencuadrar();
+    statusBar()->showMessage(
+            QString("Mapa redimensionado a %1 x %2").arg(nuevoAncho).arg(nuevoAlto), 4000);
 }
 
 void EditorWindow::crearMapa() {

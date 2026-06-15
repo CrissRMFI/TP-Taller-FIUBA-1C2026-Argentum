@@ -3,12 +3,13 @@
 #include <algorithm>
 
 EditorMapa::EditorMapa(uint16_t ancho, uint16_t alto):
-        ancho(ancho), alto(alto), mapaId(0) {}
+        ancho(ancho), alto(alto), mapaId(0), pisoBase("vacio") {}
 
 uint16_t EditorMapa::getAncho() const { return ancho; }
 uint16_t EditorMapa::getAlto() const { return alto; }
 uint16_t EditorMapa::getMapaId() const { return mapaId; }
 void EditorMapa::setMapaId(uint16_t id) { mapaId = id; }
+const std::string& EditorMapa::getPisoBase() const { return pisoBase; }
 
 bool EditorMapa::dentroDeLimites(uint16_t x, uint16_t y) const {
     return x < ancho && y < alto;
@@ -63,22 +64,27 @@ bool EditorMapa::celdaOcupada(uint16_t x, uint16_t y) const {
     return hayParedEn(x, y) || hayObjetoEn(x, y) || hayNpcEn(x, y) || hayCriaturaEn(x, y);
 }
 
+bool EditorMapa::esVacio(uint16_t x, uint16_t y) const {
+    return pisoEn(x, y) == "vacio";
+}
+
 void EditorMapa::ponerPared(uint16_t x, uint16_t y) {
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y)) {
+    // En "vacio" solo se puede pintar piso; nada de paredes/objetos/entidades.
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
         return;
     }
     paredes.push_back(Posicion{x, y, mapaId});
 }
 
 void EditorMapa::ponerObjeto(const std::string& clave, uint16_t x, uint16_t y) {
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
         return;
     }
     objetos.push_back(ObjetoEditor{clave, x, y});
 }
 
 void EditorMapa::ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y) {
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y)) {
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || esVacio(x, y)) {
         return;
     }
     npcs.push_back(NpcEditor{proximoIdNpc(), tipo, x, y});
@@ -87,8 +93,8 @@ void EditorMapa::ponerNpc(TipoNpc tipo, uint16_t x, uint16_t y) {
 void EditorMapa::ponerCriatura(TipoCriatura tipo, uint16_t x, uint16_t y) {
     // Las criaturas no pueden ir en zona segura (ciudad): el modelo del juego
     // las rechaza, asi que tampoco las dejamos colocar aca para que el guardado
-    // y la recarga sean consistentes.
-    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || estaEnCiudad(x, y)) {
+    // y la recarga sean consistentes. Tampoco sobre "vacio".
+    if (!dentroDeLimites(x, y) || celdaOcupada(x, y) || estaEnCiudad(x, y) || esVacio(x, y)) {
         return;
     }
     criaturas.push_back(CriaturaEditor{proximoIdCriatura(), tipo, x, y});
@@ -109,7 +115,7 @@ void EditorMapa::pintarParedes(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
     const uint16_t yMax = std::max(y1, y2);
     for (uint16_t y = yMin; y <= yMax; ++y) {
         for (uint16_t x = xMin; x <= xMax; ++x) {
-            if (dentroDeLimites(x, y) && !celdaOcupada(x, y)) {
+            if (dentroDeLimites(x, y) && !celdaOcupada(x, y) && !esVacio(x, y)) {
                 paredes.push_back(Posicion{x, y, mapaId});
             }
         }
@@ -131,7 +137,7 @@ std::string EditorMapa::pisoEn(uint16_t x, uint16_t y) const {
             return it->clave;
         }
     }
-    return "pasto";
+    return pisoBase;
 }
 
 bool EditorMapa::todoCubierto() const {
@@ -197,6 +203,44 @@ const std::vector<CriaturaEditor>& EditorMapa::getCriaturas() const { return cri
 const std::vector<ZonaPiso>&       EditorMapa::getPisos() const { return pisos; }
 const std::vector<ObjetoEditor>&   EditorMapa::getObjetos() const { return objetos; }
 
+void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
+    if (nuevoAncho == 0 || nuevoAlto == 0) {
+        return;
+    }
+    ancho = nuevoAncho;
+    alto = nuevoAlto;
+
+    // Al achicar, descartamos las entidades que quedan fuera del nuevo rectangulo.
+
+    const auto fuera = [&](uint16_t x, uint16_t y) { return x >= ancho || y >= alto; };
+
+    paredes.erase(std::remove_if(paredes.begin(), paredes.end(),
+                  [&](const Posicion& p) { return fuera(p.x, p.y); }), paredes.end());
+
+    objetos.erase(std::remove_if(objetos.begin(), objetos.end(),
+                  [&](const ObjetoEditor& o) { return fuera(o.x, o.y); }), objetos.end());
+
+    npcs.erase(std::remove_if(npcs.begin(), npcs.end(),
+               [&](const NpcEditor& n) { return fuera(n.x, n.y); }), npcs.end());
+
+    criaturas.erase(std::remove_if(criaturas.begin(), criaturas.end(),
+                    [&](const CriaturaEditor& c) { return fuera(c.x, c.y); }), criaturas.end());
+
+    // Zonas (pisos / ciudades): sacamos las que quedan totalmente afuera y se
+    // recortan al nuevo limite las que sobresalen.
+    const auto recortarZonas = [&](auto& zonas) {
+        zonas.erase(std::remove_if(zonas.begin(), zonas.end(),
+                    [&](const auto& z) { return z.xMin >= ancho || z.yMin >= alto; }),
+                    zonas.end());
+        for (auto& z : zonas) {
+            if (z.xMax >= ancho) z.xMax = static_cast<uint16_t>(ancho - 1);
+            if (z.yMax >= alto)  z.yMax = static_cast<uint16_t>(alto - 1);
+        }
+    };
+    recortarZonas(pisos);
+    recortarZonas(ciudades);
+}
+
 void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
     ancho = mapa.getAncho();
     alto = mapa.getAlto();
@@ -204,6 +248,17 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
     paredes = mapa.getParedes();
     ciudades = mapa.getCiudades();
     pisos = mapa.getPisos();
+
+    pisoBase = "pasto";
+    for (auto it = pisos.begin(); it != pisos.end(); ++it) {
+        if (it->xMin == 0 && it->yMin == 0 &&
+            it->xMax == static_cast<uint16_t>(ancho - 1) &&
+            it->yMax == static_cast<uint16_t>(alto - 1)) {
+            pisoBase = it->clave;
+            pisos.erase(it);
+            break;
+        }
+    }
 
     objetos.clear();
     for (const ObjetoMapa& o : mapa.getObjetos()) {
@@ -233,6 +288,12 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
 
 Mapa EditorMapa::construirMapa() const {
     Mapa mapa(ancho, alto);
+    // Relleno base que cubre todo el mapa, debajo de las zonas pintadas (ultima
+    // gana). En mapas nuevos es "vacio" (intransitable); en mapas viejos cargados,
+    // "pasto", para no convertir en intransitable lo que antes era caminable.
+    mapa.agregarPiso(ZonaPiso{mapaId, 0, 0,
+                              static_cast<uint16_t>(ancho - 1),
+                              static_cast<uint16_t>(alto - 1), pisoBase});
     for (const Posicion& p : paredes) {
         mapa.agregarPared(Posicion{p.x, p.y, mapaId});
     }
