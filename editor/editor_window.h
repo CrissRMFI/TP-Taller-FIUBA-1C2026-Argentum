@@ -33,6 +33,7 @@ private:
 
     void abrirMapa();
     void crearMapa();
+    void redimensionarMapa();
     void actualizarInfo();
 };
 

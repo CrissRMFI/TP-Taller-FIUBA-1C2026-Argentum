@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -97,6 +98,10 @@ void EditorWindow::crearMenu() {
     QAction* crear = archivo->addAction("Crear Mapa");
     connect(abrir, &QAction::triggered, this, &EditorWindow::abrirMapa);
     connect(crear, &QAction::triggered, this, &EditorWindow::crearMapa);
+
+    QMenu* mapa = menuBar()->addMenu("Mapa");
+    QAction* redimensionar = mapa->addAction("Redimensionar...");
+    connect(redimensionar, &QAction::triggered, this, &EditorWindow::redimensionarMapa);
 }
 
 void EditorWindow::actualizarInfo() {
@@ -147,6 +152,36 @@ void EditorWindow::abrirMapa() {
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error al abrir", e.what());
     }
+}
+
+void EditorWindow::redimensionarMapa() {
+    bool ok = false;
+    const int nuevoAncho = QInputDialog::getInt(
+            this, "Redimensionar mapa", "Ancho (celdas):", modelo.getAncho(), 1, 1000, 1, &ok);
+    if (!ok) {
+        return;
+    }
+    const int nuevoAlto = QInputDialog::getInt(
+            this, "Redimensionar mapa", "Alto (celdas):", modelo.getAlto(), 1, 1000, 1, &ok);
+    if (!ok) {
+        return;
+    }
+
+    // Si achica, avisamos: se descarta lo que quede fuera del nuevo rectangulo.
+    if (nuevoAncho < modelo.getAncho() || nuevoAlto < modelo.getAlto()) {
+        const auto r = QMessageBox::question(
+                this, "Achicar mapa",
+                "Al achicar el mapa se descarta el contenido que quede fuera del "
+                "nuevo tamano. Continuar?");
+        if (r != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    modelo.redimensionar(static_cast<uint16_t>(nuevoAncho), static_cast<uint16_t>(nuevoAlto));
+    canvas->update();
+    statusBar()->showMessage(
+            QString("Mapa redimensionado a %1 x %2").arg(nuevoAncho).arg(nuevoAlto), 4000);
 }
 
 void EditorWindow::crearMapa() {

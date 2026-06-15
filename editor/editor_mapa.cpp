@@ -203,6 +203,44 @@ const std::vector<CriaturaEditor>& EditorMapa::getCriaturas() const { return cri
 const std::vector<ZonaPiso>&       EditorMapa::getPisos() const { return pisos; }
 const std::vector<ObjetoEditor>&   EditorMapa::getObjetos() const { return objetos; }
 
+void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
+    if (nuevoAncho == 0 || nuevoAlto == 0) {
+        return;
+    }
+    ancho = nuevoAncho;
+    alto = nuevoAlto;
+
+    // Al achicar, descartamos las entidades que quedan fuera del nuevo rectangulo.
+
+    const auto fuera = [&](uint16_t x, uint16_t y) { return x >= ancho || y >= alto; };
+
+    paredes.erase(std::remove_if(paredes.begin(), paredes.end(),
+                  [&](const Posicion& p) { return fuera(p.x, p.y); }), paredes.end());
+
+    objetos.erase(std::remove_if(objetos.begin(), objetos.end(),
+                  [&](const ObjetoEditor& o) { return fuera(o.x, o.y); }), objetos.end());
+
+    npcs.erase(std::remove_if(npcs.begin(), npcs.end(),
+               [&](const NpcEditor& n) { return fuera(n.x, n.y); }), npcs.end());
+
+    criaturas.erase(std::remove_if(criaturas.begin(), criaturas.end(),
+                    [&](const CriaturaEditor& c) { return fuera(c.x, c.y); }), criaturas.end());
+
+    // Zonas (pisos / ciudades): sacamos las que quedan totalmente afuera y se
+    // recortan al nuevo limite las que sobresalen.
+    const auto recortarZonas = [&](auto& zonas) {
+        zonas.erase(std::remove_if(zonas.begin(), zonas.end(),
+                    [&](const auto& z) { return z.xMin >= ancho || z.yMin >= alto; }),
+                    zonas.end());
+        for (auto& z : zonas) {
+            if (z.xMax >= ancho) z.xMax = static_cast<uint16_t>(ancho - 1);
+            if (z.yMax >= alto)  z.yMax = static_cast<uint16_t>(alto - 1);
+        }
+    };
+    recortarZonas(pisos);
+    recortarZonas(ciudades);
+}
+
 void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId) {
     ancho = mapa.getAncho();
     alto = mapa.getAlto();

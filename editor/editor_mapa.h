@@ -87,6 +87,8 @@ public:
     const std::vector<ZonaPiso>&       getPisos() const;
     const std::vector<ObjetoEditor>&   getObjetos() const;
 
+    void redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto);
+
     void cargarDesde(const Mapa& mapa, uint16_t mapaId);
     Mapa construirMapa() const;
 
