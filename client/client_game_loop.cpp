@@ -530,6 +530,17 @@ void ClientGameLoop::render() {
     }
     object_renderer.resaltarObjetivo(objetivoResaltado);
 
+    uint16_t hoverId = 0;
+    if (!object_state.bancoRecibido() && !object_state.tiendaAbierta()) {
+        int mouseX = 0;
+        int mouseY = 0;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        if (mouseX < config.ancho - config.panelAncho) {  // no sobre el panel derecho
+            hoverId = handler.idEntidadEn(mouseX, mouseY, object_state.entities());
+        }
+    }
+    object_renderer.resaltarHover(hoverId);
+
     EstadoBancoRender banco;
     banco.abierto = object_state.bancoRecibido();
     if (banco.abierto) {

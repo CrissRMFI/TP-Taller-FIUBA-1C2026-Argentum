@@ -1,7 +1,3 @@
-//
-// Created by victoria zubieta on 02/06/2026.
-//
-
 #ifndef TALLER_TP_NPC_RENDERER_H
 #define TALLER_TP_NPC_RENDERER_H
 
@@ -21,7 +17,7 @@ public:
 
     void render(SDL2pp::Renderer& renderer,const Npc& npc, int entity_x,
                 int entity_y, int cell_width, int cell_height, int animation_row,
-                int frame_index) const;
+                int frame_index, bool resaltar = false) const;
 };
 
-#endif  // TALLER_TP_NPC_RENDERER_H
+#endif

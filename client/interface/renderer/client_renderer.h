@@ -65,7 +65,8 @@ private:
         uint32_t startTick;
     };
     std::vector<ProyectilActivo> proyectiles_;
-    uint16_t objetivo_resaltado = 0;  // entidad seleccionada a resaltar (0 = ninguna)
+    uint16_t objetivo_resaltado = 0;
+    uint16_t hover_resaltado = 0;
     int last_animation_row = -1;
     double vis_player_x = 0.0;
     double vis_player_y = 0.0;
@@ -159,13 +160,10 @@ public:
     bool esSacerdote(uint16_t id) const;
     bool esBanquero(uint16_t id) const;
     bool esComerciante(uint16_t id) const;
-    // Inicia la animacion de FX de un hechizo sobre un objetivo (se dibuja unos frames).
     void iniciarFx(uint16_t spellId, uint16_t targetId);
-    // Inicia un proyectil que viaja del origen al destino (ataque a distancia).
     void iniciarProyectil(uint16_t origen, uint16_t destino);
-    // Marca la entidad seleccionada para resaltarla (0 = ninguna).
     void resaltarObjetivo(uint16_t id);
-    // Banco: hit-test (devuelven indice de slot o -1; los botones true/false).
+    void resaltarHover(uint16_t id);
     int bancoBovedaClickeada(int x, int y) const;
     int bancoInvClickeado(int x, int y) const;
     bool clickBancoDepositar(int x, int y) const;

@@ -415,6 +415,23 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         dibujarDrop(state_object.itemEnSuelo(), "imgs/suelo/bolsa.png");
     }
 
+    const auto tileDeEntidad = [&](uint16_t id) -> std::pair<int, int> {
+        if (id == 0) {
+            return {-1, -1};
+        }
+        const auto it = state_object.entities().find(id);
+        if (it == state_object.entities().end()) {
+            return {-1, -1};
+        }
+        return {static_cast<int>(it->second.x), static_cast<int>(it->second.y)};
+    };
+    const std::pair<int, int> tileSel = tileDeEntidad(objetivo_resaltado);
+    const std::pair<int, int> tileHover = tileDeEntidad(hover_resaltado);
+    const auto npcResaltado = [&](int nx, int ny) -> bool {
+        return (nx == tileSel.first && ny == tileSel.second) ||
+               (nx == tileHover.first && ny == tileHover.second);
+    };
+
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
         const int cell_width = tileW;
         const int cell_height = tileH;
@@ -426,7 +443,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
 
         npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width,
-                             cell_height, 0, 0);
+                             cell_height, 0, 0,
+                             npcResaltado(sacerdote.getPosicion().x, sacerdote.getPosicion().y));
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
@@ -440,7 +458,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
 
         npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width,
-                             cell_height, 0, 0);
+                             cell_height, 0, 0,
+                             npcResaltado(banquero.getPosicion().x, banquero.getPosicion().y));
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
@@ -453,8 +472,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             continue;
         }
         npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width,
-                             cell_height, 0, 0);
-    } 
+                             cell_height, 0, 0,
+                             npcResaltado(comerciante.getPosicion().x,
+                                          comerciante.getPosicion().y));
+    }
 
     for (const auto& [id, entity] : state_object.entities()) {
         if (entity.mapaId != mapaActual) {
@@ -468,7 +489,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int entity_x = es_jugador_local ? scrX(vis_player_x) : scrX(entity.x);
         const int entity_y = es_jugador_local ? scrY(vis_player_y) : scrY(entity.y);
 
-        const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
+        const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado) ||
+                              (hover_resaltado != 0 && id == hover_resaltado);
 
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
@@ -889,6 +911,10 @@ void ObjectRenderer::iniciarProyectil(uint16_t origen, uint16_t destino) {
 
 void ObjectRenderer::resaltarObjetivo(uint16_t id) {
     objetivo_resaltado = id;
+}
+
+void ObjectRenderer::resaltarHover(uint16_t id) {
+    hover_resaltado = id;
 }
 
 uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {
