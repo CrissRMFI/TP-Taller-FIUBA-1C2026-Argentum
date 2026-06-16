@@ -39,6 +39,7 @@ private:
     int tiendaSelOferta = -1;
     int tiendaSelInv = -1;
     bool is_running;
+    bool servidorCaido_ = false;
     uint16_t mapaAnteriorAudio = 0;
 
     void despacharComando(const ComandoJugador& command, uint32_t current_tick);
