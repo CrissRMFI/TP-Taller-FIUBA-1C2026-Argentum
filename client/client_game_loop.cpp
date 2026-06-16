@@ -3,6 +3,7 @@
 #include "registro_cliente.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -12,6 +13,7 @@
 #include <SDL.h>
 
 #include "audio/gestor_audio.h"
+#include "../common/game/constant_rate_loop.h"
 
 #ifndef CLIENT_GAME_CONFIG_PATH
 #define CLIENT_GAME_CONFIG_PATH "config/game_config.toml"
@@ -98,28 +100,22 @@ void ClientGameLoop::init(const char* title,
     gestorAudio->reproducirMusica("campo");
     mapaAnteriorAudio = object_renderer.getMapaPrincipal();
 
-    const uint32_t frame_target_ms = 1000u / static_cast<uint32_t>(config.fpsMax);
-    int it = 0;
-    uint32_t tick = SDL_GetTicks();
     is_running = true;
-    while (is_running) {
+    // tick -> iteracion dentro del loop --> actualmente tick = 1000/60 = 16 ms
+    ConstantRateLoop loop(std::chrono::milliseconds(1000u / static_cast<uint32_t>(config.fpsMax)));
+    // el constantRateLoop recibe una funcion por paramtro que
+    // calcula el ultimo tick logico alcanzado  en esta vuelta
+    loop.run([&](const uint32_t ticks_elapsed, const uint64_t tick_number) {
+
+        const uint64_t current_tick = tick_number + ticks_elapsed - 1;
         handleEvents();
-        update(it);
-        render();
-        const uint32_t tick2 = SDL_GetTicks();
-        int rest = static_cast<int>(frame_target_ms) - static_cast<int>(tick2 - tick);
-        if (rest < 0) {
-            const int behind = -rest;
-            rest = frame_target_ms - (behind % frame_target_ms);
-            const int lost = behind + rest;
-            tick += lost;
-            it += lost / frame_target_ms;
-        } else {
-            SDL_Delay(rest);
+        if (!is_running) {
+            loop.stop();
+            return;
         }
-        tick +=  frame_target_ms;
-        it ++;
-    }
+        update(static_cast<int>(current_tick));
+        render();
+    });
 }
 
 void ClientGameLoop::handleEvents() {

@@ -6,6 +6,7 @@
 
 #include "../../common/thread/queue.h"
 #include "../../common/thread/thread.h"
+#include "../../common/game/constant_rate_loop.h"
 #include "../game/config/lector_config_toml.h"
 #include "../game/evento/evento_salida.h"
 #include "../game/juego.h"
@@ -21,6 +22,7 @@ private:
     Juego juego;
     int tickMs;
     int guardadoSeg;  // intervalo de persistencia periodica en segundos (0 = off)
+    ConstantRateLoop loop;
     std::atomic_bool colaComandosCerrada;
     std::atomic_bool colaEventosSesionCerrada;
 
