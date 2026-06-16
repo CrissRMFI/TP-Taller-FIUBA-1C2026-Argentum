@@ -86,6 +86,7 @@ private:
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
     void dibujar_banco(const EstadoBancoRender& banco);
+    void dibujar_tienda(const EstadoTiendaRender& tienda);
     void dibujar_meditacion(int entity_x, int entity_y, int cell_width, int cell_height,
                             uint32_t tick);
     
@@ -104,6 +105,12 @@ private:
     SDL2pp::Rect rect_ret_oro{0, 0, 0, 0};
     SDL2pp::Rect rect_caja_monto{0, 0, 0, 0};
     SDL2pp::Rect rect_cerrar_banco{0, 0, 0, 0};
+    // Modal de tienda (comerciante / sacerdote).
+    std::vector<SDL2pp::Rect> tienda_oferta;
+    std::vector<SDL2pp::Rect> tienda_inv;
+    SDL2pp::Rect rect_tienda_comprar{0, 0, 0, 0};
+    SDL2pp::Rect rect_tienda_vender{0, 0, 0, 0};
+    SDL2pp::Rect rect_tienda_cerrar{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
     std::vector<SDL2pp::Rect> slots_hechizos;       // filas de la pestaña HECHIZOS (lanzar)
@@ -137,7 +144,7 @@ public:
     void update_animation(int it, const ObjectGameWorld& state_object, const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
                 const EstadoChatRender& chat, const EstadoPanelRender& panel,
-                const EstadoBancoRender& banco);
+                const EstadoBancoRender& banco, const EstadoTiendaRender& tienda);
     int slotInventarioClickeado(int x, int y) const;
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;
@@ -167,6 +174,12 @@ public:
     bool clickBancoRetirarOro(int x, int y) const;
     bool clickBancoCajaMonto(int x, int y) const;
     bool clickBancoCerrar(int x, int y) const;
+    // Tienda (comerciante/sacerdote): hit-tests.
+    int tiendaOfertaClickeada(int x, int y) const;
+    int tiendaInvClickeado(int x, int y) const;
+    bool clickTiendaComprar(int x, int y) const;
+    bool clickTiendaVender(int x, int y) const;
+    bool clickTiendaCerrar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

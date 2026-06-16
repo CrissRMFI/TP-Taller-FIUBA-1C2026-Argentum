@@ -425,6 +425,23 @@ void ObjectGameWorld::cerrarBanco() {
     bancoRecibido_ = false;
 }
 
+void ObjectGameWorld::abrirTienda(bool esSacerdote) {
+    tiendaAbierta_ = true;
+    tiendaEsSacerdote_ = esSacerdote;
+}
+
+void ObjectGameWorld::cerrarTienda() {
+    tiendaAbierta_ = false;
+}
+
+bool ObjectGameWorld::tiendaAbierta() const {
+    return tiendaAbierta_;
+}
+
+bool ObjectGameWorld::tiendaEsSacerdote() const {
+    return tiendaEsSacerdote_;
+}
+
 const std::vector<uint16_t>& ObjectGameWorld::hechizosConocidos() const {
     return hechizosConocidos_;
 }
