@@ -86,6 +86,7 @@ private:
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
     void dibujar_banco(const EstadoBancoRender& banco);
+    void dibujar_comercio(const EstadoComercioRender& comercio);
     void dibujar_meditacion(int entity_x, int entity_y, int cell_width, int cell_height,
                             uint32_t tick);
     
@@ -104,6 +105,7 @@ private:
     SDL2pp::Rect rect_ret_oro{0, 0, 0, 0};
     SDL2pp::Rect rect_caja_monto{0, 0, 0, 0};
     SDL2pp::Rect rect_cerrar_banco{0, 0, 0, 0};
+    SDL2pp::Rect rect_cerrar_comercio{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
     std::vector<SDL2pp::Rect> slots_hechizos;       // filas de la pestaña HECHIZOS (lanzar)
@@ -137,7 +139,7 @@ public:
     void update_animation(int it, const ObjectGameWorld& state_object, const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
                 const EstadoChatRender& chat, const EstadoPanelRender& panel,
-                const EstadoBancoRender& banco);
+                const EstadoBancoRender& banco, const EstadoComercioRender& comercio);
     int slotInventarioClickeado(int x, int y) const;
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;
@@ -167,6 +169,7 @@ public:
     bool clickBancoRetirarOro(int x, int y) const;
     bool clickBancoCajaMonto(int x, int y) const;
     bool clickBancoCerrar(int x, int y) const;
+    bool clickComercioCerrar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };
 

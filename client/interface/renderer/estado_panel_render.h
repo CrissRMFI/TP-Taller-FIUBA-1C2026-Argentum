@@ -54,6 +54,15 @@ struct EstadoBancoRender {
     bool montoActivo = false;
 };
 
+struct EstadoComercioRender {
+    bool abierto = false;
+    std::vector<uint16_t> stock;
+    int scrollStock = 0;
+    std::vector<uint16_t> hechizosConocidos;
+    bool comercianteSeleccionado = false;
+    bool sacerdoteSeleccionado = false;
+};
+
 
 struct EstadoPanelRender {
     std::string nick;   // nombre del jugador (titulo del panel)

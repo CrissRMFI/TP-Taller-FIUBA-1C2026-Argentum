@@ -126,6 +126,10 @@ void ClientGameLoop::handleEvents() {
             manejarEventoBanco(event);
             continue;
         }
+        if (comercioAbierto) {
+            manejarEventoComercio(event);
+            continue;
+        }
         // Rueda del mouse: scrollea la lista de comercio del panel.
         if (event.type == SDL_MOUSEWHEEL) {
             // Scroll de la lista de venta. Permitimos ocultar todos los items (hasta 'total')
@@ -386,6 +390,56 @@ void ClientGameLoop::manejarEventoBanco(const SDL_Event& event) {
     }
 }
 
+void ClientGameLoop::manejarEventoComercio(const SDL_Event& event) {
+    if (event.type == SDL_QUIT) {
+        is_running = false;
+        return;
+    }
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+        comercioAbierto = false;
+        return;
+    }
+    if (event.type == SDL_MOUSEWHEEL) {
+        const int total = static_cast<int>(object_state.stockNpc().size());
+        scrollComercio -= event.wheel.y;
+        if (scrollComercio < 0) {
+            scrollComercio = 0;
+        }
+        if (scrollComercio > total) {
+            scrollComercio = total;
+        }
+        return;
+    }
+    if (event.type != SDL_MOUSEBUTTONDOWN) {
+        return;
+    }
+
+    const int x = event.button.x;
+    const int y = event.button.y;
+    const uint32_t tick = SDL_GetTicks();
+    const std::optional<uint16_t> objetivo = handler.objetivoSeleccionado();
+
+    if (object_renderer.clickComercioCerrar(x, y)) {
+        comercioAbierto = false;
+        return;
+    }
+    if (const uint16_t idHechizo = object_renderer.hechizoVentaClickeado(x, y); idHechizo != 0) {
+        despacharComando({Opcode::COMPRAR_HECHIZO,
+                          ComandoComprarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        return;
+    }
+    const int s = object_renderer.slotStockClickeado(x, y);
+    if (s >= 0) {
+        const std::vector<uint16_t>& stock = object_state.stockNpc();
+        const int idx = scrollComercio + s;
+        if (objetivo && idx < static_cast<int>(stock.size())) {
+            despacharComando({Opcode::COMPRAR, ComandoComprar{stock[idx], *objetivo}}, tick);
+            object_state.mensajeLocal("Compraste " + catalogo.nombre(stock[idx]) + ".",
+                                      TipoMensajeChat::Normal);
+        }
+    }
+}
+
 void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
     if (!gestorAudio) {
         return;
@@ -401,6 +455,10 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
             const std::optional<uint16_t> objetivo = handler.objetivoSeleccionado();
             if (!objetivo.has_value()) {
                 break;
+            }
+            if (object_renderer.esSacerdote(*objetivo) || object_renderer.esComerciante(*objetivo)) {
+                comercioAbierto = true;
+                scrollComercio = 0;
             }
             if (object_renderer.esBanquero(*objetivo)) {
                 gestorAudio->reproducirEfecto("banqueroBienvenida");
@@ -508,7 +566,17 @@ void ClientGameLoop::render() {
         banco.montoActivo = bancoMontoActivo;
     }
 
-    object_renderer.render(object_state, object_animation, chat, panel, banco);
+    EstadoComercioRender comercio;
+    comercio.abierto = comercioAbierto;
+    comercio.stock = object_state.stockNpc();
+    comercio.scrollStock = scrollComercio;
+    comercio.hechizosConocidos = object_state.hechizosConocidos();
+    comercio.comercianteSeleccionado =
+            objetivoPanel.has_value() && object_renderer.esComerciante(*objetivoPanel);
+    comercio.sacerdoteSeleccionado =
+            objetivoPanel.has_value() && object_renderer.esSacerdote(*objetivoPanel);
+
+    object_renderer.render(object_state, object_animation, chat, panel, banco, comercio);
     handler.setCamaraTransform(object_renderer.camOffsetX(), object_renderer.camOffsetY(),
                                object_renderer.camTileW(), object_renderer.camTileH());
 }

@@ -37,6 +37,7 @@ private:
     int bancoSelInv = -1;
     std::string bancoMonto;
     bool bancoMontoActivo = false;
+    bool comercioAbierto = false;
     bool is_running;
     uint16_t mapaAnteriorAudio = 0;
 
@@ -44,6 +45,7 @@ private:
     void manejarClickPanel(int x, int y);
     // Maneja los eventos (clicks + texto del monto) mientras la ventana de banco esta abierta.
     void manejarEventoBanco(const SDL_Event& event);
+    void manejarEventoComercio(const SDL_Event& event);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
     void reproducirSonidoDeComando(const ComandoJugador& command);
