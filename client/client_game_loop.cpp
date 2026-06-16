@@ -120,6 +120,17 @@ void ClientGameLoop::init(const char* title,
         tick +=  frame_target_ms;
         it ++;
     }
+
+    if (servidorCaido_) {
+        const SDL_MessageBoxButtonData boton = {
+                SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                0, "Aceptar"};
+        const SDL_MessageBoxData datos = {
+                SDL_MESSAGEBOX_ERROR, nullptr, "Argentum",
+                "Se cayo el servidor. El cliente se cerrara.", 1, &boton, nullptr};
+        int boton_id = 0;
+        SDL_ShowMessageBox(&datos, &boton_id);
+    }
 }
 
 void ClientGameLoop::handleEvents() {
@@ -464,7 +475,13 @@ void ClientGameLoop::reproducirSonidoDeComando(const ComandoJugador& command) {
 
 void ClientGameLoop::update(const int it) {
     const uint32_t current_tick = SDL_GetTicks();
-    object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
+    try {
+        object_state.upload_server_msg(server_messages, current_tick, *gestorAudio);
+    } catch (const ClosedQueue&) {
+        servidorCaido_ = true;
+        is_running = false;
+        return;
+    }
     // El jugador cambia de mapa (pasa por el portal)
     const uint16_t mapaAhora = object_state.mapaActual();
     object_renderer.setMapaActual(mapaAhora);

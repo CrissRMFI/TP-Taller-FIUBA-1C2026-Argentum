@@ -16,6 +16,8 @@ private:
     Queue<MensajeServidor>& queue;
     std::atomic<bool> running{true};
 
+    void senalarCaida();
+
     public:
     ClientReceiver(ProtocoloCliente& protocolo_cliente,
         Queue<MensajeServidor>& request_queue);
