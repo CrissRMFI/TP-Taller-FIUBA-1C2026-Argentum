@@ -31,12 +31,13 @@ private:
     ParserComandoChat parser;
     std::unique_ptr<GestorAudio> gestorAudio;
     int slotInvSeleccionado = -1;
-    int scrollComercio = 0;
     bool pestanaHechizos = false;
     int bancoSelBoveda = -1;
     int bancoSelInv = -1;
     std::string bancoMonto;
     bool bancoMontoActivo = false;
+    int tiendaSelOferta = -1;
+    int tiendaSelInv = -1;
     bool is_running;
     uint16_t mapaAnteriorAudio = 0;
 
@@ -44,6 +45,8 @@ private:
     void manejarClickPanel(int x, int y);
     // Maneja los eventos (clicks + texto del monto) mientras la ventana de banco esta abierta.
     void manejarEventoBanco(const SDL_Event& event);
+    // Maneja los eventos mientras el modal de comerciante/sacerdote esta abierto.
+    void manejarEventoTienda(const SDL_Event& event);
     // Interpreta una linea escrita en el mini-chat y, si es valida, la despacha.
     void procesarLineaChat(const std::string& linea, uint32_t current_tick);
     void reproducirSonidoDeComando(const ComandoJugador& command);

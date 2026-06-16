@@ -36,6 +36,8 @@ struct ConfigPanelRender {
     int bancoSlot = 32;
     int bancoGap = 4;
     int bancoCols = 6;
+    std::string tiendaImgComerciante = "imgs/npc/comerciantes/es_comerciar.bmp";
+    std::string tiendaImgSacerdote = "imgs/npc/sacerdotes/es_sacerdote.bmp";
     SDL_Color   colorTexto = {235, 225, 200, 255};
     SDL_Color   colorTitulo = {255, 220, 120, 255};
 };
@@ -52,6 +54,16 @@ struct EstadoBancoRender {
     int selInventario = -1;
     std::string monto;
     bool montoActivo = false;
+};
+
+
+struct EstadoTiendaRender {
+    bool abierto = false;
+    bool esSacerdote = false;
+    std::vector<uint16_t> oferta;
+    std::vector<uint16_t> inventario;
+    int selOferta = -1;
+    int selInventario = -1;
 };
 
 

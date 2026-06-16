@@ -232,7 +232,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,
                             const EstadoPanelRender& panel,
-                            const EstadoBancoRender& banco) {
+                            const EstadoBancoRender& banco,
+                            const EstadoTiendaRender& tienda) {
     if (!renderer) {
         return;
     }
@@ -590,6 +591,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (banco.abierto) {
         dibujar_banco(banco);  // modal sobre todo lo demas
     }
+    if (tienda.abierto) {
+        dibujar_tienda(tienda);  // modal del comerciante/sacerdote
+    }
 
     renderer->Present();
 }
@@ -845,79 +849,14 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         }
         return r;
     };
-    // Fila de arriba: Vender | Equipar
-    rect_boton_vender = boton_celda(panel_config.botonVender, "Vender", {60, 40, 25, 255},
-                                    btn_colL, y);
     rect_boton_equipar = boton_celda(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255},
-                                     btn_colR, y);
+                                     btn_colL, y);
+    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colR, y);
     y += btn_h + btn_gap;
-    // Fila de abajo: Usar | Curar
-    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colL, y);
+    // Fila de abajo: Curar
     rect_boton_curar = boton_celda(panel_config.botonCurar, "Curar", {55, 35, 50, 255},
-                                   btn_colR, y);
+                                   btn_colL, y);
     y += btn_h + 8;
-
-    // --- Comercio: lista clickeable de lo que vende el NPC (con scroll en Y) ---
-    if (!panel.stock.empty() && catalogo != nullptr) {
-        const int total = static_cast<int>(panel.stock.size());
-        // Permitimos desde==total (0 items) para revelar los hechizos en venta de abajo.
-        const int desde = std::max(0, std::min(panel.scrollStock, total));
-        text_renderer->dibujar(*renderer, "Comercio (rueda = scroll)", cx, y, cTit);
-        y += lh + 2;
-        const int fila_h = lh + 4;
-        for (int i = desde; i < total; ++i) {
-            if (y + fila_h > window_height) {
-                break;
-            }
-            const uint16_t id = panel.stock[i];
-            // Fondo de la fila (para que se note clickeable) + texto.
-            renderer->SetDrawColor(0, 0, 0, 110);
-            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
-            const std::string linea =
-                    catalogo->nombre(id) + "  $" + std::to_string(catalogo->precioCompra(id));
-            text_renderer->dibujar(*renderer, linea, cx + 2, y + 2, cTxt);
-            slots_stock.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
-            y += fila_h;
-        }
-    }
-
-    // --- Venta de hechizos del sacerdote: solo los que el jugador AUN no conoce ---
-    if (panel.sacerdoteSeleccionado && catalogo != nullptr) {
-        std::vector<uint16_t> ids = catalogo->idsHechizos();
-        std::sort(ids.begin(), ids.end());
-        const int fila_h = lh + 4;
-        bool titulo = false;
-        for (uint16_t id : ids) {
-            const bool conocido =
-                    std::find(panel.hechizosConocidos.begin(), panel.hechizosConocidos.end(), id) !=
-                    panel.hechizosConocidos.end();
-            if (conocido) {
-                continue;  // ya lo tiene, no se ofrece
-            }
-            const HechizoInfo* h = catalogo->hechizo(id);
-            if (h == nullptr) {
-                continue;
-            }
-            if (!titulo) {
-                if (y + lh + 2 > window_height) {
-                    break;
-                }
-                text_renderer->dibujar(*renderer, "Hechizos (comprar)", cx, y, cTit);
-                y += lh + 2;
-                titulo = true;
-            }
-            if (y + fila_h > window_height) {
-                break;
-            }
-            renderer->SetDrawColor(0, 0, 0, 110);
-            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
-            text_renderer->dibujar(*renderer, h->nombre + "  $" + std::to_string(h->precio),
-                                   cx + 2, y + 2, cTxt);
-            slots_hechizos_venta.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
-            ids_hechizos_venta.push_back(id);
-            y += fila_h;
-        }
-    }
 }
 
 uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
@@ -1116,6 +1055,86 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     text_renderer->dibujar(*renderer, "X", mx + mw - 28, my + 12, cTit);
 }
 
+void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
+    if (!renderer || !text_renderer) {
+        return;
+    }
+    tienda_oferta.clear();
+    tienda_inv.clear();
+
+    // Modal centrado en pantalla
+    const int mw = 542;
+    const int mh = 481;
+    const int mx = (window_width - mw) / 2;
+    const int my = (window_height - mh) / 2;
+    const std::string& img = t.esSacerdote ? panel_config.tiendaImgSacerdote
+                                           : panel_config.tiendaImgComerciante;
+    try {
+        renderer->Copy(cache_texture->get_or_load(img), SDL2pp::NullOpt,
+                       SDL2pp::Rect(mx, my, mw, mh));
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(20, 15, 10, 255);
+        renderer->FillRect(SDL2pp::Rect(mx, my, mw, mh));
+    }
+
+    const SDL2pp::Rect panelOferta(mx + 20, my + 78, 238, 330);
+    const SDL2pp::Rect panelInv(mx + 284, my + 78, 238, 330);
+
+    const int slot = 40;
+    const int gap = 6;
+    const int pitch = slot + gap;
+
+    
+    const auto iconoDe = [&](uint16_t id, bool esHechizo) -> SDL2pp::Texture* {
+        if (id == 0) {
+            return nullptr;
+        }
+        if (!esHechizo) {
+            return icono_item(id);
+        }
+        try {
+            return &cache_texture->get_or_load("imgs/hechizos/" + std::to_string(id) + ".png");
+        } catch (const std::exception&) {
+            return nullptr;
+        }
+    };
+
+    
+    const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items,
+                            int sel, bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
+        const int cols = std::max(1, (panel.w + gap) / pitch);
+        const int filas = std::max(1, (panel.h + gap) / pitch);
+        const int gridW = cols * pitch - gap;
+        const int gridH = filas * pitch - gap;
+        const int x0 = panel.x + (panel.w - gridW) / 2;
+        const int y0 = panel.y + (panel.h - gridH) / 2;
+        for (int i = 0; i < cols * filas; ++i) {
+            const int sx = x0 + (i % cols) * pitch;
+            const int sy = y0 + (i / cols) * pitch;
+            const uint16_t id = (i < static_cast<int>(items.size())) ? items[i] : 0;
+            renderer->SetDrawColor(0, 0, 0, 110);
+            renderer->FillRect(SDL2pp::Rect(sx, sy, slot, slot));
+            if (SDL2pp::Texture* ic = iconoDe(id, esHechizo)) {
+                renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, slot, slot));
+            }
+            if (i == sel) {
+                renderer->SetDrawColor(255, 230, 90, 255);
+            } else {
+                renderer->SetDrawColor(90, 70, 45, 255);
+            }
+            renderer->DrawRect(SDL2pp::Rect(sx, sy, slot, slot));
+            rects.push_back(SDL2pp::Rect(sx, sy, slot, slot));
+        }
+    };
+
+    grilla(panelOferta, t.oferta, t.selOferta, t.esSacerdote, tienda_oferta);
+    grilla(panelInv, t.inventario, t.selInventario, t.esSacerdote, tienda_inv);
+
+    rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
+    rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
+    rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 34, my + 6, 28, 28);
+}
+
 void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width,
                                         int cell_height, uint32_t tick) {
     if (!cache_texture) {
@@ -1209,6 +1228,12 @@ bool ObjectRenderer::clickBancoDepositarOro(int x, int y) const { return dentro(
 bool ObjectRenderer::clickBancoRetirarOro(int x, int y) const { return dentro(rect_ret_oro, x, y); }
 bool ObjectRenderer::clickBancoCajaMonto(int x, int y) const { return dentro(rect_caja_monto, x, y); }
 bool ObjectRenderer::clickBancoCerrar(int x, int y) const { return dentro(rect_cerrar_banco, x, y); }
+
+int ObjectRenderer::tiendaOfertaClickeada(int x, int y) const { return slot_en(tienda_oferta, x, y); }
+int ObjectRenderer::tiendaInvClickeado(int x, int y) const { return slot_en(tienda_inv, x, y); }
+bool ObjectRenderer::clickTiendaComprar(int x, int y) const { return dentro(rect_tienda_comprar, x, y); }
+bool ObjectRenderer::clickTiendaVender(int x, int y) const { return dentro(rect_tienda_vender, x, y); }
+bool ObjectRenderer::clickTiendaCerrar(int x, int y) const { return dentro(rect_tienda_cerrar, x, y); }
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     if (!text_renderer || !renderer) {
