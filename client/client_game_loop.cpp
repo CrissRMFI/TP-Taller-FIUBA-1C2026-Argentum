@@ -155,7 +155,7 @@ void ClientGameLoop::handleEvents() {
         }
         // Click sobre el panel derecho: lo maneja el loop (tiene renderer + estado + catalogo).
         if (event.type == SDL_MOUSEBUTTONDOWN &&
-            event.button.x >= config.ancho - config.panelAncho) {
+            event.button.x >= object_renderer.bordeIzquierdoPanel()) {
             manejarClickPanel(event.button.x, event.button.y);
             continue;
         }
@@ -247,6 +247,9 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
             despacharComando({Opcode::USAR,
                               ComandoUsar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
             slotInvSeleccionado = -1;
+        } else {
+            object_state.mensajeLocal("Selecciona una pocion del inventario para usar.",
+                                      TipoMensajeChat::Sistema);
         }
         return;
     }
@@ -266,6 +269,13 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         // El FX lo difunde el server (FX_HECHIZO) para que lo vean todos, incluido el que lanza.
         return;
     }
+
+    if (object_renderer.slotEquipoClickeado(x, y) >= 0) {
+        object_state.mensajeLocal("Los items equipados no se usan desde equipo.",
+                                  TipoMensajeChat::Sistema);
+        return;
+    }
+
     // Click en el inventario -> seleccionar (zoom).
     const int inv = object_renderer.slotInventarioClickeado(x, y);
     if (inv >= 0) {
@@ -547,7 +557,7 @@ void ClientGameLoop::render() {
         int mouseX = 0;
         int mouseY = 0;
         SDL_GetMouseState(&mouseX, &mouseY);
-        if (mouseX < config.ancho - config.panelAncho) {  // no sobre el panel derecho
+        if (mouseX < object_renderer.bordeIzquierdoPanel()) {  // no sobre el panel derecho
             hoverId = handler.idEntidadEn(mouseX, mouseY, object_state.entities());
         }
     }
