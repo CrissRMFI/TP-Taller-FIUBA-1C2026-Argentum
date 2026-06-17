@@ -77,6 +77,13 @@ public:
     bool chatActivo() const { return chat_activo; }
     const std::string& bufferChat() const { return chat_buffer; }
     std::optional<uint16_t> objetivoSeleccionado() const { return objetivo_seleccionado; }
+    // Id de la entidad interactuable bajo una posicion de pantalla (0 = ninguna).
+    // Se usa para el hover (resaltar lo clickeable). No selecciona nada.
+    uint16_t idEntidadEn(
+            int x, int y,
+            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const {
+        return buscar_id_objetivo(x, y, entidades);
+    }
 
     void setIdCliente(uint16_t id) { idCliente = id; }
     void set_window_dimensions(int width, int height) {

@@ -89,6 +89,8 @@ private:
     std::vector<uint16_t> bancoItems_;    // items guardados en el banco (ultimo CONTENIDO_BANCO)
     uint32_t              bancoOro_ = 0;   // oro guardado en el banco
     bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
+    bool                  tiendaAbierta_ = false;     // modal de comerciante/sacerdote abierto
+    bool                  tiendaEsSacerdote_ = false;  // la tienda abierta es de un sacerdote
     std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
     // Drops visibles en el piso (celda x,y). Oro -> monedas; item -> bolsa/cofre.
     std::set<std::pair<uint16_t, uint16_t>> oroEnSuelo_;
@@ -140,6 +142,10 @@ public:
     uint32_t bancoOro() const;
     bool bancoRecibido() const;
     void cerrarBanco();
+    void abrirTienda(bool esSacerdote);
+    void cerrarTienda();
+    bool tiendaAbierta() const;
+    bool tiendaEsSacerdote() const;
     const std::vector<uint16_t>& hechizosConocidos() const;
     
     bool resurreccionActiva() const { return resurreccionActiva_; }

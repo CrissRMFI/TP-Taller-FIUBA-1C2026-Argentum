@@ -233,7 +233,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const EstadoChatRender& chat,
                             const EstadoPanelRender& panel,
                             const EstadoBancoRender& banco,
-                            const EstadoComercioRender& comercio) {
+                            const EstadoTiendaRender& tienda) {
     if (!renderer) {
         return;
     }
@@ -414,6 +414,23 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         dibujarDrop(state_object.itemEnSuelo(), "imgs/suelo/bolsa.png");
     }
 
+    const auto tileDeEntidad = [&](uint16_t id) -> std::pair<int, int> {
+        if (id == 0) {
+            return {-1, -1};
+        }
+        const auto it = state_object.entities().find(id);
+        if (it == state_object.entities().end()) {
+            return {-1, -1};
+        }
+        return {static_cast<int>(it->second.x), static_cast<int>(it->second.y)};
+    };
+    const std::pair<int, int> tileSel = tileDeEntidad(objetivo_resaltado);
+    const std::pair<int, int> tileHover = tileDeEntidad(hover_resaltado);
+    const auto npcResaltado = [&](int nx, int ny) -> bool {
+        return (nx == tileSel.first && ny == tileSel.second) ||
+               (nx == tileHover.first && ny == tileHover.second);
+    };
+
     for (const auto& [id, sacerdote] : mapa.getSacerdotes()) {
         const int cell_width = tileW;
         const int cell_height = tileH;
@@ -425,7 +442,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
 
         npc_renderer->render(*renderer, sacerdote, sacerdote_x, sacerdote_y, cell_width,
-                             cell_height, 0, 0);
+                             cell_height, 0, 0,
+                             npcResaltado(sacerdote.getPosicion().x, sacerdote.getPosicion().y));
     }
 
     for (const auto& [id, banquero] : mapa.getBanqueros()) {
@@ -439,7 +457,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
 
         npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width,
-                             cell_height, 0, 0);
+                             cell_height, 0, 0,
+                             npcResaltado(banquero.getPosicion().x, banquero.getPosicion().y));
     }
 
     for (const auto& [id, comerciante] : mapa.getComerciantes()) {
@@ -452,8 +471,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             continue;
         }
         npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width,
-                             cell_height, 0, 0);
-    } 
+                             cell_height, 0, 0,
+                             npcResaltado(comerciante.getPosicion().x,
+                                          comerciante.getPosicion().y));
+    }
 
     for (const auto& [id, entity] : state_object.entities()) {
         if (entity.mapaId != mapaActual) {
@@ -464,7 +485,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const int entity_x = scrX(entity.x);
         const int entity_y = scrY(entity.y);
 
-        const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado);
+        const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado) ||
+                              (hover_resaltado != 0 && id == hover_resaltado);
 
         if (entity.tipo == 0 && sprite_manager) {
             const int animation_row = state_object.entity_animation_row(id);
@@ -587,8 +609,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (banco.abierto) {
         dibujar_banco(banco);  // modal sobre todo lo demas
     }
-    if (comercio.abierto) {
-        dibujar_comercio(comercio);
+    if (tienda.abierto) {
+        dibujar_tienda(tienda);  // modal del comerciante/sacerdote
     }
 
     renderer->Present();
@@ -620,8 +642,11 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     }
     // Rects de slots/boton dibujados este frame (para el hit-test del click).
     slots_inventario.clear();
+    slots_stock.clear();
     slots_hechizos.clear();
     ids_hechizos_dibujados.clear();
+    slots_hechizos_venta.clear();
+    ids_hechizos_venta.clear();
     rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_equipar = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_usar = SDL2pp::Rect(0, 0, 0, 0);
@@ -842,18 +867,14 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         }
         return r;
     };
-    // Fila de arriba: Vender | Equipar
-    rect_boton_vender = boton_celda(panel_config.botonVender, "Vender", {60, 40, 25, 255},
-                                    btn_colL, y);
     rect_boton_equipar = boton_celda(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255},
-                                     btn_colR, y);
+                                     btn_colL, y);
+    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colR, y);
     y += btn_h + btn_gap;
-    // Fila de abajo: Usar | Curar
-    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colL, y);
+    // Fila de abajo: Curar
     rect_boton_curar = boton_celda(panel_config.botonCurar, "Curar", {55, 35, 50, 255},
-                                   btn_colR, y);
+                                   btn_colL, y);
     y += btn_h + 8;
-
 }
 
 uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
@@ -886,6 +907,10 @@ void ObjectRenderer::iniciarProyectil(uint16_t origen, uint16_t destino) {
 
 void ObjectRenderer::resaltarObjetivo(uint16_t id) {
     objetivo_resaltado = id;
+}
+
+void ObjectRenderer::resaltarHover(uint16_t id) {
+    hover_resaltado = id;
 }
 
 uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {
@@ -1052,97 +1077,84 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     text_renderer->dibujar(*renderer, "X", mx + mw - 28, my + 12, cTit);
 }
 
-void ObjectRenderer::dibujar_comercio(const EstadoComercioRender& comercio) {
+void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     if (!renderer || !text_renderer) {
         return;
     }
-    slots_stock.clear();
-    slots_hechizos_venta.clear();
-    ids_hechizos_venta.clear();
+    tienda_oferta.clear();
+    tienda_inv.clear();
 
-    const int mw = 460;
-    const int mh = 380;
+    // Modal centrado en pantalla
+    const int mw = 542;
+    const int mh = 481;
     const int mx = (window_width - mw) / 2;
     const int my = (window_height - mh) / 2;
-    const int margen = 16;
-    const int cx = mx + margen;
-    const int cw = mw - 2 * margen;
-    const int lh = text_renderer->alto_linea();
-    const SDL_Color& cTxt = panel_config.colorTexto;
-    const SDL_Color& cTit = panel_config.colorTitulo;
-
-    renderer->SetDrawColor(0, 0, 0, 180);
-    renderer->FillRect(SDL2pp::Rect(mx - 2, my - 2, mw + 4, mh + 4));
-    renderer->SetDrawColor(35, 25, 18, 255);
-    renderer->FillRect(SDL2pp::Rect(mx, my, mw, mh));
-    renderer->SetDrawColor(120, 95, 60, 255);
-    renderer->DrawRect(SDL2pp::Rect(mx, my, mw, mh));
-
-    const std::string titulo = comercio.sacerdoteSeleccionado ? "Sacerdote" : "Comerciante";
-    text_renderer->dibujar(*renderer, titulo, cx, my + margen, cTit);
-    rect_cerrar_comercio = SDL2pp::Rect(mx + mw - 36, my + 10, 24, 24);
-    renderer->SetDrawColor(120, 30, 30, 255);
-    renderer->FillRect(rect_cerrar_comercio);
-    text_renderer->dibujar(*renderer, "X", rect_cerrar_comercio.x + 6,
-                           rect_cerrar_comercio.y + 3, cTit);
-
-    int y = my + margen + lh + 10;
-    const int fila_h = lh + 6;
-    if (comercio.comercianteSeleccionado && !comercio.stock.empty() && catalogo != nullptr) {
-        const int total = static_cast<int>(comercio.stock.size());
-        const int desde = std::max(0, std::min(comercio.scrollStock, total));
-        text_renderer->dibujar(*renderer, "Comercio (rueda = scroll)", cx, y, cTit);
-        y += lh + 4;
-        for (int i = desde; i < total; ++i) {
-            if (y + fila_h > my + mh - margen) {
-                break;
-            }
-            const uint16_t id = comercio.stock[i];
-            renderer->SetDrawColor(0, 0, 0, 110);
-            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
-            const std::string linea =
-                    catalogo->nombre(id) + "  $" + std::to_string(catalogo->precioCompra(id));
-            text_renderer->dibujar(*renderer, linea, cx + 4, y + 3, cTxt);
-            slots_stock.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
-            y += fila_h;
-        }
+    const std::string& img = t.esSacerdote ? panel_config.tiendaImgSacerdote
+                                           : panel_config.tiendaImgComerciante;
+    try {
+        renderer->Copy(cache_texture->get_or_load(img), SDL2pp::NullOpt,
+                       SDL2pp::Rect(mx, my, mw, mh));
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(20, 15, 10, 255);
+        renderer->FillRect(SDL2pp::Rect(mx, my, mw, mh));
     }
 
-    if (comercio.sacerdoteSeleccionado && catalogo != nullptr) {
-        std::vector<uint16_t> ids = catalogo->idsHechizos();
-        std::sort(ids.begin(), ids.end());
-        bool tituloDibujado = false;
-        for (uint16_t id : ids) {
-            const bool conocido =
-                    std::find(comercio.hechizosConocidos.begin(), comercio.hechizosConocidos.end(),
-                              id) != comercio.hechizosConocidos.end();
-            if (conocido) {
-                continue;
-            }
-            const HechizoInfo* h = catalogo->hechizo(id);
-            if (h == nullptr) {
-                continue;
-            }
-            if (!tituloDibujado) {
-                if (y + lh + 4 > my + mh - margen) {
-                    break;
-                }
-                text_renderer->dibujar(*renderer, "Hechizos (comprar)", cx, y, cTit);
-                y += lh + 4;
-                tituloDibujado = true;
-            }
-            if (y + fila_h > my + mh - margen) {
-                break;
-            }
-            renderer->SetDrawColor(0, 0, 0, 110);
-            renderer->FillRect(SDL2pp::Rect(cx, y, cw, fila_h));
-            text_renderer->dibujar(*renderer, h->nombre + "  $" + std::to_string(h->precio),
-                                   cx + 4, y + 3, cTxt);
-            slots_hechizos_venta.push_back(SDL2pp::Rect(cx, y, cw, fila_h));
-            ids_hechizos_venta.push_back(id);
-            y += fila_h;
+    const SDL2pp::Rect panelOferta(mx + 20, my + 78, 238, 330);
+    const SDL2pp::Rect panelInv(mx + 284, my + 78, 238, 330);
+
+    const int slot = 40;
+    const int gap = 6;
+    const int pitch = slot + gap;
+
+
+    const auto iconoDe = [&](uint16_t id, bool esHechizo) -> SDL2pp::Texture* {
+        if (id == 0) {
+            return nullptr;
         }
-    }
+        if (!esHechizo) {
+            return icono_item(id);
+        }
+        try {
+            return &cache_texture->get_or_load("imgs/hechizos/" + std::to_string(id) + ".png");
+        } catch (const std::exception&) {
+            return nullptr;
+        }
+    };
+
+
+    const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items,
+                            int sel, bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
+        const int cols = std::max(1, (panel.w + gap) / pitch);
+        const int filas = std::max(1, (panel.h + gap) / pitch);
+        const int gridW = cols * pitch - gap;
+        const int gridH = filas * pitch - gap;
+        const int x0 = panel.x + (panel.w - gridW) / 2;
+        const int y0 = panel.y + (panel.h - gridH) / 2;
+        for (int i = 0; i < cols * filas; ++i) {
+            const int sx = x0 + (i % cols) * pitch;
+            const int sy = y0 + (i / cols) * pitch;
+            const uint16_t id = (i < static_cast<int>(items.size())) ? items[i] : 0;
+            renderer->SetDrawColor(0, 0, 0, 110);
+            renderer->FillRect(SDL2pp::Rect(sx, sy, slot, slot));
+            if (SDL2pp::Texture* ic = iconoDe(id, esHechizo)) {
+                renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, slot, slot));
+            }
+            if (i == sel) {
+                renderer->SetDrawColor(255, 230, 90, 255);
+            } else {
+                renderer->SetDrawColor(90, 70, 45, 255);
+            }
+            renderer->DrawRect(SDL2pp::Rect(sx, sy, slot, slot));
+            rects.push_back(SDL2pp::Rect(sx, sy, slot, slot));
+        }
+    };
+
+    grilla(panelOferta, t.oferta, t.selOferta, t.esSacerdote, tienda_oferta);
+    grilla(panelInv, t.inventario, t.selInventario, t.esSacerdote, tienda_inv);
+
+    rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
+    rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
+    rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 34, my + 6, 28, 28);
 }
 
 void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width,
@@ -1238,7 +1250,12 @@ bool ObjectRenderer::clickBancoDepositarOro(int x, int y) const { return dentro(
 bool ObjectRenderer::clickBancoRetirarOro(int x, int y) const { return dentro(rect_ret_oro, x, y); }
 bool ObjectRenderer::clickBancoCajaMonto(int x, int y) const { return dentro(rect_caja_monto, x, y); }
 bool ObjectRenderer::clickBancoCerrar(int x, int y) const { return dentro(rect_cerrar_banco, x, y); }
-bool ObjectRenderer::clickComercioCerrar(int x, int y) const { return dentro(rect_cerrar_comercio, x, y); }
+
+int ObjectRenderer::tiendaOfertaClickeada(int x, int y) const { return slot_en(tienda_oferta, x, y); }
+int ObjectRenderer::tiendaInvClickeado(int x, int y) const { return slot_en(tienda_inv, x, y); }
+bool ObjectRenderer::clickTiendaComprar(int x, int y) const { return dentro(rect_tienda_comprar, x, y); }
+bool ObjectRenderer::clickTiendaVender(int x, int y) const { return dentro(rect_tienda_vender, x, y); }
+bool ObjectRenderer::clickTiendaCerrar(int x, int y) const { return dentro(rect_tienda_cerrar, x, y); }
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     if (!text_renderer || !renderer) {
