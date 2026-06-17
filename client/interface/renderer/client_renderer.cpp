@@ -180,54 +180,6 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
     }
 }
 
-void ObjectRenderer::actualizar_pos_visual(const int tile_x, const int tile_y,
-                                           const uint32_t now_tick) {
-    const double speed = 1000.0 / static_cast<double>(walk_tile_ms);  // tiles por segundo
-
-    if (!vis_init) {
-        vis_player_x = tile_x;
-        vis_player_y = tile_y;
-        vis_init = true;
-        vis_last_tick = now_tick;
-        return;
-    }
-
-    double dt = (now_tick - vis_last_tick) / 1000.0;
-    vis_last_tick = now_tick;
-    dt = std::clamp(dt, 0.0, 0.1);  // si el loop se frena, no pegamos un salto
-
-    const double rem_x = tile_x - vis_player_x;
-    const double rem_y = tile_y - vis_player_y;
-    const double restante = std::abs(rem_x) + std::abs(rem_y);
-
-    constexpr double EPS = 1e-4;
-    if (restante < EPS) {
-        return;  // quieto y alineado
-    }
-    if (restante > 2.5) {  // teleport (muerte/resurreccion/login): ir de una
-        vis_player_x = tile_x;
-        vis_player_y = tile_y;
-        return;
-    }
-
-    double paso = speed * dt;
-    if (restante > 1.5) {
-        paso *= 2.0;  // quedo atras (giro/lag): alcanzar sin arrastrar
-    }
-
-    
-    const bool x_en_curso = std::abs(vis_player_x - std::round(vis_player_x)) > EPS;
-    const auto avanzar = [&](double& v, double objetivo) {
-        const double d = objetivo - v;
-        v = (std::abs(d) <= paso) ? objetivo : v + (d > 0 ? paso : -paso);
-    };
-    if (std::abs(rem_x) > EPS && (x_en_curso || std::abs(rem_y) <= EPS)) {
-        avanzar(vis_player_x, tile_x);
-    } else {
-        avanzar(vis_player_y, tile_y);
-    }
-}
-
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,

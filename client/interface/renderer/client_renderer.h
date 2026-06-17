@@ -73,7 +73,6 @@ private:
     bool vis_init = false;
     uint32_t vis_last_tick = 0;
     uint32_t walk_tile_ms = 130;
-    void actualizar_pos_visual(int tile_x, int tile_y, uint32_t now_tick);
     int window_width = 0;
     int window_height = 0;
     std::map<uint16_t, Mapa> mapas;
