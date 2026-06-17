@@ -82,7 +82,7 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         try {
             std::optional<RegistroJugador> registro = lectorJugadores.cargar(nombre);
             if (registro.has_value()) {
-                jugadorDisco.emplace(SerializadorJugador::aJugador(id, *registro, cfg));
+                jugadorDisco.emplace(SerializadorJugador::aJugador(id, *registro, cfg, catalogo));
                 if (jugadorDisco->tieneClan()) {
                     jugadorDisco->salirClan();
                 }

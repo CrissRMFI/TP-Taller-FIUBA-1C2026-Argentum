@@ -12,7 +12,8 @@ public:
 
     static Jugador aJugador(uint16_t sessionId,
                             const RegistroJugador& registro,
-                            const ConfigJuego& cfg);
+                            const ConfigJuego& cfg,
+                            const CatalogoItems& catalogo);
 };
 
 #endif
