@@ -246,8 +246,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int gh = std::max(1, window_height - gy0);
 
     camera.configure(gw, gh, mapa.getAncho(), mapa.getAlto());
-    actualizar_pos_visual(state_object.player_x(), state_object.player_y(), current_tick);
-    camera.center_on_point(vis_player_x, vis_player_y);
+    camera.center_on_point(state_object.player_x(), state_object.player_y());
     const int tileW = camera.tile_width();
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
@@ -483,11 +482,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
         const int cell_width = tileW;
         const int cell_height = tileH;
-        // El jugador local se dibuja en su posicion visual continua (suave); el resto
-        // de las entidades, en su tile (acompañan el scroll suave del mundo).
-        const bool es_jugador_local = (id == state_object.client_id());
-        const int entity_x = es_jugador_local ? scrX(vis_player_x) : scrX(entity.x);
-        const int entity_y = es_jugador_local ? scrY(vis_player_y) : scrY(entity.y);
+        const int entity_x = scrX(entity.x);
+        const int entity_y = scrY(entity.y);
 
         const bool resaltar = (objetivo_resaltado != 0 && id == objetivo_resaltado) ||
                               (hover_resaltado != 0 && id == hover_resaltado);
@@ -1110,7 +1106,7 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     const int gap = 6;
     const int pitch = slot + gap;
 
-    
+
     const auto iconoDe = [&](uint16_t id, bool esHechizo) -> SDL2pp::Texture* {
         if (id == 0) {
             return nullptr;
@@ -1125,7 +1121,7 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
         }
     };
 
-    
+
     const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items,
                             int sel, bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
         const int cols = std::max(1, (panel.w + gap) / pitch);

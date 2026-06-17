@@ -17,6 +17,7 @@ target_sources(taller_common
 
     # Modelo del dominio compartido entre server, editor y persistencia
     game/aleatorio.cpp
+    game/constant_rate_loop.cpp
     game/criatura.cpp
     game/npc/npc.cpp
     game/npc/sacerdote.cpp
@@ -59,6 +60,7 @@ target_sources(taller_common
 
     # Modelo del dominio compartido
     game/aleatorio.h
+    game/constant_rate_loop.h
     game/criatura.h
     game/modelo/posicion.h
     game/npc/npc.h

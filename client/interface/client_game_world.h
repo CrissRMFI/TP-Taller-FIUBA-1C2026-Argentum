@@ -13,12 +13,18 @@
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
 
+// para que dentro de la misma partida el movimiento de los jugadores no se vea tile x tile
+// ahora se trata la posicion de cada entidad dentro de la clase estado del jugador
 struct EntityAnimationState {
     bool is_moving = false;
     uint32_t last_motion_tick = 0;
     int animation_row = 0;
     int walk_frame = 0;  // avanza por tile caminado (anima segun movimiento, no por tiempo)
     uint32_t move_start_tick = 0;
+    double vis_x = 0.0;
+    double vis_y = 0.0;
+    bool vis_init = false;
+    uint32_t vis_last_tick = 0;
 };
 
 // Lo que el jugador tiene equipado 
@@ -96,6 +102,10 @@ private:
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea, TipoMensajeChat tipo = TipoMensajeChat::Normal);
+    void actualizarPosVisualEntidad(EntityAnimationState& animation_state,
+                                    int tile_x,
+                                    int tile_y,
+                                    uint32_t current_tick);
 
 public:
     explicit ObjectGameWorld(uint16_t client_id);
@@ -113,6 +123,8 @@ public:
     bool entity_is_moving(uint16_t entity_id) const;
     int entity_animation_row(uint16_t entity_id) const;
     int entity_walk_frame(uint16_t entity_id) const;
+    double entity_visual_x(uint16_t entity_id) const;
+    double entity_visual_y(uint16_t entity_id) const;
     const std::deque<LineaChat>& historialChat() const;
     void setMaxLineasChat(size_t maximo);
     void setNick(const std::string& nick) { nick_ = nick; }

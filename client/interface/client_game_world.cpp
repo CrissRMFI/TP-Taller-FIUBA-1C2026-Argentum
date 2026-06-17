@@ -41,6 +41,65 @@ int ObjectGameWorld::distanciaAlJugador(int x, int y) const {
     return std::max(std::abs(x - posX), std::abs(y - posY));
 }
 
+void ObjectGameWorld::actualizarPosVisualEntidad(EntityAnimationState& animation_state,
+                                                 const int tile_x,
+                                                 const int tile_y,
+                                                 const uint32_t current_tick) {
+
+    // Interpolacion visual, las posiciones logicas de los jugadores son interpoladas
+    // localmente con el fin de suavizar el movimiento
+
+    const double speed = 1000.0 / 130.0;  // tiles por segundo
+
+    if (!animation_state.vis_init) {
+        animation_state.vis_x = tile_x;
+        animation_state.vis_y = tile_y;
+        animation_state.vis_init = true;
+        animation_state.vis_last_tick = current_tick;
+        return;
+    }
+
+    double dt = (current_tick - animation_state.vis_last_tick) / 1000.0;
+    animation_state.vis_last_tick = current_tick;
+    dt = std::clamp(dt, 0.0, 0.1);
+
+    const double rem_x = tile_x - animation_state.vis_x;
+    const double rem_y = tile_y - animation_state.vis_y;
+    const double restante = std::abs(rem_x) + std::abs(rem_y);
+
+    constexpr double EPS = 1e-4;
+    if (restante < EPS) {
+        return;
+    }
+    if (restante > 2.5) {
+        animation_state.vis_x = tile_x;
+        animation_state.vis_y = tile_y;
+        return;
+    }
+
+    double paso = speed * dt;
+    if (restante > 1.5) {
+        paso *= 2.0;
+    }
+
+    const bool x_en_curso =
+            std::abs(animation_state.vis_x - std::round(animation_state.vis_x)) > EPS;
+    const auto avanzar = [&](double& v, const double objetivo) {
+        const double d = objetivo - v;
+        v = (std::abs(d) <= paso) ? objetivo : v + (d > 0 ? paso : -paso);
+    };
+    if (std::abs(rem_x) > EPS && (x_en_curso || std::abs(rem_y) <= EPS)) {
+        avanzar(animation_state.vis_x, tile_x);
+    } else {
+        avanzar(animation_state.vis_y, tile_y);
+    }
+
+    animation_state.vis_x = tile_x;
+    animation_state.vis_y = tile_y;
+    animation_state.vis_init = true;
+    animation_state.vis_last_tick = current_tick;
+}
+
 void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                                             const uint32_t current_tick,
                                             GestorAudio& gestorAudio) {
@@ -84,6 +143,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             animation_state.is_moving =
                     position_changed ||
                     (current_tick - animation_state.last_motion_tick) < MOTION_GRACE_MS;
+            actualizarPosVisualEntidad(animation_state, entity_position->x, entity_position->y,
+                                       current_tick);
 
             if (entity_position->id == idCliente) {
                 posX = entity_position->x;
@@ -268,6 +329,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             EntityAnimationState& animation_state = animation_states[idCliente];
             animation_state.is_moving = true;
             animation_state.last_motion_tick = current_tick;
+            animation_state.vis_x = resucitado->x;
+            animation_state.vis_y = resucitado->y;
+            animation_state.vis_init = true;
+            animation_state.vis_last_tick = current_tick;
             gestorAudio.reproducirEfecto("reviviendo");
             std::cout << "[cliente] resucitado en (" << resucitado->x << ", "
                       << resucitado->y << ")" << std::endl;
@@ -312,6 +377,11 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
     for (auto& [entity_id, animation_state] : animation_states) {
         const bool client_position_changed =
                 entity_id == idCliente && (posX != previous_pos_x || posY != previous_pos_y);
+        const auto entity_it = entidades.find(entity_id);
+        if (entity_it != entidades.end()) {
+            actualizarPosVisualEntidad(animation_state, entity_it->second.x, entity_it->second.y,
+                                       current_tick);
+        }
         if (!client_position_changed) {
             animation_state.is_moving =
                     (current_tick - animation_state.last_motion_tick) < MOTION_GRACE_MS;
@@ -366,6 +436,26 @@ int ObjectGameWorld::entity_animation_row(const uint16_t entity_id) const {
 int ObjectGameWorld::entity_walk_frame(const uint16_t entity_id) const {
     const auto it = animation_states.find(entity_id);
     return (it != animation_states.end()) ? it->second.walk_frame : 0;
+}
+
+// agrego dos metodos para obtener la pos_visual tanto en x como en y de los jugadores
+// para usarla en la camara
+double ObjectGameWorld::entity_visual_x(const uint16_t entity_id) const {
+    const auto anim_it = animation_states.find(entity_id);
+    if (anim_it != animation_states.end() && anim_it->second.vis_init) {
+        return anim_it->second.vis_x;
+    }
+    const auto entity_it = entidades.find(entity_id);
+    return (entity_it != entidades.end()) ? entity_it->second.x : 0.0;
+}
+
+double ObjectGameWorld::entity_visual_y(const uint16_t entity_id) const {
+    const auto anim_it = animation_states.find(entity_id);
+    if (anim_it != animation_states.end() && anim_it->second.vis_init) {
+        return anim_it->second.vis_y;
+    }
+    const auto entity_it = entidades.find(entity_id);
+    return (entity_it != entidades.end()) ? entity_it->second.y : 0.0;
 }
 
 void ObjectGameWorld::agregarLineaChat(const std::string& linea, TipoMensajeChat tipo) {

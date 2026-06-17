@@ -1,8 +1,6 @@
 #include "gameloop.h"
 
-#include <chrono>
 #include <stdexcept>
-#include <thread>
 #include <utility>
 
 #include "traductor_protocolo.h"
@@ -22,6 +20,7 @@ Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mundo&& mund
             std::move(config.criaturas), std::move(mundo)),
       tickMs(config.juego.tickMs),
       guardadoSeg(config.juego.guardadoSeg),
+      loop(std::chrono::milliseconds(config.juego.tickMs)),
       colaComandosCerrada(false),
       colaEventosSesionCerrada(false) {
     if (tickMs <= 0) {
@@ -30,45 +29,33 @@ Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mundo&& mund
 }
 
 void Gameloop::run() {
-    using Clock = std::chrono::steady_clock;
-
-    const auto duracionTick = std::chrono::milliseconds(tickMs);
-    // Tolerancia máxima de lag: 2 ticks del servidor
-    const float deltaMaxSegundos = std::chrono::duration<float>(duracionTick).count() * 2.0f;
-    auto instanteAnterior = Clock::now();
-    auto siguienteTick = instanteAnterior + duracionTick;
     float acumuladorGuardado = 0.0f;
+    const float deltaSegundos = static_cast<float>(tickMs) / 1000.0f;
 
-    while (should_keep_running()) {
-        auto ahora = Clock::now();
-        float deltaSegundos = std::chrono::duration<float>(ahora - instanteAnterior).count();
-        if (deltaSegundos > deltaMaxSegundos) {
-            deltaSegundos = deltaMaxSegundos;
+    loop.run([&](const uint32_t ticks_elapsed, const uint64_t) {
+        if (!should_keep_running()) {
+            loop.stop();
+            return;
         }
-        instanteAnterior = ahora;
 
         procesarEventosSesion();
         procesarComandos();
 
-        auto mensajes = juego.actualizar(deltaSegundos);
-        despachar(mensajes);
+        // si se acumulan ticks, por cada tick atrasado se procesa un juego.actualizar()
+        for (uint32_t i = 0; i < ticks_elapsed; ++i) {
+            auto mensajes = juego.actualizar(deltaSegundos);
+            despachar(mensajes);
 
-        // Guardado periodico de los conectados.
-        if (guardadoSeg > 0) {
-            acumuladorGuardado += deltaSegundos;
-            if (acumuladorGuardado >= static_cast<float>(guardadoSeg)) {
-                juego.persistirConectados();
-                acumuladorGuardado = 0.0f;
+            // Guardado periodico de los conectados.
+            if (guardadoSeg > 0) {
+                acumuladorGuardado += deltaSegundos;
+                if (acumuladorGuardado >= static_cast<float>(guardadoSeg)) {
+                    juego.persistirConectados();
+                    acumuladorGuardado = 0.0f;
+                }
             }
         }
-
-        std::this_thread::sleep_until(siguienteTick);
-        siguienteTick += duracionTick;
-
-        if (Clock::now() > siguienteTick + duracionTick) {
-            siguienteTick = Clock::now() + duracionTick;
-        }
-    }
+    });
 
     // Al apagarse, persistir a todos para no perder progreso (desconexion abrupta
     // del servidor).
@@ -77,6 +64,7 @@ void Gameloop::run() {
 
 void Gameloop::detener() {
     stop();
+    loop.stop();
 
     cerrarColaSiCorresponde(colaComandos, colaComandosCerrada);
     cerrarColaSiCorresponde(colaEventosSesion, colaEventosSesionCerrada);
