@@ -63,6 +63,7 @@ struct EstadoComercioRender {
     std::vector<uint16_t> hechizosConocidos;
     bool comercianteSeleccionado = false;
     bool sacerdoteSeleccionado = false;
+    uint32_t oroJugador = 0;
 };
 
 
@@ -73,6 +74,7 @@ struct EstadoTiendaRender {
     std::vector<uint16_t> inventario;
     int selOferta = -1;
     int selInventario = -1;
+    uint32_t oroJugador = 0;
 };
 
 

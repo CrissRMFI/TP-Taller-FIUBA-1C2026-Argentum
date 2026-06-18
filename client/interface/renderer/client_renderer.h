@@ -73,7 +73,6 @@ private:
     bool vis_init = false;
     uint32_t vis_last_tick = 0;
     uint32_t walk_tile_ms = 130;
-    void actualizar_pos_visual(int tile_x, int tile_y, uint32_t now_tick);
     int window_width = 0;
     int window_height = 0;
     std::map<uint16_t, Mapa> mapas;
@@ -112,6 +111,7 @@ private:
     SDL2pp::Rect rect_tienda_comprar{0, 0, 0, 0};
     SDL2pp::Rect rect_tienda_vender{0, 0, 0, 0};
     SDL2pp::Rect rect_tienda_cerrar{0, 0, 0, 0};
+    std::vector<SDL2pp::Rect> slots_equipo;
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
     std::vector<SDL2pp::Rect> slots_hechizos;       // filas de la pestaña HECHIZOS (lanzar)
@@ -130,6 +130,7 @@ public:
     ObjectRenderer();
     int anchoMapa() const { return mapaVigente().getAncho(); }
     int altoMapa() const { return mapaVigente().getAlto(); }
+    int bordeIzquierdoPanel() const { return ancho_juego(); }
     void setMapaActual(uint16_t id) { mapaActual = id; }
     uint16_t getMapaPrincipal() const { return mapaPrincipalId; }  // exterior; otros = mazmorra
     int camOffsetX() const { return camera.get_offset_x(); }
@@ -146,6 +147,7 @@ public:
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
                 const EstadoChatRender& chat, const EstadoPanelRender& panel,
                 const EstadoBancoRender& banco, const EstadoTiendaRender& tienda);
+    int slotEquipoClickeado(int x, int y) const;
     int slotInventarioClickeado(int x, int y) const;
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;

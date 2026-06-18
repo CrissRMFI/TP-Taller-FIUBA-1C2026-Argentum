@@ -180,54 +180,6 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
     }
 }
 
-void ObjectRenderer::actualizar_pos_visual(const int tile_x, const int tile_y,
-                                           const uint32_t now_tick) {
-    const double speed = 1000.0 / static_cast<double>(walk_tile_ms);  // tiles por segundo
-
-    if (!vis_init) {
-        vis_player_x = tile_x;
-        vis_player_y = tile_y;
-        vis_init = true;
-        vis_last_tick = now_tick;
-        return;
-    }
-
-    double dt = (now_tick - vis_last_tick) / 1000.0;
-    vis_last_tick = now_tick;
-    dt = std::clamp(dt, 0.0, 0.1);  // si el loop se frena, no pegamos un salto
-
-    const double rem_x = tile_x - vis_player_x;
-    const double rem_y = tile_y - vis_player_y;
-    const double restante = std::abs(rem_x) + std::abs(rem_y);
-
-    constexpr double EPS = 1e-4;
-    if (restante < EPS) {
-        return;  // quieto y alineado
-    }
-    if (restante > 2.5) {  // teleport (muerte/resurreccion/login): ir de una
-        vis_player_x = tile_x;
-        vis_player_y = tile_y;
-        return;
-    }
-
-    double paso = speed * dt;
-    if (restante > 1.5) {
-        paso *= 2.0;  // quedo atras (giro/lag): alcanzar sin arrastrar
-    }
-
-    
-    const bool x_en_curso = std::abs(vis_player_x - std::round(vis_player_x)) > EPS;
-    const auto avanzar = [&](double& v, double objetivo) {
-        const double d = objetivo - v;
-        v = (std::abs(d) <= paso) ? objetivo : v + (d > 0 ? paso : -paso);
-    };
-    if (std::abs(rem_x) > EPS && (x_en_curso || std::abs(rem_y) <= EPS)) {
-        avanzar(vis_player_x, tile_x);
-    } else {
-        avanzar(vis_player_y, tile_y);
-    }
-}
-
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
                             const ObjectAnimation& /*animation*/,
                             const EstadoChatRender& chat,
@@ -641,6 +593,7 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         return;
     }
     // Rects de slots/boton dibujados este frame (para el hit-test del click).
+    slots_equipo.clear();
     slots_inventario.clear();
     slots_stock.clear();
     slots_hechizos.clear();
@@ -761,7 +714,9 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
                                    panel.equip.casco, panel.equip.escudo};
     const int eq_x = px + (pw - (5 * eq_slot + 4 * eq_gap)) / 2;
     for (int i = 0; i < 5; ++i) {
-        dibujar_slot(eq_x + i * (eq_slot + eq_gap), y, eq_slot, equipados[i]);
+        const int sx = eq_x + i * (eq_slot + eq_gap);
+        dibujar_slot(sx, y, eq_slot, equipados[i]);
+        slots_equipo.push_back(SDL2pp::Rect(sx, y, eq_slot, eq_slot));
     }
     y += eq_slot + 8;
 
@@ -943,6 +898,10 @@ int ObjectRenderer::slotInventarioClickeado(int x, int y) const {
     return slot_en(slots_inventario, x, y);
 }
 
+int ObjectRenderer::slotEquipoClickeado(int x, int y) const {
+    return slot_en(slots_equipo, x, y);
+}
+
 int ObjectRenderer::slotStockClickeado(int x, int y) const {
     return slot_en(slots_stock, x, y);
 }
@@ -1099,13 +1058,115 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
         renderer->FillRect(SDL2pp::Rect(mx, my, mw, mh));
     }
 
-    const SDL2pp::Rect panelOferta(mx + 20, my + 78, 238, 330);
-    const SDL2pp::Rect panelInv(mx + 284, my + 78, 238, 330);
+    const SDL_Color& cTit = panel_config.colorTitulo;
+    const SDL_Color& cTxt = panel_config.colorTexto;
+    const int headerX = mx + 14;
+    const int headerY = my + 10;
+    const int headerW = mw - 28;
+    const int headerH = 74;
+    const int sectionY = my + 84;
+    const int sectionH = 40;  // antes 24: ahora cubre tambien las pestañas OFERTA/INVENTARIO
+                              // que trae dibujadas el asset base, evitando que se asomen
+                              // por encima de nuestro rotulo "Oferta"/"Inventario"
+
+    // Cubrimos la cabecera embebida en el BMP y la rehacemos por código para que el título
+    // del sacerdote/comerciante quede legible y consistente.
+    renderer->SetDrawColor(12, 10, 8, 242);
+    renderer->FillRect(SDL2pp::Rect(headerX, headerY, headerW, headerH));
+    renderer->SetDrawColor(96, 78, 48, 255);
+    renderer->DrawRect(SDL2pp::Rect(headerX, headerY, headerW, headerH));
+    renderer->SetDrawColor(t.esSacerdote ? 164 : 140, t.esSacerdote ? 128 : 104,
+                           t.esSacerdote ? 58 : 56, 255);
+    renderer->FillRect(SDL2pp::Rect(headerX + 14, headerY + 12, 16, 16));
+
+    const std::string titulo = t.esSacerdote ? "Sacerdote" : "Comerciante";
+    const std::string subtitulo =
+            t.esSacerdote ? "Compra hechizos y objetos de apoyo"
+                          : "Compra y vende objetos del inventario";
+    text_renderer->dibujarEscalado(*renderer, titulo, headerX + 42, headerY + 12, cTit, 1.4f);
+    text_renderer->dibujar(*renderer, subtitulo, headerX + 42, headerY + 42, cTxt);
+
+    const SDL2pp::Rect panelOferta(mx + 20, my + 126, 238, 282);
+    const SDL2pp::Rect panelInv(mx + 284, my + 126, 238, 282);
+
+    // Tapamos los rótulos impresos del asset (pestañas OFERTA/INVENTARIO) y los redibujamos
+    // por código ANTES de las grillas, para que el texto no quede corrido ni mezclado con la
+    // textura base, y para que las grillas se pinten siempre por encima sin quedar opacadas.
+    renderer->SetDrawColor(12, 10, 8, 235);
+    renderer->FillRect(SDL2pp::Rect(panelOferta.x, sectionY, panelOferta.w, sectionH));
+    renderer->FillRect(SDL2pp::Rect(panelInv.x, sectionY, panelInv.w, sectionH));
+    text_renderer->dibujar(*renderer, "Oferta", panelOferta.x + 8, sectionY + 2, cTit);
+    text_renderer->dibujar(*renderer, "Inventario", panelInv.x + 8, sectionY + 2, cTit);
+
+    const auto nombreOferta = [&]() -> std::string {
+        if (t.selOferta < 0 || t.selOferta >= static_cast<int>(t.oferta.size())) {
+            return "";
+        }
+        const uint16_t id = t.oferta[t.selOferta];
+        if (t.esSacerdote) {
+            if (const HechizoInfo* h = catalogo ? catalogo->hechizo(id) : nullptr) {
+                return h->nombre;
+            }
+            return "Hechizo " + std::to_string(id);
+        }
+        return catalogo ? catalogo->nombre(id) : ("Item " + std::to_string(id));
+    };
+    const auto precioOferta = [&]() -> uint32_t {
+        if (t.selOferta < 0 || t.selOferta >= static_cast<int>(t.oferta.size())) {
+            return 0;
+        }
+        const uint16_t id = t.oferta[t.selOferta];
+        if (t.esSacerdote) {
+            if (const HechizoInfo* h = catalogo ? catalogo->hechizo(id) : nullptr) {
+                return h->precio;
+            }
+            return 0;
+        }
+        return catalogo ? catalogo->precioCompra(id) : 0;
+    };
+    const auto nombreInventario = [&]() -> std::string {
+        if (t.selInventario < 0 || t.selInventario >= static_cast<int>(t.inventario.size())) {
+            return "";
+        }
+        const uint16_t id = t.inventario[t.selInventario];
+        if (id == 0) {
+            return "";
+        }
+        if (t.esSacerdote) {
+            if (const HechizoInfo* h = catalogo ? catalogo->hechizo(id) : nullptr) {
+                return h->nombre;
+            }
+            return "Hechizo " + std::to_string(id);
+        }
+        return catalogo ? catalogo->nombre(id) : ("Item " + std::to_string(id));
+    };
+    const auto precioInventario = [&]() -> uint32_t {
+        if (t.selInventario < 0 || t.selInventario >= static_cast<int>(t.inventario.size())) {
+            return 0;
+        }
+        const uint16_t id = t.inventario[t.selInventario];
+        if (id == 0 || t.esSacerdote) {
+            return 0;
+        }
+        return catalogo ? catalogo->precioVenta(id) : 0;
+    };
+
+    if (const std::string nombre = nombreOferta(); !nombre.empty()) {
+        text_renderer->dibujar(*renderer, nombre, panelOferta.x + 8, sectionY + 18, cTxt);
+        text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioOferta()),
+                               panelOferta.x + 128, sectionY + 18, cTit);
+    }
+    if (const std::string nombre = nombreInventario(); !nombre.empty()) {
+        text_renderer->dibujar(*renderer, nombre, panelInv.x + 8, sectionY + 18, cTxt);
+        if (!t.esSacerdote) {
+            text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioInventario()),
+                                   panelInv.x + 128, sectionY + 18, cTit);
+        }
+    }
 
     const int slot = 40;
     const int gap = 6;
     const int pitch = slot + gap;
-
 
     const auto iconoDe = [&](uint16_t id, bool esHechizo) -> SDL2pp::Texture* {
         if (id == 0) {
@@ -1120,7 +1181,6 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
             return nullptr;
         }
     };
-
 
     const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items,
                             int sel, bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
@@ -1152,9 +1212,23 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     grilla(panelOferta, t.oferta, t.selOferta, t.esSacerdote, tienda_oferta);
     grilla(panelInv, t.inventario, t.selInventario, t.esSacerdote, tienda_inv);
 
+    const std::string oroTexto = "Oro disponible: " + std::to_string(t.oroJugador);
+    //text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + 190, my + 415, cTit);
+    text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + mw - 200, my + 50, cTit);
     rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
     rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
-    rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 34, my + 6, 28, 28);
+    rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 42, my + 18, 22, 22);
+
+    // Tapamos cualquier "X" que traiga el asset base en esa esquina (causaba el efecto de
+    // X duplicada/cortada) antes de dibujar nuestro propio botón de cerrar.
+    renderer->SetDrawColor(12, 10, 8, 255);
+    renderer->FillRect(SDL2pp::Rect(rect_tienda_cerrar.x - 4, rect_tienda_cerrar.y - 4,
+                                    rect_tienda_cerrar.w + 8, rect_tienda_cerrar.h + 8));
+
+    renderer->SetDrawColor(110, 28, 28, 255);
+    renderer->FillRect(rect_tienda_cerrar);
+    text_renderer->dibujar(*renderer, "X", rect_tienda_cerrar.x + 4, rect_tienda_cerrar.y,
+                           cTit);
 }
 
 void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width,

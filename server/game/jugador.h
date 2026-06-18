@@ -86,6 +86,7 @@ public:
             const ConfigJuego& cfg);
 
     void restaurar(const DatosRestauracion& datos);
+    void recalcularVestimenta(const CatalogoItems& catalogo);
 
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);

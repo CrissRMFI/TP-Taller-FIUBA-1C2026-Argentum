@@ -145,9 +145,9 @@ col= 3
 
 [character_parts.heads.2021]
 path = "imgs/personajes/cabezas/2021.png"
-src_head = [4,3, 9, 14]
-frame_size = [13,14]
-draw_offset = [-2,8]
+src_head = [4,2, 13, 17]
+frame_size = [17,17]
+draw_offset = [1,8]
 
 [character_parts.heads.2021.directions.down]
 col = 0
@@ -163,9 +163,9 @@ col = 3
 
 [character_parts.heads.2022]
 path = "imgs/personajes/cabezas/2022.png"
-src_head = [4,3, 9, 13]
-frame_size = [13, 13]
-draw_offset = [0,8]
+src_head = [4,2, 13, 17]
+frame_size = [17,17]
+draw_offset = [1,8]
 
 [character_parts.heads.2022.directions.down]
 col = 0

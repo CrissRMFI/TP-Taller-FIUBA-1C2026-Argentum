@@ -119,6 +119,10 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     idItemsBanco = datos.itemsBanco;
 }
 
+void Jugador::recalcularVestimenta(const CatalogoItems& catalogo) {
+    actualizarVestimenta(catalogo);
+}
+
 void Jugador::recibir_danio(uint16_t cantidad) {
     if (cfg.invulnerable || vidaInfinita || !estaVivo()) {
         return;
