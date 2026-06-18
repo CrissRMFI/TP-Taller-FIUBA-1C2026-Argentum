@@ -580,6 +580,7 @@ void ClientGameLoop::render() {
     tienda.abierto = object_state.tiendaAbierta();
     if (tienda.abierto) {
         tienda.esSacerdote = object_state.tiendaEsSacerdote();
+        tienda.oroJugador = object_state.estadoJugador().oro;
         if (tienda.esSacerdote) {
             std::vector<uint16_t> ids = catalogo.idsHechizos();
             std::sort(ids.begin(), ids.end());

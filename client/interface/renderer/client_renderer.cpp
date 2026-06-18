@@ -1153,13 +1153,13 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
 
     if (const std::string nombre = nombreOferta(); !nombre.empty()) {
         text_renderer->dibujar(*renderer, nombre, panelOferta.x + 8, sectionY + 18, cTxt);
-        text_renderer->dibujar(*renderer, "   Precio: " + std::to_string(precioOferta()),
+        text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioOferta()),
                                panelOferta.x + 128, sectionY + 18, cTit);
     }
     if (const std::string nombre = nombreInventario(); !nombre.empty()) {
         text_renderer->dibujar(*renderer, nombre, panelInv.x + 8, sectionY + 18, cTxt);
         if (!t.esSacerdote) {
-            text_renderer->dibujar(*renderer, "   Precio: " + std::to_string(precioInventario()),
+            text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioInventario()),
                                    panelInv.x + 128, sectionY + 18, cTit);
         }
     }
@@ -1212,6 +1212,9 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     grilla(panelOferta, t.oferta, t.selOferta, t.esSacerdote, tienda_oferta);
     grilla(panelInv, t.inventario, t.selInventario, t.esSacerdote, tienda_inv);
 
+    const std::string oroTexto = "Oro disponible: " + std::to_string(t.oroJugador);
+    //text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + 190, my + 415, cTit);
+    text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + mw - 200, my + 50, cTit);
     rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
     rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
     rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 42, my + 18, 22, 22);
