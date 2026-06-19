@@ -54,7 +54,7 @@ private:
     void enviarComandoTomar(const ComandoTomar& comando);
     void enviarComandoTirar(const ComandoTirar& comando);
     void enviarComandoEquipar(const ComandoEquipar& comando);
-    void enviarComandoUsar(const ComandoUsar& comando);
+    void enviarComandoDesequipar(const ComandoDesequipar& comando);
     void enviarComandoComprarHechizo(const ComandoComprarHechizo& comando);
     void enviarComandoLanzarHechizo(const ComandoLanzarHechizo& comando);
     void enviarComandoComprar(const ComandoComprar& comando);

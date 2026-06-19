@@ -225,35 +225,6 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
 
     // (Comprar/Vender ahora se hacen en el modal de la tienda, no en el panel.)
 
-    // Boton Equipar: equipa el item seleccionado.
-    if (object_renderer.clickEnBotonEquipar(x, y)) {
-        if (slotInvSeleccionado >= 0 &&
-            slotInvSeleccionado < static_cast<int>(items.size()) &&
-            items[slotInvSeleccionado] != 0) {
-            despacharComando({Opcode::EQUIPAR,
-                              ComandoEquipar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
-            object_state.mensajeLocal("Equipaste " + catalogo.nombre(items[slotInvSeleccionado]) +
-                                      ".", TipoMensajeChat::Normal);
-            slotInvSeleccionado = -1;
-        }
-        return;
-    }
-
-    // Boton Usar: usa el item seleccionado
-    if (object_renderer.clickEnBotonUsar(x, y)) {
-        if (slotInvSeleccionado >= 0 &&
-            slotInvSeleccionado < static_cast<int>(items.size()) &&
-            items[slotInvSeleccionado] != 0) {
-            despacharComando({Opcode::USAR,
-                              ComandoUsar{static_cast<uint8_t>(slotInvSeleccionado)}}, tick);
-            slotInvSeleccionado = -1;
-        } else {
-            object_state.mensajeLocal("Selecciona una pocion del inventario para usar.",
-                                      TipoMensajeChat::Sistema);
-        }
-        return;
-    }
-
     // Boton Curar: pide curacion al objetivo. Si no es un sacerdote (o no hay objetivo)"accion no permitida" y suena.
     if (object_renderer.clickEnBotonCurar(x, y)) {
         despacharComando({Opcode::CURAR, ComandoCurar{objetivo.value_or(static_cast<uint16_t>(0))}},
@@ -270,17 +241,18 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
-    if (object_renderer.slotEquipoClickeado(x, y) >= 0) {
-        object_state.mensajeLocal("Los items equipados no se usan desde equipo.",
-                                  TipoMensajeChat::Sistema);
+    // Click en una pieza equipada -> desequipar y vuelve al inventario
+    const int eq = object_renderer.slotEquipoClickeado(x, y);
+    if (eq >= 0) {
+        despacharComando({Opcode::DESEQUIPAR, ComandoDesequipar{static_cast<uint8_t>(eq)}}, tick);
         return;
     }
 
-    // Click en el inventario -> seleccionar (zoom).
+    // Click en un item del inventario -> equipar (si es pocion, el server la usa).
     const int inv = object_renderer.slotInventarioClickeado(x, y);
     if (inv >= 0) {
         if (inv < static_cast<int>(items.size()) && items[inv] != 0) {
-            slotInvSeleccionado = (slotInvSeleccionado == inv) ? -1 : inv;  // toggle
+            despacharComando({Opcode::EQUIPAR, ComandoEquipar{static_cast<uint8_t>(inv)}}, tick);
         }
     }
 }
