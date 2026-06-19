@@ -601,8 +601,6 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     slots_hechizos_venta.clear();
     ids_hechizos_venta.clear();
     rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
-    rect_boton_equipar = SDL2pp::Rect(0, 0, 0, 0);
-    rect_boton_usar = SDL2pp::Rect(0, 0, 0, 0);
     rect_boton_curar = SDL2pp::Rect(0, 0, 0, 0);
     const int px = window_width - panel_config.ancho;  // borde izq del panel
     const int pw = panel_config.ancho;
@@ -804,12 +802,10 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     }
     y = marco_fin + 8;
 
-    // --- Botones de accion en grilla 2x2 (imagen escalada a la celda; fallback a texto). ---
     const int btn_gap = 6;
     const int btn_col_w = (cw - btn_gap) / 2;
     const int btn_h = 30;
     const int btn_colL = cx;
-    const int btn_colR = cx + btn_col_w + btn_gap;
     const auto boton_celda = [&](const std::string& ruta, const std::string& etiqueta,
                                  SDL_Color fondoFb, int bx, int by) -> SDL2pp::Rect {
         SDL2pp::Rect r(bx, by, btn_col_w, btn_h);
@@ -822,11 +818,6 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         }
         return r;
     };
-    rect_boton_equipar = boton_celda(panel_config.botonEquipar, "Equipar", {45, 55, 35, 255},
-                                     btn_colL, y);
-    rect_boton_usar = boton_celda(panel_config.botonUsar, "Usar", {40, 45, 60, 255}, btn_colR, y);
-    y += btn_h + btn_gap;
-    // Fila de abajo: Curar
     rect_boton_curar = boton_celda(panel_config.botonCurar, "Curar", {55, 35, 50, 255},
                                    btn_colL, y);
     y += btn_h + 8;
@@ -908,16 +899,6 @@ int ObjectRenderer::slotStockClickeado(int x, int y) const {
 
 bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
     const SDL2pp::Rect& r = rect_boton_vender;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-}
-
-bool ObjectRenderer::clickEnBotonEquipar(int x, int y) const {
-    const SDL2pp::Rect& r = rect_boton_equipar;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-}
-
-bool ObjectRenderer::clickEnBotonUsar(int x, int y) const {
-    const SDL2pp::Rect& r = rect_boton_usar;
     return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
