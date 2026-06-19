@@ -153,7 +153,7 @@ public:
     bool sacar_oro_banco(uint32_t cantidad);
     uint16_t quitar_item_de_slot(uint8_t indice);
     void agregar_item_en_slot(uint16_t idItem, uint8_t indice);
-    std::vector<uint16_t> vaciar_inventario();
+    std::vector<uint16_t> vaciar_inventario(const CatalogoItems& catalogo);
 
     // Hechizos: se compran al sacerdote y se lanzan sobre un objetivo.
     bool conoceHechizo(uint16_t idHechizo) const;

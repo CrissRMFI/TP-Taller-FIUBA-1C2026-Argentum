@@ -520,8 +520,10 @@ void Jugador::agregar_item_en_slot(uint16_t idItem, uint8_t indice) {
     inventario.agregarItemEnSlot(idItem, indice);
 }
 
-std::vector<uint16_t> Jugador::vaciar_inventario() {
-    return inventario.vaciar();
+std::vector<uint16_t> Jugador::vaciar_inventario(const CatalogoItems& catalogo) {
+    std::vector<uint16_t> items = inventario.vaciar();
+    actualizarVestimenta(catalogo);
+    return items;
 }
 
 bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {

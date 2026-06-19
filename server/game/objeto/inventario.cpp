@@ -116,6 +116,31 @@ std::vector<uint16_t> Inventario::vaciar() {
         }
     }
 
+    for (uint16_t item : equipamiento.getArma() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getArma()} : std::vector<uint16_t>{}) {
+        items.push_back(item);
+        equipamiento.desequiparArma();
+    }
+
+    for (uint16_t item : equipamiento.getBaculo() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getBaculo()} : std::vector<uint16_t>{}) {
+        items.push_back(item);
+        equipamiento.desequiparBaculo();
+    }
+
+    for (uint16_t item : equipamiento.getDefensa() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getDefensa()} : std::vector<uint16_t>{}) {
+        items.push_back(item);
+        equipamiento.desequiparDefensa();
+    }
+
+    for (uint16_t item : equipamiento.getCasco() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getCasco()} : std::vector<uint16_t>{}) {
+        items.push_back(item);
+        equipamiento.desequiparCasco();
+    }
+
+    for (uint16_t item : equipamiento.getEscudo() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getEscudo()} : std::vector<uint16_t>{}) {
+        items.push_back(item);
+        equipamiento.desequiparEscudo();
+    }
+
     return items;
 }
 

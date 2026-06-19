@@ -2555,7 +2555,7 @@ std::list<EventoSalida> Juego::procesarDropsJugadorMuerto(Jugador& jugador,
         }
     }
 
-    const std::vector<uint16_t> itemsDropear = jugador.vaciar_inventario();
+    const std::vector<uint16_t> itemsDropear = jugador.vaciar_inventario(catalogo);
 
     for (uint16_t idItem : itemsDropear) {
         Posicion posicionDrop = posicionMuerte;
@@ -2566,6 +2566,7 @@ std::list<EventoSalida> Juego::procesarDropsJugadorMuerto(Jugador& jugador,
 
     const std::optional<uint16_t> idCliente = buscarIdClienteDeJugador(jugador.getId());
     if (idCliente.has_value()) {
+        mensajes.push_back(armarEquipamiento(*idCliente, jugador));
         mensajes.push_back(armarInventario(*idCliente, jugador));
     }
     return mensajes;
