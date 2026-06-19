@@ -146,6 +146,7 @@ public:
     bool agregar_item(uint16_t idItem);
     bool eliminar_item(uint16_t idItem);
     bool equipar_item(uint8_t indice, const CatalogoItems& catalogo);
+    bool desequipar_item(uint8_t ranura, const CatalogoItems& catalogo);
     bool agregar_item_banco(uint8_t indice);
     bool agregar_oro_banco(uint32_t cantidad);
     bool sacar_item_banco(uint16_t idItem);

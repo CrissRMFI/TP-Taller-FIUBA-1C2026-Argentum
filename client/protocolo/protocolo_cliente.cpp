@@ -91,8 +91,8 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoEquipar(std::get<ComandoEquipar>(comando.payload));
             break;
 
-        case Opcode::USAR:
-            enviarComandoUsar(std::get<ComandoUsar>(comando.payload));
+        case Opcode::DESEQUIPAR:
+            enviarComandoDesequipar(std::get<ComandoDesequipar>(comando.payload));
             break;
 
         case Opcode::COMPRAR_HECHIZO:
@@ -225,9 +225,9 @@ void ProtocoloCliente::enviarComandoEquipar(const ComandoEquipar& comando) {
     enviarUnByte(comando.indiceItem);
 }
 
-void ProtocoloCliente::enviarComandoUsar(const ComandoUsar& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::USAR));
-    enviarUnByte(comando.indiceItem);
+void ProtocoloCliente::enviarComandoDesequipar(const ComandoDesequipar& comando) {
+    enviarUnByte(static_cast<uint8_t>(Opcode::DESEQUIPAR));
+    enviarUnByte(comando.ranura);
 }
 
 void ProtocoloCliente::enviarComandoComprar(const ComandoComprar& comando) {

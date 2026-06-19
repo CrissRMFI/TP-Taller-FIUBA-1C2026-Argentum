@@ -38,6 +38,36 @@ uint16_t Equipamiento::equiparEscudo(uint16_t idItem) {
     return anterior;
 }
 
+uint16_t Equipamiento::desequiparArma() {
+    uint16_t anterior = arma;
+    arma = 0;
+    return anterior;
+}
+
+uint16_t Equipamiento::desequiparBaculo() {
+    uint16_t anterior = baculo;
+    baculo = 0;
+    return anterior;
+}
+
+uint16_t Equipamiento::desequiparDefensa() {
+    uint16_t anterior = defensa;
+    defensa = 0;
+    return anterior;
+}
+
+uint16_t Equipamiento::desequiparCasco() {
+    uint16_t anterior = casco;
+    casco = 0;
+    return anterior;
+}
+
+uint16_t Equipamiento::desequiparEscudo() {
+    uint16_t anterior = escudo;
+    escudo = 0;
+    return anterior;
+}
+
 uint16_t Equipamiento::getArma()    const { return arma;    }
 uint16_t Equipamiento::getBaculo()  const { return baculo;  }
 uint16_t Equipamiento::getDefensa() const { return defensa; }

@@ -141,7 +141,7 @@ class Juego {
     std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
     std::list<EventoSalida> ejecutarTirar(uint16_t idCliente, const ComandoTirar& comando);
     std::list<EventoSalida> ejecutarEquipar(uint16_t idCliente, const ComandoEquipar& comando);
-    std::list<EventoSalida> ejecutarUsar(uint16_t idCliente, const ComandoUsar& comando);
+    std::list<EventoSalida> ejecutarDesequipar(uint16_t idCliente, const ComandoDesequipar& comando);
     std::list<EventoSalida> ejecutarComprar(uint16_t idCliente, const ComandoComprar& comando);
     std::list<EventoSalida> ejecutarComprarHechizo(uint16_t idCliente,
                                                    const ComandoComprarHechizo& comando);

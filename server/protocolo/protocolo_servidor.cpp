@@ -78,8 +78,8 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::EQUIPAR:
             return recibirComandoEquipar();
 
-        case Opcode::USAR:
-            return recibirComandoUsar();
+        case Opcode::DESEQUIPAR:
+            return recibirComandoDesequipar();
 
         case Opcode::COMPRAR_HECHIZO:
             return recibirComandoComprarHechizo();
@@ -254,9 +254,9 @@ ComandoJugador ProtocoloServidor::recibirComandoTirar() {
     };
 }
 
-ComandoJugador ProtocoloServidor::recibirComandoUsar() {
-    uint8_t indiceItem = recibirUnByte();
-    return ComandoJugador{Opcode::USAR, ComandoUsar{indiceItem}};
+ComandoJugador ProtocoloServidor::recibirComandoDesequipar() {
+    uint8_t ranura = recibirUnByte();
+    return ComandoJugador{Opcode::DESEQUIPAR, ComandoDesequipar{ranura}};
 }
 
 ComandoJugador ProtocoloServidor::recibirComandoEquipar() {

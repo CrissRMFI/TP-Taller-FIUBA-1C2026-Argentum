@@ -576,6 +576,14 @@ bool Jugador::equipar_item(uint8_t indice, const CatalogoItems& catalogo) {
     return ok;
 }
 
+bool Jugador::desequipar_item(uint8_t ranura, const CatalogoItems& catalogo) {
+    if (!inventario.desequiparRanura(ranura)) {
+        return false;
+    }
+    actualizarVestimenta(catalogo);
+    return true;
+}
+
 void Jugador::actualizarVestimenta(const CatalogoItems& catalogo) {
     const auto spriteDe = [&catalogo](uint16_t idItem) -> uint16_t {
         if (idItem == 0) {

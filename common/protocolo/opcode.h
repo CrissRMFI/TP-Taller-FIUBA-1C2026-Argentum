@@ -52,36 +52,16 @@ enum class Opcode : uint8_t {
     ORO_EN_SUELO = 42,
     ORO_DESAPARECIO_SUELO = 43,
     ESTADO_USUARIO = 44,
-
-    // Cliente → Servidor (cheats de prueba)
     CHEAT = 45,
-
-    // Cliente → Servidor (movimiento: empezar/detener)
     DETENER_MOVER = 46,
-
-    // Cliente → Servidor (usar item: pociones)
-    USAR = 47,
-
-    // Servidor → Cliente (contenido del banco: items + oro)
     CONTENIDO_BANCO = 48,
-
-    // Cliente → Servidor (comprar un hechizo al sacerdote)
     COMPRAR_HECHIZO = 49,
-
-    // Servidor → Cliente (lista de hechizos conocidos del jugador)
     LISTA_HECHIZOS = 50,
-
-    // Cliente → Servidor (lanzar un hechizo sobre un objetivo)
     LANZAR_HECHIZO = 51,
-
-    // Servidor → Cliente (FX visual de un hechizo lanzado, para todos los que lo ven)
     FX_HECHIZO = 52,
-
-    // Servidor → Cliente (proyectil que viaja del atacante al objetivo, ataque a distancia)
     PROYECTIL = 53,
-
-    // Servidor → Cliente (el jugador cambio de mapa al atravesar un portal)
-    CAMBIO_MAPA = 54
+    CAMBIO_MAPA = 54,
+    DESEQUIPAR = 55
 };
 
 #endif

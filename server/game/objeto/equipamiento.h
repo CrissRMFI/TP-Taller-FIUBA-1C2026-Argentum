@@ -25,6 +25,12 @@ class Equipamiento {
     uint16_t equiparCasco(uint16_t idItem);
     uint16_t equiparEscudo(uint16_t idItem);
 
+    uint16_t desequiparArma();
+    uint16_t desequiparBaculo();
+    uint16_t desequiparDefensa();
+    uint16_t desequiparCasco();
+    uint16_t desequiparEscudo();
+
     uint16_t getArma() const;
     uint16_t getBaculo() const;
     uint16_t getDefensa() const;

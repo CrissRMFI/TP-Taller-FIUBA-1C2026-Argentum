@@ -305,6 +305,39 @@ bool Inventario::equiparPiezaSlot(uint8_t indice, TipoDefensa slot) {
     return true;
 }
 
+bool Inventario::desequiparRanura(uint8_t ranura) {
+    
+    uint16_t idEquipado = ITEM_VACIO;
+    switch (ranura) {
+        case 0: idEquipado = getArmaEquipada();    break;
+        case 1: idEquipado = getBaculoEquipado();  break;
+        case 2: idEquipado = getDefensaEquipada(); break;
+        case 3: idEquipado = getCascoEquipado();   break;
+        case 4: idEquipado = getEscudoEquipado();  break;
+        default: return false;
+    }
+
+    if (idEquipado == ITEM_VACIO) {
+        return false;
+    }
+
+    if (!tieneEspacioLibre()) {
+        return false;
+    }
+
+    switch (ranura) {
+        case 0: equipamiento.desequiparArma();    break;
+        case 1: equipamiento.desequiparBaculo();  break;
+        case 2: equipamiento.desequiparDefensa(); break;
+        case 3: equipamiento.desequiparCasco();   break;
+        case 4: equipamiento.desequiparEscudo();  break;
+        default: return false;
+    }
+
+    agregarItem(idEquipado);
+    return true;
+}
+
 uint16_t Inventario::getArmaEquipada() const {
     return equipamiento.getArma();
 }

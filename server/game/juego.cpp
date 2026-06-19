@@ -631,10 +631,10 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
                                       [&](const ComandoEquipar& payload) {
                                           return ejecutarEquipar(idCliente, payload);
                                       });
-        case Opcode::USAR:
-            return ejecutarConPayload(std::get_if<ComandoUsar>(&comando.payload),
-                                      [&](const ComandoUsar& payload) {
-                                          return ejecutarUsar(idCliente, payload);
+        case Opcode::DESEQUIPAR:
+            return ejecutarConPayload(std::get_if<ComandoDesequipar>(&comando.payload),
+                                      [&](const ComandoDesequipar& payload) {
+                                          return ejecutarDesequipar(idCliente, payload);
                                       });
         case Opcode::COMPRAR:
             return ejecutarConPayload(std::get_if<ComandoComprar>(&comando.payload),
@@ -1587,31 +1587,23 @@ std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comando
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::ejecutarUsar(uint16_t idCliente, const ComandoUsar& cmd) {
+std::list<EventoSalida> Juego::ejecutarDesequipar(uint16_t idCliente, const ComandoDesequipar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
     }
 
-    const uint16_t idItem = jugador->getIdItemEnSlot(cmd.indiceItem);
-    if (idItem == 0) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
+    if (!jugador->desequipar_item(cmd.ranura, catalogo)) {
+        // Ranura vacia o inventario sin lugar para devolver la pieza.
+        return {armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO)};
     }
 
-    // Solo las pociones son usables; cualquier otra cosa => accion no permitida.
-    const Pocion* pocion = catalogo.comoPocion(idItem);
-    if (pocion == nullptr) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
+    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador),
+                                        armarEquipamiento(idCliente, *jugador),
+                                        armarEstado(idCliente, *jugador)};
 
-    if (pocion->getTipoPocion() == TipoPocion::Vida) {
-        jugador->curar(pocion->getCantidad());
-    } else {
-        jugador->recuperar_mana(pocion->getCantidad());
-    }
-    jugador->quitar_item_de_slot(cmd.indiceItem);
-
-    return {armarInventario(idCliente, *jugador), armarEstado(idCliente, *jugador)};
+    mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
+    return mensajes;
 }
 
 EventoSalida Juego::armarListaHechizos(uint16_t idCliente, const Jugador& jugador) {
