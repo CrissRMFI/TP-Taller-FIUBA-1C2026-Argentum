@@ -1,6 +1,7 @@
 #include "client_game_world.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <variant>
