@@ -123,21 +123,21 @@ TEST_F(ProtocoloFixture, Equipar) {
     EXPECT_EQ(std::get<ComandoEquipar>(cmd.payload).indiceItem, 3);
 }
 
-TEST_F(ProtocoloFixture, Usar) {
-    cliente->enviarComando({Opcode::USAR, ComandoUsar{3}});
+TEST_F(ProtocoloFixture, Desequipar) {
+    cliente->enviarComando({Opcode::DESEQUIPAR, ComandoDesequipar{3}});
     auto cmd = servidor->recibirComando();
-    EXPECT_EQ(cmd.opcode, Opcode::USAR);
-    EXPECT_EQ(std::get<ComandoUsar>(cmd.payload).indiceItem, 3);
+    EXPECT_EQ(cmd.opcode, Opcode::DESEQUIPAR);
+    EXPECT_EQ(std::get<ComandoDesequipar>(cmd.payload).ranura, 3);
 }
 
-TEST_F(ProtocoloFixture, UsarIndiceCero) {
-    cliente->enviarComando({Opcode::USAR, ComandoUsar{0}});
-    EXPECT_EQ(std::get<ComandoUsar>(servidor->recibirComando().payload).indiceItem, 0);
+TEST_F(ProtocoloFixture, DesequiparRanuraCero) {
+    cliente->enviarComando({Opcode::DESEQUIPAR, ComandoDesequipar{0}});
+    EXPECT_EQ(std::get<ComandoDesequipar>(servidor->recibirComando().payload).ranura, 0);
 }
 
-TEST_F(ProtocoloFixture, UsarIndiceMaximo) {
-    cliente->enviarComando({Opcode::USAR, ComandoUsar{255}});
-    EXPECT_EQ(std::get<ComandoUsar>(servidor->recibirComando().payload).indiceItem, 255);
+TEST_F(ProtocoloFixture, DesequiparRanuraMaxima) {
+    cliente->enviarComando({Opcode::DESEQUIPAR, ComandoDesequipar{4}});
+    EXPECT_EQ(std::get<ComandoDesequipar>(servidor->recibirComando().payload).ranura, 4);
 }
 
 // Comercio y banco
@@ -326,12 +326,12 @@ TEST_F(ProtocoloFixture, SecuenciaDeComandosPreservaOrden) {
 }
 
 TEST_F(ProtocoloFixture, SecuenciaMezcladaNuevosYViejos) {
-    cliente->enviarComando({Opcode::USAR, ComandoUsar{1}});
+    cliente->enviarComando({Opcode::DESEQUIPAR, ComandoDesequipar{1}});
     cliente->enviarComando({Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{5, 50}});
     cliente->enviarComando({Opcode::EMPEZAR_MOVER, ComandoEmpezarMover{0}});
     cliente->enviarComando({Opcode::CHEAT, ComandoCheat{3}});
 
-    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::USAR);
+    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::DESEQUIPAR);
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::LANZAR_HECHIZO);
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::EMPEZAR_MOVER);
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::CHEAT);
