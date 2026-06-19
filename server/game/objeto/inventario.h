@@ -30,6 +30,8 @@ public:
     bool equiparSlot(uint8_t indice, TipoItem tipo);
     bool equiparPiezaSlot(uint8_t indice, TipoDefensa slot);
 
+    bool desequiparRanura(uint8_t ranura);
+
     uint16_t getArmaEquipada() const;
     uint16_t getBaculoEquipado() const;
     uint16_t getDefensaEquipada() const;
