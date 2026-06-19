@@ -223,16 +223,6 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
         return;
     }
 
-    // (Comprar/Vender ahora se hacen en el modal de la tienda, no en el panel.)
-
-    // Boton Curar: pide curacion al objetivo. Si no es un sacerdote (o no hay objetivo)"accion no permitida" y suena.
-    if (object_renderer.clickEnBotonCurar(x, y)) {
-        despacharComando({Opcode::CURAR, ComandoCurar{objetivo.value_or(static_cast<uint16_t>(0))}},
-                         tick);
-        return;
-    }
-
-    // Pestaña HECHIZOS: lanzar (los listados son conocidos).
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
         despacharComando({Opcode::LANZAR_HECHIZO,
                           ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
@@ -379,6 +369,11 @@ void ClientGameLoop::manejarEventoTienda(const SDL_Event& event) {
     }
 
     if (object_state.tiendaEsSacerdote()) {
+        
+        if (object_renderer.clickTiendaCurar(x, y) && npc) {
+            despacharComando({Opcode::CURAR, ComandoCurar{*npc}}, tick);
+            return;
+        }
         if (object_renderer.clickTiendaComprar(x, y) && npc && tiendaSelOferta >= 0) {
             std::vector<uint16_t> ids = catalogo.idsHechizos();
             std::sort(ids.begin(), ids.end());

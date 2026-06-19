@@ -601,7 +601,6 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     slots_hechizos_venta.clear();
     ids_hechizos_venta.clear();
     rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
-    rect_boton_curar = SDL2pp::Rect(0, 0, 0, 0);
     const int px = window_width - panel_config.ancho;  // borde izq del panel
     const int pw = panel_config.ancho;
     const int margen = 8;
@@ -800,27 +799,7 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
             }
         }
     }
-    y = marco_fin + 8;
-
-    const int btn_gap = 6;
-    const int btn_col_w = (cw - btn_gap) / 2;
-    const int btn_h = 30;
-    const int btn_colL = cx;
-    const auto boton_celda = [&](const std::string& ruta, const std::string& etiqueta,
-                                 SDL_Color fondoFb, int bx, int by) -> SDL2pp::Rect {
-        SDL2pp::Rect r(bx, by, btn_col_w, btn_h);
-        try {
-            renderer->Copy(cache_texture->get_or_load(ruta), SDL2pp::NullOpt, r);
-        } catch (const std::exception&) {
-            renderer->SetDrawColor(fondoFb.r, fondoFb.g, fondoFb.b, 255);
-            renderer->FillRect(r);
-            text_renderer->dibujar(*renderer, etiqueta, bx + 4, by + (btn_h - lh) / 2, cTit);
-        }
-        return r;
-    };
-    rect_boton_curar = boton_celda(panel_config.botonCurar, "Curar", {55, 35, 50, 255},
-                                   btn_colL, y);
-    y += btn_h + 8;
+    // Curar/Resucitar viven en el modal del sacerdote (no en el panel lateral).
 }
 
 uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
@@ -899,11 +878,6 @@ int ObjectRenderer::slotStockClickeado(int x, int y) const {
 
 bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
     const SDL2pp::Rect& r = rect_boton_vender;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-}
-
-bool ObjectRenderer::clickEnBotonCurar(int x, int y) const {
-    const SDL2pp::Rect& r = rect_boton_curar;
     return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
@@ -1197,11 +1171,27 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     //text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + 190, my + 415, cTit);
     text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + mw - 200, my + 50, cTit);
     rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
-    rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
     rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 42, my + 18, 22, 22);
 
-    // Tapamos cualquier "X" que traiga el asset base en esa esquina (causaba el efecto de
-    // X duplicada/cortada) antes de dibujar nuestro propio botón de cerrar.
+    if (t.esSacerdote) {
+        
+        rect_tienda_vender = SDL2pp::Rect(0, 0, 0, 0);
+        rect_tienda_curar = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
+        try {
+            renderer->Copy(cache_texture->get_or_load(panel_config.botonCurar),
+                           SDL2pp::NullOpt, rect_tienda_curar);
+        } catch (const std::exception&) {
+            renderer->SetDrawColor(55, 35, 50, 255);
+            renderer->FillRect(rect_tienda_curar);
+            text_renderer->dibujar(*renderer, "Curar", rect_tienda_curar.x + 8,
+                                   rect_tienda_curar.y + 6, cTit);
+        }
+    } else {
+        rect_tienda_vender = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
+        rect_tienda_curar = SDL2pp::Rect(0, 0, 0, 0);
+    }
+
+    // Tapamos cualquier "X" que traiga el asset base en esa esquina
     renderer->SetDrawColor(12, 10, 8, 255);
     renderer->FillRect(SDL2pp::Rect(rect_tienda_cerrar.x - 4, rect_tienda_cerrar.y - 4,
                                     rect_tienda_cerrar.w + 8, rect_tienda_cerrar.h + 8));
@@ -1310,6 +1300,7 @@ int ObjectRenderer::tiendaOfertaClickeada(int x, int y) const { return slot_en(t
 int ObjectRenderer::tiendaInvClickeado(int x, int y) const { return slot_en(tienda_inv, x, y); }
 bool ObjectRenderer::clickTiendaComprar(int x, int y) const { return dentro(rect_tienda_comprar, x, y); }
 bool ObjectRenderer::clickTiendaVender(int x, int y) const { return dentro(rect_tienda_vender, x, y); }
+bool ObjectRenderer::clickTiendaCurar(int x, int y) const { return dentro(rect_tienda_curar, x, y); }
 bool ObjectRenderer::clickTiendaCerrar(int x, int y) const { return dentro(rect_tienda_cerrar, x, y); }
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {

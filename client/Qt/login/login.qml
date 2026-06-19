@@ -60,7 +60,7 @@ Item {
             color: "red"
             z: 2
             visible: root.errorLogin && text !== ""
-            text: loginController.getErrorLogin()
+            text: loginController ? loginController.getErrorLogin() : ""
         }
 
         Image {

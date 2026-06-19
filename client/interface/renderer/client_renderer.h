@@ -110,6 +110,7 @@ private:
     std::vector<SDL2pp::Rect> tienda_inv;
     SDL2pp::Rect rect_tienda_comprar{0, 0, 0, 0};
     SDL2pp::Rect rect_tienda_vender{0, 0, 0, 0};
+    SDL2pp::Rect rect_tienda_curar{0, 0, 0, 0};   // solo sacerdote
     SDL2pp::Rect rect_tienda_cerrar{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_equipo;
     std::vector<SDL2pp::Rect> slots_inventario;
@@ -119,7 +120,6 @@ private:
     std::vector<SDL2pp::Rect> slots_hechizos_venta; // filas de hechizos en venta del sacerdote
     std::vector<uint16_t> ids_hechizos_venta;       // id por fila de venta
     SDL2pp::Rect rect_boton_vender{0, 0, 0, 0};
-    SDL2pp::Rect rect_boton_curar{0, 0, 0, 0};
     SDL2pp::Rect rect_tab_inv{0, 0, 0, 0};   // pestaña INVENTARIO del marco
     SDL2pp::Rect rect_tab_hech{0, 0, 0, 0};  // pestaña HECHIZOS del marco
     int slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const;
@@ -149,7 +149,6 @@ public:
     int slotInventarioClickeado(int x, int y) const;
     int slotStockClickeado(int x, int y) const;
     bool clickEnBotonVender(int x, int y) const;
-    bool clickEnBotonCurar(int x, int y) const;
     // Devuelve el id del hechizo clickeado en la lista del panel, o 0 si ninguno.
     uint16_t hechizoClickeado(int x, int y) const;       // pestaña HECHIZOS (lanzar)
     uint16_t hechizoVentaClickeado(int x, int y) const;  // lista del sacerdote (comprar)
@@ -175,6 +174,7 @@ public:
     int tiendaInvClickeado(int x, int y) const;
     bool clickTiendaComprar(int x, int y) const;
     bool clickTiendaVender(int x, int y) const;
+    bool clickTiendaCurar(int x, int y) const;
     bool clickTiendaCerrar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
 };

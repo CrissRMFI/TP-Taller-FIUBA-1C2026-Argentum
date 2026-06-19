@@ -91,7 +91,7 @@ Item {
             y: crearCuentaButton.y - height * 1.5
             z: 2
             visible: root.errorLogin && text !== ""
-            text: cargarPersonajeController.getErrorLoginMessage()
+            text: cargarPersonajeController ? cargarPersonajeController.getErrorLoginMessage() : ""
         }
 
         ErrorText {
