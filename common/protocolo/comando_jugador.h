@@ -32,8 +32,17 @@ struct ComandoEquipar {
   uint8_t indiceItem;
 };
 
-struct ComandoUsar {
-  uint8_t indiceItem;
+// Ranura de equipo a desequipar 
+enum class RanuraEquip : uint8_t {
+  Arma    = 0,
+  Baculo  = 1,
+  Defensa = 2,
+  Casco   = 3,
+  Escudo  = 4,
+};
+
+struct ComandoDesequipar {
+  uint8_t ranura;  // ver RanuraEquip
 };
 
 struct ComandoComprar { 
@@ -129,7 +138,7 @@ using PayloadComando = std::variant<
     ComandoAtacar,
     ComandoTirar,
     ComandoEquipar,
-    ComandoUsar,
+    ComandoDesequipar,
     ComandoComprar,
     ComandoVender,
     ComandoDepositarItem,
