@@ -452,7 +452,7 @@ items = [
 
 # ------------------------------------------------------------
 [fair_play]
-nivel_newbie       = 12      # Nivel <= 12 es newbie
+nivel_newbie       = 3      # Nivel <= 12 es newbie
 max_diff_nivel     = 10      # No se pueden atacar si diff > 10
 
 # ------------------------------------------------------------
