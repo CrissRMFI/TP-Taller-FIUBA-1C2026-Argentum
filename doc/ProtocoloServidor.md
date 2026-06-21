@@ -154,22 +154,22 @@ N viene del TOML — es el mismo valor que el servidor usa para el inventario.
 
 ### MENSAJE_CHAT (opcode 37)
 
-| Campo         | Tipo                | Descripción                       |
-| ------------- | ------------------- | --------------------------------- |
-| opcode        | uint8               | valor: 37                         |
-| nickLength    | uint16              | cantidad de bytes del nick origen |
-| nickOrigen    | char[nickLength]    | nick del emisor                   |
-| mensajeLength | uint16              | cantidad de bytes del mensaje     |
-| mensaje       | char[mensajeLength] | contenido del mensaje             |
+Mensajes de chat y avisos del juego. El campo `tipo` (categoría) indica al cliente
+con qué color/formato mostrar la línea; cuando no hay emisor (avisos del sistema),
+`nickOrigen` viaja vacío y la línea se muestra sin el prefijo `nick:`.
 
-### MENSAJE_CLAN (opcode 38)
+| Campo         | Tipo                | Descripción                              |
+| ------------- | ------------------- | ---------------------------------------- |
+| opcode        | uint8               | valor: 37                                |
+| nickLength    | uint16              | cantidad de bytes del nick origen        |
+| nickOrigen    | char[nickLength]    | nick del emisor (vacío si es del sistema)|
+| mensajeLength | uint16              | cantidad de bytes del mensaje            |
+| mensaje       | char[mensajeLength] | contenido del mensaje                    |
+| tipo          | uint8               | categoría: 0=normal/global 1=privado 2=sistema |
 
-| Campo      | Tipo             | Descripción                                             |
-| ---------- | ---------------- | ------------------------------------------------------- |
-| opcode     | uint8            | valor: 38                                               |
-| tipo       | uint8            | 0=miembro activo 1=miembro pendiente 2=fundado 3=aceptado 4=rechazado 5=baneado 6=kickeado 7=conectado 8=desconectado 9=bajo ataque 10=abandonó |
-| textoLength| uint16           | cantidad de bytes del texto                             |
-| texto      | char[textoLength]| nick/mensaje según el tipo                              |
+Se usa para: chat global, chat privado (eco al emisor incluido), y avisos del
+sistema (muerte, compra, subir de nivel, entrada/salida de mazmorra,
+conexión/desconexión de jugadores).
 
 ## RESUCITADO (opcode 39)
 
@@ -198,17 +198,23 @@ Respuesta al comando LISTAR. Tamaño variable según cantidad de items.
 
 Códigos (`CodigoErrorAccion`):
 
+> Los valores son explícitos en `CodigoErrorAccion`; algunos números quedan sin
+> usar (huecos) por features descartadas. Abajo se listan solo los vigentes.
+
 | Código | Significado | Código | Significado |
 | ------ | ----------- | ------ | ----------- |
-| 0 | inventario lleno | 9 | clase sin magia (guerrero) |
-| 1 | oro insuficiente | 10 | hechizo ya conocido |
-| 2 | nivel insuficiente | 11 | cooldown de ataque |
-| 3 | acción no permitida | 12 | objetivo muerto |
-| 4 | objetivo inválido | 13 | usuario ya conectado |
-| 5 | clan lleno | 14 | sin posición libre |
-| 6 | maná insuficiente | 15 | id de personaje en uso |
-| 7 | fuera de rango | 16 | no se pudo cargar el personaje |
-| 8 | zona segura | | |
+| 0 | inventario lleno | 13 | usuario ya conectado |
+| 1 | oro insuficiente | 14 | sin posición libre |
+| 2 | nivel insuficiente | 15 | id de personaje en uso |
+| 3 | acción no permitida | 16 | no se pudo cargar el personaje |
+| 4 | objetivo inválido | 17 | estás muerto |
+| 6 | maná insuficiente | 23 | no podés resucitar |
+| 7 | fuera de rango | 24 | estás inmovilizado |
+| 8 | zona segura | 25 | ataque a newbie |
+| 9 | clase sin magia (guerrero) | 26 | diferencia de nivel excesiva |
+| 10 | hechizo ya conocido | 28 | hechizo no ofensivo |
+| 11 | cooldown de ataque | 29 | hechizo no conocido |
+| 12 | objetivo muerto | | |
 
 ## ORO_EN_SUELO (opcode 42)
 

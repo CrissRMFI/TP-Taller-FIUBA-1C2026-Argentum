@@ -146,7 +146,7 @@ el instalador, de `~/.config/argentum/`.
 
 | Archivo              | Qué configura                                                                                                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `game_config.toml`   | **Servidor:** puerto-tick, factores de vida/maná por clase y raza, fórmulas de experiencia/oro, reglas de combate y clan, rutas de persistencia, tiempo de resurrección. |
+| `game_config.toml`   | **Servidor:** puerto-tick, factores de vida/maná por clase y raza, fórmulas de experiencia/oro, reglas de combate y fair-play, rutas de persistencia, tiempo de resurrección. |
 | `client_config.toml` | **Cliente:** resolución de ventana, VSync/FPS, fuente y aspecto del chat, panel lateral, intervalo de movimiento.                                                        |
 | `mapa.toml`          | El mapa del mundo (zonas, paredes, ciudades, NPCs). Es **texto**, editable a mano o con el editor.                                                                       |
 | `criaturas.toml`     | Catálogo de criaturas/enemigos (compartido por servidor y editor).                                                                                                       |
@@ -271,14 +271,8 @@ requieren **seleccionarlo antes con un click**.
 | `/tirar <slot>`                                  | Tira al suelo el objeto del slot indicado                                      |
 | `/depositar oro <monto>` · `/depositar <slot>`   | Deposita oro/objeto en el **banco** (banquero seleccionado)                    |
 | `/retirar oro <monto>` · `/retirar <objeto>`     | Retira oro/objeto del banco                                                    |
-| `/fundar-clan <nombre>`                          | Funda un clan                                                                  |
-| `/unirse <nombre>`                               | Pide unirse a un clan                                                          |
-| `/revisar-clan`                                  | Lista miembros y solicitudes (solo fundador)                                   |
-| `/clan-aceptar <nick>` · `/clan-rechazar <nick>` | Gestiona solicitudes (fundador)                                                |
-| `/clan-ban <nick>` · `/clan-kick <nick>`         | Banea/expulsa miembros (fundador)                                              |
-| `/dejar-clan`                                    | Abandona el clan                                                               |
-| `nick mensaje` _(empieza con `/`)_               | Chat privado a un jugador                                                      |
-| _texto sin `/`_                                  | Chat global                                                                    |
+| `@nick mensaje`                                  | Chat **privado** a un jugador (se ve en otro color; el emisor también lo ve)   |
+| _texto sin `/` ni `@`_                           | Chat **global** (lo ven todos los jugadores conectados)                        |
 
 ### 7.4 Mecánicas
 
@@ -291,7 +285,10 @@ requieren **seleccionarlo antes con un click**.
   envolvente y una **barra sobre la cabeza** que se consume mientras transcurre.
 - **NPCs:** **comerciante** (comprar/vender), **banquero** (depositar/retirar
   oro e items), **sacerdote** (curar, comprar hechizos, resucitar).
-- **Clanes:** se fundan y administran por comandos de chat.
+- **Chat:** texto suelto = global; `@nick mensaje` = privado (otro color, el
+  emisor también ve su mensaje). El juego además muestra avisos del sistema
+  (muerte, compras, subir de nivel, entrada/salida de mazmorra, conexión y
+  desconexión de jugadores).
 
 ### 7.5 Cheats de prueba (teclas de función)
 

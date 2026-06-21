@@ -40,7 +40,6 @@ el tipo de dato:
 | Campo           | Máximo recomendado |
 | --------------- | ------------------ |
 | nickname        | 32 bytes           |
-| nombre de clan  | 32 bytes           |
 | mensaje de chat | 256 bytes          |
 
 Estos límites son nuestras reglas del protocolo y deben validarse al recibir datos.
@@ -191,66 +190,6 @@ una celda por tick mientras dure (movimiento *server-driven*); ya no hay un
 | nickDestino   | char[nickLength]    | nick del destinatario              |
 | mensajeLength | uint16              | cantidad de bytes del mensaje      |
 | mensaje       | char[mensajeLength] | contenido del mensaje              |
-
-### FUNDAR_CLAN (opcode 18)
-
-| Campo      | Tipo                   | Descripción                           |
-| ---------- | ---------------------- | ------------------------------------- |
-| opcode     | uint8                  | valor: 18                             |
-| nombreClan | uint16                 | cantidad de bytes del nombre del clan |
-| nombreClan | char[nombreClanLength] | nombre del clan                       |
-
-### UNIRSE_CLAN (opcode 19)
-
-| Campo            | Tipo                   | Descripción                           |
-| ---------------- | ---------------------- | ------------------------------------- |
-| opcode           | uint8                  | valor: 19                             |
-| nombreClanLength | uint16                 | cantidad de bytes del nombre del clan |
-| nombreClan       | char[nombreClanLength] | nombre del clan                       |
-
-### REVISAR_CLAN (opcode 20)
-
-| Campo  | Tipo  | Descripción |
-| ------ | ----- | ----------- |
-| opcode | uint8 | valor: 20   |
-
-### CLAN_ACEPTAR (opcode 21)
-
-| Campo      | Tipo             | Descripción                |
-| ---------- | ---------------- | -------------------------- |
-| opcode     | uint8            | valor: 21                  |
-| nickLength | uint16           | cantidad de bytes del nick |
-| nick       | char[nickLength] | nick del jugador           |
-
-### CLAN_RECHAZAR (opcode 22)
-
-| Campo      | Tipo             | Descripción                |
-| ---------- | ---------------- | -------------------------- |
-| opcode     | uint8            | valor: 22                  |
-| nickLength | uint16           | cantidad de bytes del nick |
-| nick       | char[nickLength] | nick del jugador           |
-
-### CLAN_BAN (opcode 23)
-
-| Campo      | Tipo             | Descripción                |
-| ---------- | ---------------- | -------------------------- |
-| opcode     | uint8            | valor: 23                  |
-| nickLength | uint16           | cantidad de bytes del nick |
-| nick       | char[nickLength] | nick del jugador           |
-
-### CLAN_KICK (opcode 24)
-
-| Campo      | Tipo             | Descripción                |
-| ---------- | ---------------- | -------------------------- |
-| opcode     | uint8            | valor: 24                  |
-| nickLength | uint16           | cantidad de bytes del nick |
-| nick       | char[nickLength] | nick del jugador           |
-
-### DEJAR_CLAN (opcode 25)
-
-| Campo  | Tipo  | Descripción |
-| ------ | ----- | ----------- |
-| opcode | uint8 | valor: 25   |
 
 ### CHEAT (opcode 45)
 

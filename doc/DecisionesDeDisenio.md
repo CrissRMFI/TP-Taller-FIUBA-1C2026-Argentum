@@ -20,10 +20,10 @@ representación interna de la posición.
 `Posicion` encapsula `x`, `y` y `mapaId`, y expone métodos como
 `distanciaEuclidea`, `distanciaManhattan` y `esAdyacente`.
 
-**Por qué:** la distancia euclídea aparece en reglas como el tiempo de
-resurrección y el bonus de clan por proximidad, mientras que la adyacencia
-aparece en el combate cuerpo a cuerpo. Centralizar estos cálculos evita
-duplicación y errores de conversión de tipos al restar coordenadas.
+**Por qué:** la distancia (euclídea/Manhattan) aparece en reglas como el tiempo de
+resurrección y el alcance de ataque, mientras que la adyacencia aparece en el
+combate cuerpo a cuerpo. Centralizar estos cálculos evita duplicación y errores
+de conversión de tipos al restar coordenadas.
 
 **Alternativa descartada:** funciones libres o métodos en cada entidad.
 Duplica la lógica de conversión y dispersa los invariantes de distancia a lo
@@ -129,21 +129,6 @@ una clase base sin responsabilidades claras.
 
 ---
 
-## EstadoMiembro en Clan en lugar de tres listas
-
-Los miembros pendientes, aceptados y baneados se unifican en `MiembroClan` con
-`EstadoMiembro`, en lugar de tres colecciones separadas en `Clan`.
-
-**Por qué:** un jugador transita entre estados. Con tres listas separadas habría
-que coordinar inserciones y borrados entre ellas, lo cual es una fuente de bugs.
-Con `EstadoMiembro`, la transición es un simple cambio de valor.
-
-**Alternativa descartada:** tres listas `pendientes[]`, `miembros[]` y
-`baneados[]` en `Clan`. Más explícito visualmente, pero introduce redundancia y
-distribuye la lógica de transición.
-
----
-
 ## Banco como abstraccion global por jugador
 
 `Banco` no pertenece a una sucursal ni a un mapa específico; se modela como
@@ -188,17 +173,17 @@ detalle de implementación del servidor, no una entidad central del negocio.
 
 ---
 
-## Bonificacion de clan y Vestimenta como reglas derivadas
+## Vestimenta como regla derivada
 
-La bonificación de ataque/defensa por proximidad de miembros del clan se
-documenta como una regla derivada de las posiciones de los miembros. La
-vestimenta se resuelve a partir del equipamiento.
+La vestimenta a renderizar (cuerpo + overlays de arma/escudo/casco) se resuelve a
+partir del equipamiento actual, no se guarda como estado aparte.
 
-**Por qué:** ninguna de las dos tiene estado propio persistente. Son cálculos
-derivados de información ya existente: posiciones, clan y equipamiento.
+**Por qué:** no tiene estado propio persistente. Es un cálculo derivado de
+información ya existente (el equipamiento), que se recalcula tras cada
+equipar/desequipar.
 
-**Alternativa descartada:** crear clases específicas para bonificación de clan o
-vestimenta. Agrega tipos sin estado propio y puede terminar en sobrediseño.
+**Alternativa descartada:** crear una clase específica para vestimenta. Agrega un
+tipo sin estado propio y puede terminar en sobrediseño.
 
 ---
 
@@ -222,7 +207,7 @@ Todo puede ser consultado aca: [Modelo de Dominio - Argentum Online](https://dri
 ## ConfigJuego como struct de solo datos
 
 `ConfigJuego` concentra los parámetros numéricos del juego: factores de vida,
-maná, experiencia, oro, combate, recuperación, clanes, cheats y duración del
+maná, experiencia, oro, combate, recuperación, fair-play, cheats y duración del
 tick del gameloop.
 
 **Por qué:** separa qué datos existen de cómo se cargan. Ninguna clase del

@@ -176,7 +176,6 @@ classDiagram
     -jugadoresConectados : map
     -jugadoresDesconectados : map
     -criaturasEnMapa : map
-    -clanes : map
     -mapa : Mapa
     -cfg : ConfigJuego
     -catalogo : CatalogoItems
@@ -211,13 +210,6 @@ classDiagram
     +atacar()
     +recibirDanio()
   }
-  class Clan {
-    -miembros
-    +fundar()
-    +aceptar()
-    +banear()
-    +kick()
-  }
   class Inventario {
     -slots
     +agregar()
@@ -242,7 +234,6 @@ classDiagram
   Gameloop --> Juego
   Juego "1" o-- "*" Jugador
   Juego "1" o-- "*" Criatura
-  Juego "1" o-- "*" Clan
   Juego --> Mapa
   Juego --> CatalogoItems
   Juego --> ConfigJuego
@@ -257,13 +248,12 @@ classDiagram
 Notas de modelado (ver [`doc/DecisionesDeDisenio.md`](../doc/DecisionesDeDisenio.md) — decisiones de modelado.):
 
 - **`Posicion`** es un _value object_ con métodos de distancia (combate,
-  resurrección, bonus de clan).
+  resurrección, alcance de ataque).
 - **`Estado`** centraliza el ciclo de vida del jugador en un solo `enum class`
   (evita flags booleanos desincronizados). `estaVivo()` = `Vivo || Meditando`;
   `esFantasma()` = `Fantasma || Resucitando`.
 - **Items por herencia** (`Arma`, `Baculo`, `Defensa`, `Pocion` : `Item`).
 - El **banco** no es una clase aparte: es global, sus datos viven en `Jugador`.
-- No implementamos Clanes (fuera de scope, ver [minuta reunion](../minutas/minuta_sabado06junio2026.md))
 
 ---
 
@@ -360,8 +350,8 @@ La lista completa de opcodes y el layout de cada payload está en
 
 | Dirección          | Opcodes (ejemplos)                                                                                                                                                                                                                                         |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cliente → Servidor | `EMPEZAR_MOVER`, `DETENER_MOVER`, `ATACAR`, `MEDITAR`, `RESUCITAR`, `CURAR`, `TOMAR`, `TIRAR`, `EQUIPAR`, `USAR`, `COMPRAR`/`VENDER`, banco, clan, chat, `LANZAR_HECHIZO`, `CHEAT`                                                                         |
-| Servidor → Cliente | `ESTADO_PERSONAJE`, `POSICION_ENTIDAD`, `ENTIDAD_DESAPARECIO`, `DANIO_RECIBIDO`/`PRODUCIDO`, `ESQUIVE`, `MUERTE_ENTIDAD`, items/oro en suelo, inventario/equipamiento, chat/clan, `RESUCITADO`, banco, hechizos, `FX_HECHIZO`, `PROYECTIL`, `ERROR_ACCION` |
+| Cliente → Servidor | `EMPEZAR_MOVER`, `DETENER_MOVER`, `ATACAR`, `MEDITAR`, `RESUCITAR`, `CURAR`, `TOMAR`, `TIRAR`, `EQUIPAR`/`DESEQUIPAR`, `COMPRAR`/`VENDER`, banco, chat (global/privado), `COMPRAR_HECHIZO`/`LANZAR_HECHIZO`, `CHEAT`                                       |
+| Servidor → Cliente | `ESTADO_PERSONAJE`, `POSICION_ENTIDAD`, `ENTIDAD_DESAPARECIO`, `DANIO_RECIBIDO`/`PRODUCIDO`, `ESQUIVE`, `MUERTE_ENTIDAD`, items/oro en suelo, inventario/equipamiento, `MENSAJE_CHAT` (global/privado/sistema), `RESUCITADO`, banco, hechizos, `FX_HECHIZO`, `PROYECTIL`, `CAMBIO_MAPA`, `ERROR_ACCION` |
 
 Los errores de acción se reportan con `ERROR_ACCION` + un código
 (`CodigoErrorAccion`), que el cliente traduce a un texto legible en el chat.
@@ -372,10 +362,12 @@ Los errores de acción se reportan con `ERROR_ACCION` + un código
 
 ### 7.1 Configuración (TOML, texto)
 
-`game_config.toml`, `client_config.toml`, `mapa.toml`, `criaturas.toml`,
-`pisos.toml`, más `sprites.toml` y `sonidos.toml` en los recursos del cliente.
-Se parsean con **toml++** una sola vez al arranque. El `mapa.toml` se usa tanto
-por el servidor (mundo) como por el editor y el cliente (render).
+`game_config.toml`, `client_config.toml`, `mapa.toml` (+ su `mapa.mazmorra.toml`),
+`criaturas.toml`, `pisos.toml`, `elementos.toml`, más `sprites.toml` y
+`sonidos.toml` en los recursos del cliente. Se parsean con **toml++** una sola vez
+al arranque. El `mapa.toml` se usa tanto por el servidor (mundo) como por el
+editor y el cliente (render); `criaturas.toml` es fuente única compartida entre
+servidor y editor.
 
 ### 7.2 Persistencia de jugadores (binario, tamaño fijo)
 
@@ -393,8 +385,8 @@ Layout de `RegistroJugador` (256 bytes):
 |  Offset | Campo                                                      | Tipo       | Bytes |
 | ------: | ---------------------------------------------------------- | ---------- | ----: |
 |       0 | `nombre`                                                   | `char[32]` |    32 |
-|      32 | `idClan`                                                   | uint16     |     2 |
-|      34 | `clase`, `raza`, `nivel`, `fundadoClan`, `estado`, `_pad1` | 6× uint8   |     6 |
+|      32 | `_reservado0`                                              | uint16     |     2 |
+|      34 | `clase`, `raza`, `nivel`, `_reservado1`, `estado`, `_pad1` | 6× uint8   |     6 |
 |      40 | `skinCabeza`, `skinCuerpo`                                 | 2× uint16  |     4 |
 |      44 | `vidaActual`, `manaActual`                                 | 2× uint16  |     4 |
 |      48 | `experiencia`                                              | uint32     |     4 |

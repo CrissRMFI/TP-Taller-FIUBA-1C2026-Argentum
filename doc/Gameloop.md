@@ -25,7 +25,7 @@ El servidor arranca leyendo una sola vez el archivo `config/game_config.toml`. D
 
 ### ConfigJuego
 
-`ConfigJuego` es un struct plano con los parámetros numéricos del juego: factores de vida y maná por clase y raza, fórmulas de experiencia y oro, umbrales de combate, parámetros de clan, cheats de testing y duración del tick del gameloop. Ver [`config/config_juego.h`](../server/game/config/config_juego.h).
+`ConfigJuego` es un struct plano con los parámetros numéricos del juego: factores de vida y maná por clase y raza, fórmulas de experiencia y oro, umbrales de combate, parámetros de fair-play (newbie, diferencia de nivel), cheats de testing y duración del tick del gameloop. Ver [`config/config_juego.h`](../server/game/config/config_juego.h).
 
 No tiene lógica de carga propia. Quien la carga es `LectorConfigToml`.
 
@@ -33,7 +33,7 @@ No tiene lógica de carga propia. Quien la carga es `LectorConfigToml`.
 
 La configuración del juego se carga desde archivos TOML mediante la librería externa `toml++`.
 
-Esta decisión cumple con la restricción del enunciado, que exige utilizar archivos de configuración TOML y no implementar un parser propio. El objetivo es que los valores de balance del juego puedan modificarse sin recompilar, por ejemplo factores de vida, maná, recuperación, experiencia, oro, reglas de clan, combate y duración del tick del gameloop.
+Esta decisión cumple con la restricción del enunciado, que exige utilizar archivos de configuración TOML y no implementar un parser propio. El objetivo es que los valores de balance del juego puedan modificarse sin recompilar, por ejemplo factores de vida, maná, recuperación, experiencia, oro, combate y duración del tick del gameloop.
 
 La clase `LectorConfigToml` es responsable de leer el archivo de configuración y construir una instancia de `ConfigCompleta`.
 
@@ -91,7 +91,6 @@ Cada método de `Juego` retorna `std::list<MensajeSalida>`. Un `MensajeSalida` t
 | `jugadoresConectados`    | `map<id, Jugador>` — jugadores con sesión activa                                                         |
 | `jugadoresDesconectados` | `map<id, Jugador>` — jugadores que se desconectaron pero cuyo personaje queda disponible para reconexión |
 | `criaturasEnMapa`        | `map<id, Criatura>` — NPCs enemigos vivos                                                                |
-| `clanes`                 | `map<id, Clan>` — organizaciones de jugadores                                                            |
 | `cfg`                    | `ConfigJuego` — parámetros del juego                                                                     |
 | `catalogo`               | `CatalogoItems` — tipos de items disponibles                                                             |
 
@@ -100,7 +99,7 @@ Cada método de `Juego` retorna `std::list<MensajeSalida>`. Un `MensajeSalida` t
 ```
 Gameloop::procesarComando(ComandoCliente)
 └─ Juego::ejecutarComando(idCliente, ComandoJugador)
-└─ switch(opcode) → ejecutarMeditar / ejecutarAtacar / ejecutarFundarClan / ...
+└─ switch(opcode) → ejecutarMeditar / ejecutarAtacar / ejecutarEquipar / ...
 └─ retorna list<MensajeSalida>
 └─ Gameloop::despachar(mensajes)
 ```
@@ -201,49 +200,11 @@ Esta lógica respeta la regla del enunciado: las pociones no quedan equipadas co
 
 ---
 
-## Clan
-
-[`server/game/clan.h`](../server/game/clan.h)
-
-Organización de jugadores con tres estados por miembro: `Pendiente`, `Aceptado`, `Baneado`.
-
-Se usa un único `vector<MiembroClan>` con el estado como campo en lugar de tres listas separadas. Así, la transición entre estados es un cambio de valor en lugar de una remoción/inserción coordinada entre colecciones.
-
-Comandos implementados:
-
-- fundar clan;
-- pedir unirse;
-- aceptar miembro;
-- rechazar solicitud;
-- banear miembro o solicitud pendiente;
-- expulsar miembro;
-- dejar clan;
-- revisar miembros y solicitudes pendientes.
-
-Solo el fundador puede gestionar miembros. Si el fundador se desconecta, las solicitudes quedan en espera hasta que vuelva.
-
-Reglas relevantes:
-
-- el fundador no puede dejar el clan;
-- el fundador no puede ser expulsado ni baneado;
-- el ban impide futuros pedidos de ingreso;
-- el kick expulsa pero no banea;
-- el límite de miembros incluye al fundador.
-
-Pendiente para integración posterior:
-
-- mensajes de entrada y salida de miembros conectados;
-- notificaciones pendientes para jugadores desconectados;
-- bonus de clan por cercanía;
-- bloqueo de ataque entre miembros del mismo clan.
-
----
-
 ## Protocolo
 
 El protocolo define qué mensajes se intercambian entre cliente y servidor.
 
-- **`ComandoJugador`** (`common/protocolo/comando_jugador.h`): lo que envía el cliente. Tiene un `Opcode` y un `std::variant` con el payload específico del comando. Los comandos sin payload (`MEDITAR`, `RESUCITAR`, `TOMAR`, `REVISAR_CLAN`, `DEJAR_CLAN`) usan structs vacíos en el variant.
+- **`ComandoJugador`** (`common/protocolo/comando_jugador.h`): lo que envía el cliente. Tiene un `Opcode` y un `std::variant` con el payload específico del comando. Los comandos sin payload (`MEDITAR`, `RESUCITAR`, `TOMAR`) usan structs vacíos en el variant.
 
 - **`MensajeServidor`** (`common/protocolo/mensaje_servidor.h`): lo que envía el servidor. Sigue el mismo patrón: `Opcode` + `std::variant` con el payload.
 
