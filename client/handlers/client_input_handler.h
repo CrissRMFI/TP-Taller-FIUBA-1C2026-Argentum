@@ -33,6 +33,8 @@ private:
     bool chat_activo;
     std::string chat_buffer;
     std::optional<uint16_t> objetivo_seleccionado;
+    int initial_window_width = 0;
+    float panel_width_ratio = 0.26f;
     // Caja del chat (px). El ancho es la mitad de la ventana (igual que el renderer).
     int chat_panel_x = 0;
     int chat_panel_y = 0;
@@ -54,6 +56,8 @@ private:
     // Direccion de protocolo (0=N,1=S,2=O,3=E) si la tecla es de movimiento.
     std::optional<uint8_t> direccion_de_tecla(SDL_Keycode key) const;
     bool click_en_chat(int x, int y) const;
+    int ancho_panel_actual() const;
+    int ancho_chat_actual() const;
     int ancho_juego() const;
     ResultadoInput manejar_texto_chat(const SDL_Event& event);
     void abrir_chat();
@@ -91,6 +95,9 @@ public:
         idCliente = id;
     }
     void set_window_dimensions(int width, int height) {
+        if (initial_window_width <= 0 && width > 0) {
+            initial_window_width = width;
+        }
         window_width = width;
         window_height = height;
     }
@@ -101,6 +108,9 @@ public:
     }
     void setAnchoPanel(int ancho) {
         ancho_panel = ancho;
+        if (initial_window_width > 0 && ancho > 0) {
+            panel_width_ratio = static_cast<float>(ancho) / static_cast<float>(initial_window_width);
+        }
     }
     void setMapaDimensiones(int ancho, int alto) {
         if (ancho > 0)
