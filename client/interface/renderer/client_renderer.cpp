@@ -101,6 +101,7 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos, con
     sdl = std::make_unique<SDL2pp::SDL>(SDL_INIT_VIDEO);
     image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
+    window->SetMinimumSize(width, height);
 
 
     uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
@@ -627,6 +628,7 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     // Rects de slots/boton dibujados este frame (para el hit-test del click).
     slots_equipo.clear();
     slots_inventario.clear();
+    indices_slots_inventario.clear();
     slots_stock.clear();
     slots_hechizos.clear();
     ids_hechizos_dibujados.clear();
@@ -812,15 +814,26 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
         // Grilla de inventario calzada en el interior del marco.
         const int inv_gap = 4;
         const int inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
-        for (size_t i = 0; i < panel.inventario.size(); ++i) {
-            const int col = static_cast<int>(i) % cols;
-            const int row = static_cast<int>(i) / cols;
+        const int pitch = inv_slot + inv_gap;
+        const int filas_visibles = std::max(1, (marco_fin - interiorY + inv_gap) / pitch);
+        const int total_filas =
+                std::max(1, (static_cast<int>(panel.inventario.size()) + cols - 1) / cols);
+        const int max_scroll = std::max(0, total_filas - filas_visibles);
+        inventario_scroll_row_ = std::clamp(inventario_scroll_row_, 0, max_scroll);
+        const int start_index = inventario_scroll_row_ * cols;
+        const int end_index =
+                std::min(static_cast<int>(panel.inventario.size()), start_index + filas_visibles * cols);
+        for (int i = start_index; i < end_index; ++i) {
+            const int visible = i - start_index;
+            const int col = visible % cols;
+            const int row = visible / cols;
             const int sx = interiorX + col * (inv_slot + inv_gap);
             const int sy = interiorY + row * (inv_slot + inv_gap);
             dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
             slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
+            indices_slots_inventario.push_back(i);
 
-            if (static_cast<int>(i) == panel.seleccionInventario) {
+            if (i == panel.seleccionInventario) {
                 const int z = inv_slot * 3 / 2;
                 const int zx = sx + inv_slot / 2 - z / 2;
                 const int zy = sy + inv_slot / 2 - z / 2;
@@ -898,7 +911,22 @@ int ObjectRenderer::slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y
 }
 
 int ObjectRenderer::slotInventarioClickeado(int x, int y) const {
-    return slot_en(slots_inventario, x, y);
+    const int visible = slot_en(slots_inventario, x, y);
+    if (visible < 0 || visible >= static_cast<int>(indices_slots_inventario.size())) {
+        return -1;
+    }
+    return indices_slots_inventario[visible];
+}
+
+void ObjectRenderer::scrollInventarioPanel(int delta, int total_items) {
+    if (delta == 0) {
+        return;
+    }
+    const int cols = 5;
+    const int total_filas = std::max(1, (total_items + cols - 1) / cols);
+    const int visibles = std::max(1, static_cast<int>(slots_inventario.size() + cols - 1) / cols);
+    const int max_scroll = std::max(0, total_filas - visibles);
+    inventario_scroll_row_ = std::clamp(inventario_scroll_row_ + delta, 0, max_scroll);
 }
 
 int ObjectRenderer::slotEquipoClickeado(int x, int y) const {

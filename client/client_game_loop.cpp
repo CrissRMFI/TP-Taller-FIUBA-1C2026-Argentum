@@ -154,6 +154,16 @@ void ClientGameLoop::handleEvents() {
                 continue;
             }
         }
+        if (event.type == SDL_MOUSEWHEEL && !pestanaHechizos) {
+            int mouse_x = 0;
+            int mouse_y = 0;
+            SDL_GetMouseState(&mouse_x, &mouse_y);
+            if (mouse_x >= object_renderer.bordeIzquierdoPanel()) {
+                object_renderer.scrollInventarioPanel(-event.wheel.y,
+                                                     static_cast<int>(object_state.inventario().size()));
+                continue;
+            }
+        }
         // Click sobre el panel derecho: lo maneja el loop (tiene renderer + estado + catalogo).
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.x >= object_renderer.bordeIzquierdoPanel()) {

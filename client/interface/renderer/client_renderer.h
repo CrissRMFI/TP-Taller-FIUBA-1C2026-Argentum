@@ -119,6 +119,7 @@ private:
     SDL2pp::Rect rect_tienda_cerrar{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_equipo;
     std::vector<SDL2pp::Rect> slots_inventario;
+    std::vector<int> indices_slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
     std::vector<SDL2pp::Rect> slots_hechizos;        // filas de la pestaña HECHIZOS (lanzar)
     std::vector<uint16_t> ids_hechizos_dibujados;    // id de hechizo por fila (pestaña)
@@ -190,6 +191,7 @@ public:
     uint16_t hechizoVentaClickeado(int x, int y) const;  // lista del sacerdote (comprar)
     bool clickTabInventario(int x, int y) const;
     bool clickTabHechizos(int x, int y) const;
+    void scrollInventarioPanel(int delta, int total_items);
     bool esSacerdote(uint16_t id) const;
     bool esBanquero(uint16_t id) const;
     bool esComerciante(uint16_t id) const;
@@ -213,6 +215,9 @@ public:
     bool clickTiendaCurar(int x, int y) const;
     bool clickTiendaCerrar(int x, int y) const;
     void otroUsuario(SDL2pp::Texture texture, uint8_t tipo, uint8_t estado);
+
+private:
+    int inventario_scroll_row_ = 0;
 };
 
 #endif
