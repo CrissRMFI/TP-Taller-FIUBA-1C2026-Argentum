@@ -51,6 +51,16 @@ ObjectRenderer::ObjectRenderer() {
     mapaPrincipalId = mundo.mapaPrincipalId;
 }
 
+void ObjectRenderer::sincronizar_dimensiones_ventana() {
+    if (!window || !renderer) {
+        return;
+    }
+
+    const SDL2pp::Point size = window->GetSize();
+    setWindowDimensions(size.x, size.y);
+    renderer->SetLogicalSize(window_width, window_height);
+}
+
 void ObjectRenderer::init(const char* title, const int xpos, const int ypos, const int width,
                           const int height, const bool fullscreen, const bool vsync,
                           const int loop_fps, const ConfigChatRender& chat_config,
@@ -61,7 +71,7 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos, con
     this->catalogo = catalogo;
     this->walk_tile_ms = (walk_tile_ms > 0) ? walk_tile_ms : 130;
     camera.aplicar_config(camara_config);
-    uint32_t flags = SDL_WINDOW_SHOWN;
+    uint32_t flags = SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
@@ -75,8 +85,8 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos, con
         renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     }
     renderer = std::make_unique<SDL2pp::Renderer>(*window, -1, renderer_flags);
-    window_width = width;
-    window_height = height;
+    setWindowDimensions(width, height);
+    sincronizar_dimensiones_ventana();
 
     try {
         const std::string background_path =
@@ -176,6 +186,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     if (!renderer) {
         return;
     }
+    sincronizar_dimensiones_ventana();
 
     const Mapa& mapa = mapaVigente();
     const uint32_t current_tick = SDL_GetTicks();

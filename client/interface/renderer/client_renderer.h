@@ -83,6 +83,7 @@ private:
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     WorldCargado cargarMundo() const;
     const Mapa& mapaVigente() const;
+    void sincronizar_dimensiones_ventana();
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
     void dibujar_banco(const EstadoBancoRender& banco);
@@ -134,6 +135,14 @@ public:
     }
     int bordeIzquierdoPanel() const {
         return ancho_juego();
+    }
+    void setWindowDimensions(int width, int height) {
+        if (width > 0) {
+            window_width = width;
+        }
+        if (height > 0) {
+            window_height = height;
+        }
     }
     void setMapaActual(uint16_t id) {
         mapaActual = id;
