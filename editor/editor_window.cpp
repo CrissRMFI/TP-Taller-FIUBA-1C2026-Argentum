@@ -1,5 +1,6 @@
 #include "editor_window.h"
 
+#include <algorithm>
 #include <exception>
 #include <filesystem>
 #include <optional>
@@ -300,6 +301,16 @@ void EditorWindow::guardarEscenario(const QString& rutaExteriorDestino) {
     vinculo.entradaY = modeloExterior.getMarcadorY();
     vinculo.salidaX = modeloMazmorra.getMarcadorX();
     vinculo.salidaY = modeloMazmorra.getMarcadorY();
+
+    // Los destinos del portal (a donde teletransporta) tampoco se reubican al redimensionar
+    // Los acotamos al tamano real de cada mapa para no caer en una celda inexistente si el mapa se achico por debajo de su posicion.
+    const auto acotar = [](uint16_t valor, uint16_t limite) {
+        return static_cast<uint16_t>(std::min<uint16_t>(valor, limite - 1));
+    };
+    vinculo.entradaDestinoX = acotar(vinculo.entradaDestinoX, modeloMazmorra.getAncho());
+    vinculo.entradaDestinoY = acotar(vinculo.entradaDestinoY, modeloMazmorra.getAlto());
+    vinculo.salidaDestinoX = acotar(vinculo.salidaDestinoX, modeloExterior.getAncho());
+    vinculo.salidaDestinoY = acotar(vinculo.salidaDestinoY, modeloExterior.getAlto());
 
     EscritorMapa escritor;
     escritor.escribir(modeloExterior.construirMapa(), modeloExterior.getMapaId(),
