@@ -43,14 +43,6 @@ const Mapa& ObjectRenderer::mapaVigente() const {
     return mapas.begin()->second;
 }
 
-ObjectRenderer::ObjectRenderer() {
-    WorldCargado mundo = cargarMundo();
-    mapas = std::move(mundo.mapas);
-    portales = std::move(mundo.portales);
-    mapaActual = mundo.mapaPrincipalId;
-    mapaPrincipalId = mundo.mapaPrincipalId;
-}
-
 void ObjectRenderer::sincronizar_dimensiones_ventana() {
     if (!window || !renderer) {
         return;
@@ -67,9 +59,9 @@ int ObjectRenderer::ancho_panel_actual() const {
     }
 
     const int base_width = (initial_window_width > 0) ? initial_window_width : window_width;
-    const float ratio =
-            (panel_width_ratio > 0.0f) ? panel_width_ratio
-                                       : static_cast<float>(panel_config.ancho) / base_width;
+    const float ratio = (panel_width_ratio > 0.0f)
+                                ? panel_width_ratio
+                                : static_cast<float>(panel_config.ancho) / base_width;
     const int min_panel = std::min(window_width, std::max(220, panel_config.ancho * 3 / 4));
     const int max_panel = std::max(min_panel, window_width / 2);
     const int scaled = static_cast<int>(std::lround(window_width * ratio));
@@ -78,6 +70,259 @@ int ObjectRenderer::ancho_panel_actual() const {
 
 int ObjectRenderer::ancho_chat_actual() const {
     return ancho_juego();
+}
+
+void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
+    if (!renderer || !text_renderer || panel_config.ancho <= 0) {
+        return;
+    }
+    // Rects de slots/boton dibujados este frame (para el hit-test del click).
+    slots_equipo.clear();
+    slots_inventario.clear();
+    slots_stock.clear();
+    slots_hechizos.clear();
+    ids_hechizos_dibujados.clear();
+    slots_hechizos_venta.clear();
+    ids_hechizos_venta.clear();
+    rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
+    const int pw = ancho_panel_actual();
+    const int px = window_width - pw;  // borde izq del panel
+    const int margen = 8;
+    const int cx = px + margen;
+    const int cw = pw - 2 * margen;
+    const int lh = text_renderer->alto_linea();
+    const SDL_Color& cTxt = panel_config.colorTexto;
+    const SDL_Color& cTit = panel_config.colorTitulo;
+
+    // Fondo de cuero del panel (si falla, rect oscuro).
+    try {
+        renderer->Copy(cache_texture->get_or_load(panel_config.fondoCuero), SDL2pp::NullOpt,
+                       SDL2pp::Rect(px, 0, pw, window_height));
+    } catch (const std::exception&) {
+        renderer->SetDrawColor(35, 25, 18, 255);
+        renderer->FillRect(SDL2pp::Rect(px, 0, pw, window_height));
+    }
+
+    int y = margen;
+    // --- Header: nombre (grande), raza/clase (chico), nivel, oro ---
+    const EstadoJugador& s = panel.stats;
+    if (!panel.nick.empty()) {
+        text_renderer->dibujarEscalado(*renderer, panel.nick, cx, y, cTit, 1.8f);
+        y += static_cast<int>(lh * 1.8) + 2;
+    }
+    if (!panel.raza.empty() || !panel.clase.empty()) {
+        text_renderer->dibujar(*renderer, panel.raza + " - " + panel.clase, cx, y, cTxt);
+        y += lh + 2;
+    }
+    text_renderer->dibujar(*renderer, "Nivel " + std::to_string(s.nivel), cx, y, cTit);
+    text_renderer->dibujar(*renderer, "Oro: " + std::to_string(s.oro), cx + cw / 2, y, cTxt);
+    y += lh + 6;
+
+    // --- Barras de vida y mana (con textura de relleno, recortada al valor) ---
+    const auto barra = [&](const std::string& etiqueta, uint16_t act, uint16_t max,
+                           const std::string& ruta, SDL_Color fallback) {
+        text_renderer->dibujar(*renderer,
+                               etiqueta + " " + std::to_string(act) + "/" + std::to_string(max), cx,
+                               y, cTxt);
+        y += lh;
+        const int h = 14;
+        renderer->SetDrawColor(20, 20, 20, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
+        const double pct = (max > 0) ? static_cast<double>(act) / max : 0.0;
+        const int w = static_cast<int>(cw * pct);
+        if (w > 0) {
+            try {
+                SDL2pp::Texture& t = cache_texture->get_or_load(ruta);
+                const int tw = static_cast<int>(t.GetWidth() * pct);
+                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
+                               SDL2pp::Rect(cx, y, w, h));
+            } catch (const std::exception&) {
+                renderer->SetDrawColor(fallback.r, fallback.g, fallback.b, 255);
+                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
+            }
+        }
+        y += h + 6;
+    };
+    barra("Vida", s.vida, s.vidaMax, panel_config.barraVida, SDL_Color{200, 40, 40, 255});
+    barra("Mana", s.mana, s.manaMax, panel_config.barraMana, SDL_Color{50, 90, 210, 255});
+
+    // --- Barra de experiencia (exp acumulada / limite del nivel actual) ---
+    {
+        text_renderer->dibujar(
+                *renderer,
+                "Exp " + std::to_string(s.experiencia) + "/" + std::to_string(s.expSiguienteNivel),
+                cx, y, cTxt);
+        y += lh;
+        const int h = 14;
+        renderer->SetDrawColor(20, 20, 20, 255);
+        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
+        const double pct =
+                (s.expSiguienteNivel > 0)
+                        ? std::min(1.0, static_cast<double>(s.experiencia) / s.expSiguienteNivel)
+                        : 0.0;
+        const int w = static_cast<int>(cw * pct);
+        if (w > 0) {
+            try {
+                SDL2pp::Texture& t = cache_texture->get_or_load(panel_config.barraExperiencia);
+                const int tw = static_cast<int>(t.GetWidth() * pct);
+                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
+                               SDL2pp::Rect(cx, y, w, h));
+            } catch (const std::exception&) {
+                renderer->SetDrawColor(200, 170, 40, 255);
+                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
+            }
+        }
+        y += h + 6;
+    }
+
+    // Dibuja un slot de tamaño sz (fondo + icono + marco), reusado por equipo e inventario.
+    const auto dibujar_slot = [&](int sx, int sy, int sz, uint16_t id) {
+        renderer->SetDrawColor(0, 0, 0, 180);
+        renderer->FillRect(SDL2pp::Rect(sx, sy, sz, sz));
+        if (SDL2pp::Texture* ic = icono_item(id)) {
+            renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, sz, sz));
+        }
+        renderer->SetDrawColor(120, 95, 60, 255);  // marco tipo madera
+        renderer->DrawRect(SDL2pp::Rect(sx, sy, sz, sz));
+    };
+
+    const int cols = 5;
+
+    // --- Equipo: 5 slots (arma, baculo, defensa, casco, escudo), centrados ---
+    const int eq_slot = 32;
+    const int eq_gap = 6;
+    text_renderer->dibujar(*renderer, "Equipo", cx, y, cTit);
+    y += lh + 2;
+    const uint16_t equipados[5] = {panel.equip.arma, panel.equip.baculo, panel.equip.defensa,
+                                   panel.equip.casco, panel.equip.escudo};
+    const int eq_x = px + (pw - (5 * eq_slot + 4 * eq_gap)) / 2;
+    for (int i = 0; i < 5; ++i) {
+        const int sx = eq_x + i * (eq_slot + eq_gap);
+        dibujar_slot(sx, y, eq_slot, equipados[i]);
+        slots_equipo.push_back(SDL2pp::Rect(sx, y, eq_slot, eq_slot));
+    }
+    y += eq_slot + 8;
+
+    // --- Marco con pestañas INVENTARIO / HECHIZOS (la pestaña la trae la imagen) ---
+    const int marco_top = y;
+    const std::string& marcoImg =
+            panel.mostrarHechizos ? panel_config.marcoHechizos : panel_config.marcoInventario;
+    int interiorX = px + margen;
+    int interiorY = marco_top + lh + 2;
+    int interiorW = cw;
+    int marco_alto = 0;
+    try {
+        SDL2pp::Texture& marco = cache_texture->get_or_load(marcoImg);
+        const int mw = cw;
+        const int mh = (marco.GetWidth() > 0) ? cw * marco.GetHeight() / marco.GetWidth()
+                                              : marco.GetHeight();
+        renderer->Copy(marco, SDL2pp::NullOpt, SDL2pp::Rect(px + margen, marco_top, mw, mh));
+        const int insetX = mw * 5 / 100;
+        const int insetY = mh * 11 / 100;
+        interiorX = px + margen + insetX;
+        interiorY = marco_top + insetY;
+        interiorW = mw - 2 * insetX;
+        marco_alto = mh;
+        // Pestañas clickeables (banda superior del marco): izq = inventario, der = hechizos.
+        rect_tab_inv = SDL2pp::Rect(px + margen, marco_top, mw / 2, insetY);
+        rect_tab_hech = SDL2pp::Rect(px + margen + mw / 2, marco_top, mw - mw / 2, insetY);
+    } catch (const std::exception&) {
+        text_renderer->dibujar(*renderer, panel.mostrarHechizos ? "Hechizos" : "Inventario", cx, y,
+                               cTit);
+        rect_tab_inv = SDL2pp::Rect(cx, y, cw / 2, lh + 2);
+        rect_tab_hech = SDL2pp::Rect(cx + cw / 2, y, cw - cw / 2, lh + 2);
+    }
+    const int marco_fin = marco_top + (marco_alto > 0 ? marco_alto : 300);
+
+    if (panel.mostrarHechizos) {
+        // Pestaña HECHIZOS: SOLO los hechizos que el jugador conoce (para lanzar).
+        const int fila_h = lh + 4;
+        int hy = interiorY;
+        if (catalogo != nullptr) {
+            for (uint16_t id : panel.hechizosConocidos) {
+                if (hy + fila_h > marco_fin) {
+                    break;
+                }
+                const HechizoInfo* h = catalogo->hechizo(id);
+                if (h == nullptr) {
+                    continue;
+                }
+                try {
+                    SDL2pp::Texture& ic = cache_texture->get_or_load("imgs/hechizos/" +
+                                                                     std::to_string(id) + ".png");
+                    renderer->Copy(ic, SDL2pp::NullOpt,
+                                   SDL2pp::Rect(interiorX, hy, fila_h - 2, fila_h - 2));
+                } catch (const std::exception&) {}
+                text_renderer->dibujar(*renderer, h->nombre + "  M" + std::to_string(h->mana),
+                                       interiorX + fila_h, hy + 2, cTit);
+                slots_hechizos.push_back(SDL2pp::Rect(interiorX, hy, interiorW, fila_h));
+                ids_hechizos_dibujados.push_back(id);
+                hy += fila_h;
+            }
+        }
+    } else {
+        // Grilla de inventario calzada en el interior del marco.
+        const int inv_gap = 4;
+        const int inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
+        for (size_t i = 0; i < panel.inventario.size(); ++i) {
+            const int col = static_cast<int>(i) % cols;
+            const int row = static_cast<int>(i) / cols;
+            const int sx = interiorX + col * (inv_slot + inv_gap);
+            const int sy = interiorY + row * (inv_slot + inv_gap);
+            dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
+            slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
+
+            if (static_cast<int>(i) == panel.seleccionInventario) {
+                const int z = inv_slot * 3 / 2;
+                const int zx = sx + inv_slot / 2 - z / 2;
+                const int zy = sy + inv_slot / 2 - z / 2;
+                if (SDL2pp::Texture* ic = icono_item(panel.inventario[i])) {
+                    renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(zx, zy, z, z));
+                }
+                renderer->SetDrawColor(255, 230, 90, 255);
+                renderer->DrawRect(SDL2pp::Rect(sx - 1, sy - 1, inv_slot + 2, inv_slot + 2));
+            }
+        }
+    }
+    // Curar/Resucitar viven en el modal del sacerdote (no en el panel lateral).
+}
+
+SDL2pp::Texture* ObjectRenderer::icono_item(const uint16_t id) {
+    if (id == 0 || !cache_texture || iconos_fallidos.count(id)) {
+        return nullptr;
+    }
+    const std::string ruta = panel_config.iconDir + "/" + std::to_string(id) + ".png";
+    try {
+        return &cache_texture->get_or_load(ruta);
+    } catch (const std::exception& e) {
+        iconos_fallidos.insert(id);  // no reintentar ni spamear cada frame
+        std::cerr << "[cliente] no se pudo cargar el icono del item (id=" << id << "): " << e.what()
+                  << std::endl;
+        return nullptr;
+    }
+}
+
+int ObjectRenderer::ancho_juego() const {
+    const int gw = window_width - ancho_panel_actual();
+    return (gw > 0) ? gw : window_width;
+}
+
+int ObjectRenderer::slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const {
+    for (size_t i = 0; i < slots.size(); ++i) {
+        const SDL2pp::Rect& r = slots[i];
+        if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+ObjectRenderer::ObjectRenderer() {
+    WorldCargado mundo = cargarMundo();
+    mapas = std::move(mundo.mapas);
+    portales = std::move(mundo.portales);
+    mapaActual = mundo.mapaPrincipalId;
+    mapaPrincipalId = mundo.mapaPrincipalId;
 }
 
 void ObjectRenderer::init(const char* title, const int xpos, const int ypos, const int width,
@@ -94,7 +339,7 @@ void ObjectRenderer::init(const char* title, const int xpos, const int ypos, con
     if (width > 0) {
         panel_width_ratio = static_cast<float>(panel_config.ancho) / static_cast<float>(width);
     }
-    uint32_t flags = SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE;
+    uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
@@ -601,239 +846,28 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     renderer->Present();
 }
 
-int ObjectRenderer::ancho_juego() const {
-    const int gw = window_width - ancho_panel_actual();
-    return (gw > 0) ? gw : window_width;
+int ObjectRenderer::slotEquipoClickeado(int x, int y) const {
+    return slot_en(slots_equipo, x, y);
 }
 
-SDL2pp::Texture* ObjectRenderer::icono_item(const uint16_t id) {
-    if (id == 0 || !cache_texture || iconos_fallidos.count(id)) {
-        return nullptr;
-    }
-    const std::string ruta = panel_config.iconDir + "/" + std::to_string(id) + ".png";
-    try {
-        return &cache_texture->get_or_load(ruta);
-    } catch (const std::exception& e) {
-        iconos_fallidos.insert(id);  // no reintentar ni spamear cada frame
-        std::cerr << "[cliente] no se pudo cargar el icono del item (id=" << id << "): " << e.what()
-                  << std::endl;
-        return nullptr;
-    }
+int ObjectRenderer::slotInventarioClickeado(int x, int y) const {
+    return slot_en(slots_inventario, x, y);
 }
 
-void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
-    if (!renderer || !text_renderer || panel_config.ancho <= 0) {
-        return;
-    }
-    // Rects de slots/boton dibujados este frame (para el hit-test del click).
-    slots_equipo.clear();
-    slots_inventario.clear();
-    slots_stock.clear();
-    slots_hechizos.clear();
-    ids_hechizos_dibujados.clear();
-    slots_hechizos_venta.clear();
-    ids_hechizos_venta.clear();
-    rect_boton_vender = SDL2pp::Rect(0, 0, 0, 0);
-    const int pw = ancho_panel_actual();
-    const int px = window_width - pw;  // borde izq del panel
-    const int margen = 8;
-    const int cx = px + margen;
-    const int cw = pw - 2 * margen;
-    const int lh = text_renderer->alto_linea();
-    const SDL_Color& cTxt = panel_config.colorTexto;
-    const SDL_Color& cTit = panel_config.colorTitulo;
+int ObjectRenderer::slotStockClickeado(int x, int y) const {
+    return slot_en(slots_stock, x, y);
+}
 
-    // Fondo de cuero del panel (si falla, rect oscuro).
-    try {
-        renderer->Copy(cache_texture->get_or_load(panel_config.fondoCuero), SDL2pp::NullOpt,
-                       SDL2pp::Rect(px, 0, pw, window_height));
-    } catch (const std::exception&) {
-        renderer->SetDrawColor(35, 25, 18, 255);
-        renderer->FillRect(SDL2pp::Rect(px, 0, pw, window_height));
-    }
+bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
+    const SDL2pp::Rect& r = rect_boton_vender;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
 
-    int y = margen;
-    // --- Header: nombre (grande), raza/clase (chico), nivel, oro ---
-    const EstadoJugador& s = panel.stats;
-    if (!panel.nick.empty()) {
-        text_renderer->dibujarEscalado(*renderer, panel.nick, cx, y, cTit, 1.8f);
-        y += static_cast<int>(lh * 1.8) + 2;
-    }
-    if (!panel.raza.empty() || !panel.clase.empty()) {
-        text_renderer->dibujar(*renderer, panel.raza + " - " + panel.clase, cx, y, cTxt);
-        y += lh + 2;
-    }
-    text_renderer->dibujar(*renderer, "Nivel " + std::to_string(s.nivel), cx, y, cTit);
-    text_renderer->dibujar(*renderer, "Oro: " + std::to_string(s.oro), cx + cw / 2, y, cTxt);
-    y += lh + 6;
-
-    // --- Barras de vida y mana (con textura de relleno, recortada al valor) ---
-    const auto barra = [&](const std::string& etiqueta, uint16_t act, uint16_t max,
-                           const std::string& ruta, SDL_Color fallback) {
-        text_renderer->dibujar(*renderer,
-                               etiqueta + " " + std::to_string(act) + "/" + std::to_string(max), cx,
-                               y, cTxt);
-        y += lh;
-        const int h = 14;
-        renderer->SetDrawColor(20, 20, 20, 255);
-        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
-        const double pct = (max > 0) ? static_cast<double>(act) / max : 0.0;
-        const int w = static_cast<int>(cw * pct);
-        if (w > 0) {
-            try {
-                SDL2pp::Texture& t = cache_texture->get_or_load(ruta);
-                const int tw = static_cast<int>(t.GetWidth() * pct);
-                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
-                               SDL2pp::Rect(cx, y, w, h));
-            } catch (const std::exception&) {
-                renderer->SetDrawColor(fallback.r, fallback.g, fallback.b, 255);
-                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
-            }
-        }
-        y += h + 6;
-    };
-    barra("Vida", s.vida, s.vidaMax, panel_config.barraVida, SDL_Color{200, 40, 40, 255});
-    barra("Mana", s.mana, s.manaMax, panel_config.barraMana, SDL_Color{50, 90, 210, 255});
-
-    // --- Barra de experiencia (exp acumulada / limite del nivel actual) ---
-    {
-        text_renderer->dibujar(
-                *renderer,
-                "Exp " + std::to_string(s.experiencia) + "/" + std::to_string(s.expSiguienteNivel),
-                cx, y, cTxt);
-        y += lh;
-        const int h = 14;
-        renderer->SetDrawColor(20, 20, 20, 255);
-        renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
-        const double pct =
-                (s.expSiguienteNivel > 0)
-                        ? std::min(1.0, static_cast<double>(s.experiencia) / s.expSiguienteNivel)
-                        : 0.0;
-        const int w = static_cast<int>(cw * pct);
-        if (w > 0) {
-            try {
-                SDL2pp::Texture& t = cache_texture->get_or_load(panel_config.barraExperiencia);
-                const int tw = static_cast<int>(t.GetWidth() * pct);
-                renderer->Copy(t, SDL2pp::Rect(0, 0, std::max(1, tw), t.GetHeight()),
-                               SDL2pp::Rect(cx, y, w, h));
-            } catch (const std::exception&) {
-                renderer->SetDrawColor(200, 170, 40, 255);
-                renderer->FillRect(SDL2pp::Rect(cx, y, w, h));
-            }
-        }
-        y += h + 6;
-    }
-
-    // Dibuja un slot de tamaño sz (fondo + icono + marco), reusado por equipo e inventario.
-    const auto dibujar_slot = [&](int sx, int sy, int sz, uint16_t id) {
-        renderer->SetDrawColor(0, 0, 0, 180);
-        renderer->FillRect(SDL2pp::Rect(sx, sy, sz, sz));
-        if (SDL2pp::Texture* ic = icono_item(id)) {
-            renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(sx, sy, sz, sz));
-        }
-        renderer->SetDrawColor(120, 95, 60, 255);  // marco tipo madera
-        renderer->DrawRect(SDL2pp::Rect(sx, sy, sz, sz));
-    };
-
-    const int cols = 5;
-
-    // --- Equipo: 5 slots (arma, baculo, defensa, casco, escudo), centrados ---
-    const int eq_slot = 32;
-    const int eq_gap = 6;
-    text_renderer->dibujar(*renderer, "Equipo", cx, y, cTit);
-    y += lh + 2;
-    const uint16_t equipados[5] = {panel.equip.arma, panel.equip.baculo, panel.equip.defensa,
-                                   panel.equip.casco, panel.equip.escudo};
-    const int eq_x = px + (pw - (5 * eq_slot + 4 * eq_gap)) / 2;
-    for (int i = 0; i < 5; ++i) {
-        const int sx = eq_x + i * (eq_slot + eq_gap);
-        dibujar_slot(sx, y, eq_slot, equipados[i]);
-        slots_equipo.push_back(SDL2pp::Rect(sx, y, eq_slot, eq_slot));
-    }
-    y += eq_slot + 8;
-
-    // --- Marco con pestañas INVENTARIO / HECHIZOS (la pestaña la trae la imagen) ---
-    const int marco_top = y;
-    const std::string& marcoImg =
-            panel.mostrarHechizos ? panel_config.marcoHechizos : panel_config.marcoInventario;
-    int interiorX = px + margen;
-    int interiorY = marco_top + lh + 2;
-    int interiorW = cw;
-    int marco_alto = 0;
-    try {
-        SDL2pp::Texture& marco = cache_texture->get_or_load(marcoImg);
-        const int mw = cw;
-        const int mh = (marco.GetWidth() > 0) ? cw * marco.GetHeight() / marco.GetWidth()
-                                              : marco.GetHeight();
-        renderer->Copy(marco, SDL2pp::NullOpt, SDL2pp::Rect(px + margen, marco_top, mw, mh));
-        const int insetX = mw * 5 / 100;
-        const int insetY = mh * 11 / 100;
-        interiorX = px + margen + insetX;
-        interiorY = marco_top + insetY;
-        interiorW = mw - 2 * insetX;
-        marco_alto = mh;
-        // Pestañas clickeables (banda superior del marco): izq = inventario, der = hechizos.
-        rect_tab_inv = SDL2pp::Rect(px + margen, marco_top, mw / 2, insetY);
-        rect_tab_hech = SDL2pp::Rect(px + margen + mw / 2, marco_top, mw - mw / 2, insetY);
-    } catch (const std::exception&) {
-        text_renderer->dibujar(*renderer, panel.mostrarHechizos ? "Hechizos" : "Inventario", cx, y,
-                               cTit);
-        rect_tab_inv = SDL2pp::Rect(cx, y, cw / 2, lh + 2);
-        rect_tab_hech = SDL2pp::Rect(cx + cw / 2, y, cw - cw / 2, lh + 2);
-    }
-    const int marco_fin = marco_top + (marco_alto > 0 ? marco_alto : 300);
-
-    if (panel.mostrarHechizos) {
-        // Pestaña HECHIZOS: SOLO los hechizos que el jugador conoce (para lanzar).
-        const int fila_h = lh + 4;
-        int hy = interiorY;
-        if (catalogo != nullptr) {
-            for (uint16_t id : panel.hechizosConocidos) {
-                if (hy + fila_h > marco_fin) {
-                    break;
-                }
-                const HechizoInfo* h = catalogo->hechizo(id);
-                if (h == nullptr) {
-                    continue;
-                }
-                try {
-                    SDL2pp::Texture& ic = cache_texture->get_or_load("imgs/hechizos/" +
-                                                                     std::to_string(id) + ".png");
-                    renderer->Copy(ic, SDL2pp::NullOpt,
-                                   SDL2pp::Rect(interiorX, hy, fila_h - 2, fila_h - 2));
-                } catch (const std::exception&) {}
-                text_renderer->dibujar(*renderer, h->nombre + "  M" + std::to_string(h->mana),
-                                       interiorX + fila_h, hy + 2, cTit);
-                slots_hechizos.push_back(SDL2pp::Rect(interiorX, hy, interiorW, fila_h));
-                ids_hechizos_dibujados.push_back(id);
-                hy += fila_h;
-            }
-        }
-    } else {
-        // Grilla de inventario calzada en el interior del marco.
-        const int inv_gap = 4;
-        const int inv_slot = (interiorW - (cols - 1) * inv_gap) / cols;
-        for (size_t i = 0; i < panel.inventario.size(); ++i) {
-            const int col = static_cast<int>(i) % cols;
-            const int row = static_cast<int>(i) / cols;
-            const int sx = interiorX + col * (inv_slot + inv_gap);
-            const int sy = interiorY + row * (inv_slot + inv_gap);
-            dibujar_slot(sx, sy, inv_slot, panel.inventario[i]);
-            slots_inventario.push_back(SDL2pp::Rect(sx, sy, inv_slot, inv_slot));
-
-            if (static_cast<int>(i) == panel.seleccionInventario) {
-                const int z = inv_slot * 3 / 2;
-                const int zx = sx + inv_slot / 2 - z / 2;
-                const int zy = sy + inv_slot / 2 - z / 2;
-                if (SDL2pp::Texture* ic = icono_item(panel.inventario[i])) {
-                    renderer->Copy(*ic, SDL2pp::NullOpt, SDL2pp::Rect(zx, zy, z, z));
-                }
-                renderer->SetDrawColor(255, 230, 90, 255);
-                renderer->DrawRect(SDL2pp::Rect(sx - 1, sy - 1, inv_slot + 2, inv_slot + 2));
-            }
-        }
-    }
-    // Curar/Resucitar viven en el modal del sacerdote (no en el panel lateral).
+uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {
+    const int i = slot_en(slots_hechizos, x, y);
+    return (i >= 0 && i < static_cast<int>(ids_hechizos_dibujados.size()))
+                   ? ids_hechizos_dibujados[i]
+                   : 0;
 }
 
 uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
@@ -841,11 +875,20 @@ uint16_t ObjectRenderer::hechizoVentaClickeado(int x, int y) const {
     return (i >= 0 && i < static_cast<int>(ids_hechizos_venta.size())) ? ids_hechizos_venta[i] : 0;
 }
 
+bool ObjectRenderer::clickTabInventario(int x, int y) const {
+    const SDL2pp::Rect& r = rect_tab_inv;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+bool ObjectRenderer::clickTabHechizos(int x, int y) const {
+    const SDL2pp::Rect& r = rect_tab_hech;
+    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
 bool ObjectRenderer::esSacerdote(uint16_t id) const {
     const Mapa& mapa = mapaVigente();
     return mapa.getSacerdotes().find(id) != mapa.getSacerdotes().end();
 }
-
 bool ObjectRenderer::esBanquero(uint16_t id) const {
     const Mapa& mapa = mapaVigente();
     return mapa.getBanqueros().find(id) != mapa.getBanqueros().end();
@@ -870,49 +913,6 @@ void ObjectRenderer::resaltarObjetivo(uint16_t id) {
 
 void ObjectRenderer::resaltarHover(uint16_t id) {
     hover_resaltado = id;
-}
-
-uint16_t ObjectRenderer::hechizoClickeado(int x, int y) const {
-    const int i = slot_en(slots_hechizos, x, y);
-    return (i >= 0 && i < static_cast<int>(ids_hechizos_dibujados.size()))
-                   ? ids_hechizos_dibujados[i]
-                   : 0;
-}
-
-bool ObjectRenderer::clickTabInventario(int x, int y) const {
-    const SDL2pp::Rect& r = rect_tab_inv;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-}
-bool ObjectRenderer::clickTabHechizos(int x, int y) const {
-    const SDL2pp::Rect& r = rect_tab_hech;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-}
-
-int ObjectRenderer::slot_en(const std::vector<SDL2pp::Rect>& slots, int x, int y) const {
-    for (size_t i = 0; i < slots.size(); ++i) {
-        const SDL2pp::Rect& r = slots[i];
-        if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
-            return static_cast<int>(i);
-        }
-    }
-    return -1;
-}
-
-int ObjectRenderer::slotInventarioClickeado(int x, int y) const {
-    return slot_en(slots_inventario, x, y);
-}
-
-int ObjectRenderer::slotEquipoClickeado(int x, int y) const {
-    return slot_en(slots_equipo, x, y);
-}
-
-int ObjectRenderer::slotStockClickeado(int x, int y) const {
-    return slot_en(slots_stock, x, y);
-}
-
-bool ObjectRenderer::clickEnBotonVender(int x, int y) const {
-    const SDL2pp::Rect& r = rect_boton_vender;
-    return r.w > 0 && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 }
 
 namespace {
@@ -1159,13 +1159,13 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
 
     if (const std::string nombre = nombreOferta(); !nombre.empty()) {
         text_renderer->dibujar(*renderer, nombre, panelOferta.x + sx(8), sectionY + sx(18), cTxt);
-        text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioOferta()),
+        text_renderer->dibujar(*renderer, "Precio:  " + std::to_string(precioOferta()),
                                panelOferta.x + sx(128), sectionY + sx(18), cTit);
     }
     if (const std::string nombre = nombreInventario(); !nombre.empty()) {
         text_renderer->dibujar(*renderer, nombre, panelInv.x + sx(8), sectionY + sx(18), cTxt);
         if (!t.esSacerdote) {
-            text_renderer->dibujar(*renderer, "Precio: " + std::to_string(precioInventario()),
+            text_renderer->dibujar(*renderer, "Precio:  " + std::to_string(precioInventario()),
                                    panelInv.x + sx(128), sectionY + sx(18), cTit);
         }
     }
