@@ -71,7 +71,7 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
     }
     if (auto* e = std::get_if<EventoChat>(&evento)) {
         return { Opcode::MENSAJE_CHAT,
-                 MensajeChat{ e->nickOrigen, e->mensaje } };
+                 MensajeChat{ e->nickOrigen, e->mensaje, e->tipo } };
     }
     if (auto* e = std::get_if<EventoResucitado>(&evento)) {
         return { Opcode::RESUCITADO,
