@@ -19,13 +19,18 @@
 #define UMBRAL_CURACION 5
 
 
-ObjectGameWorld::ObjectGameWorld(const uint16_t client_id):
-    idCliente(client_id), posX(0), posY(0),
-    nivelAnterior(0),
-    estadoAnterior(static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)),
-    vidaBajaAvisada(false), vidaAnterior(0), manaAnterior(0) {}
+ObjectGameWorld::ObjectGameWorld(const uint16_t client_id) :
+        idCliente(client_id),
+        posX(0),
+        posY(0),
+        nivelAnterior(0),
+        estadoAnterior(static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo)),
+        vidaBajaAvisada(false),
+        vidaAnterior(0),
+        manaAnterior(0) {}
 
-int ObjectGameWorld::animation_row_for_delta(const int delta_x, const int delta_y, const int default_row) {
+int ObjectGameWorld::animation_row_for_delta(const int delta_x, const int delta_y,
+                                             const int default_row) {
     // No cambios en la posicion: me quedo en la fila actual.
     if (delta_x == 0 && delta_y == 0) {
         return default_row;
@@ -43,8 +48,7 @@ int ObjectGameWorld::distanciaAlJugador(int x, int y) const {
 }
 
 void ObjectGameWorld::actualizarPosVisualEntidad(EntityAnimationState& animation_state,
-                                                 const int tile_x,
-                                                 const int tile_y,
+                                                 const int tile_x, const int tile_y,
                                                  const uint32_t current_tick) {
 
     // Interpolacion visual, las posiciones logicas de los jugadores son interpoladas
@@ -102,8 +106,7 @@ void ObjectGameWorld::actualizarPosVisualEntidad(EntityAnimationState& animation
 }
 
 void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
-                                            const uint32_t current_tick,
-                                            GestorAudio& gestorAudio) {
+                                        const uint32_t current_tick, GestorAudio& gestorAudio) {
     const int previous_pos_x = posX;
     const int previous_pos_y = posY;
 
@@ -112,30 +115,25 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         if (auto* entity_position = std::get_if<MensajePosicionEntidad>(&mensaje.payload)) {
             const auto previous_entity = entidades.find(entity_position->id);
             const bool esNueva = (previous_entity == entidades.end());
-            const int previous_x =
-                    (previous_entity != entidades.end()) ? previous_entity->second.x : entity_position->x;
-            const int previous_y =
-                    (previous_entity != entidades.end()) ? previous_entity->second.y : entity_position->y;
+            const int previous_x = (previous_entity != entidades.end()) ? previous_entity->second.x
+                                                                        : entity_position->x;
+            const int previous_y = (previous_entity != entidades.end()) ? previous_entity->second.y
+                                                                        : entity_position->y;
             const bool position_changed =
                     (entity_position->x != previous_x || entity_position->y != previous_y);
 
-            entidades[entity_position->id] = EntidadRenderizable{entity_position->x,
-                                                                 entity_position->y,
-                                                                 entity_position->tipo,
-                                                                 entity_position->estado,
-                                                                 entity_position->cabeza,
-                                                                 entity_position->cuerpo,
-                                                                 entity_position->arma,
-                                                                 entity_position->escudo,
-                                                                 entity_position->casco,
-                                                                 entity_position->mapaId};
+            entidades[entity_position->id] = EntidadRenderizable{
+                    entity_position->x,      entity_position->y,      entity_position->tipo,
+                    entity_position->estado, entity_position->cabeza, entity_position->cuerpo,
+                    entity_position->arma,   entity_position->escudo, entity_position->casco,
+                    entity_position->mapaId};
 
             EntityAnimationState& animation_state = animation_states[entity_position->id];
             if (position_changed) {
-                int current_row = animation_row_for_delta(
-                        static_cast<int>(entity_position->x) - previous_x,
-                        static_cast<int>(entity_position->y) - previous_y,
-                        animation_state.animation_row);
+                int current_row =
+                        animation_row_for_delta(static_cast<int>(entity_position->x) - previous_x,
+                                                static_cast<int>(entity_position->y) - previous_y,
+                                                animation_state.animation_row);
                 animation_state.animation_row = current_row;
                 animation_state.walk_frame += 2;  // avanza el cuadro de caminata por tile
                 animation_state.last_motion_tick = current_tick;
@@ -172,7 +170,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
             oroEnSuelo_.clear();
             itemEnSuelo_.clear();
-        } else if (auto* entity_disappeared = std::get_if<MensajeEntidadDesaparecio>(&mensaje.payload)) {
+        } else if (auto* entity_disappeared =
+                           std::get_if<MensajeEntidadDesaparecio>(&mensaje.payload)) {
             entidades.erase(entity_disappeared->id);
             animation_states.erase(entity_disappeared->id);
         } else if (auto* dead_entity = std::get_if<MensajeMuerteEntidad>(&mensaje.payload)) {
@@ -180,9 +179,8 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 gestorAudio.reproducirEfecto("muereJugador");
             } else if (const auto it = entidades.find(dead_entity->id); it != entidades.end()) {
                 const char* claveMuerte =
-                        (it->second.tipo == static_cast<uint8_t>(TipoEntidad::Criatura))
-                                ? "matar"
-                                : "muerte";
+                        (it->second.tipo == static_cast<uint8_t>(TipoEntidad::Criatura)) ? "matar"
+                                                                                         : "muerte";
                 gestorAudio.reproducirEfectoPosicional(
                         claveMuerte, distanciaAlJugador(it->second.x, it->second.y));
             }
@@ -218,28 +216,35 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
                 resurreccionDuracionMs_ = estado->tiempoResurreccionMs;
                 gestorAudio.iniciarResurreccion();
             }
-            const bool vivo = (estado->estado == static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo));
-            const bool vidaCritica = vivo && estado->vidaMax > 0 &&
-                                     (estado->vidaActual * 100 / estado->vidaMax) <= UMBRAL_VIDA_BAJA;
+            const bool vivo =
+                    (estado->estado == static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo));
+            const bool vidaCritica =
+                    vivo && estado->vidaMax > 0 &&
+                    (estado->vidaActual * 100 / estado->vidaMax) <= UMBRAL_VIDA_BAJA;
             if (vidaCritica && !vidaBajaAvisada) {
                 gestorAudio.reproducirEfecto("vidaBaja");
             }
             // Suba marcada de vida/mana => curacion o pocion (no la regen natural).
             if (vidaAnterior > 0 && estado->vidaActual >= vidaAnterior + UMBRAL_CURACION) {
                 gestorAudio.reproducirEfecto("curarVida");
-                agregarLineaChat("Recuperaste " + std::to_string(estado->vidaActual - vidaAnterior) +
-                                 " de vida.", TipoMensajeChat::Recuperacion);
+                agregarLineaChat("Recuperaste " +
+                                         std::to_string(estado->vidaActual - vidaAnterior) +
+                                         " de vida.",
+                                 TipoMensajeChat::Recuperacion);
             }
             if (manaAnterior > 0 && estado->manaActual >= manaAnterior + UMBRAL_CURACION) {
                 gestorAudio.reproducirEfecto("curarMana");
-                agregarLineaChat("Recuperaste " + std::to_string(estado->manaActual - manaAnterior) +
-                                 " de mana.", TipoMensajeChat::Recuperacion);
+                agregarLineaChat("Recuperaste " +
+                                         std::to_string(estado->manaActual - manaAnterior) +
+                                         " de mana.",
+                                 TipoMensajeChat::Recuperacion);
             }
             // Ganancia de experiencia (el guard evita el mensaje espurio al conectar).
             if (experienciaAnterior > 0 && estado->experiencia > experienciaAnterior) {
                 agregarLineaChat("Ganaste " +
-                                 std::to_string(estado->experiencia - experienciaAnterior) +
-                                 " de experiencia.", TipoMensajeChat::Experiencia);
+                                         std::to_string(estado->experiencia - experienciaAnterior) +
+                                         " de experiencia.",
+                                 TipoMensajeChat::Experiencia);
             }
             // Aumento de oro => juntar monedas (del suelo) o el cheat de oro (F4).
             if (oroAnterior > 0 && estado->oro > oroAnterior) {
@@ -254,9 +259,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             estadoAnterior = estado->estado;
             // Stats para el panel derecho.
             estadoJugador_ = EstadoJugador{estado->vidaActual, estado->vidaMax,
-                                           estado->manaActual, estado->manaMax, estado->oro,
-                                           estado->experiencia, estado->nivel, estado->raza,
-                                           estado->clase, estado->expSiguienteNivel};
+                                           estado->manaActual, estado->manaMax,
+                                           estado->oro,        estado->experiencia,
+                                           estado->nivel,      estado->raza,
+                                           estado->clase,      estado->expSiguienteNivel};
             std::cout << "[cliente] estado personaje: vida " << estado->vidaActual << "/"
                       << estado->vidaMax << ", mana " << estado->manaActual << "/"
                       << estado->manaMax << ", oro " << estado->oro << ", nivel "
@@ -269,7 +275,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
         } else if (auto* dano_recibido = std::get_if<MensajeDanoRecibido>(&mensaje.payload)) {
             gestorAudio.reproducirEfecto("recibirDanio");
-            
+
             if (const auto it = entidades.find(dano_recibido->idAtacante);
                 it != entidades.end() &&
                 it->second.tipo == static_cast<uint8_t>(TipoEntidad::Criatura)) {
@@ -278,23 +284,35 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
             if (dano_recibido->esCritico) {
                 agregarLineaChat("Te dieron un golpe CRITICO de " +
-                                 std::to_string(dano_recibido->cantidad) + " de dano.",
+                                         std::to_string(dano_recibido->cantidad) + " de dano.",
                                  TipoMensajeChat::CriticoRecibido);
             } else {
                 agregarLineaChat("Te atacaron y recibiste " +
-                                 std::to_string(dano_recibido->cantidad) + " de dano.",
+                                         std::to_string(dano_recibido->cantidad) + " de dano.",
                                  TipoMensajeChat::Ataque);
             }
         } else if (auto* dano_producido = std::get_if<MensajeDanoProducido>(&mensaje.payload)) {
             // El sonido depende del arma con que se golpeo (lo decide el server).
             const char* claveAtaque = "ataqueEspada";
             switch (static_cast<TipoGolpe>(dano_producido->tipoGolpe)) {
-                case TipoGolpe::Hacha:     claveAtaque = "ataqueHacha"; break;
-                case TipoGolpe::Martillo:  claveAtaque = "ataqueMartillo"; break;
-                case TipoGolpe::Disparo:   claveAtaque = "disparoDistancia"; break;
-                case TipoGolpe::Hechizo:   claveAtaque = "lanzarHechizo"; break;
-                case TipoGolpe::Explosion: claveAtaque = "explosion"; break;
-                case TipoGolpe::Espada:    claveAtaque = "ataqueEspada"; break;
+                case TipoGolpe::Hacha:
+                    claveAtaque = "ataqueHacha";
+                    break;
+                case TipoGolpe::Martillo:
+                    claveAtaque = "ataqueMartillo";
+                    break;
+                case TipoGolpe::Disparo:
+                    claveAtaque = "disparoDistancia";
+                    break;
+                case TipoGolpe::Hechizo:
+                    claveAtaque = "lanzarHechizo";
+                    break;
+                case TipoGolpe::Explosion:
+                    claveAtaque = "explosion";
+                    break;
+                case TipoGolpe::Espada:
+                    claveAtaque = "ataqueEspada";
+                    break;
             }
             if (const auto it = entidades.find(dano_producido->idObjetivo); it != entidades.end()) {
                 gestorAudio.reproducirEfectoPosicional(
@@ -304,7 +322,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
             if (dano_producido->esCritico) {
                 agregarLineaChat("Hiciste un golpe CRITICO de " +
-                                 std::to_string(dano_producido->cantidad) + " de dano.",
+                                         std::to_string(dano_producido->cantidad) + " de dano.",
                                  TipoMensajeChat::CriticoHecho);
             } else {
                 agregarLineaChat("Atacaste e hiciste " + std::to_string(dano_producido->cantidad) +
@@ -325,9 +343,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             } else if (mensaje_chat->tipo == static_cast<uint8_t>(CategoriaChat::Sistema)) {
                 tipoChat = TipoMensajeChat::Sistema;
             }
-            const std::string linea = mensaje_chat->nickOrigen.empty()
-                    ? mensaje_chat->mensaje
-                    : mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje;
+            const std::string linea =
+                    mensaje_chat->nickOrigen.empty()
+                            ? mensaje_chat->mensaje
+                            : mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje;
             agregarLineaChat(linea, tipoChat);
         } else if (auto* error_accion = std::get_if<MensajeErrorAccion>(&mensaje.payload)) {
             // El cooldown de ataque es esperado al golpear seguido: no lo mostramos.
@@ -348,15 +367,15 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             animation_state.vis_init = true;
             animation_state.vis_last_tick = current_tick;
             gestorAudio.reproducirEfecto("reviviendo");
-            std::cout << "[cliente] resucitado en (" << resucitado->x << ", "
-                      << resucitado->y << ")" << std::endl;
+            std::cout << "[cliente] resucitado en (" << resucitado->x << ", " << resucitado->y
+                      << ")" << std::endl;
         } else if (auto* item_suelo = std::get_if<MensajeItemEnSuelo>(&mensaje.payload)) {
             gestorAudio.reproducirEfectoPosicional(
                     "caerObjeto", distanciaAlJugador(item_suelo->x, item_suelo->y));
             itemEnSuelo_.insert({item_suelo->x, item_suelo->y});
         } else if (auto* oro_suelo = std::get_if<MensajeOroEnSuelo>(&mensaje.payload)) {
-            gestorAudio.reproducirEfectoPosicional(
-                    "caerObjeto", distanciaAlJugador(oro_suelo->x, oro_suelo->y));
+            gestorAudio.reproducirEfectoPosicional("caerObjeto",
+                                                   distanciaAlJugador(oro_suelo->x, oro_suelo->y));
             oroEnSuelo_.insert({oro_suelo->x, oro_suelo->y});
         } else if (auto* inv = std::get_if<MensajeActualizarInventario>(&mensaje.payload)) {
             inventario_ = inv->slots_;
@@ -364,9 +383,11 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         } else if (auto* equip = std::get_if<MensajeActualizarEquipamiento>(&mensaje.payload)) {
             equipamiento_ = EquipamientoJugador{equip->arma, equip->baculo, equip->defensa,
                                                 equip->casco, equip->escudo};
-        } else if (auto* item_desaparecio = std::get_if<MensajeItemDesaparecioSuelo>(&mensaje.payload)) {
+        } else if (auto* item_desaparecio =
+                           std::get_if<MensajeItemDesaparecioSuelo>(&mensaje.payload)) {
             itemEnSuelo_.erase({item_desaparecio->x, item_desaparecio->y});
-        } else if (auto* oro_desaparecio = std::get_if<MensajeOroDesaparecioSuelo>(&mensaje.payload)) {
+        } else if (auto* oro_desaparecio =
+                           std::get_if<MensajeOroDesaparecioSuelo>(&mensaje.payload)) {
             oroEnSuelo_.erase({oro_desaparecio->x, oro_desaparecio->y});
         } else if (auto* recibir_lista_items = std::get_if<MensajeListaItems>(&mensaje.payload)) {
             // El stock se muestra en el panel de comercio; no ensuciamos el chat con ids.
@@ -398,7 +419,7 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         }
     }
 
-    
+
     const auto miAnimacion = animation_states.find(idCliente);
     if (miAnimacion != animation_states.end() && miAnimacion->second.is_moving) {
         gestorAudio.reproducirPasos();

@@ -5,9 +5,9 @@
 #include <limits>
 
 #include "../../common/game/aleatorio.h"
+#include "../../common/protocolo/tipo_entidad.h"
 #include "objeto/catalogo_items.h"
 #include "reglas/reglas_juego.h"
-#include "../../common/protocolo/tipo_entidad.h"
 
 static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t maximo, float delta) {
     if (actual >= maximo) {
@@ -29,7 +29,8 @@ static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t max
     }
 }
 
-Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo, Posicion posicion, const ConfigJuego& config) :
+Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza,
+                 uint16_t cabeza, uint16_t cuerpo, Posicion posicion, const ConfigJuego& config) :
         idJugador(id),
         nombre(nombre),
         nivel(1),
@@ -66,7 +67,7 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         moviendose(false),
         direccionMov(0),
         ticksAcumuladosMov(0) {
-    
+
     cuerpoBase = cuerpo;
     const StatsRaza& sr = cfg.statsRaza(raza);
 
@@ -75,11 +76,9 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
     inteligencia = static_cast<uint8_t>(sr.inteligencia);
     constitucion = static_cast<uint8_t>(sr.constitucion);
 
-    vidaMax = ReglasJuego::calcularVidaMaxima(
-            cfg, raza, clase, nivel, constitucion);
+    vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
 
-    manaMax = ReglasJuego::calcularManaMaximo(
-            cfg, raza, clase, nivel, inteligencia);
+    manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
@@ -108,8 +107,7 @@ void Jugador::restaurar(const DatosRestauracion& datos) {
     oroBanco = datos.oroBanco;
     oroPerdidoPendiente = datos.oroPerdidoPendiente;
 
-    inventario.restaurar(datos.slotsInventario,
-                         datos.equipArma, datos.equipBaculo,
+    inventario.restaurar(datos.slotsInventario, datos.equipArma, datos.equipBaculo,
                          datos.equipDefensa, datos.equipCasco, datos.equipEscudo);
 
     idItemsBanco = datos.itemsBanco;
@@ -132,20 +130,19 @@ void Jugador::recibir_danio(uint16_t cantidad) {
     }
 }
 
-ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
-                                                bool esCritico,
-                                                const CatalogoItems& catalogo,
-                                                Aleatorio& aleatorio,
+ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio, bool esCritico,
+                                                const CatalogoItems& catalogo, Aleatorio& aleatorio,
                                                 float multiplicadorDefensa) {
-    // Defensor muerto o flag debug invulnerable: el ataque no impacta pero tampoco fue esquivado. Reportamos Golpeado{0} para que el caller no  confunda este caso con una evasión real.
+    // Defensor muerto o flag debug invulnerable: el ataque no impacta pero tampoco fue esquivado.
+    // Reportamos Golpeado{0} para que el caller no  confunda este caso con una evasión real.
 
     if (!estaVivo() || cfg.invulnerable || vidaInfinita) {
-        return { ResultadoDefensa::Tipo::Golpeado, 0 };
+        return {ResultadoDefensa::Tipo::Golpeado, 0};
     }
 
     // El crítico omite la fase de evasión. La absorción se sigue aplicando.
     if (!esCritico && esquiva_ataque(aleatorio)) {
-        return { ResultadoDefensa::Tipo::Esquivo, 0 };
+        return {ResultadoDefensa::Tipo::Esquivo, 0};
     }
 
     uint16_t absorcion = 0;
@@ -154,8 +151,8 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idDefensa != 0) {
         const Defensa* defensa = catalogo.comoDefensa(idDefensa);
         if (defensa != nullptr) {
-            absorcion += aleatorio.enteroEnRango<uint16_t>(
-                    defensa->getDefMin(), defensa->getDefMax());
+            absorcion +=
+                    aleatorio.enteroEnRango<uint16_t>(defensa->getDefMin(), defensa->getDefMax());
         }
     }
 
@@ -163,8 +160,7 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idCasco != 0) {
         const Defensa* casco = catalogo.comoDefensa(idCasco);
         if (casco != nullptr) {
-            absorcion += aleatorio.enteroEnRango<uint16_t>(
-                    casco->getDefMin(), casco->getDefMax());
+            absorcion += aleatorio.enteroEnRango<uint16_t>(casco->getDefMin(), casco->getDefMax());
         }
     }
 
@@ -172,17 +168,17 @@ ResultadoDefensa Jugador::recibir_ataque_fisico(uint16_t danio,
     if (idEscudo != 0) {
         const Defensa* escudo = catalogo.comoDefensa(idEscudo);
         if (escudo != nullptr) {
-            absorcion += aleatorio.enteroEnRango<uint16_t>(
-                    escudo->getDefMin(), escudo->getDefMax());
+            absorcion +=
+                    aleatorio.enteroEnRango<uint16_t>(escudo->getDefMin(), escudo->getDefMax());
         }
     }
 
-    const uint16_t absorcionFinal = ReglasJuego::aplicarMultiplicadorCombate(
-            absorcion, multiplicadorDefensa);
+    const uint16_t absorcionFinal =
+            ReglasJuego::aplicarMultiplicadorCombate(absorcion, multiplicadorDefensa);
     const uint16_t danioFinal = danio > absorcionFinal ? danio - absorcionFinal : 0;
     recibir_danio(danioFinal);
 
-    return { ResultadoDefensa::Tipo::Golpeado, danioFinal };
+    return {ResultadoDefensa::Tipo::Golpeado, danioFinal};
 }
 
 void Jugador::curar(uint16_t cantidad) {
@@ -190,13 +186,11 @@ void Jugador::curar(uint16_t cantidad) {
         return;
     }
 
-    vidaActual = static_cast<uint16_t>(
-            std::min<uint32_t>(vidaActual + cantidad, vidaMax));
+    vidaActual = static_cast<uint16_t>(std::min<uint32_t>(vidaActual + cantidad, vidaMax));
 }
 
 void Jugador::recuperar_mana(uint16_t cantidad) {
-    manaActual = static_cast<uint16_t>(
-            std::min<uint32_t>(manaActual + cantidad, manaMax));
+    manaActual = static_cast<uint16_t>(std::min<uint32_t>(manaActual + cantidad, manaMax));
 }
 
 void Jugador::recuperar(float segundos) {
@@ -213,32 +207,23 @@ void Jugador::recuperar(float segundos) {
     }
 
     if (vidaActual < vidaMax) {
-        aplicarRecuperacion(
-                recuperacionVidaPendiente,
-                vidaActual,
-                vidaMax,
-                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+        aplicarRecuperacion(recuperacionVidaPendiente, vidaActual, vidaMax,
+                            ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
     } else {
         recuperacionVidaPendiente = 0.0f;
     }
 
     if (manaActual < manaMax) {
-        aplicarRecuperacion(
-                recuperacionManaPendiente,
-                manaActual,
-                manaMax,
-                ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
+        aplicarRecuperacion(recuperacionManaPendiente, manaActual, manaMax,
+                            ReglasJuego::calcularRecuperacionNatural(cfg, raza, segundos));
     } else {
         recuperacionManaPendiente = 0.0f;
     }
 
     if (estado == Estado::Meditando && manaActual < manaMax) {
         aplicarRecuperacion(
-                meditacionManaPendiente,
-                manaActual,
-                manaMax,
-                ReglasJuego::calcularRecuperacionMeditacion(
-                        cfg, clase, inteligencia, segundos));
+                meditacionManaPendiente, manaActual, manaMax,
+                ReglasJuego::calcularRecuperacionMeditacion(cfg, clase, inteligencia, segundos));
 
         if (manaActual >= manaMax) {
             manaActual = manaMax;
@@ -268,8 +253,7 @@ void Jugador::ganar_experiencia(uint32_t cantidad) {
         cantidad = (cantidad > maximo / 10) ? maximo : cantidad * 10;
     }
 
-    const uint32_t espacioDisponible =
-            std::numeric_limits<uint32_t>::max() - experiencia;
+    const uint32_t espacioDisponible = std::numeric_limits<uint32_t>::max() - experiencia;
     experiencia += std::min(cantidad, espacioDisponible);
 
     while (nivel < std::numeric_limits<uint8_t>::max()) {
@@ -427,8 +411,9 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo, Aleatorio&
     const uint16_t danioBaseArma = aleatorio.enteroEnRango<uint16_t>(danioArmaMin, danioArmaMax);
 
     // Daño = Fuerza * rand(DañoArmaMin, DañoArmaMax)
-    // El crítico duplica el daño. El flag se propaga al caller para que el defensor pueda saltear su esquive.
-    // Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder 65535 con stats altos (ej. 255 * 65535) y el cast directo truncaría.
+    // El crítico duplica el daño. El flag se propaga al caller para que el defensor pueda saltear
+    // su esquive. Saturamos en uint16_t::max porque fuerza * danioBaseArma puede exceder 65535 con
+    // stats altos (ej. 255 * 65535) y el cast directo truncaría.
 
     const bool esGolpeCritico = es_golpe_critico(aleatorio);
     const uint32_t danioCrudo = static_cast<uint32_t>(fuerza) * danioBaseArma;
@@ -436,64 +421,48 @@ ResultadoDanio Jugador::calcular_danio(const CatalogoItems& catalogo, Aleatorio&
     const uint16_t danioCalculado = static_cast<uint16_t>(
             std::min<uint32_t>(danioConCritico, std::numeric_limits<uint16_t>::max()));
 
-    return ResultadoDanio{ danioCalculado, esGolpeCritico };
+    return ResultadoDanio{danioCalculado, esGolpeCritico};
 }
 
 DescriptorAtaque Jugador::describir_ataque(const CatalogoItems& catalogo) const {
     const uint16_t idArmaEquipada = inventario.getArmaEquipada();
     const uint16_t idBaculoEquipado = inventario.getBaculoEquipado();
 
-    // Arma y báculo son mutuamente excluyentes. Si por alguna razón ambos slots están ocupados (inconsistencia), priorizamos el arma física.
+    // Arma y báculo son mutuamente excluyentes. Si por alguna razón ambos slots están ocupados
+    // (inconsistencia), priorizamos el arma física.
     if (idArmaEquipada != 0) {
         const Arma* armaEquipada = catalogo.comoArma(idArmaEquipada);
         if (armaEquipada != nullptr && armaEquipada->esArmaDistancia()) {
-            return DescriptorAtaque{
-                TipoAtaque::Distancia,
-                cfg.rangoVisionAtaque,
-                /*costoMana=*/0
-            };
+            return DescriptorAtaque{TipoAtaque::Distancia, cfg.rangoVisionAtaque,
+                                    /*costoMana=*/0};
         }
-        
-        return DescriptorAtaque{
-            TipoAtaque::CuerpoACuerpo,
-            cfg.rangoAtaqueCuerpo,
-            /*costoMana=*/0
-        };
+
+        return DescriptorAtaque{TipoAtaque::CuerpoACuerpo, cfg.rangoAtaqueCuerpo,
+                                /*costoMana=*/0};
     }
 
     if (idBaculoEquipado != 0) {
         if (!puedeUsarMagia()) {
-            return DescriptorAtaque{
-                TipoAtaque::HechizoNoOfensivo,
-                cfg.rangoVisionAtaque,
-                /*costoMana=*/0
-            };
+            return DescriptorAtaque{TipoAtaque::HechizoNoOfensivo, cfg.rangoVisionAtaque,
+                                    /*costoMana=*/0};
         }
 
         const Baculo* baculoEquipado = catalogo.comoBaculo(idBaculoEquipado);
         if (baculoEquipado != nullptr) {
-            // El hechizo Curar no es un ataque ofensivo: no debe procesarse por el comando ATACAR. `Juego` lo verá y devolverá error.
+            // El hechizo Curar no es un ataque ofensivo: no debe procesarse por el comando ATACAR.
+            // `Juego` lo verá y devolverá error.
             if (baculoEquipado->getHechizo() == TipoHechizo::Curar) {
-                return DescriptorAtaque{
-                    TipoAtaque::HechizoNoOfensivo,
-                    cfg.rangoVisionAtaque,
-                    baculoEquipado->getCostoMana()
-                };
+                return DescriptorAtaque{TipoAtaque::HechizoNoOfensivo, cfg.rangoVisionAtaque,
+                                        baculoEquipado->getCostoMana()};
             }
-            return DescriptorAtaque{
-                TipoAtaque::Hechizo,
-                cfg.rangoVisionAtaque,
-                baculoEquipado->getCostoMana()
-            };
+            return DescriptorAtaque{TipoAtaque::Hechizo, cfg.rangoVisionAtaque,
+                                    baculoEquipado->getCostoMana()};
         }
     }
 
     // Sin arma ni báculo (puño)
-    return DescriptorAtaque{
-        TipoAtaque::CuerpoACuerpo,
-        cfg.rangoAtaqueCuerpo,
-        /*costoMana=*/0
-    };
+    return DescriptorAtaque{TipoAtaque::CuerpoACuerpo, cfg.rangoAtaqueCuerpo,
+                            /*costoMana=*/0};
 }
 
 bool Jugador::agregar_item(uint16_t idItem) {
@@ -608,9 +577,15 @@ void Jugador::actualizarVestimenta(const CatalogoItems& catalogo) {
     spriteCasco = spriteDe(inventario.getCascoEquipado());
 }
 
-uint16_t Jugador::getSpriteArma() const { return spriteArma; }
-uint16_t Jugador::getSpriteEscudo() const { return spriteEscudo; }
-uint16_t Jugador::getSpriteCasco() const { return spriteCasco; }
+uint16_t Jugador::getSpriteArma() const {
+    return spriteArma;
+}
+uint16_t Jugador::getSpriteEscudo() const {
+    return spriteEscudo;
+}
+uint16_t Jugador::getSpriteCasco() const {
+    return spriteCasco;
+}
 
 bool Jugador::agregar_item_banco(uint8_t indice) {
     uint16_t idItem = inventario.quitarDeSlot(indice);
@@ -823,11 +798,9 @@ std::vector<uint16_t> Jugador::getIdItemsBanco() const {
 void Jugador::subirNivel() {
     nivel++;
 
-    vidaMax = ReglasJuego::calcularVidaMaxima(
-            cfg, raza, clase, nivel, constitucion);
+    vidaMax = ReglasJuego::calcularVidaMaxima(cfg, raza, clase, nivel, constitucion);
 
-    manaMax = ReglasJuego::calcularManaMaximo(
-            cfg, raza, clase, nivel, inteligencia);
+    manaMax = ReglasJuego::calcularManaMaximo(cfg, raza, clase, nivel, inteligencia);
 
     vidaActual = vidaMax;
     manaActual = manaMax;
@@ -846,8 +819,7 @@ void Jugador::morir() {
         perder_experiencia(experienciaAPerder);
     }
 
-    const uint32_t espacioPendiente =
-            std::numeric_limits<uint32_t>::max() - oroPerdidoPendiente;
+    const uint32_t espacioPendiente = std::numeric_limits<uint32_t>::max() - oroPerdidoPendiente;
     oroPerdidoPendiente += std::min(oroExceso, espacioPendiente);
     oroExceso = 0;
 }

@@ -23,7 +23,7 @@ std::string aNombreLindo(const std::string& clave) {
     return n;
 }
 
-}
+}  // namespace
 
 CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
     toml::table tbl;
@@ -41,7 +41,7 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
         return;
     }
 
-    
+
     for (const auto& [clave, valor] : *items) {
         const toml::table* item = valor.as_table();
         if (item == nullptr) {
@@ -60,7 +60,7 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
         porId[info.id] = info;
         claveAId[info.clave] = info.id;
     }
-    
+
     if (const toml::table* hechizosTbl = tbl["hechizos"].as_table()) {
         for (const auto& [clave, valor] : *hechizosTbl) {
             const toml::table* h = valor.as_table();
@@ -73,7 +73,8 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
             }
             HechizoInfo hi;
             hi.id = static_cast<uint16_t>(*id);
-            hi.nombre = (*h)["nombre"].value_or<std::string>(aNombreLindo(std::string(clave.str())));
+            hi.nombre =
+                    (*h)["nombre"].value_or<std::string>(aNombreLindo(std::string(clave.str())));
             hi.tipo = (*h)["tipo"].value_or<std::string>("danio");
             hi.mana = static_cast<uint16_t>((*h)["mana"].value_or<int64_t>(0));
             hi.precio = static_cast<uint32_t>((*h)["precio"].value_or<int64_t>(0));
@@ -95,8 +96,7 @@ CatalogoItems::CatalogoItems(const std::string& gameConfigPath) {
             const auto iid = static_cast<uint16_t>(*id);
             compraComerciante[iid] =
                     static_cast<uint32_t>((*entrada)["compra"].value_or<int64_t>(0));
-            ventaComerciante[iid] =
-                    static_cast<uint32_t>((*entrada)["venta"].value_or<int64_t>(0));
+            ventaComerciante[iid] = static_cast<uint32_t>((*entrada)["venta"].value_or<int64_t>(0));
         }
     }
 }

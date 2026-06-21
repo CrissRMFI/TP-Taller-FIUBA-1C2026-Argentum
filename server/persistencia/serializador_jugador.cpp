@@ -8,10 +8,8 @@
 
 #include "../game/jugador.h"
 
-Jugador SerializadorJugador::aJugador(uint16_t sessionId,
-                                      const RegistroJugador& reg,
-                                      const ConfigJuego& cfg,
-                                      const CatalogoItems& catalogo) {
+Jugador SerializadorJugador::aJugador(uint16_t sessionId, const RegistroJugador& reg,
+                                      const ConfigJuego& cfg, const CatalogoItems& catalogo) {
     const std::string nombre(reg.nombre);
     const ClasePersonaje clase = static_cast<ClasePersonaje>(reg.clase);
     const Raza raza = static_cast<Raza>(reg.raza);

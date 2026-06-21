@@ -9,19 +9,19 @@
 #include <string>
 
 #include "SDL2pp/Texture.hh"
-#include "common/game/npc/npc.h"
 #include "client/interface/sprites/sprite_catalog.h"
 #include "client/interface/texture_cache.h"
+#include "common/game/npc/npc.h"
 
 struct ResolvedNpcPart {
     SDL2pp::Texture* texture;
 };
 
 struct ResolvedNpcSprite {
-    //std::optional<ResolvedNpcPart> head;
+    // std::optional<ResolvedNpcPart> head;
     std::optional<ResolvedNpcPart> body;
     SpriteVec2 size;
-   // SpriteRect src_head;
+    // SpriteRect src_head;
     SpriteRect src;
     SpriteVec2 offset;
 };

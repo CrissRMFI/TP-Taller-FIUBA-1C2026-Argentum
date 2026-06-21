@@ -3,13 +3,13 @@
 Npc::Npc(uint16_t id, TipoNpc tipo, Posicion posicion) : id(id), tipo(tipo), posicion(posicion) {}
 
 uint16_t Npc::getId() const {
-  return id;
+    return id;
 }
 
 TipoNpc Npc::getTipo() const {
-  return tipo;
+    return tipo;
 }
 
 Posicion Npc::getPosicion() const {
-  return posicion;
+    return posicion;
 }

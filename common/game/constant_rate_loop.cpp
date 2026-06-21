@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <thread>
 
-ConstantRateLoop::ConstantRateLoop(const std::chrono::milliseconds tick):
-    tick(tick), running(true) {
+ConstantRateLoop::ConstantRateLoop(const std::chrono::milliseconds tick) :
+        tick(tick), running(true) {
     if (tick.count() <= 0) {
         throw std::invalid_argument("El tick del constant rate loop debe ser mayor a cero");
     }

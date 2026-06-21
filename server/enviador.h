@@ -9,7 +9,7 @@
 #include "protocolo/protocolo_servidor.h"
 
 
-class Enviador: public Thread {
+class Enviador : public Thread {
 private:
     ProtocoloServidor& protocolo;
     Queue<MensajeServidor>& colaSalida;
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif //TALLER_TP_ENVIADOR_H
+#endif  // TALLER_TP_ENVIADOR_H

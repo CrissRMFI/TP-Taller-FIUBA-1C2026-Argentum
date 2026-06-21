@@ -2,21 +2,36 @@
 
 #include <algorithm>
 
-EditorMapa::EditorMapa(uint16_t ancho, uint16_t alto):
-        ancho(ancho), alto(alto), mapaId(0), pisoBase("vacio"),
-        marcadorX(0), marcadorY(0) {}
+EditorMapa::EditorMapa(uint16_t ancho, uint16_t alto) :
+        ancho(ancho), alto(alto), mapaId(0), pisoBase("vacio"), marcadorX(0), marcadorY(0) {}
 
-uint16_t EditorMapa::getAncho() const { return ancho; }
-uint16_t EditorMapa::getAlto() const { return alto; }
-uint16_t EditorMapa::getMapaId() const { return mapaId; }
-void EditorMapa::setMapaId(uint16_t id) { mapaId = id; }
-const std::string& EditorMapa::getPisoBase() const { return pisoBase; }
+uint16_t EditorMapa::getAncho() const {
+    return ancho;
+}
+uint16_t EditorMapa::getAlto() const {
+    return alto;
+}
+uint16_t EditorMapa::getMapaId() const {
+    return mapaId;
+}
+void EditorMapa::setMapaId(uint16_t id) {
+    mapaId = id;
+}
+const std::string& EditorMapa::getPisoBase() const {
+    return pisoBase;
+}
 const std::optional<VinculoMazmorra>& EditorMapa::getVinculoMazmorra() const {
     return vinculoMazmorra;
 }
-bool EditorMapa::esMazmorra() const { return mapaId != 0; }
-uint16_t EditorMapa::getMarcadorX() const { return marcadorX; }
-uint16_t EditorMapa::getMarcadorY() const { return marcadorY; }
+bool EditorMapa::esMazmorra() const {
+    return mapaId != 0;
+}
+uint16_t EditorMapa::getMarcadorX() const {
+    return marcadorX;
+}
+uint16_t EditorMapa::getMarcadorY() const {
+    return marcadorY;
+}
 void EditorMapa::setMarcador(uint16_t x, uint16_t y) {
     if (dentroDeLimites(x, y)) {
         marcadorX = x;
@@ -140,8 +155,8 @@ void EditorMapa::pintarParedes(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
     }
 }
 
-void EditorMapa::pintarPiso(const std::string& clave, uint16_t x1, uint16_t y1,
-                            uint16_t x2, uint16_t y2) {
+void EditorMapa::pintarPiso(const std::string& clave, uint16_t x1, uint16_t y1, uint16_t x2,
+                            uint16_t y2) {
     const uint16_t xMin = std::min(x1, x2);
     const uint16_t yMin = std::min(y1, y2);
     const uint16_t xMax = std::max(x1, x2);
@@ -172,7 +187,8 @@ bool EditorMapa::todoCubierto() const {
 void EditorMapa::borrarEn(uint16_t x, uint16_t y) {
     // Goma "de arriba hacia abajo": saca lo primero que encuentre en la celda.
     // 1) Entidades (criatura / npc).
-    for (std::vector<CriaturaEditor>::iterator it = criaturas.begin(); it != criaturas.end(); ++it) {
+    for (std::vector<CriaturaEditor>::iterator it = criaturas.begin(); it != criaturas.end();
+         ++it) {
         if (it->x == x && it->y == y) {
             criaturas.erase(it);
             return;
@@ -214,12 +230,24 @@ void EditorMapa::borrarEn(uint16_t x, uint16_t y) {
     }
 }
 
-const std::vector<Posicion>&       EditorMapa::getParedes() const { return paredes; }
-const std::vector<Ciudad>&         EditorMapa::getCiudades() const { return ciudades; }
-const std::vector<NpcEditor>&      EditorMapa::getNpcs() const { return npcs; }
-const std::vector<CriaturaEditor>& EditorMapa::getCriaturas() const { return criaturas; }
-const std::vector<ZonaPiso>&       EditorMapa::getPisos() const { return pisos; }
-const std::vector<ObjetoEditor>&   EditorMapa::getObjetos() const { return objetos; }
+const std::vector<Posicion>& EditorMapa::getParedes() const {
+    return paredes;
+}
+const std::vector<Ciudad>& EditorMapa::getCiudades() const {
+    return ciudades;
+}
+const std::vector<NpcEditor>& EditorMapa::getNpcs() const {
+    return npcs;
+}
+const std::vector<CriaturaEditor>& EditorMapa::getCriaturas() const {
+    return criaturas;
+}
+const std::vector<ZonaPiso>& EditorMapa::getPisos() const {
+    return pisos;
+}
+const std::vector<ObjetoEditor>& EditorMapa::getObjetos() const {
+    return objetos;
+}
 
 void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
     if (nuevoAncho == 0 || nuevoAlto == 0) {
@@ -230,37 +258,58 @@ void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
 
     // Al achicar, descartamos las entidades que quedan fuera del nuevo rectangulo.
 
-    const auto fuera = [&](uint16_t x, uint16_t y) { return x >= ancho || y >= alto; };
+    const auto fuera = [&](uint16_t x, uint16_t y) {
+        return x >= ancho || y >= alto;
+    };
 
     paredes.erase(std::remove_if(paredes.begin(), paredes.end(),
-                  [&](const Posicion& p) { return fuera(p.x, p.y); }), paredes.end());
+                                 [&](const Posicion& p) {
+                                     return fuera(p.x, p.y);
+                                 }),
+                  paredes.end());
 
     objetos.erase(std::remove_if(objetos.begin(), objetos.end(),
-                  [&](const ObjetoEditor& o) { return fuera(o.x, o.y); }), objetos.end());
+                                 [&](const ObjetoEditor& o) {
+                                     return fuera(o.x, o.y);
+                                 }),
+                  objetos.end());
 
     npcs.erase(std::remove_if(npcs.begin(), npcs.end(),
-               [&](const NpcEditor& n) { return fuera(n.x, n.y); }), npcs.end());
+                              [&](const NpcEditor& n) {
+                                  return fuera(n.x, n.y);
+                              }),
+               npcs.end());
 
     criaturas.erase(std::remove_if(criaturas.begin(), criaturas.end(),
-                    [&](const CriaturaEditor& c) { return fuera(c.x, c.y); }), criaturas.end());
+                                   [&](const CriaturaEditor& c) {
+                                       return fuera(c.x, c.y);
+                                   }),
+                    criaturas.end());
 
     // Zonas (pisos / ciudades): sacamos las que quedan totalmente afuera y se
     // recortan al nuevo limite las que sobresalen.
     const auto recortarZonas = [&](auto& zonas) {
         zonas.erase(std::remove_if(zonas.begin(), zonas.end(),
-                    [&](const auto& z) { return z.xMin >= ancho || z.yMin >= alto; }),
+                                   [&](const auto& z) {
+                                       return z.xMin >= ancho || z.yMin >= alto;
+                                   }),
                     zonas.end());
         for (auto& z : zonas) {
-            if (z.xMax >= ancho) z.xMax = static_cast<uint16_t>(ancho - 1);
-            if (z.yMax >= alto)  z.yMax = static_cast<uint16_t>(alto - 1);
+            if (z.xMax >= ancho)
+                z.xMax = static_cast<uint16_t>(ancho - 1);
+            if (z.yMax >= alto)
+                z.yMax = static_cast<uint16_t>(alto - 1);
         }
     };
     recortarZonas(pisos);
     recortarZonas(ciudades);
 
-    // El portal de mazmorra no puede quedar fuera del nuevo tamaño por eso lo reubicamos al borde para no perder la entrada/salida al achicar el mapa. Nunca perdemos la mazmorera
-    if (marcadorX >= ancho) marcadorX = static_cast<uint16_t>(ancho - 1);
-    if (marcadorY >= alto)  marcadorY = static_cast<uint16_t>(alto - 1);
+    // El portal de mazmorra no puede quedar fuera del nuevo tamaño por eso lo reubicamos al borde
+    // para no perder la entrada/salida al achicar el mapa. Nunca perdemos la mazmorera
+    if (marcadorX >= ancho)
+        marcadorX = static_cast<uint16_t>(ancho - 1);
+    if (marcadorY >= alto)
+        marcadorY = static_cast<uint16_t>(alto - 1);
 }
 
 void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId,
@@ -275,8 +324,7 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId,
 
     pisoBase = "pasto";
     for (auto it = pisos.begin(); it != pisos.end(); ++it) {
-        if (it->xMin == 0 && it->yMin == 0 &&
-            it->xMax == static_cast<uint16_t>(ancho - 1) &&
+        if (it->xMin == 0 && it->yMin == 0 && it->xMax == static_cast<uint16_t>(ancho - 1) &&
             it->yMax == static_cast<uint16_t>(alto - 1)) {
             pisoBase = it->clave;
             pisos.erase(it);
@@ -291,16 +339,16 @@ void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId,
 
     npcs.clear();
     for (const auto& [id, npc] : mapa.getSacerdotes()) {
-        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Sacerdote,
-                                 npc.getPosicion().x, npc.getPosicion().y});
+        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Sacerdote, npc.getPosicion().x,
+                                 npc.getPosicion().y});
     }
     for (const auto& [id, npc] : mapa.getComerciantes()) {
-        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Comerciante,
-                                 npc.getPosicion().x, npc.getPosicion().y});
+        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Comerciante, npc.getPosicion().x,
+                                 npc.getPosicion().y});
     }
     for (const auto& [id, npc] : mapa.getBanqueros()) {
-        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Banquero,
-                                 npc.getPosicion().x, npc.getPosicion().y});
+        npcs.push_back(NpcEditor{npc.getId(), TipoNpc::Banquero, npc.getPosicion().x,
+                                 npc.getPosicion().y});
     }
 
     criaturas.clear();
@@ -315,8 +363,7 @@ Mapa EditorMapa::construirMapa() const {
     // Relleno base que cubre todo el mapa, debajo de las zonas pintadas (ultima
     // gana). En mapas nuevos es "vacio" (intransitable); en mapas viejos cargados,
     // "pasto", para no convertir en intransitable lo que antes era caminable.
-    mapa.agregarPiso(ZonaPiso{mapaId, 0, 0,
-                              static_cast<uint16_t>(ancho - 1),
+    mapa.agregarPiso(ZonaPiso{mapaId, 0, 0, static_cast<uint16_t>(ancho - 1),
                               static_cast<uint16_t>(alto - 1), pisoBase});
     for (const Posicion& p : paredes) {
         mapa.agregarPared(Posicion{p.x, p.y, mapaId});
@@ -328,8 +375,8 @@ Mapa EditorMapa::construirMapa() const {
         mapa.agregarNpc(Npc{n.id, n.tipo, Posicion{n.x, n.y, mapaId}});
     }
     for (const CriaturaEditor& c : criaturas) {
-        mapa.agregarCriatura(Criatura{c.id, c.tipo, 0, 0, 0, 0,
-                                      Posicion{c.x, c.y, mapaId}, 0, 0, 0, 0});
+        mapa.agregarCriatura(
+                Criatura{c.id, c.tipo, 0, 0, 0, 0, Posicion{c.x, c.y, mapaId}, 0, 0, 0, 0});
     }
     for (const ZonaPiso& p : pisos) {
         mapa.agregarPiso(ZonaPiso{mapaId, p.xMin, p.yMin, p.xMax, p.yMax, p.clave});

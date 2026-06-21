@@ -18,6 +18,7 @@ public:
     DatosConexion nickYaExistente(const DatosLogin& datosLogin);
     DatosConexion puertoHostInvalidos();
     DatosConexion usuarioYaConectado(const DatosLogin& datosLogin);
+
 private:
     QQuickView* ventana = nullptr;
     bool terminoRegistro = false;

@@ -15,17 +15,10 @@ private:
     SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
 
 public:
-
     explicit CriaturaRenderer(CreatureSpriteResolver& resolver);
 
-    void render(SDL2pp::Renderer& renderer,
-                const EntidadRenderizable& entity,
-                int entity_x,
-                int entity_y,
-                int cell_width,
-                int cell_height,
-                int animation_row,
-                int frame_index,
+    void render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity, int entity_x,
+                int entity_y, int cell_width, int cell_height, int animation_row, int frame_index,
                 bool resaltar = false) const;
 };
 

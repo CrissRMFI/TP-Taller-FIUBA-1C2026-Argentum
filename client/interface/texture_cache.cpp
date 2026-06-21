@@ -6,8 +6,8 @@
 #include "SDL.h"
 #include "SDL2pp/Surface.hh"
 
-TextureCache::TextureCache(SDL2pp::Renderer& renderer, std::string resources_root):
-    renderer_(renderer), resources_root_(std::move(resources_root)) {}
+TextureCache::TextureCache(SDL2pp::Renderer& renderer, std::string resources_root) :
+        renderer_(renderer), resources_root_(std::move(resources_root)) {}
 
 std::string TextureCache::resolve_path(const std::string& relative_path) const {
     const std::filesystem::path base(resources_root_);
@@ -21,8 +21,7 @@ SDL2pp::Texture& TextureCache::get_or_load(const std::string& relative_path) {
     }
 
     SDL2pp::Surface surface(resolve_path(relative_path));
-    SDL_SetColorKey(surface.Get(), SDL_TRUE,
-                    SDL_MapRGB(surface.Get()->format, 0, 0, 0));
+    SDL_SetColorKey(surface.Get(), SDL_TRUE, SDL_MapRGB(surface.Get()->format, 0, 0, 0));
     auto texture = std::make_unique<SDL2pp::Texture>(renderer_, surface);
     SDL2pp::Texture& texture_ref = *texture;
     textures_.emplace(relative_path, std::move(texture));

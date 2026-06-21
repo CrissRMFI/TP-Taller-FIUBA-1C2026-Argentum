@@ -38,13 +38,21 @@
 #define VENTANA_W 771
 #define VENTANA_H 719
 
-EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta):
+EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta) :
         modeloExterior(EDITOR_ANCHO_DEFAULT, EDITOR_ALTO_DEFAULT),
         modeloMazmorra(EDITOR_MAZMORRA_ANCHO, EDITOR_MAZMORRA_ALTO),
-        activo(&modeloExterior), catalogo(),
-        fondo(nullptr), canvas(nullptr), panel(nullptr),
-        descripcion(nullptr), recompensa(nullptr), barras(nullptr),
-        tabExterior(nullptr), tabMazmorra(nullptr), rutaActual(), volver(false) {
+        activo(&modeloExterior),
+        catalogo(),
+        fondo(nullptr),
+        canvas(nullptr),
+        panel(nullptr),
+        descripcion(nullptr),
+        recompensa(nullptr),
+        barras(nullptr),
+        tabExterior(nullptr),
+        tabMazmorra(nullptr),
+        rutaActual(),
+        volver(false) {
     setWindowTitle("Argentum - Editor de mapas");
 
     fondo = new QLabel(this);
@@ -70,7 +78,8 @@ EditorWindow::EditorWindow(OpcionInicio opcion, const QString& ruta):
             "Click der: borrar  ·  Ctrl+rueda: zoom  ·  boton del medio: mover");
     statusBar()->addPermanentWidget(ayuda);
 
-    // Arranque segun lo elegido en la pantalla de inicio: cargar el escenario o, si es nuevo, exterior vacio + mazmorra default.
+    // Arranque segun lo elegido en la pantalla de inicio: cargar el escenario o, si es nuevo,
+    // exterior vacio + mazmorra default.
     if (opcion == OpcionInicio::Cargar && !ruta.isEmpty()) {
         cargarEscenario(ruta);
     } else {
@@ -97,7 +106,9 @@ void EditorWindow::crearPanel() {
     // RECOMPENSAS: oro (debajo del rotulo RECOMPENSAS).
     recompensa = new QLabel(fondo);
     recompensa->setGeometry(652, 630, 96, 18);
-    recompensa->setStyleSheet("color: rgb(240, 210, 90); background: transparent;"" font-weight: bold;");
+    recompensa->setStyleSheet(
+            "color: rgb(240, 210, 90); background: transparent;"
+            " font-weight: bold;");
 
     // Barras de stats (vida / danio / nivel / oro) sobre los slots del bmp.
     barras = new BarrasStats(&catalogo, fondo);
@@ -109,7 +120,9 @@ void EditorWindow::crearPanel() {
     connect(botonGuardar, &QPushButton::clicked, this, &EditorWindow::guardar);
 }
 
-bool EditorWindow::pidioVolver() const { return volver; }
+bool EditorWindow::pidioVolver() const {
+    return volver;
+}
 
 void EditorWindow::crearSolapas() {
     // Solapas para alternar que mapa del escenario se edita (exterior / mazmorra).
@@ -125,14 +138,18 @@ void EditorWindow::crearSolapas() {
     tabExterior->setChecked(true);
     tabExterior->setStyleSheet(estilo);
     tabExterior->setCursor(Qt::PointingHandCursor);
-    connect(tabExterior, &QPushButton::clicked, this, [this] { cambiarSolapa(false); });
+    connect(tabExterior, &QPushButton::clicked, this, [this] {
+        cambiarSolapa(false);
+    });
 
     tabMazmorra = new QPushButton("Mazmorra", fondo);
     tabMazmorra->setGeometry(135, 66, 100, 22);
     tabMazmorra->setCheckable(true);
     tabMazmorra->setStyleSheet(estilo);
     tabMazmorra->setCursor(Qt::PointingHandCursor);
-    connect(tabMazmorra, &QPushButton::clicked, this, [this] { cambiarSolapa(true); });
+    connect(tabMazmorra, &QPushButton::clicked, this, [this] {
+        cambiarSolapa(true);
+    });
 }
 
 void EditorWindow::crearMenu() {
@@ -198,8 +215,7 @@ QString EditorWindow::rutaExteriorDe(const QString& rutaMazmorra) const {
 void EditorWindow::mazmorraDefaultEn(EditorMapa& modelo, uint16_t id) {
     // Mazmorra default: solo piso base de caverna; sin monstruos, paredes ni objetos.
     Mapa m(EDITOR_MAZMORRA_ANCHO, EDITOR_MAZMORRA_ALTO);
-    m.agregarPiso(ZonaPiso{id, 0, 0,
-                           static_cast<uint16_t>(EDITOR_MAZMORRA_ANCHO - 1),
+    m.agregarPiso(ZonaPiso{id, 0, 0, static_cast<uint16_t>(EDITOR_MAZMORRA_ANCHO - 1),
                            static_cast<uint16_t>(EDITOR_MAZMORRA_ALTO - 1), "piedra_oscura"});
     modelo.cargarDesde(m, id, std::nullopt);
 }
@@ -275,8 +291,8 @@ void EditorWindow::sincronizarMarcadores() {
 }
 
 void EditorWindow::abrirMapa() {
-    const QString ruta = QFileDialog::getOpenFileName(
-            this, "Abrir mapa", EDITOR_MAPA_DIR, "Mapas (*.toml)");
+    const QString ruta =
+            QFileDialog::getOpenFileName(this, "Abrir mapa", EDITOR_MAPA_DIR, "Mapas (*.toml)");
     if (ruta.isEmpty()) {
         return;
     }
@@ -294,10 +310,14 @@ void EditorWindow::guardarEscenario(const QString& rutaExteriorDestino) {
     if (modeloExterior.getVinculoMazmorra().has_value()) {
         vinculo = *modeloExterior.getVinculoMazmorra();
     } else {
-        vinculo.entradaX = 2; vinculo.entradaY = 2;
-        vinculo.entradaDestinoX = 2; vinculo.entradaDestinoY = 2;
-        vinculo.salidaX = 1; vinculo.salidaY = 1;
-        vinculo.salidaDestinoX = 3; vinculo.salidaDestinoY = 2;
+        vinculo.entradaX = 2;
+        vinculo.entradaY = 2;
+        vinculo.entradaDestinoX = 2;
+        vinculo.entradaDestinoY = 2;
+        vinculo.salidaX = 1;
+        vinculo.salidaY = 1;
+        vinculo.salidaDestinoX = 3;
+        vinculo.salidaDestinoY = 2;
     }
     vinculo.archivo = mazmorraNombre;
     vinculo.entradaX = modeloExterior.getMarcadorX();
@@ -306,7 +326,8 @@ void EditorWindow::guardarEscenario(const QString& rutaExteriorDestino) {
     vinculo.salidaY = modeloMazmorra.getMarcadorY();
 
     // Los destinos del portal (a donde teletransporta) tampoco se reubican al redimensionar
-    // Los acotamos al tamano real de cada mapa para no caer en una celda inexistente si el mapa se achico por debajo de su posicion.
+    // Los acotamos al tamano real de cada mapa para no caer en una celda inexistente si el mapa se
+    // achico por debajo de su posicion.
     const auto acotar = [](uint16_t valor, uint16_t limite) {
         return static_cast<uint16_t>(std::min<uint16_t>(valor, limite - 1));
     };
@@ -340,8 +361,8 @@ void EditorWindow::guardar() {
 }
 
 void EditorWindow::guardarComo() {
-    QString ruta = QFileDialog::getSaveFileName(
-            this, "Guardar mapa como", EDITOR_MAPA_DIR, "Mapas (*.toml)");
+    QString ruta = QFileDialog::getSaveFileName(this, "Guardar mapa como", EDITOR_MAPA_DIR,
+                                                "Mapas (*.toml)");
     if (ruta.isEmpty()) {
         return;
     }
@@ -385,8 +406,8 @@ void EditorWindow::redimensionarMapa() {
     form->addRow("Ancho (celdas):", spinAncho);
     form->addRow("Alto (celdas):", spinAlto);
 
-    QDialogButtonBox* botones = new QDialogButtonBox(
-            QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialogo);
+    QDialogButtonBox* botones =
+            new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialogo);
     form->addRow(botones);
     connect(botones, &QDialogButtonBox::accepted, &dialogo, &QDialog::accept);
     connect(botones, &QDialogButtonBox::rejected, &dialogo, &QDialog::reject);

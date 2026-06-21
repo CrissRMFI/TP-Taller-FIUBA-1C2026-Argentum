@@ -18,7 +18,7 @@ public:
     void enviarComando(const ComandoJugador& comando);
 
     MensajeServidor recibirMensaje();
-    void enviarUsuario(const handshakeInicial &dataJugador);
+    void enviarUsuario(const handshakeInicial& dataJugador);
     MensajeServidor recibirEstadoUsuario();
 
     void cerrarConexion();
@@ -46,7 +46,7 @@ private:
     void enviarComandoAtacar(const ComandoAtacar& comando);
     void enviarComandoMeditar(const ComandoMeditar& comando);
     void enviarComandoResucitar(const ComandoResucitar& comando);
-    
+
     void enviarComandoCurar(const ComandoCurar& comando);
     void enviarComandoTomar(const ComandoTomar& comando);
     void enviarComandoTirar(const ComandoTirar& comando);
@@ -64,7 +64,6 @@ private:
     void enviarComandoChatGlobal(const ComandoChatGlobal& comando);
     void enviarComandoChatPrivado(const ComandoChatPrivado& comando);
     void enviarComandoCheat(const ComandoCheat& comando);
-
 
 
     MensajeServidor recibirEstadoPersonaje();

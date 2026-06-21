@@ -1,8 +1,8 @@
 #include "juego.h"
 
 #include <algorithm>
-#include <cmath>
 #include <array>
+#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <list>
@@ -12,15 +12,15 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include "../../common/persistencia/error_persistencia.h"
 #include "../../common/protocolo/estado_entidad.h"
 #include "../../common/protocolo/tipo_entidad.h"
 #include "../../common/protocolo/tipo_golpe.h"
+#include "../persistencia/serializador_jugador.h"
 #include "objeto/catalogo_items.h"
 #include "objeto/item.h"
-#include "reglas/reglas_juego.h"
 #include "registro_servidor.h"
-#include "../persistencia/serializador_jugador.h"
-#include "../../common/persistencia/error_persistencia.h"
+#include "reglas/reglas_juego.h"
 
 Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hechizos,
              CatalogoCriaturas&& criaturas, Mundo&& mundo) :
@@ -35,7 +35,7 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
         indiceJugadores(cfg.rutaIndiceJugadores),
         lectorJugadores(cfg.rutaJugadores, indiceJugadores),
         escritorJugadores(cfg.rutaJugadores, indiceJugadores) {
-    
+
     for (const EntradaStockComerciante& e : cfg.stockComerciante) {
         this->mundo.agregarStockComerciantes(e.id, e.precioCompra, e.precioVenta);
     }
@@ -53,7 +53,9 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
 }
 
 
-std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo) {
+std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& nombre,
+                                               ClasePersonaje clase, Raza raza, uint16_t cabeza,
+                                               uint16_t cuerpo) {
 
     if (jugadoresConectados.find(id) != jugadoresConectados.end()) {
         return {armarError(id, CodigoErrorAccion::USUARIO_YA_CONECTADO)};
@@ -89,8 +91,10 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     }
 
     // Reconexion
-    const Posicion posicionDeseada =
-            (itDesconectado != jugadoresDesconectados.end()) ? itDesconectado->second.getPosicion() : jugadorDisco.has_value() ? jugadorDisco->getPosicion() : cfg.spawnInicial;
+    const Posicion posicionDeseada = (itDesconectado != jugadoresDesconectados.end())
+                                             ? itDesconectado->second.getPosicion()
+                                     : jugadorDisco.has_value() ? jugadorDisco->getPosicion()
+                                                                : cfg.spawnInicial;
 
     const std::optional<Posicion> posicionResuelta = buscarPosicionLibreCercaDe(posicionDeseada);
     if (!posicionResuelta.has_value()) {
@@ -111,13 +115,16 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
         if (existeIdPersonaje(id)) {
             return {armarError(id, CodigoErrorAccion::ID_EN_USO)};
         }
-        jugadoresConectados.emplace(id, Jugador(id, nombre, clase, raza, cabeza, cuerpo, *posicionResuelta, cfg));
+        jugadoresConectados.emplace(
+                id, Jugador(id, nombre, clase, raza, cabeza, cuerpo, *posicionResuelta, cfg));
     }
 
     indiceNicksConectados[nombre] = id;
 
     Jugador& jugador = jugadoresConectados.at(id);
-    std::list<EventoSalida> mensajes = {armarEstado(id, jugador), armarInventario(id, jugador), armarEquipamiento(id, jugador), armarListaHechizos(id, jugador)};
+    std::list<EventoSalida> mensajes = {armarEstado(id, jugador), armarInventario(id, jugador),
+                                        armarEquipamiento(id, jugador),
+                                        armarListaHechizos(id, jugador)};
 
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
 
@@ -224,7 +231,8 @@ bool Juego::existeIdPersonaje(uint16_t idPersonaje) const {
     return false;
 }
 
-std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion, std::optional<uint16_t> idExcluido) const {
+std::optional<uint16_t> Juego::buscarIdJugadorEn(const Posicion& posicion,
+                                                 std::optional<uint16_t> idExcluido) const {
     for (const auto& [idCliente, jugador] : jugadoresConectados) {
         if (idExcluido.has_value() && idCliente == *idExcluido) {
             continue;
@@ -269,16 +277,15 @@ EventoSalida Juego::armarError(uint16_t idCliente, CodigoErrorAccion cod) {
 
 EventoSalida Juego::armarEstado(uint16_t idCliente, const Jugador& jugador) {
     return {TipoDestino::UNO, idCliente,
-            EventoEstadoPersonaje{jugador.getVidaActual(), jugador.getVidaMax(),
-                                  jugador.getManaActual(), jugador.getManaMax(), jugador.getOro(),
-                                  jugador.getNivel(), jugador.getExperiencia(),
-                                  jugador.getEstado(),
-                                  static_cast<uint8_t>(jugador.getRaza()),
-                                  static_cast<uint8_t>(jugador.getClase()),
-                                  ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel()),
-                                  static_cast<uint16_t>(std::min(
-                                          jugador.getTiempoRestanteInmovilizado() * 1000.0f,
-                                          65535.0f))}};
+            EventoEstadoPersonaje{
+                    jugador.getVidaActual(), jugador.getVidaMax(), jugador.getManaActual(),
+                    jugador.getManaMax(), jugador.getOro(), jugador.getNivel(),
+                    jugador.getExperiencia(), jugador.getEstado(),
+                    static_cast<uint8_t>(jugador.getRaza()),
+                    static_cast<uint8_t>(jugador.getClase()),
+                    ReglasJuego::calcularLimiteExperiencia(cfg, jugador.getNivel()),
+                    static_cast<uint16_t>(std::min(
+                            jugador.getTiempoRestanteInmovilizado() * 1000.0f, 65535.0f))}};
 }
 
 EventoSalida Juego::armarInventario(uint16_t idCliente, const Jugador& jugador) {
@@ -300,19 +307,29 @@ EventoSalida Juego::armarEquipamiento(uint16_t idCliente, const Jugador& jugador
 EventoSalida Juego::armarPosicionPara(uint16_t idCliente, const Jugador& jugador) {
     Posicion posicion = jugador.getPosicion();
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{jugador.getId(), posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Personaje), estadoEntidadDe(jugador), jugador.getCabeza(), jugador.getCuerpo(), jugador.getSpriteArma(), jugador.getSpriteEscudo(), jugador.getSpriteCasco(), posicion.mapaId}};
+            EventoPosicionEntidad{
+                    jugador.getId(), posicion.x, posicion.y,
+                    static_cast<uint8_t>(TipoEntidad::Personaje), estadoEntidadDe(jugador),
+                    jugador.getCabeza(), jugador.getCuerpo(), jugador.getSpriteArma(),
+                    jugador.getSpriteEscudo(), jugador.getSpriteCasco(), posicion.mapaId}};
 }
 
 EventoSalida Juego::armarPosicionCriaturaPara(uint16_t idCliente, const Criatura& criatura) {
     Posicion posicion = criatura.getPos();
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Criatura), static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0, criatura.getCuerpo(), 0, 0, 0, posicion.mapaId}};
+            EventoPosicionEntidad{criatura.getId(), posicion.x, posicion.y,
+                                  static_cast<uint8_t>(TipoEntidad::Criatura),
+                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0,
+                                  criatura.getCuerpo(), 0, 0, 0, posicion.mapaId}};
 }
 
 EventoSalida Juego::armarPosicionNpcPara(uint16_t idCliente, uint16_t idNpc,
                                          const Posicion& posicion, uint16_t cuerpo) {
     return {TipoDestino::UNO, idCliente,
-            EventoPosicionEntidad{idNpc, posicion.x, posicion.y, static_cast<uint8_t>(TipoEntidad::Npc), static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0, cuerpo, 0, 0, 0, posicion.mapaId}};
+            EventoPosicionEntidad{idNpc, posicion.x, posicion.y,
+                                  static_cast<uint8_t>(TipoEntidad::Npc),
+                                  static_cast<uint8_t>(EstadoEntidadProtocolo::Vivo), 0, cuerpo, 0,
+                                  0, 0, posicion.mapaId}};
 }
 
 std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
@@ -323,8 +340,8 @@ std::list<EventoSalida> Juego::armarPosicionesNpcPara(uint16_t idCliente) {
     }
     const Mapa& mapa = mundo.mapaDe(jugador->getPosicion());
     for (const auto& [idNpc, sacerdote] : mapa.getSacerdotes()) {
-        mensajes.push_back(
-                armarPosicionNpcPara(idCliente, idNpc, sacerdote.getPosicion(), cfg.cuerpoSacerdote));
+        mensajes.push_back(armarPosicionNpcPara(idCliente, idNpc, sacerdote.getPosicion(),
+                                                cfg.cuerpoSacerdote));
     }
     for (const auto& [idNpc, comerciante] : mapa.getComerciantes()) {
         mensajes.push_back(armarPosicionNpcPara(idCliente, idNpc, comerciante.getPosicion(),
@@ -378,7 +395,8 @@ std::list<EventoSalida> Juego::procesarPortalSiCorresponde(uint16_t idCliente, J
         return {};
     }
 
-    // La celda exacta del destino puede estar ocupada (pared/criatura/otro jugador) por eso buscamos una celda libre cercana en el mapa destino.
+    // La celda exacta del destino puede estar ocupada (pared/criatura/otro jugador) por eso
+    // buscamos una celda libre cercana en el mapa destino.
     std::optional<Posicion> destinoLibre = buscarPosicionLibreCercaDe(*destino, idCliente);
     if (!destinoLibre.has_value()) {
         return {};  // destino bloqueado: el jugador se queda donde esta y reintenta luego.
@@ -398,8 +416,8 @@ std::list<EventoSalida> Juego::procesarPortalSiCorresponde(uint16_t idCliente, J
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
     // 5) Aviso al resto: entro o salio de la mazmorra (mapaId 0 = exterior).
     const std::string aviso = (destinoLibre->mapaId != 0)
-            ? jugador.getNombre() + " entro a la mazmorra."
-            : jugador.getNombre() + " salio de la mazmorra.";
+                                      ? jugador.getNombre() + " entro a la mazmorra."
+                                      : jugador.getNombre() + " salio de la mazmorra.";
     mensajes.push_back({TipoDestino::TODOS_EXCEPTO_UNO, idCliente,
                         EventoChat{"", aviso, static_cast<uint8_t>(CategoriaChat::Sistema)}});
     return mensajes;
@@ -489,8 +507,8 @@ std::list<EventoSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion&
 bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
                                       Posicion& posicionFinal) {
     // Cada celda admite un solo item. Buscamos la celda libre mas cercana con el BFS
-    const std::optional<Posicion> celdaLibre = mundo.buscarCeldaLibreCercaDe(
-            origen, [this](const Posicion& celda) {
+    const std::optional<Posicion> celdaLibre =
+            mundo.buscarCeldaLibreCercaDe(origen, [this](const Posicion& celda) {
                 return mundo.hayParedEn(celda) || mundo.hayObjetoEn(celda) ||
                        mundo.hayNpcEn(celda) || mundo.hayCriaturaEn(celda) ||
                        mundo.hayItemEn(celda);
@@ -503,7 +521,8 @@ bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
     return false;
 }
 
-std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const ComandoJugador& comando) {
+std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente,
+                                               const ComandoJugador& comando) {
     bool canceloMeditacion = false;
 
     if (comando.opcode != Opcode::MEDITAR) {
@@ -514,9 +533,9 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
         }
     }
 
-    auto finalizar = [&](std::list<EventoSalida> mensajes,
-                         bool emitirPosicionSiEsMover = false) {
-        if (canceloMeditacion && (emitirPosicionSiEsMover || comando.opcode != Opcode::EMPEZAR_MOVER)) {
+    auto finalizar = [&](std::list<EventoSalida> mensajes, bool emitirPosicionSiEsMover = false) {
+        if (canceloMeditacion &&
+            (emitirPosicionSiEsMover || comando.opcode != Opcode::EMPEZAR_MOVER)) {
             if (Jugador* jugador = buscarJugador(idCliente)) {
                 std::list<EventoSalida> mensajesPosicion = armarPosicionParaMapa(*jugador);
                 mensajes.splice(mensajes.end(), mensajesPosicion);
@@ -546,13 +565,18 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
     switch (comando.opcode) {
         case Opcode::MEDITAR:
             return ejecutarSinPayload(std::holds_alternative<ComandoMeditar>(comando.payload),
-                                      [&]() { return ejecutarMeditar(idCliente); });
+                                      [&]() {
+                                          return ejecutarMeditar(idCliente);
+                                      });
         case Opcode::RESUCITAR:
             return ejecutarSinPayload(std::holds_alternative<ComandoResucitar>(comando.payload),
-                                      [&]() { return ejecutarResucitar(idCliente); });
+                                      [&]() {
+                                          return ejecutarResucitar(idCliente);
+                                      });
         case Opcode::TOMAR:
-            return ejecutarSinPayload(std::holds_alternative<ComandoTomar>(comando.payload),
-                                      [&]() { return ejecutarTomar(idCliente); });
+            return ejecutarSinPayload(std::holds_alternative<ComandoTomar>(comando.payload), [&]() {
+                return ejecutarTomar(idCliente);
+            });
         case Opcode::EMPEZAR_MOVER:
             if (const auto* payload = std::get_if<ComandoEmpezarMover>(&comando.payload)) {
                 return finalizar(ejecutarEmpezarMover(idCliente, *payload), false);
@@ -678,7 +702,8 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
         if (cambioEstado) {
             mensajes.push_back(armarEstado(id, jugador));
         }
-        // Dispatch único de transiciones de estado del jugador: muerte, fin de inmovilización y fin de meditación son mutuamente excluyentes.
+        // Dispatch único de transiciones de estado del jugador: muerte, fin de inmovilización y fin
+        // de meditación son mutuamente excluyentes.
         if (estabaVivo && !jugador.estaVivo()) {
             mensajes.splice(mensajes.end(), emitirMuerteJugador(jugador, posicionAntes));
         } else if (estabaInmovilizado && !jugador.estaInmovilizado()) {
@@ -707,8 +732,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
             }
         }
 
-        if (jugador.estaMoviendose() &&
-            (jugador.estaVivo() || jugador.esFantasma()) &&
+        if (jugador.estaMoviendose() && (jugador.estaVivo() || jugador.esFantasma()) &&
             !jugador.estaInmovilizado() && !jugador.enMeditacion() &&
             jugador.debeAvanzar(cfg.movimientoJugadorTicks)) {
             if (intentarPaso(id, jugador, jugador.getDireccionMov())) {
@@ -757,7 +781,7 @@ std::list<EventoSalida> Juego::actualizar(float deltaSegundos) {
     return mensajes;
 }
 
-// Meditar 
+// Meditar
 
 std::list<EventoSalida> Juego::ejecutarMeditar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
@@ -843,7 +867,7 @@ std::list<EventoSalida> Juego::ejecutarChatPrivado(uint16_t idCliente,
              EventoChat{comando.nickDestino, comando.mensaje, catPrivado}}};
 }
 
-// ─── Mapa/Mundo 
+// ─── Mapa/Mundo
 
 std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
     Jugador* jugador = buscarJugador(idCliente);
@@ -854,7 +878,8 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
 
     const Posicion posicionJugador = jugador->getPosicion();
 
-    // En ciudad la resurrección es inmediata. Fuera de ciudad se aplica la mecánica remota: espera proporcional a la distancia al sacerdote.
+    // En ciudad la resurrección es inmediata. Fuera de ciudad se aplica la mecánica remota: espera
+    // proporcional a la distancia al sacerdote.
     if (mundo.esCiudad(posicionJugador)) {
         std::optional<Posicion> posicionResurreccion =
                 buscarPosicionLibreCercaDe(posicionJugador, idCliente);
@@ -878,7 +903,8 @@ std::list<EventoSalida> Juego::ejecutarResucitar(uint16_t idCliente) {
         return resucitarEnExterior(idCliente, *jugador);
     }
 
-    // Valida via el accessor con puntero observador que el sacerdote efectivamente exista como entidad concreta en el mapa.
+    // Valida via el accessor con puntero observador que el sacerdote efectivamente exista como
+    // entidad concreta en el mapa.
     const Sacerdote* sacerdote = mundo.obtenerSacerdote(npcSacerdote->getId());
     if (sacerdote == nullptr) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
@@ -1074,7 +1100,8 @@ std::list<EventoSalida> Juego::ejecutarAtacar(uint16_t idCliente, const ComandoA
     }
 
     // Resolución de objetivo: primero jugador (PvP), luego criatura (PvE).
-    // El cooldown se consume sólo cuando hay una entidad real a la que golpear, para que el spam contra blancos inexistentes no quede limitado ni cause daño.
+    // El cooldown se consume sólo cuando hay una entidad real a la que golpear, para que el spam
+    // contra blancos inexistentes no quede limitado ni cause daño.
     if (buscarJugadorPorIdPersonaje(cmd.idObjetivo) != nullptr) {
         atacante->registrarAtaque();
         return ejecutarAtaqueAJugador(idCliente, *atacante, cmd);
@@ -1092,8 +1119,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
                                                       const ComandoAtacar& cmd) {
     Jugador* atacante = &atacanteRef;
     Jugador* objetivo = buscarJugadorPorIdPersonaje(cmd.idObjetivo);
-    const std::optional<uint16_t> idClienteObjetivo =
-            buscarIdClienteDeJugador(cmd.idObjetivo);
+    const std::optional<uint16_t> idClienteObjetivo = buscarIdClienteDeJugador(cmd.idObjetivo);
     RegistroServidor::jugadorAtacaJugador(atacante->getId(), cmd.idObjetivo);
     if (!objetivo || !idClienteObjetivo.has_value() || !objetivo->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
@@ -1149,14 +1175,15 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         atacanteConsumioMana = true;
     }
 
-    // Capturamos atributos del objetivo ANTES del golpe: si muere, su nivel y vidaMax podrían reiniciarse en la lógica de muerte/respawn.
+    // Capturamos atributos del objetivo ANTES del golpe: si muere, su nivel y vidaMax podrían
+    // reiniciarse en la lógica de muerte/respawn.
     const uint8_t nivelAtacante = atacante->getNivel();
     const uint8_t nivelObjetivoAntes = objetivo->getNivel();
     const uint16_t vidaMaxObjetivoAntes = objetivo->getVidaMax();
 
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
-    const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
-            resultadoDanio.valor, 1.0f);
+    const uint16_t danioBruto =
+            ReglasJuego::aplicarMultiplicadorCombate(resultadoDanio.valor, 1.0f);
     const ResultadoDefensa resultadoDefensa = objetivo->recibir_ataque_fisico(
             danioBruto, resultadoDanio.esCritico, catalogo, aleatorio, 1.0f);
 
@@ -1164,32 +1191,35 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
     bool atacanteGanoXp = false;
 
     if (resultadoDefensa.tipo == ResultadoDefensa::Tipo::Esquivo) {
-        // Simetría con PvE (ver ejecutarAtaqueACriatura): notificar al atacante y al defensor que la evasión ocurrió. Sin daño no hay XP de impacto,
-        // BajoAtaque ni estado del defensor que reportar.
+        // Simetría con PvE (ver ejecutarAtaqueACriatura): notificar al atacante y al defensor que
+        // la evasión ocurrió. Sin daño no hay XP de impacto, BajoAtaque ni estado del defensor que
+        // reportar.
         mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
         mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
                                         EventoEsquive{objetivo->getId(), /*esquivador=*/1}});
     } else {
         const uint16_t danioAplicado = resultadoDefensa.danioAplicado;
-        RegistroServidor::jugadorImpactaJugador(atacante->getId(), objetivo->getId(), danioAplicado);
+        RegistroServidor::jugadorImpactaJugador(atacante->getId(), objetivo->getId(),
+                                                danioAplicado);
 
-        mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                        EventoDanioProducido{danioAplicado, objetivo->getId(),
-                                                             tipoGolpeDeAtacante(*atacante),
-                                                             resultadoDanio.esCritico}});
+        mensajes.push_back(EventoSalida{
+                TipoDestino::UNO, idCliente,
+                EventoDanioProducido{danioAplicado, objetivo->getId(),
+                                     tipoGolpeDeAtacante(*atacante), resultadoDanio.esCritico}});
 
-        mensajes.push_back(EventoSalida{TipoDestino::UNO, *idClienteObjetivo,
-                                        EventoDanioRecibido{danioAplicado, atacante->getId(),
-                                                            resultadoDanio.esCritico}});
+        mensajes.push_back(EventoSalida{
+                TipoDestino::UNO, *idClienteObjetivo,
+                EventoDanioRecibido{danioAplicado, atacante->getId(), resultadoDanio.esCritico}});
 
         mensajes.push_back(armarEstado(*idClienteObjetivo, *objetivo));
 
         // Golpe critico: aura sobre el atacante (segun su clase), visible para todo el mapa.
         if (resultadoDanio.esCritico) {
-            mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(
-                    900 + static_cast<uint16_t>(atacante->getClase()), atacante->getId(),
-                    atacante->getPosicion().mapaId));
+            mensajes.splice(
+                    mensajes.end(),
+                    armarFxHechizoParaMapa(900 + static_cast<uint16_t>(atacante->getClase()),
+                                           atacante->getId(), atacante->getPosicion().mapaId));
         }
 
         // XP por impacto. Sólo si el golpe entró con daño efectivo.
@@ -1226,7 +1256,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         mensajes.splice(mensajes.end(), emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
     }
 
-    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado o maná consumido por hechizo.
+    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado o maná consumido por
+    // hechizo.
     if (atacanteGanoXp || atacanteConsumioMana) {
         mensajes.push_back(armarEstado(idCliente, *atacante));
     }
@@ -1278,13 +1309,16 @@ std::list<EventoSalida> Juego::ejecutarEquipar(uint16_t idCliente, const Comando
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador), armarEquipamiento(idCliente, *jugador), armarEstado(idCliente, *jugador)};
-    
+    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador),
+                                        armarEquipamiento(idCliente, *jugador),
+                                        armarEstado(idCliente, *jugador)};
+
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(*jugador));
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::ejecutarDesequipar(uint16_t idCliente, const ComandoDesequipar& cmd) {
+std::list<EventoSalida> Juego::ejecutarDesequipar(uint16_t idCliente,
+                                                  const ComandoDesequipar& cmd) {
     Jugador* jugador = buscarJugador(idCliente);
     if (!jugador || !jugador->estaVivo()) {
         return {armarError(idCliente, CodigoErrorAccion::ESTAS_MUERTO)};
@@ -1307,7 +1341,8 @@ EventoSalida Juego::armarListaHechizos(uint16_t idCliente, const Jugador& jugado
     return {TipoDestino::UNO, idCliente, EventoListaHechizos{jugador.getHechizosConocidos()}};
 }
 
-std::list<EventoSalida> Juego::armarProyectilParaMapa(const Jugador& atacante, uint16_t idObjetivo) {
+std::list<EventoSalida> Juego::armarProyectilParaMapa(const Jugador& atacante,
+                                                      uint16_t idObjetivo) {
     // Solo armas a distancia (arco) lanzan un proyectil que viaja hasta el objetivo.
     const uint16_t idArma = atacante.getArmaEquipada();
     if (idArma == 0) {
@@ -1462,9 +1497,10 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
     criatura->recibir_danio(puntos);
 
     std::list<EventoSalida> mensajes = {armarEstado(idCliente, *lanzador)};
-    mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                    EventoDanioProducido{danioAplicado, criatura->getId(),
-                                                         static_cast<uint8_t>(TipoGolpe::Hechizo)}});
+    mensajes.push_back(
+            EventoSalida{TipoDestino::UNO, idCliente,
+                         EventoDanioProducido{danioAplicado, criatura->getId(),
+                                              static_cast<uint8_t>(TipoGolpe::Hechizo)}});
     if (danioAplicado > 0) {
         const uint32_t xpHit = ReglasJuego::calcularExperienciaImpacto(
                 cfg, danioAplicado, nivelLanzador, nivelCriaturaAntes);
@@ -1515,7 +1551,7 @@ std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comando
     }
 
     // El cliente nos dice exactamente con qué NPC quiere transar (cmd.idNPC).
-    // Puede ser Comerciante o Sacerdote. 
+    // Puede ser Comerciante o Sacerdote.
     // Probamos ambos tipos: si el id no matchea ninguno o está fuera de rango, error.
     std::pair<bool, uint8_t> resultadoVenta = {false, 0};
     bool npcEncontrado = false;
@@ -1552,8 +1588,8 @@ std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comando
     std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador),
                                         armarEstado(idCliente, *jugador)};
     const Item* itemComprado = catalogo.buscar(cmd.idItem);
-    const std::string nombreItem = (itemComprado != nullptr) ? itemComprado->getNombre()
-                                                             : std::string("un objeto");
+    const std::string nombreItem =
+            (itemComprado != nullptr) ? itemComprado->getNombre() : std::string("un objeto");
     mensajes.push_back({TipoDestino::UNO, idCliente,
                         EventoChat{"", "Compraste " + nombreItem + ".",
                                    static_cast<uint8_t>(CategoriaChat::Sistema)}});
@@ -1605,17 +1641,18 @@ std::list<EventoSalida> Juego::ejecutarDepositarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    // Peek antes de tocar el inventario: si el slot está vacío o tiene un id que no existe en el catálogo, devolvemos error sin mutar nada.
-    // Esto evita el ensuciar la cuenta del banco con id 0 o ítems fantasma, y elimina la necesidad de rollback.
+    // Peek antes de tocar el inventario: si el slot está vacío o tiene un id que no existe en el
+    // catálogo, devolvemos error sin mutar nada. Esto evita el ensuciar la cuenta del banco con id
+    // 0 o ítems fantasma, y elimina la necesidad de rollback.
     const uint16_t idItemEnSlot = jugador->getIdItemEnSlot(cmd.indiceItem);
     if (idItemEnSlot == 0 || !catalogo.existe(idItemEnSlot)) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    
+
     const uint16_t idItemDepositado = jugador->quitar_item_de_slot(cmd.indiceItem);
     if (!banquero->depositarItem(jugador->getId(), idItemDepositado)) {
-        
+
         jugador->agregar_item_en_slot(idItemDepositado, cmd.indiceItem);
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
@@ -1668,8 +1705,9 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
-    // Validamos primero ambas precondiciones (item existe en banco + cabe en inventario) y RECIÉN AHÍ aplicamos la mutación. 
-    
+    // Validamos primero ambas precondiciones (item existe en banco + cabe en inventario) y RECIÉN
+    // AHÍ aplicamos la mutación.
+
     if (cmd.idItem == 0 || !catalogo.existe(cmd.idItem)) {
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
@@ -1683,7 +1721,9 @@ std::list<EventoSalida> Juego::ejecutarRetirarItem(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::INVENTARIO_LLENO)};
     }
 
-    // Primero sacamos del banco y luego agregamos al inventario. Como ya validamos capacidad, `agregar_item` debería aceptar; si no, hacemos rollback al banco para no perder ni duplicar el ítem.
+    // Primero sacamos del banco y luego agregamos al inventario. Como ya validamos capacidad,
+    // `agregar_item` debería aceptar; si no, hacemos rollback al banco para no perder ni duplicar
+    // el ítem.
     if (!banquero->retirarItem(jugador->getId(), cmd.idItem)) {
         return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
     }
@@ -1944,10 +1984,10 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
         return mensajes;
     }
 
-    // Cooldown de ataque de la criatura: 
-    const uint64_t cooldownTicks = std::max<uint64_t>(
-            1, static_cast<uint64_t>(
-                       std::lround(cfg.criaturaCooldownAtaqueSeg * 1000.0 / cfg.tickMs)));
+    // Cooldown de ataque de la criatura:
+    const uint64_t cooldownTicks =
+            std::max<uint64_t>(1, static_cast<uint64_t>(std::lround(cfg.criaturaCooldownAtaqueSeg *
+                                                                    1000.0 / cfg.tickMs)));
     const auto itCooldown = ultimoTickAtaqueCriatura.find(criatura.getId());
     if (itCooldown != ultimoTickAtaqueCriatura.end() &&
         ticksTranscurridos - itCooldown->second < cooldownTicks) {
@@ -1955,11 +1995,11 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     }
     ultimoTickAtaqueCriatura[criatura.getId()] = ticksTranscurridos;
 
-    
+
     // emite el evento donde el cliente lo renderiza por id de entidad. FX_ATAQUE_BASE
-    
+
     constexpr uint16_t FX_ATAQUE_BASE = 7000;
-    
+
     const uint16_t fxAtaque = catalogoCriaturas.statsDe(criatura.getTipo()).fxAtaque;
     if (fxAtaque != 0) {
         mensajes.splice(mensajes.end(),
@@ -1999,10 +2039,7 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
 
 template <typename TipoNpcConcreto>
 static TipoNpcConcreto* obtenerNpcParaInteraccionEnMapa(
-        Mapa& mapa,
-        const ConfigJuego& cfg,
-        uint16_t idNpc,
-        const Jugador& jugador,
+        Mapa& mapa, const ConfigJuego& cfg, uint16_t idNpc, const Jugador& jugador,
         TipoNpcConcreto* (Mapa::*obtenerNpc)(uint16_t)) {
     TipoNpcConcreto* npc = (mapa.*obtenerNpc)(idNpc);
     if (npc == nullptr) {
@@ -2024,18 +2061,18 @@ static TipoNpcConcreto* obtenerNpcParaInteraccionEnMapa(
 }
 
 Comerciante* Juego::obtenerComercianteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    return obtenerNpcParaInteraccionEnMapa<Comerciante>(
-            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerComerciante);
+    return obtenerNpcParaInteraccionEnMapa<Comerciante>(mundo.mapaDe(jugador.getPosicion()), cfg,
+                                                        idNpc, jugador, &Mapa::obtenerComerciante);
 }
 
 Sacerdote* Juego::obtenerSacerdoteParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    return obtenerNpcParaInteraccionEnMapa<Sacerdote>(
-            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerSacerdote);
+    return obtenerNpcParaInteraccionEnMapa<Sacerdote>(mundo.mapaDe(jugador.getPosicion()), cfg,
+                                                      idNpc, jugador, &Mapa::obtenerSacerdote);
 }
 
 Banquero* Juego::obtenerBanqueroParaInteraccion(uint16_t idNpc, const Jugador& jugador) {
-    return obtenerNpcParaInteraccionEnMapa<Banquero>(
-            mundo.mapaDe(jugador.getPosicion()), cfg, idNpc, jugador, &Mapa::obtenerBanquero);
+    return obtenerNpcParaInteraccionEnMapa<Banquero>(mundo.mapaDe(jugador.getPosicion()), cfg,
+                                                     idNpc, jugador, &Mapa::obtenerBanquero);
 }
 
 bool Juego::agregarCriatura(const Criatura& criatura) {
@@ -2115,8 +2152,7 @@ std::optional<Posicion> Juego::buscarPosicionSpawnCriaturaEn(uint16_t mapaId) {
 std::list<EventoSalida> Juego::intentarSpawnCriatura() {
     std::list<EventoSalida> mensajes;
 
-    std::optional<Posicion> posicion =
-            buscarPosicionSpawnCriaturaEn(mundo.mapaPrincipalId());
+    std::optional<Posicion> posicion = buscarPosicionSpawnCriaturaEn(mundo.mapaPrincipalId());
     if (!posicion.has_value()) {
         return mensajes;
     }
@@ -2132,9 +2168,8 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
 
     const size_t indiceTipo = aleatorio.enteroEnRango<size_t>(0, tiposCriatura.size() - 1);
 
-    
-    Criatura criatura =
-            catalogoCriaturas.crear(tiposCriatura[indiceTipo], *idCriatura, *posicion);
+
+    Criatura criatura = catalogoCriaturas.crear(tiposCriatura[indiceTipo], *idCriatura, *posicion);
 
     if (!agregarCriatura(criatura)) {
         return mensajes;
@@ -2147,7 +2182,7 @@ std::list<EventoSalida> Juego::intentarSpawnCriatura() {
 void Juego::programarRespawnSiCorresponde(TipoCriatura tipo, uint16_t mapaId) {
     const StatsCriatura stats = catalogoCriaturas.statsDe(tipo);
     if (stats.respawnTicks == 0) {
-        return; 
+        return;
     }
     // Respawn fijo (jefe) reaparece en su trono.
     std::optional<Posicion> posicionFija;
@@ -2236,7 +2271,8 @@ bool Juego::dropearOroEnSueloCercano(const Posicion& origen, uint32_t cantidad,
         return true;
     }
 
-    // Probamos en celdas adyacentes válidas. Esto es útil si la celda del NPC queda bloqueada por una pared post-spawn o por un ítem ya tirado.
+    // Probamos en celdas adyacentes válidas. Esto es útil si la celda del NPC queda bloqueada por
+    // una pared post-spawn o por un ítem ya tirado.
     for (const Posicion& celdaCandidata : calcularDestinosAdyacentes(origen)) {
         if (mundo.agregarOroEnSuelo(celdaCandidata, cantidad)) {
             posicionFinal = celdaCandidata;
@@ -2348,16 +2384,18 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     const uint16_t vidaMaximaCriaturaAntes = criatura.getVidaMaxima();
     const uint16_t vidaActualCriaturaAntes = criatura.getVidaActual();
 
-    // PvE: la criatura no porta armadura/casco/escudo. Por lo tanto Defensa = 0 y el daño final es el bruto saturado al pool de vida actual. Calculamos primero para
-    // conocer el flag de crítico antes de decidir si la criatura puede esquivar.
+    // PvE: la criatura no porta armadura/casco/escudo. Por lo tanto Defensa = 0 y el daño final es
+    // el bruto saturado al pool de vida actual. Calculamos primero para conocer el flag de crítico
+    // antes de decidir si la criatura puede esquivar.
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
-    const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
-            resultadoDanio.valor, 1.0f);
+    const uint16_t danioBruto =
+            ReglasJuego::aplicarMultiplicadorCombate(resultadoDanio.valor, 1.0f);
 
     std::list<EventoSalida> mensajes;
 
     // El crítico omite la fase de evasión incluso en PvE.
-    // Si el ataque no es crítico, el defensor (la criatura) puede esquivar. Fórmula centralizada en ReglasJuego 
+    // Si el ataque no es crítico, el defensor (la criatura) puede esquivar. Fórmula centralizada en
+    // ReglasJuego
 
     if (!resultadoDanio.esCritico) {
         const float valorAleatorioEsquive = aleatorio.uniforme();
@@ -2376,10 +2414,10 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     criatura.recibir_danio(danioBruto);
     RegistroServidor::jugadorAtacaCriatura(atacante->getId(), criatura.getId());
 
-    mensajes.push_back(EventoSalida{TipoDestino::UNO, idCliente,
-                                    EventoDanioProducido{danioAplicado, criatura.getId(),
-                                                         tipoGolpeDeAtacante(*atacante),
-                                                         resultadoDanio.esCritico}});
+    mensajes.push_back(EventoSalida{
+            TipoDestino::UNO, idCliente,
+            EventoDanioProducido{danioAplicado, criatura.getId(), tipoGolpeDeAtacante(*atacante),
+                                 resultadoDanio.esCritico}});
 
     // Swing del arma (visible para todo el mapa).
     mensajes.splice(mensajes.end(), armarSwingAtaqueParaMapa(*atacante));
@@ -2388,9 +2426,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
     // Golpe critico: aura sobre el atacante (segun su clase), visible para todo el mapa.
     if (resultadoDanio.esCritico) {
-        mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(
-                900 + static_cast<uint16_t>(atacante->getClase()), atacante->getId(),
-                atacante->getPosicion().mapaId));
+        mensajes.splice(mensajes.end(),
+                        armarFxHechizoParaMapa(900 + static_cast<uint16_t>(atacante->getClase()),
+                                               atacante->getId(), atacante->getPosicion().mapaId));
     }
 
     // XP por impacto
@@ -2448,7 +2486,8 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
         }
     }
 
-    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado o maná consumido por hechizo.
+    // Emitimos estado del atacante si cambió algo visible: XP/nivel ganado o maná consumido por
+    // hechizo.
     if (atacanteGanoXp || atacanteConsumioMana) {
         mensajes.push_back(armarEstado(idCliente, *atacante));
     }
@@ -2457,22 +2496,27 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 }
 
 uint8_t Juego::tipoGolpeDeAtacante(const Jugador& atacante) const {
-    
+
     if (const uint16_t idBaculo = atacante.getBaculoEquipado(); idBaculo != 0) {
         if (const Baculo* baculo = catalogo.comoBaculo(idBaculo)) {
-            return static_cast<uint8_t>(baculo->getHechizo() == TipoHechizo::Explosion ? TipoGolpe::Explosion : TipoGolpe::Hechizo);
+            return static_cast<uint8_t>(baculo->getHechizo() == TipoHechizo::Explosion
+                                                ? TipoGolpe::Explosion
+                                                : TipoGolpe::Hechizo);
         }
     }
-    
+
     if (const uint16_t idArma = atacante.getArmaEquipada(); idArma != 0) {
         if (const Arma* arma = catalogo.comoArma(idArma)) {
             if (arma->esArmaDistancia()) {
                 return static_cast<uint8_t>(TipoGolpe::Disparo);
             }
             switch (arma->getId()) {
-                case 2:  return static_cast<uint8_t>(TipoGolpe::Hacha);
-                case 3:  return static_cast<uint8_t>(TipoGolpe::Martillo);
-                default: return static_cast<uint8_t>(TipoGolpe::Espada);
+                case 2:
+                    return static_cast<uint8_t>(TipoGolpe::Hacha);
+                case 3:
+                    return static_cast<uint8_t>(TipoGolpe::Martillo);
+                default:
+                    return static_cast<uint8_t>(TipoGolpe::Espada);
             }
         }
     }

@@ -10,9 +10,8 @@
 #include "server/game/registro_servidor.h"
 
 
-Enviador::Enviador(ProtocoloServidor &proto_servidor, Queue<MensajeServidor> &colaSalida) :
-    protocolo(proto_servidor),
-    colaSalida(colaSalida) {}
+Enviador::Enviador(ProtocoloServidor& proto_servidor, Queue<MensajeServidor>& colaSalida) :
+        protocolo(proto_servidor), colaSalida(colaSalida) {}
 
 void Enviador::run() {
     try {
@@ -20,7 +19,6 @@ void Enviador::run() {
             MensajeServidor msj_servidor;
             msj_servidor = colaSalida.pop();
             protocolo.enviarMensaje(msj_servidor);
-
         }
     } catch (std::runtime_error& e) {
         RegistroServidor::error(std::string("enviador: ") + e.what());

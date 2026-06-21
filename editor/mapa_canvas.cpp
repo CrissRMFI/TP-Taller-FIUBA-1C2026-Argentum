@@ -12,13 +12,25 @@
 #include <QPainter>
 #include <QWheelEvent>
 
-MapaCanvas::MapaCanvas(EditorMapa* modelo, const CatalogoEditor* catalogo, QWidget* parent):
-        QWidget(parent), modelo(modelo), catalogo(catalogo),
-        pisoActivo(false), pisoClave(), pisoDestino(),
-        dibujandoZona(false), zonaInicioX(0), zonaInicioY(0),
-        zonaActualX(0), zonaActualY(0),
-        zoomPx(0), offX(0), offY(0), paneando(false), panUltimo(),
-        marcadorPortal(":/mapas/marcador_portal.png"), arrastrandoMarcador(false) {
+MapaCanvas::MapaCanvas(EditorMapa* modelo, const CatalogoEditor* catalogo, QWidget* parent) :
+        QWidget(parent),
+        modelo(modelo),
+        catalogo(catalogo),
+        pisoActivo(false),
+        pisoClave(),
+        pisoDestino(),
+        dibujandoZona(false),
+        zonaInicioX(0),
+        zonaInicioY(0),
+        zonaActualX(0),
+        zonaActualY(0),
+        zoomPx(0),
+        offX(0),
+        offY(0),
+        paneando(false),
+        panUltimo(),
+        marcadorPortal(":/mapas/marcador_portal.png"),
+        arrastrandoMarcador(false) {
     setMinimumSize(300, 300);
     setAcceptDrops(true);
 }
@@ -47,7 +59,7 @@ int MapaCanvas::celdaLado() const {
 
 void MapaCanvas::limitarPaneo() {
     const int lado = celdaLado();
-    
+
     const int sobranteX = modelo->getAncho() * lado - width();
     const int sobranteY = modelo->getAlto() * lado - height();
     offX = (sobranteX <= 0) ? sobranteX / 2 : std::clamp(offX, 0, sobranteX);
@@ -62,16 +74,16 @@ void MapaCanvas::reencuadrar() {
     update();
 }
 
-void MapaCanvas::dibujarTileZona(QPainter& painter, const QString& clave,
-                                 uint16_t xMin, uint16_t yMin, uint16_t xMax, uint16_t yMax,
-                                 int celdaW, int celdaH) {
-    const QRect destino(xMin * celdaW, yMin * celdaH,
-                        (xMax - xMin + 1) * celdaW, (yMax - yMin + 1) * celdaH);
+void MapaCanvas::dibujarTileZona(QPainter& painter, const QString& clave, uint16_t xMin,
+                                 uint16_t yMin, uint16_t xMax, uint16_t yMax, int celdaW,
+                                 int celdaH) {
+    const QRect destino(xMin * celdaW, yMin * celdaH, (xMax - xMin + 1) * celdaW,
+                        (yMax - yMin + 1) * celdaH);
     const QPixmap tile = catalogo->tilePiso(clave);
     if (tile.isNull()) {
         // Fallback de color si falta el tile.
         const QColor color = (clave == "desierto") ? QColor(214, 192, 120)
-                           : (clave == "arbol")    ? QColor(34, 90, 34)
+                             : (clave == "arbol")  ? QColor(34, 90, 34)
                                                    : QColor(60, 120, 60);
         painter.fillRect(destino, color);
         return;
@@ -86,13 +98,13 @@ void MapaCanvas::pintarPisos(QPainter& painter, int celdaW, int celdaH) {
     dibujarTileZona(painter, QString::fromStdString(modelo->getPisoBase()), 0, 0,
                     modelo->getAncho() - 1, modelo->getAlto() - 1, celdaW, celdaH);
     for (const ZonaPiso& z : modelo->getPisos()) {
-        dibujarTileZona(painter, QString::fromStdString(z.clave),
-                        z.xMin, z.yMin, z.xMax, z.yMax, celdaW, celdaH);
+        dibujarTileZona(painter, QString::fromStdString(z.clave), z.xMin, z.yMin, z.xMax, z.yMax,
+                        celdaW, celdaH);
     }
 }
 
-void MapaCanvas::dibujarFigura(QPainter& painter, const QPixmap& icono,
-                               uint16_t celdaX, uint16_t celdaY, int celdaW, int celdaH) {
+void MapaCanvas::dibujarFigura(QPainter& painter, const QPixmap& icono, uint16_t celdaX,
+                               uint16_t celdaY, int celdaW, int celdaH) {
     if (icono.isNull()) {
         return;
     }
@@ -117,8 +129,8 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(80, 160, 220, 90));
     for (const Ciudad& c : modelo->getCiudades()) {
-        painter.drawRect(c.xMin * celdaW, c.yMin * celdaH,
-                         (c.xMax - c.xMin + 1) * celdaW, (c.yMax - c.yMin + 1) * celdaH);
+        painter.drawRect(c.xMin * celdaW, c.yMin * celdaH, (c.xMax - c.xMin + 1) * celdaW,
+                         (c.yMax - c.yMin + 1) * celdaH);
     }
 
     // Paredes: tile de pared si esta, sino oscuro.
@@ -168,7 +180,7 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
         }
     }
 
-    
+
     {
         const uint16_t mcx = modelo->getMarcadorX();
         const uint16_t mcy = modelo->getMarcadorY();
@@ -189,8 +201,8 @@ void MapaCanvas::paintEvent(QPaintEvent*) {
         const uint16_t cyMax = std::max(zonaInicioY, zonaActualY);
         painter.setBrush(QColor(255, 255, 255, 70));
         painter.setPen(QColor(240, 240, 240));
-        painter.drawRect(cxMin * celdaW, cyMin * celdaH,
-                         (cxMax - cxMin + 1) * celdaW, (cyMax - cyMin + 1) * celdaH);
+        painter.drawRect(cxMin * celdaW, cyMin * celdaH, (cxMax - cxMin + 1) * celdaW,
+                         (cyMax - cyMin + 1) * celdaH);
     }
 }
 
@@ -217,7 +229,7 @@ void MapaCanvas::wheelEvent(QWheelEvent* event) {
         return;
     }
     // Zoom con Ctrl+rueda, centrado en el cursor (el punto bajo el mouse no se mueve).
-   
+
     if (!(event->modifiers() & Qt::ControlModifier)) {
         return;
     }
@@ -264,7 +276,7 @@ void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
     const QString clave = texto.mid(sep + 1);
 
     if (prefijo == "criatura") {
-        
+
         if (catalogo->esSoloMazmorra(clave) && !modelo->esMazmorra()) {
             emit aviso("Esa criatura es exclusiva de mazmorra: no va en el mapa exterior.");
             return;
@@ -282,8 +294,7 @@ void MapaCanvas::colocarDesdeMime(const QByteArray& data, const QPoint& punto) {
         const QString piso = QString::fromStdString(modelo->pisoEn(x, y));
         if (!catalogo->pisoPermitido(clave, piso)) {
             ElementoCatalogo elem;
-            const QString nombre =
-                    catalogo->elementoPorClave(clave, elem) ? elem.nombre : clave;
+            const QString nombre = catalogo->elementoPorClave(clave, elem) ? elem.nombre : clave;
             emit aviso(nombre + " no se puede colocar sobre " + piso + ".");
             return;
         }
@@ -323,13 +334,13 @@ void MapaCanvas::mousePressEvent(QMouseEvent* event) {
         if (!celdaEn(punto, x, y)) {
             return;
         }
-        
+
         if (modelo->esMarcador(x, y)) {
             arrastrandoMarcador = true;
             setCursor(Qt::ClosedHandCursor);
             return;
         }
-        
+
         if (pisoActivo) {
             dibujandoZona = true;
             zonaInicioX = zonaActualX = x;
@@ -352,7 +363,7 @@ void MapaCanvas::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    
+
     if (arrastrandoMarcador && (event->buttons() & Qt::LeftButton)) {
         uint16_t x = 0;
         uint16_t y = 0;
@@ -411,7 +422,6 @@ void MapaCanvas::dropEvent(QDropEvent* event) {
     if (!mime->hasFormat("application/x-argentum-elemento")) {
         return;
     }
-    colocarDesdeMime(mime->data("application/x-argentum-elemento"),
-                     event->position().toPoint());
+    colocarDesdeMime(mime->data("application/x-argentum-elemento"), event->position().toPoint());
     event->acceptProposedAction();
 }

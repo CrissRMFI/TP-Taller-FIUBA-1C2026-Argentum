@@ -9,7 +9,9 @@
 
 Protocolo::Protocolo(Socket&& skt) : skt(std::move(skt)), cerrado(false) {}
 
-bool Protocolo::estaCerrado() const { return cerrado; }
+bool Protocolo::estaCerrado() const {
+    return cerrado;
+}
 
 void Protocolo::enviarBytes(const void* datos, size_t cantidad) {
     if (cantidad == 0) {
@@ -20,7 +22,8 @@ void Protocolo::enviarBytes(const void* datos, size_t cantidad) {
 
     if (enviados == 0) {
         cerrado = true;
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CONEXION_CERRADA_AL_ENVIAR_BYTES));
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(
+                CodigoErrorProtocolo::CONEXION_CERRADA_AL_ENVIAR_BYTES));
     }
 }
 
@@ -33,7 +36,8 @@ void Protocolo::recibirBytes(void* destino, size_t cantidad) {
 
     if (recibidos == 0) {
         cerrado = true;
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CONEXION_CERRADA_AL_RECIBIR_BYTES));
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(
+                CodigoErrorProtocolo::CONEXION_CERRADA_AL_RECIBIR_BYTES));
     }
 }
 
@@ -71,7 +75,8 @@ uint32_t Protocolo::recibirCuatroBytes() {
 
 void Protocolo::enviarCadena(const std::string& cadena) {
     if (cadena.size() > std::numeric_limits<uint16_t>::max()) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CADENA_DEMASIADO_LARGA));
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CADENA_DEMASIADO_LARGA));
     }
 
     enviarDosBytes(static_cast<uint16_t>(cadena.size()));
@@ -80,7 +85,8 @@ void Protocolo::enviarCadena(const std::string& cadena) {
 
 void Protocolo::enviarCadenaConMaximo(const std::string& cadena, uint16_t maximo) {
     if (cadena.size() > maximo) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CADENA_DEMASIADO_LARGA));
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CADENA_DEMASIADO_LARGA));
     }
 
     enviarCadena(cadena);
@@ -102,7 +108,8 @@ std::string Protocolo::recibirCadenaConMaximo(uint16_t maximo) {
     uint16_t largo = recibirDosBytes();
 
     if (largo > maximo) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CADENA_RECIBIDA_SUPERA_MAXIMO)) ;
+        throw std::runtime_error(MensajesErrorProtocolo::mensaje(
+                CodigoErrorProtocolo::CADENA_RECIBIDA_SUPERA_MAXIMO));
     }
 
     std::string cadena(largo, '\0');

@@ -11,7 +11,7 @@
 #include "protocolo/protocolo_servidor.h"
 
 
-class Recibidor: public  Thread {
+class Recibidor : public Thread {
 private:
     ProtocoloServidor& proto;
     Queue<ComandoCliente>& colaComando;
@@ -20,16 +20,15 @@ private:
     std::atomic<bool> running{true};
 
 public:
-    Recibidor(ProtocoloServidor& protocolo,
-        Queue<ComandoCliente>& colaComando, MonitorClientes& monitor,
-        uint16_t idCliente);
+    Recibidor(ProtocoloServidor& protocolo, Queue<ComandoCliente>& colaComando,
+              MonitorClientes& monitor, uint16_t idCliente);
 
     void run() override;
     void stop() override;
-    bool is_running()const;
+    bool is_running() const;
 
     ~Recibidor() override = default;
 };
 
 
-#endif //TALLER_TP_RECIBIDOR_H
+#endif  // TALLER_TP_RECIBIDOR_H

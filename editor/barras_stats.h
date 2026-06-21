@@ -7,7 +7,8 @@
 
 #include "catalogo_editor.h"
 
-// Rellena las barritas de stats del bmp (vida / danio / nivel / oro) segun la criatura seleccionada.
+// Rellena las barritas de stats del bmp (vida / danio / nivel / oro) segun la criatura
+// seleccionada.
 class BarrasStats : public QWidget {
     Q_OBJECT
 
@@ -35,8 +36,7 @@ private:
     uint32_t maxOro;
 
     void calcularMaximos();
-    void dibujarBarra(QPainter& painter, const QRect& slot, double fraccion,
-                      const QColor& color);
+    void dibujarBarra(QPainter& painter, const QRect& slot, double fraccion, const QColor& color);
 };
 
 #endif

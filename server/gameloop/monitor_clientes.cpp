@@ -8,9 +8,8 @@
 
 
 // Los ids de jugador arrancan en 1000 para no colisionar con los ids de los NPCs
-MonitorClientes::MonitorClientes(const std::string& rutaIndiceJugadores):
-    indicePersistido(rutaIndiceJugadores),
-    proximoID(1000) {}
+MonitorClientes::MonitorClientes(const std::string& rutaIndiceJugadores) :
+        indicePersistido(rutaIndiceJugadores), proximoID(1000) {}
 
 uint16_t MonitorClientes::almacenarID() {
     std::lock_guard<std::mutex> lock(mtx);
@@ -18,7 +17,7 @@ uint16_t MonitorClientes::almacenarID() {
 }
 void MonitorClientes::agregarCliente(const uint16_t idCliente, Queue<MensajeServidor>& colaSalida) {
     std::lock_guard<std::mutex> lock(mtx);
-    colasClientes[idCliente] =&colaSalida;
+    colasClientes[idCliente] = &colaSalida;
 }
 
 void MonitorClientes::removerCliente(const uint16_t idCliente) {
@@ -156,13 +155,15 @@ void MonitorClientes::broadcast(const MensajeServidor& mensaje) {
 
     std::lock_guard<std::mutex> lock(mtx);
     for (const auto& [idCliente, colaSalida] : clientesDesconectados) {
-        if (auto it = colasClientes.find(idCliente); it != colasClientes.end() && it->second == colaSalida) {
+        if (auto it = colasClientes.find(idCliente);
+            it != colasClientes.end() && it->second == colaSalida) {
             colasClientes.erase(it);
         }
     }
 }
 
-void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido, const MensajeServidor& mensaje) {
+void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido,
+                                       const MensajeServidor& mensaje) {
     std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> snapshot;
 
     {
@@ -191,7 +192,7 @@ void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido, const M
         }
     }
 
-    for (const auto &idCliente: clientesDesconectados | std::views::keys) {
+    for (const auto& idCliente : clientesDesconectados | std::views::keys) {
         colasClientes.erase(idCliente);
     }
 }

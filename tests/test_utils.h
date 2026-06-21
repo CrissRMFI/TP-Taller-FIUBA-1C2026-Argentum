@@ -12,15 +12,18 @@
 
 std::pair<Socket, Socket> crearParConectado();
 
-// Variante de ProtocoloServidor que expone enviar un byte para que los tests puedan agregar bytes manualmente
+// Variante de ProtocoloServidor que expone enviar un byte para que los tests puedan agregar bytes
+// manualmente
 
-class ProtocoloServidorTest: public ProtocoloServidor {
+class ProtocoloServidorTest : public ProtocoloServidor {
 public:
     using ProtocoloServidor::ProtocoloServidor;
-    void enviarByteRaw(uint8_t b) { enviarUnByte(b); }
+    void enviarByteRaw(uint8_t b) {
+        enviarUnByte(b);
+    }
 };
 
-class ProtocoloFixture: public ::testing::Test {
+class ProtocoloFixture : public ::testing::Test {
 protected:
     std::unique_ptr<ProtocoloCliente> cliente;
     std::unique_ptr<ProtocoloServidorTest> servidor;
@@ -32,8 +35,10 @@ protected:
     }
 
     void TearDown() override {
-        if (cliente) cliente->cerrarConexion();
-        if (servidor) servidor->cerrarConexion();
+        if (cliente)
+            cliente->cerrarConexion();
+        if (servidor)
+            servidor->cerrarConexion();
     }
 };
 

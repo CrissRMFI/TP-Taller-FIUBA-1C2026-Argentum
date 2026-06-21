@@ -51,7 +51,7 @@ private:
     uint16_t zonaActualX;
     uint16_t zonaActualY;
 
-    // Zoom 
+    // Zoom
     int zoomPx;
     int offX;
     int offY;
@@ -60,18 +60,17 @@ private:
     bool paneando;
     QPoint panUltimo;
 
-    
+
     QPixmap marcadorPortal;
     bool arrastrandoMarcador;
 
     void colocarDesdeMime(const QByteArray& data, const QPoint& punto);
     void aplicarZona(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
     void pintarPisos(QPainter& painter, int celdaW, int celdaH);
-    void dibujarTileZona(QPainter& painter, const QString& clave,
-                         uint16_t xMin, uint16_t yMin, uint16_t xMax, uint16_t yMax,
-                         int celdaW, int celdaH);
-    void dibujarFigura(QPainter& painter, const QPixmap& icono,
-                       uint16_t celdaX, uint16_t celdaY, int celdaW, int celdaH);
+    void dibujarTileZona(QPainter& painter, const QString& clave, uint16_t xMin, uint16_t yMin,
+                         uint16_t xMax, uint16_t yMax, int celdaW, int celdaH);
+    void dibujarFigura(QPainter& painter, const QPixmap& icono, uint16_t celdaX, uint16_t celdaY,
+                       int celdaW, int celdaH);
 
     bool celdaEn(const QPoint& punto, uint16_t& x, uint16_t& y) const;
     int celdaLado() const;

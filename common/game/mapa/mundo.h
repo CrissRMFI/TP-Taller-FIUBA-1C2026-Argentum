@@ -56,8 +56,7 @@ public:
     bool agregarOroEnSuelo(const Posicion& posicion, uint32_t cantidad);
     std::optional<Npc> buscarSacerdoteMasCercano(const Posicion& posicion) const;
     std::optional<Posicion> buscarCeldaLibreCercaDe(
-            const Posicion& origen,
-            const std::function<bool(const Posicion&)>& celdaOcupada) const;
+            const Posicion& origen, const std::function<bool(const Posicion&)>& celdaOcupada) const;
 
     // Criaturas: por id se busca en todos los mapas; alta/movimiento por mapaId
     bool agregarCriatura(const Criatura& criatura);
@@ -71,21 +70,21 @@ public:
     const Sacerdote* obtenerSacerdote(uint16_t idSacerdote) const;
 
     // Agregados sobre todos los mapas
-    std::vector<Criatura>    obtenerCriaturas() const;
+    std::vector<Criatura> obtenerCriaturas() const;
     std::vector<ItemEnSuelo> obtenerItemsEnSuelo() const;
-    std::vector<OroEnSuelo>  obtenerOroEnSuelo() const;
+    std::vector<OroEnSuelo> obtenerOroEnSuelo() const;
     size_t cantidadCriaturas() const;
     size_t cantidadCriaturasEn(uint16_t mapaId) const;
     uint16_t mapaPrincipalId() const;
     std::vector<ItemEnSuelo> actualizarItemsEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
-    std::vector<OroEnSuelo>  actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
+    std::vector<OroEnSuelo> actualizarOroEnSuelo(float deltaSegundos, uint16_t tiempoMaximoSeg);
     void agregarStockComerciantes(uint16_t idItem, uint8_t precioCompra, uint8_t precioVenta);
     void agregarStockSacerdotes(uint16_t idItem, uint8_t precio);
 
-    
-    const std::map<uint16_t, Sacerdote>&   getSacerdotes() const;
+
+    const std::map<uint16_t, Sacerdote>& getSacerdotes() const;
     const std::map<uint16_t, Comerciante>& getComerciantes() const;
-    const std::map<uint16_t, Banquero>&    getBanqueros() const;
+    const std::map<uint16_t, Banquero>& getBanqueros() const;
 };
 
 #endif

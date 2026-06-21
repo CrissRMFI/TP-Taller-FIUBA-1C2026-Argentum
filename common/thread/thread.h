@@ -15,7 +15,7 @@ public:
     virtual ~Runnable() {}
 };
 
-class Thread: public Runnable {
+class Thread : public Runnable {
 private:
     std::thread thread;
 
@@ -25,10 +25,12 @@ private:
     std::atomic<bool> _is_alive;
 
 protected:
-    bool should_keep_running() const { return _keep_running; }
+    bool should_keep_running() const {
+        return _keep_running;
+    }
 
 public:
-    Thread(): _keep_running(true), _is_alive(false) {}
+    Thread() : _keep_running(true), _is_alive(false) {}
 
     void start() override {
         _is_alive = true;
@@ -36,7 +38,9 @@ public:
         thread = std::thread(&Thread::main, this);
     }
 
-    void join() override { thread.join(); }
+    void join() override {
+        thread.join();
+    }
 
     void main() {
         try {
@@ -53,11 +57,15 @@ public:
     // Note: it is up to the subclass to make something meaningful to
     // really stop the thread. The Thread::run() may be blocked and/or
     // it may not read _keep_running.
-    void stop() override { _keep_running = false; }
+    void stop() override {
+        _keep_running = false;
+    }
 
     // Note: asking for is_alive is well defined *only if* the thread
     // was started (you called Thread::start())
-    bool is_alive() const override { return _is_alive; }
+    bool is_alive() const override {
+        return _is_alive;
+    }
 
     virtual void run() = 0;
     virtual ~Thread() {}

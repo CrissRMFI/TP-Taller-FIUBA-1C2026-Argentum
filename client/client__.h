@@ -6,18 +6,18 @@
 #define TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT___H
 
 #include "client_manager.h"
-#include "protocolo/protocolo_cliente.h"
 #include "datosConexion.h"
+#include "protocolo/protocolo_cliente.h"
 
 class Client {
 private:
     Socket skt;
     DatosConexion datos;
+
 public:
     explicit Client(const char* hostname, const char* port, DatosConexion& datos);
     void run();
 };
 
 
-
-#endif //TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT___H
+#endif  // TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT___H

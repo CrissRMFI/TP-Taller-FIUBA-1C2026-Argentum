@@ -1,45 +1,38 @@
 #include "cliente.h"
 
+#include <sys/socket.h>
 #include <string>
 #include <utility>
-#include <sys/socket.h>
 
 #include "common/socket/liberror.h"
 #include "server/enviador.h"
-#include "server/recibidor.h"
-#include "server/gameloop/monitor_clientes.h"
 #include "server/game/registro_servidor.h"
+#include "server/gameloop/monitor_clientes.h"
+#include "server/recibidor.h"
 
-Cliente::Cliente(uint16_t idCliente, 
-                                 std::unique_ptr<ProtocoloServidor> protocolo_servidor,
-                                 Queue<ComandoCliente>& colaComandos,
-                                 MonitorClientes& monitor, Queue<EventoSesion>& colaEventos,
-                                 handshakeInicial handshake)
-        : idCliente(idCliente),
-            protocolo_servidor(std::move(protocolo_servidor)),
-            dataJugador(std::move(handshake)),
-            colaSalida(),
-            colaComandos(colaComandos),
-            monitorClientes(monitor),
-            colaEventos(colaEventos),
-            estaActivo(true) {}
+Cliente::Cliente(uint16_t idCliente, std::unique_ptr<ProtocoloServidor> protocolo_servidor,
+                 Queue<ComandoCliente>& colaComandos, MonitorClientes& monitor,
+                 Queue<EventoSesion>& colaEventos, handshakeInicial handshake) :
+        idCliente(idCliente),
+        protocolo_servidor(std::move(protocolo_servidor)),
+        dataJugador(std::move(handshake)),
+        colaSalida(),
+        colaComandos(colaComandos),
+        monitorClientes(monitor),
+        colaEventos(colaEventos),
+        estaActivo(true) {}
 
 
-
-Queue<MensajeServidor>& Cliente::obtenerColaSalida(){
+Queue<MensajeServidor>& Cliente::obtenerColaSalida() {
     return this->colaSalida;
 }
 
 void Cliente::run() {
     RegistroServidor::info("[cliente " + std::to_string(idCliente) + "] conectado");
-    colaEventos.push(EventoSesion{
-    TipoEventoSesion::Conectar, idCliente,
-        DatosSesion{
-            dataJugador.nombre,
-            dataJugador.clasePersonaje,
-            dataJugador.raza,
-            dataJugador.cabeza,
-            dataJugador.cuerpo}});
+    colaEventos.push(
+            EventoSesion{TipoEventoSesion::Conectar, idCliente,
+                         DatosSesion{dataJugador.nombre, dataJugador.clasePersonaje,
+                                     dataJugador.raza, dataJugador.cabeza, dataJugador.cuerpo}});
     monitorClientes.setCliente(idCliente, dataJugador.nombre);
 
     Enviador enviador(*protocolo_servidor, colaSalida);
@@ -48,10 +41,13 @@ void Cliente::run() {
     enviador.start();
     recibidor.join();
 
-    // El recibidor termino: el socket esta cerrado y el cliente se fue. Avisamos al dominio para que Juego mueva al jugador de jugadoresConectados a jugadoresDesconectados y despida la sesion activa en indiceNicksConectados (no la cuenta: el Jugador con su progreso sigue vivo en jugadoresDesconectados). Si el gameloop ya cerro sus colas (shutdown del servidor), el push se ignora.
+    // El recibidor termino: el socket esta cerrado y el cliente se fue. Avisamos al dominio para
+    // que Juego mueva al jugador de jugadoresConectados a jugadoresDesconectados y despida la
+    // sesion activa en indiceNicksConectados (no la cuenta: el Jugador con su progreso sigue vivo
+    // en jugadoresDesconectados). Si el gameloop ya cerro sus colas (shutdown del servidor), el
+    // push se ignora.
     try {
-        colaEventos.push(EventoSesion{
-                TipoEventoSesion::Desconectar, idCliente, DatosSesion{}});
+        colaEventos.push(EventoSesion{TipoEventoSesion::Desconectar, idCliente, DatosSesion{}});
     } catch (const ClosedQueue&) {}
 
     enviador.stop();
@@ -62,8 +58,8 @@ void Cliente::stop() {
     estaActivo = false;
     try {
         protocolo_servidor->cerrarConexion();
-        //skt_client.close();
-    }catch (const LibError&) {
+        // skt_client.close();
+    } catch (const LibError&) {
         // ignoramos si el socket ya esta cerrado
     } catch (std::runtime_error&) {
         // cualquier otro error

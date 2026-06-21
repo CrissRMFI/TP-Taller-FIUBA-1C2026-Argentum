@@ -9,6 +9,7 @@
 class Server {
 private:
     Socket skt;
+
 public:
     explicit Server(const char* servname);
     ~Server();
@@ -17,8 +18,6 @@ public:
     Server& operator=(const Server&) = delete;
 
     void run();
-
 };
 
 #endif
-

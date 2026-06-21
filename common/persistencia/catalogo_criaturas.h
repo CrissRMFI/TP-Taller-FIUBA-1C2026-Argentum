@@ -11,12 +11,12 @@
 // Stats de combate por tipo de criatura, leidos de config/criaturas.toml.
 struct StatsCriatura {
     uint16_t vidaMaxima = 0;
-    uint8_t  nivel = 0;
-    uint8_t  fuerza = 0;
-    uint8_t  agilidad = 0;
-    uint8_t  rangoAggro = 0;
-    uint8_t  danioMin = 0;
-    uint8_t  danioMax = 0;
+    uint8_t nivel = 0;
+    uint8_t fuerza = 0;
+    uint8_t agilidad = 0;
+    uint8_t rangoAggro = 0;
+    uint8_t danioMin = 0;
+    uint8_t danioMax = 0;
     uint16_t cuerpo = 0;
     uint16_t fxAtaque = 0;
     uint32_t respawnTicks = 0;
@@ -30,6 +30,7 @@ private:
     std::map<TipoCriatura, StatsCriatura> stats;
 
     bool tipoDesdeClave(const std::string& clave, TipoCriatura& tipo) const;
+
 public:
     void cargar(const std::string& path);
 
@@ -37,7 +38,6 @@ public:
     bool esSoloMazmorra(TipoCriatura tipo) const;
     StatsCriatura statsDe(TipoCriatura tipo) const;
     Criatura crear(TipoCriatura tipo, uint16_t id, const Posicion& pos) const;
-
 };
 
 #endif

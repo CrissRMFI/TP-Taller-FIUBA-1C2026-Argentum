@@ -59,9 +59,9 @@ private:
     QString rutaExteriorDe(const QString& rutaMazmorra) const;
 
     void abrirMapa();
-    void guardar(); // guarda el escenario sobre el archivo actual
-    void guardarComo(); // guarda el escenario eligiendo ruta
-    void volverAtras(); // vuelve a la pantalla de inicio (con confirmacion)
+    void guardar();      // guarda el escenario sobre el archivo actual
+    void guardarComo();  // guarda el escenario eligiendo ruta
+    void volverAtras();  // vuelve a la pantalla de inicio (con confirmacion)
     void redimensionarMapa();
     void actualizarInfo();
 };

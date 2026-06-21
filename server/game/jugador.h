@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "../../common/game/modelo/posicion.h"
 #include "config/config_juego.h"
 #include "modelo/clase_personaje.h"
-#include "../../common/game/modelo/posicion.h"
 #include "modelo/raza.h"
 #include "objeto/inventario.h"
 
@@ -22,13 +22,18 @@ enum class Estado {
     Resucitando,
 };
 
-// Resultado del cálculo de daño físico de un atacante. El flag `esCritico` viaja explícito para que el defensor pueda aplicar que el crítico omite la fase de evasión. Sin este flag la información se pierde al calcular el danio
+// Resultado del cálculo de daño físico de un atacante. El flag `esCritico` viaja explícito para que
+// el defensor pueda aplicar que el crítico omite la fase de evasión. Sin este flag la información
+// se pierde al calcular el danio
 struct ResultadoDanio {
     uint16_t valor;
     bool esCritico;
 };
 
-// Resultado de aplicar un ataque físico sobre el defensor. Discrimina esquive vs golpe efectivo para que el caller pueda emitir EventoEsquive con la misma semántica que ya usa el flujo Sin esto, el cliente recibe `cantidad == 0` tanto en esquive como en absorción total y no puede diferenciar .
+// Resultado de aplicar un ataque físico sobre el defensor. Discrimina esquive vs golpe efectivo
+// para que el caller pueda emitir EventoEsquive con la misma semántica que ya usa el flujo Sin
+// esto, el cliente recibe `cantidad == 0` tanto en esquive como en absorción total y no puede
+// diferenciar .
 struct ResultadoDefensa {
     enum class Tipo : uint8_t { Golpeado, Esquivo };
     Tipo tipo;
@@ -36,15 +41,17 @@ struct ResultadoDefensa {
 };
 
 // Tipo de ataque que el jugador ejecuta según su equipamiento.
-// Juego lo consulta vía Jugador::describir_ataque para decidir si valida adyacencia o rango de visión (distancia/hechizo).
+// Juego lo consulta vía Jugador::describir_ataque para decidir si valida adyacencia o rango de
+// visión (distancia/hechizo).
 enum class TipoAtaque {
-    CuerpoACuerpo,   // sin arma: alcance == 1
-    Distancia,       // Arma::esArmaDistancia() == true
-    Hechizo,         // Baculo de daño equipado (consume maná)
-    HechizoNoOfensivo // Curar o magia no permitida para ATACAR
+    CuerpoACuerpo,     // sin arma: alcance == 1
+    Distancia,         // Arma::esArmaDistancia() == true
+    Hechizo,           // Baculo de daño equipado (consume maná)
+    HechizoNoOfensivo  // Curar o magia no permitida para ATACAR
 };
 
-// Descriptor del próximo ataque del jugador. Lo emite `describir_ataque` para que `Juego` valide alcance y costo de maná antes de ejecutar.
+// Descriptor del próximo ataque del jugador. Lo emite `describir_ataque` para que `Juego` valide
+// alcance y costo de maná antes de ejecutar.
 struct DescriptorAtaque {
     TipoAtaque tipo;
     uint16_t alcanceMaximo;  // distancia Manhattan máxima válida hasta el objetivo
@@ -54,8 +61,8 @@ struct DescriptorAtaque {
 struct DatosRestauracion {
     uint16_t skinCabeza;
     uint16_t skinCuerpo;
-    Estado   estado;
-    uint8_t  nivel;
+    Estado estado;
+    uint8_t nivel;
     uint32_t experiencia;
     uint16_t vidaActual;
     uint16_t manaActual;
@@ -72,16 +79,10 @@ struct DatosRestauracion {
     std::vector<uint16_t> itemsBanco;
 };
 
-class Jugador{
+class Jugador {
 public:
-    Jugador(uint16_t id,
-            const std::string& nombre,
-            ClasePersonaje clase,
-            Raza raza,
-            uint16_t cabeza,
-            uint16_t cuerpo,
-            Posicion posicion,
-            const ConfigJuego& cfg);
+    Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza,
+            uint16_t cabeza, uint16_t cuerpo, Posicion posicion, const ConfigJuego& cfg);
 
     void restaurar(const DatosRestauracion& datos);
     void recalcularVestimenta(const CatalogoItems& catalogo);
@@ -89,11 +90,12 @@ public:
     // Modificadores de vida y maná
     void recibir_danio(uint16_t cantidad);
 
-    // Aplica daño físico al jugador. Si `esCritico` es true se saltea la fase de evasión. La absorción por armadura/casco/escudo se aplica cuando no hay esquive. Devuelve un ResultadoDefensa que distingue esquive de golpe (con su daño final entrado a vida) `aleatorio` se inyecta para muestrear las tiradas de evasión y absorción.
-    ResultadoDefensa recibir_ataque_fisico(uint16_t danio,
-                                           bool esCritico,
-                                           const CatalogoItems& catalogo,
-                                           Aleatorio& aleatorio,
+    // Aplica daño físico al jugador. Si `esCritico` es true se saltea la fase de evasión. La
+    // absorción por armadura/casco/escudo se aplica cuando no hay esquive. Devuelve un
+    // ResultadoDefensa que distingue esquive de golpe (con su daño final entrado a vida)
+    // `aleatorio` se inyecta para muestrear las tiradas de evasión y absorción.
+    ResultadoDefensa recibir_ataque_fisico(uint16_t danio, bool esCritico,
+                                           const CatalogoItems& catalogo, Aleatorio& aleatorio,
                                            float multiplicadorDefensa = 1.0f);
 
     void curar(uint16_t cantidad);
@@ -112,7 +114,8 @@ public:
 
     // Movimiento y estado
     void mover_a(uint16_t x, uint16_t y);
-    // Teletransporte: cambia la posicion completa (mapaId + x + y), p. ej. al cruzar un portal hacia otra mazmorra.
+    // Teletransporte: cambia la posicion completa (mapaId + x + y), p. ej. al cruzar un portal
+    // hacia otra mazmorra.
     void reubicar(const Posicion& nuevaPosicion);
     // Movimiento continuo server-driven: el cliente avisa empezar/detener y el
     // servidor avanza una celda cada N ticks mientras el jugador siga moviendose.
@@ -125,17 +128,20 @@ public:
     void inmovilizar(uint16_t resucitarX, uint16_t resucitarY, float segundos);
     void meditar();
     void cancelarMeditacion();
-    // Calcula el daño del próximo golpe del jugador y reporta si fue crítico. 
+    // Calcula el daño del próximo golpe del jugador y reporta si fue crítico.
     ResultadoDanio calcular_danio(const CatalogoItems& catalogo, Aleatorio& aleatorio);
 
-    // Describe el próximo ataque según el equipamiento actual. `Juego` lo consulta para validar alcance y maná
+    // Describe el próximo ataque según el equipamiento actual. `Juego` lo consulta para validar
+    // alcance y maná
     DescriptorAtaque describir_ataque(const CatalogoItems& catalogo) const;
 
-    // Consume `cantidad` puntos de maná si hay suficiente; devuelve true en ese caso. Útil para que `Juego` cobre el costo de un hechizo de báculo antes de calcular daño.
+    // Consume `cantidad` puntos de maná si hay suficiente; devuelve true en ese caso. Útil para que
+    // `Juego` cobre el costo de un hechizo de báculo antes de calcular daño.
     bool consumir_mana(uint16_t cantidad);
 
-    // Cooldown de ataque: `puedeAtacar` indica si ya transcurrió el tiempo de enfriamiento (cfg.cooldownAtaqueSeg) desde el último golpe. `registrarAtaque`
-    // reinicia ese contador cuando el jugador efectivamente ejecuta un ataque.
+    // Cooldown de ataque: `puedeAtacar` indica si ya transcurrió el tiempo de enfriamiento
+    // (cfg.cooldownAtaqueSeg) desde el último golpe. `registrarAtaque` reinicia ese contador cuando
+    // el jugador efectivamente ejecuta un ataque.
     bool puedeAtacar() const;
     void registrarAtaque();
 
@@ -201,7 +207,8 @@ public:
     Estado getEstado() const;
     std::vector<uint16_t> getSlotsInventario() const;
 
-    // Peek no destructivo de un slot del inventario. Devuelve el idItem que hay en indice, o 0 si el slot está vacío / el índice es inválido. Permite validar antes de quitarlo.
+    // Peek no destructivo de un slot del inventario. Devuelve el idItem que hay en indice, o 0 si
+    // el slot está vacío / el índice es inválido. Permite validar antes de quitarlo.
     uint16_t getIdItemEnSlot(uint8_t indice) const;
     uint16_t getArmaEquipada() const;
     uint16_t getBaculoEquipado() const;
@@ -249,9 +256,9 @@ private:
     uint16_t cabeza;
     uint16_t cuerpo;
     uint16_t cuerpoBase;
-    uint16_t spriteArma = 0; // overlay del arma/baculo equipado (vestimenta)
-    uint16_t spriteEscudo = 0; // overlay del escudo equipado
-    uint16_t spriteCasco = 0; // overlay del casco equipado
+    uint16_t spriteArma = 0;    // overlay del arma/baculo equipado (vestimenta)
+    uint16_t spriteEscudo = 0;  // overlay del escudo equipado
+    uint16_t spriteCasco = 0;   // overlay del casco equipado
     float tiempoRestanteInmovilizado;
     float tiempoDesdeUltimoAtaque;
 
@@ -268,7 +275,8 @@ private:
     void morir();
     void perder_experiencia(uint32_t cantidad);
     void consumir_item(uint16_t idItem);
-    // Recalcula la vestimenta a renderizar (cuerpo + overlays arma/escudo/casco) segun el equipamiento actual. Se llama tras cada equipar/desequipar.
+    // Recalcula la vestimenta a renderizar (cuerpo + overlays arma/escudo/casco) segun el
+    // equipamiento actual. Se llama tras cada equipar/desequipar.
     void actualizarVestimenta(const CatalogoItems& catalogo);
     void normalizarOro();
     bool esquiva_ataque(Aleatorio& aleatorio);

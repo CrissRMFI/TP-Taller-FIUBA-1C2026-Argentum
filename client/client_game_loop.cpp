@@ -12,8 +12,8 @@
 
 #include <SDL.h>
 
-#include "audio/gestor_audio.h"
 #include "../common/game/constant_rate_loop.h"
+#include "audio/gestor_audio.h"
 
 #ifndef CLIENT_GAME_CONFIG_PATH
 #define CLIENT_GAME_CONFIG_PATH "config/game_config.toml"
@@ -23,26 +23,20 @@
 #define CLIENT_INTERFACE_DIR "client/interface"
 #endif
 
-ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages,
-                               ClientBusiness& business,
-                               const uint16_t idCliente,
-                               const ConfigCliente& config):
-    server_messages(server_messages),
-    business(business),
-    object_state(idCliente),
-    config(config),
-    catalogo(CLIENT_GAME_CONFIG_PATH),
-    parser(catalogo.mapaClaveAId()),
-    is_running(false) {}
+ClientGameLoop::ClientGameLoop(Queue<MensajeServidor>& server_messages, ClientBusiness& business,
+                               const uint16_t idCliente, const ConfigCliente& config) :
+        server_messages(server_messages),
+        business(business),
+        object_state(idCliente),
+        config(config),
+        catalogo(CLIENT_GAME_CONFIG_PATH),
+        parser(catalogo.mapaClaveAId()),
+        is_running(false) {}
 
 ClientGameLoop::~ClientGameLoop() = default;
 
-void ClientGameLoop::init(const char* title,
-                          const int xpos,
-                          const int ypos,
-                          const int width,
-                          const int height,
-                          const bool fullscreen) {
+void ClientGameLoop::init(const char* title, const int xpos, const int ypos, const int width,
+                          const int height, const bool fullscreen) {
     const auto aColor = [](const std::vector<int>& rgb, const SDL_Color& porDefecto) -> SDL_Color {
         if (rgb.size() != 3) {
             return porDefecto;
@@ -83,9 +77,8 @@ void ClientGameLoop::init(const char* title,
     panelCfg.bancoGap = config.bancoGap;
     panelCfg.bancoCols = config.bancoCols;
 
-    object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync,
-                         config.fpsMax, chatCfg, panelCfg, &catalogo, config.camara,
-                         config.intervaloMovimientoMs);
+    object_renderer.init(title, xpos, ypos, width, height, fullscreen, config.vsync, config.fpsMax,
+                         chatCfg, panelCfg, &catalogo, config.camara, config.intervaloMovimientoMs);
     object_state.setMaxLineasChat(static_cast<size_t>(config.chatMaxLineas));
     handler.set_window_dimensions(width, height);
     handler.setChatPanel(config.chatPanelX, config.chatPanelY, config.chatPanelAlto);
@@ -95,8 +88,8 @@ void ClientGameLoop::init(const char* title,
     handler.setRadioSeleccion(static_cast<float>(config.seleccionRadioPx));
 
     const std::string resourcesRoot = std::string(CLIENT_INTERFACE_DIR) + "/../resources";
-    gestorAudio = std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml",
-                                                resourcesRoot);
+    gestorAudio =
+            std::make_unique<GestorAudio>(resourcesRoot + "/config/sonidos.toml", resourcesRoot);
     gestorAudio->reproducirMusica("campo");
     mapaAnteriorAudio = object_renderer.getMapaPrincipal();
 
@@ -106,7 +99,6 @@ void ClientGameLoop::init(const char* title,
     // el constantRateLoop recibe una funcion por paramtro que
     // calcula el ultimo tick logico alcanzado  en esta vuelta
     loop.run([&](const uint32_t ticks_elapsed, const uint64_t tick_number) {
-
         const uint64_t current_tick = tick_number + ticks_elapsed - 1;
         handleEvents();
         if (!is_running) {
@@ -116,22 +108,27 @@ void ClientGameLoop::init(const char* title,
         update(static_cast<int>(current_tick));
         render();
         if (servidorCaido_) {
-        const SDL_MessageBoxButtonData boton = {
-                SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                0, "Aceptar"};
-        const SDL_MessageBoxData datos = {
-                SDL_MESSAGEBOX_ERROR, nullptr, "Argentum",
-                "Se cayo el servidor. El cliente se cerrara.", 1, &boton, nullptr};
-        int boton_id = 0;
-        SDL_ShowMessageBox(&datos, &boton_id);
-    }
+            const SDL_MessageBoxButtonData boton = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT |
+                                                            SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                                                    0, "Aceptar"};
+            const SDL_MessageBoxData datos = {SDL_MESSAGEBOX_ERROR,
+                                              nullptr,
+                                              "Argentum",
+                                              "Se cayo el servidor. El cliente se cerrara.",
+                                              1,
+                                              &boton,
+                                              nullptr};
+            int boton_id = 0;
+            SDL_ShowMessageBox(&datos, &boton_id);
+        }
     });
 }
 
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        // El banco y la tienda son modales: mientras esten abiertos, todos los eventos van a su manejo.
+        // El banco y la tienda son modales: mientras esten abiertos, todos los eventos van a su
+        // manejo.
         if (object_state.bancoRecibido()) {
             manejarEventoBanco(event);
             continue;
@@ -141,8 +138,7 @@ void ClientGameLoop::handleEvents() {
             continue;
         }
         // Zoom de la camara con Ctrl + / Ctrl - (no mientras se escribe en el chat).
-        if (event.type == SDL_KEYDOWN && !handler.chatActivo() &&
-            (SDL_GetModState() & KMOD_CTRL)) {
+        if (event.type == SDL_KEYDOWN && !handler.chatActivo() && (SDL_GetModState() & KMOD_CTRL)) {
             const SDL_Keycode k = event.key.keysym.sym;
             if (k == SDLK_PLUS || k == SDLK_EQUALS || k == SDLK_KP_PLUS) {
                 object_renderer.zoomIn();
@@ -224,8 +220,9 @@ void ClientGameLoop::manejarClickPanel(const int x, const int y) {
     }
 
     if (const uint16_t idHechizo = object_renderer.hechizoClickeado(x, y); idHechizo != 0) {
-        despacharComando({Opcode::LANZAR_HECHIZO,
-                          ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}}, tick);
+        despacharComando(
+                {Opcode::LANZAR_HECHIZO, ComandoLanzarHechizo{idHechizo, objetivo.value_or(0)}},
+                tick);
         object_state.mensajeLocal("Lanzaste un hechizo.", TipoMensajeChat::Hechizo);
         // El FX lo difunde el server (FX_HECHIZO) para que lo vean todos, incluido el que lanza.
         return;
@@ -315,16 +312,18 @@ void ClientGameLoop::manejarEventoBanco(const SDL_Event& event) {
     }
     if (object_renderer.clickBancoRetirar(x, y)) {
         if (banquero && bancoSelBoveda >= 0 && bancoSelBoveda < static_cast<int>(boveda.size())) {
-            despacharComando({Opcode::RETIRAR_ITEM,
-                              ComandoRetirarItem{boveda[bancoSelBoveda], *banquero}}, tick);
+            despacharComando(
+                    {Opcode::RETIRAR_ITEM, ComandoRetirarItem{boveda[bancoSelBoveda], *banquero}},
+                    tick);
             bancoSelBoveda = -1;
         }
         return;
     }
 
     const uint32_t monto =
-            bancoMonto.empty() ? 0u : static_cast<uint32_t>(std::strtoul(bancoMonto.c_str(),
-                                                                         nullptr, 10));
+            bancoMonto.empty()
+                    ? 0u
+                    : static_cast<uint32_t>(std::strtoul(bancoMonto.c_str(), nullptr, 10));
     if (object_renderer.clickBancoDepositarOro(x, y)) {
         if (banquero && monto > 0) {
             despacharComando({Opcode::DEPOSITAR_ORO, ComandoDepositarOro{monto, *banquero}}, tick);
@@ -369,7 +368,7 @@ void ClientGameLoop::manejarEventoTienda(const SDL_Event& event) {
     }
 
     if (object_state.tiendaEsSacerdote()) {
-        
+
         if (object_renderer.clickTiendaCurar(x, y) && npc) {
             despacharComando({Opcode::CURAR, ComandoCurar{*npc}}, tick);
             return;
@@ -379,7 +378,8 @@ void ClientGameLoop::manejarEventoTienda(const SDL_Event& event) {
             std::sort(ids.begin(), ids.end());
             if (tiendaSelOferta < static_cast<int>(ids.size())) {
                 despacharComando({Opcode::COMPRAR_HECHIZO,
-                                  ComandoComprarHechizo{ids[tiendaSelOferta], *npc}}, tick);
+                                  ComandoComprarHechizo{ids[tiendaSelOferta], *npc}},
+                                 tick);
             }
         }
         return;
@@ -398,8 +398,9 @@ void ClientGameLoop::manejarEventoTienda(const SDL_Event& event) {
         const std::vector<uint16_t>& inv = object_state.inventario();
         if (npc && tiendaSelInv >= 0 && tiendaSelInv < static_cast<int>(inv.size()) &&
             inv[tiendaSelInv] != 0) {
-            despacharComando({Opcode::VENDER,
-                              ComandoVender{static_cast<uint8_t>(tiendaSelInv), *npc}}, tick);
+            despacharComando(
+                    {Opcode::VENDER, ComandoVender{static_cast<uint8_t>(tiendaSelInv), *npc}},
+                    tick);
             tiendaSelInv = -1;
         }
         return;
@@ -459,7 +460,8 @@ void ClientGameLoop::update(const int it) {
     object_renderer.setMapaActual(mapaAhora);
     handler.setMapaDimensiones(object_renderer.anchoMapa(), object_renderer.altoMapa());
 
-    // Audio por contexto de mapa: musica de mazmorra vs campo, y pasos de caverna vs normales (ambos idempotentes). Al cambiar de mapa, un golpe de transicion de portal.
+    // Audio por contexto de mapa: musica de mazmorra vs campo, y pasos de caverna vs normales
+    // (ambos idempotentes). Al cambiar de mapa, un golpe de transicion de portal.
     const bool enMazmorra = (mapaAhora != object_renderer.getMapaPrincipal());
     gestorAudio->reproducirMusica(enMazmorra ? "mazmorra" : "campo");
     gestorAudio->setClavePasos(enMazmorra ? "entrarCaverna" : "pasos");
@@ -467,7 +469,7 @@ void ClientGameLoop::update(const int it) {
         gestorAudio->reproducirEfecto("transicionPortal");
         mapaAnteriorAudio = mapaAhora;
     }
-    
+
     for (const auto& [idHechizo, idObjetivo] : object_state.drenarFx()) {
         object_renderer.iniciarFx(idHechizo, idObjetivo);
     }
@@ -554,7 +556,7 @@ void ClientGameLoop::render() {
             tienda.oferta = ids;
             tienda.inventario = object_state.hechizosConocidos();
         } else {
-            tienda.oferta = object_state.stockNpc();       // lo que vende el comerciante
+            tienda.oferta = object_state.stockNpc();        // lo que vende el comerciante
             tienda.inventario = object_state.inventario();  // lo del jugador (vender)
         }
         tienda.selOferta = tiendaSelOferta;

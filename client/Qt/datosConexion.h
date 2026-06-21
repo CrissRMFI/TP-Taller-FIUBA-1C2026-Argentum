@@ -36,8 +36,8 @@ public:
         datosLogin.host = host;
     }
 
-    void setDatosNuevoPersonaje(const std::string& nick,  Raza raza,
-                                ClasePersonaje clase, int cabeza, int cuerpo) {
+    void setDatosNuevoPersonaje(const std::string& nick, Raza raza, ClasePersonaje clase,
+                                int cabeza, int cuerpo) {
         datosNuevoPersonaje.nick = nick;
         datosNuevoPersonaje.raza = raza;
         datosNuevoPersonaje.clase = clase;
@@ -59,16 +59,19 @@ public:
         errorLogin = true;
         switch (mensaje) {
             case MensajeError::NombreUsuarioNoEncontrado:
-                mensajeError = "Nombre de usuario no encontrado. Por favor, vuelva a iniciar sesion.";
+                mensajeError =
+                        "Nombre de usuario no encontrado. Por favor, vuelva a iniciar sesion.";
                 break;
             case MensajeError::NickYaExistente:
                 mensajeError = "El nick ingresado ya existe. Por favor, vuelva a iniciar sesion.";
                 break;
             case MensajeError::PuertoHostInvalidos:
-                mensajeError = "Puerto o host invalidos. Pruebe con IP/HOST: localhost  PUERTO: 7666.";
+                mensajeError =
+                        "Puerto o host invalidos. Pruebe con IP/HOST: localhost  PUERTO: 7666.";
                 break;
             case MensajeError::UsuarioYaConectado:
-                mensajeError = "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
+                mensajeError =
+                        "El usuario ya se encuentra conectado. Por favor, vuelva a iniciar sesion.";
                 break;
             default:
                 mensajeError = "Error desconocido. Por favor, vuelva a iniciar sesion.";
@@ -104,8 +107,7 @@ public:
     bool tieneErrorLogin() const {
         return errorLogin;
     }
-    
-    
+
 
 private:
     DatosLogin datosLogin;

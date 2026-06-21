@@ -25,7 +25,7 @@ constexpr int animation_row_for_action(const GameAction action) {
         case GameAction::MoveLeft:
             return 1;
         case GameAction::MoveRight:
-            return  2;
+            return 2;
         case GameAction::MoveUp:
             return 3;
     }
@@ -49,4 +49,4 @@ constexpr uint8_t direction_for_protocol(const GameAction action) {
     return 0;
 }
 
-#endif //TALLER_TP_CLIENT_DATA_H
+#endif  // TALLER_TP_CLIENT_DATA_H

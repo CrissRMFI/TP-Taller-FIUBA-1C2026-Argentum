@@ -31,7 +31,8 @@ QPixmap CatalogoEditor::recortar(const QString& sprite, int x, int y, int w, int
     return hoja.copy(rect);
 }
 
-void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* claveArray, SeccionCatalogo seccion, std::vector<ElementoCatalogo>& destino) {
+void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* claveArray,
+                                  SeccionCatalogo seccion, std::vector<ElementoCatalogo>& destino) {
     QFile archivo(QString::fromStdString(archivoPath));
     if (!archivo.open(QIODevice::ReadOnly)) {
         return;
@@ -58,8 +59,7 @@ void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* cl
         elem.seccion = seccion;
         elem.clave = QString::fromStdString((*t)["clave"].value_or<std::string>(""));
         elem.nombre = QString::fromStdString((*t)["nombre"].value_or<std::string>(""));
-        elem.descripcion =
-                QString::fromStdString((*t)["descripcion"].value_or<std::string>(""));
+        elem.descripcion = QString::fromStdString((*t)["descripcion"].value_or<std::string>(""));
         elem.destino = QString::fromStdString((*t)["destino"].value_or<std::string>(""));
         elem.bloquea = (*t)["bloquea"].value_or<bool>(false);
         elem.soloMazmorra = (*t)["solo_mazmorra"].value_or<bool>(false);
@@ -84,8 +84,7 @@ void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* cl
             elem.danioMin = static_cast<uint8_t>((*t)["danio_min"].value_or<int64_t>(0));
             elem.danioMax = static_cast<uint8_t>((*t)["danio_max"].value_or<int64_t>(0));
         }
-        const QString sprite =
-                QString::fromStdString((*t)["sprite"].value_or<std::string>(""));
+        const QString sprite = QString::fromStdString((*t)["sprite"].value_or<std::string>(""));
         int x = 0, y = 0, w = 0, h = 0;
         if (const toml::array* src = (*t)["src"].as_array(); src && src->size() == 4) {
             x = static_cast<int>((*src)[0].value_or<int64_t>(0));
@@ -111,26 +110,63 @@ void CatalogoEditor::cargar() {
 
 const std::vector<ElementoCatalogo>& CatalogoEditor::elementosDe(SeccionCatalogo seccion) const {
     switch (seccion) {
-        case SeccionCatalogo::Criaturas: return criaturas;
-        case SeccionCatalogo::Npc:       return npcs;
-        case SeccionCatalogo::Pisos:     return pisos;
-        case SeccionCatalogo::Elementos: return elementos;
+        case SeccionCatalogo::Criaturas:
+            return criaturas;
+        case SeccionCatalogo::Npc:
+            return npcs;
+        case SeccionCatalogo::Pisos:
+            return pisos;
+        case SeccionCatalogo::Elementos:
+            return elementos;
     }
     return pisos;
 }
 
 bool CatalogoEditor::criaturaPorClave(const QString& clave, TipoCriatura& tipo) const {
-    if (clave == "goblin")    { tipo = TipoCriatura::Goblin;    return true; }
-    if (clave == "esqueleto") { tipo = TipoCriatura::Esqueleto; return true; }
-    if (clave == "zombie")    { tipo = TipoCriatura::Zombie;    return true; }
-    if (clave == "arania")    { tipo = TipoCriatura::Arania;    return true; }
-    if (clave == "orco")      { tipo = TipoCriatura::Orco;      return true; }
-    if (clave == "golem")     { tipo = TipoCriatura::Golem;     return true; }
-    if (clave == "centinela_piedra")   { tipo = TipoCriatura::CentinelaPiedra;   return true; }
-    if (clave == "guerrero_ancestral") { tipo = TipoCriatura::GuerreroAncestral; return true; }
-    if (clave == "aberracion")         { tipo = TipoCriatura::Aberracion;        return true; }
-    if (clave == "coloso_roca")        { tipo = TipoCriatura::ColosoRoca;        return true; }
-    if (clave == "senor_abismo")       { tipo = TipoCriatura::SenorAbismo;       return true; }
+    if (clave == "goblin") {
+        tipo = TipoCriatura::Goblin;
+        return true;
+    }
+    if (clave == "esqueleto") {
+        tipo = TipoCriatura::Esqueleto;
+        return true;
+    }
+    if (clave == "zombie") {
+        tipo = TipoCriatura::Zombie;
+        return true;
+    }
+    if (clave == "arania") {
+        tipo = TipoCriatura::Arania;
+        return true;
+    }
+    if (clave == "orco") {
+        tipo = TipoCriatura::Orco;
+        return true;
+    }
+    if (clave == "golem") {
+        tipo = TipoCriatura::Golem;
+        return true;
+    }
+    if (clave == "centinela_piedra") {
+        tipo = TipoCriatura::CentinelaPiedra;
+        return true;
+    }
+    if (clave == "guerrero_ancestral") {
+        tipo = TipoCriatura::GuerreroAncestral;
+        return true;
+    }
+    if (clave == "aberracion") {
+        tipo = TipoCriatura::Aberracion;
+        return true;
+    }
+    if (clave == "coloso_roca") {
+        tipo = TipoCriatura::ColosoRoca;
+        return true;
+    }
+    if (clave == "senor_abismo") {
+        tipo = TipoCriatura::SenorAbismo;
+        return true;
+    }
     return false;
 }
 
@@ -144,9 +180,18 @@ bool CatalogoEditor::esSoloMazmorra(const QString& claveCriatura) const {
 }
 
 bool CatalogoEditor::npcPorClave(const QString& clave, TipoNpc& tipo) const {
-    if (clave == "sacerdote")   { tipo = TipoNpc::Sacerdote;   return true; }
-    if (clave == "comerciante") { tipo = TipoNpc::Comerciante; return true; }
-    if (clave == "banquero")    { tipo = TipoNpc::Banquero;    return true; }
+    if (clave == "sacerdote") {
+        tipo = TipoNpc::Sacerdote;
+        return true;
+    }
+    if (clave == "comerciante") {
+        tipo = TipoNpc::Comerciante;
+        return true;
+    }
+    if (clave == "banquero") {
+        tipo = TipoNpc::Banquero;
+        return true;
+    }
     return false;
 }
 

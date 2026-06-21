@@ -14,7 +14,8 @@ void RegistroServidor::errorCargandoJugador(const std::string& nombre, const std
     std::cerr << "[persistencia] error cargando " << nombre << ": " << detalle << std::endl;
 }
 
-void RegistroServidor::errorGuardandoJugador(const std::string& nombre, const std::string& detalle) {
+void RegistroServidor::errorGuardandoJugador(const std::string& nombre,
+                                             const std::string& detalle) {
     std::cerr << "[persistencia] error guardando " << nombre << ": " << detalle << std::endl;
 }
 

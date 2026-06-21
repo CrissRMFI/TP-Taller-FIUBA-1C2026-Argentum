@@ -151,7 +151,8 @@ TEST_F(ProtocoloFixture, OroDesaparecioSuelo) {
 
 TEST_F(ProtocoloFixture, ActualizarInventarioVacio) {
     servidor->enviarMensaje({Opcode::ACTUALIZAR_INVENTARIO, MensajeActualizarInventario{{}}});
-    EXPECT_TRUE(std::get<MensajeActualizarInventario>(cliente->recibirMensaje().payload).slots_.empty());
+    EXPECT_TRUE(std::get<MensajeActualizarInventario>(cliente->recibirMensaje().payload)
+                        .slots_.empty());
 }
 
 TEST_F(ProtocoloFixture, ActualizarInventarioConItems) {
@@ -166,7 +167,8 @@ TEST_F(ProtocoloFixture, ActualizarInventarioConItems) {
 
 TEST_F(ProtocoloFixture, ActualizarInventarioMaximo) {
     MensajeActualizarInventario m;
-    for (uint16_t i = 0; i < 255; ++i) m.slots_.push_back(i);
+    for (uint16_t i = 0; i < 255; ++i)
+        m.slots_.push_back(i);
     servidor->enviarMensaje({Opcode::ACTUALIZAR_INVENTARIO, m});
     auto p = std::get<MensajeActualizarInventario>(cliente->recibirMensaje().payload);
     EXPECT_EQ(p.slots_.size(), 255u);
@@ -215,7 +217,8 @@ TEST_F(ProtocoloFixture, ContenidoBancoConItems) {
 
 TEST_F(ProtocoloFixture, ContenidoBancoOroMaximo) {
     servidor->enviarMensaje({Opcode::CONTENIDO_BANCO, MensajeContenidoBanco{{}, 0xFFFFFFFF}});
-    EXPECT_EQ(std::get<MensajeContenidoBanco>(cliente->recibirMensaje().payload).oroBanco, 0xFFFFFFFFu);
+    EXPECT_EQ(std::get<MensajeContenidoBanco>(cliente->recibirMensaje().payload).oroBanco,
+              0xFFFFFFFFu);
 }
 
 // Hechizos
@@ -293,7 +296,8 @@ TEST_F(ProtocoloFixture, EstadoUsuarioSinError) {
 }
 
 TEST_F(ProtocoloFixture, EstadoUsuarioNickNoEncontrado) {
-    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{0, "fantasma", ErrorUsuario::NombreUsuarioNoEncontrado});
+    servidor->enviarEstadoUsuario(
+            MensajeEstadoUsuario{0, "fantasma", ErrorUsuario::NombreUsuarioNoEncontrado});
     auto p = std::get<MensajeEstadoUsuario>(cliente->recibirEstadoUsuario().payload);
     EXPECT_EQ(p.error, ErrorUsuario::NombreUsuarioNoEncontrado);
 }
@@ -305,7 +309,8 @@ TEST_F(ProtocoloFixture, EstadoUsuarioNickYaExistente) {
 }
 
 TEST_F(ProtocoloFixture, EstadoUsuarioUsuarioYaConectado) {
-    servidor->enviarEstadoUsuario(MensajeEstadoUsuario{3, "ya_logueado", ErrorUsuario::UsuarioYaConectado});
+    servidor->enviarEstadoUsuario(
+            MensajeEstadoUsuario{3, "ya_logueado", ErrorUsuario::UsuarioYaConectado});
     auto p = std::get<MensajeEstadoUsuario>(cliente->recibirEstadoUsuario().payload);
     EXPECT_EQ(p.error, ErrorUsuario::UsuarioYaConectado);
 }
@@ -313,8 +318,10 @@ TEST_F(ProtocoloFixture, EstadoUsuarioUsuarioYaConectado) {
 // Secuencia
 
 TEST_F(ProtocoloFixture, SecuenciaDeMensajesPreservaOrden) {
-    servidor->enviarMensaje({Opcode::ESTADO_PERSONAJE, MensajeEstadoPersonaje{100, 100, 50, 50, 0, 1, 0, 0}});
-    servidor->enviarMensaje({Opcode::POSICION_ENTIDAD, MensajePosicionEntidad{1, 50, 50, 0, 0, 0, 0, 0, 0, 0}});
+    servidor->enviarMensaje(
+            {Opcode::ESTADO_PERSONAJE, MensajeEstadoPersonaje{100, 100, 50, 50, 0, 1, 0, 0}});
+    servidor->enviarMensaje(
+            {Opcode::POSICION_ENTIDAD, MensajePosicionEntidad{1, 50, 50, 0, 0, 0, 0, 0, 0, 0}});
     servidor->enviarMensaje({Opcode::DANIO_RECIBIDO, MensajeDanoRecibido{10, 99}});
     servidor->enviarMensaje({Opcode::FX_HECHIZO, MensajeFxHechizo{5, 99}});
     servidor->enviarMensaje({Opcode::PROYECTIL, MensajeProyectil{1, 99}});

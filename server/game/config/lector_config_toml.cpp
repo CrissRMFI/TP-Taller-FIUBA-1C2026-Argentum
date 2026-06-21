@@ -1,10 +1,10 @@
 #include "lector_config_toml.h"
 
+#include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <limits>
-#include <stdexcept>
 
 #include <toml++/toml.hpp>
 
@@ -15,10 +15,8 @@ static std::string rutaToml(std::string_view seccion, std::string_view clave) {
     return ruta;
 }
 
-static std::string rutaToml(
-        std::string_view seccion,
-        std::string_view subseccion,
-        std::string_view clave) {
+static std::string rutaToml(std::string_view seccion, std::string_view subseccion,
+                            std::string_view clave) {
     std::string ruta(seccion);
     ruta += ".";
     ruta += subseccion;
@@ -31,9 +29,7 @@ static std::string rutaToml(
     throw std::runtime_error("Falta config TOML obligatoria: " + ruta);
 }
 
-static const toml::table& leerTablaObligatoria(
-        const toml::table& tbl,
-        std::string_view seccion) {
+static const toml::table& leerTablaObligatoria(const toml::table& tbl, std::string_view seccion) {
     const toml::table* tabla = tbl[seccion].as_table();
     if (tabla == nullptr) {
         lanzarFaltaConfig(std::string(seccion));
@@ -41,10 +37,8 @@ static const toml::table& leerTablaObligatoria(
     return *tabla;
 }
 
-static const toml::table& leerSubtablaObligatoria(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view subseccion) {
+static const toml::table& leerSubtablaObligatoria(const toml::table& tbl, std::string_view seccion,
+                                                  std::string_view subseccion) {
     const toml::table& tablaSeccion = leerTablaObligatoria(tbl, seccion);
     const toml::table* tabla = tablaSeccion[subseccion].as_table();
     if (tabla == nullptr) {
@@ -56,10 +50,8 @@ static const toml::table& leerSubtablaObligatoria(
     return *tabla;
 }
 
-static float leerFloatEnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta) {
+static float leerFloatEnTabla(const toml::table& tbl, std::string_view clave,
+                              const std::string& ruta) {
     const auto valor = tbl[clave].value<float>();
     if (!valor.has_value()) {
         lanzarFaltaConfig(ruta);
@@ -67,26 +59,19 @@ static float leerFloatEnTabla(
     return *valor;
 }
 
-static int leerIntEnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta) {
+static int leerIntEnTabla(const toml::table& tbl, std::string_view clave, const std::string& ruta) {
     const auto valor = tbl[clave].value<int64_t>();
     if (!valor.has_value()) {
         lanzarFaltaConfig(ruta);
     }
-    if (*valor < std::numeric_limits<int>::min() ||
-            *valor > std::numeric_limits<int>::max()) {
+    if (*valor < std::numeric_limits<int>::min() || *valor > std::numeric_limits<int>::max()) {
         throw std::runtime_error("Valor numerico fuera de rango en TOML: " + ruta);
     }
     return static_cast<int>(*valor);
 }
 
-static uint16_t leerUint16EnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta,
-        bool permiteCero = false) {
+static uint16_t leerUint16EnTabla(const toml::table& tbl, std::string_view clave,
+                                  const std::string& ruta, bool permiteCero = false) {
     const auto valor = tbl[clave].value<int64_t>();
     if (!valor.has_value()) {
         lanzarFaltaConfig(ruta);
@@ -97,11 +82,8 @@ static uint16_t leerUint16EnTabla(
     return static_cast<uint16_t>(*valor);
 }
 
-static uint8_t leerUint8EnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta,
-        bool permiteCero = false) {
+static uint8_t leerUint8EnTabla(const toml::table& tbl, std::string_view clave,
+                                const std::string& ruta, bool permiteCero = false) {
     const uint16_t valor = leerUint16EnTabla(tbl, clave, ruta, permiteCero);
     if (valor > std::numeric_limits<uint8_t>::max()) {
         throw std::runtime_error("Valor numerico fuera de rango uint8 en TOML: " + ruta);
@@ -109,10 +91,8 @@ static uint8_t leerUint8EnTabla(
     return static_cast<uint8_t>(valor);
 }
 
-static bool leerBoolEnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta) {
+static bool leerBoolEnTabla(const toml::table& tbl, std::string_view clave,
+                            const std::string& ruta) {
     const auto valor = tbl[clave].value<bool>();
     if (!valor.has_value()) {
         lanzarFaltaConfig(ruta);
@@ -120,10 +100,8 @@ static bool leerBoolEnTabla(
     return *valor;
 }
 
-static std::string leerStringEnTabla(
-        const toml::table& tbl,
-        std::string_view clave,
-        const std::string& ruta) {
+static std::string leerStringEnTabla(const toml::table& tbl, std::string_view clave,
+                                     const std::string& ruta) {
     const auto valor = tbl[clave].value<std::string>();
     if (!valor.has_value()) {
         lanzarFaltaConfig(ruta);
@@ -131,70 +109,45 @@ static std::string leerStringEnTabla(
     return *valor;
 }
 
-static float leerFloatObligatorio(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view clave) {
-    return leerFloatEnTabla(
-            leerTablaObligatoria(tbl, seccion),
-            clave,
-            rutaToml(seccion, clave));
+static float leerFloatObligatorio(const toml::table& tbl, std::string_view seccion,
+                                  std::string_view clave) {
+    return leerFloatEnTabla(leerTablaObligatoria(tbl, seccion), clave, rutaToml(seccion, clave));
 }
 
-static int leerIntObligatorio(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view clave) {
-    return leerIntEnTabla(
-            leerTablaObligatoria(tbl, seccion),
-            clave,
-            rutaToml(seccion, clave));
+static int leerIntObligatorio(const toml::table& tbl, std::string_view seccion,
+                              std::string_view clave) {
+    return leerIntEnTabla(leerTablaObligatoria(tbl, seccion), clave, rutaToml(seccion, clave));
 }
 
-static uint16_t leerUint16Obligatorio(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view clave) {
-    return leerUint16EnTabla(
-            leerTablaObligatoria(tbl, seccion),
-            clave,
-            rutaToml(seccion, clave));
+static uint16_t leerUint16Obligatorio(const toml::table& tbl, std::string_view seccion,
+                                      std::string_view clave) {
+    return leerUint16EnTabla(leerTablaObligatoria(tbl, seccion), clave, rutaToml(seccion, clave));
 }
 
-static uint8_t leerUint8Obligatorio(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view clave) {
-    return leerUint8EnTabla(
-            leerTablaObligatoria(tbl, seccion),
-            clave,
-            rutaToml(seccion, clave));
+static uint8_t leerUint8Obligatorio(const toml::table& tbl, std::string_view seccion,
+                                    std::string_view clave) {
+    return leerUint8EnTabla(leerTablaObligatoria(tbl, seccion), clave, rutaToml(seccion, clave));
 }
 
-static bool leerBoolObligatorio(
-        const toml::table& tbl,
-        std::string_view seccion,
-        std::string_view clave) {
-    return leerBoolEnTabla(
-            leerTablaObligatoria(tbl, seccion),
-            clave,
-            rutaToml(seccion, clave));
+static bool leerBoolObligatorio(const toml::table& tbl, std::string_view seccion,
+                                std::string_view clave) {
+    return leerBoolEnTabla(leerTablaObligatoria(tbl, seccion), clave, rutaToml(seccion, clave));
 }
 
 static StatsRaza cargarRaza(const toml::table& tbl, std::string_view nombre) {
     const toml::table& r = leerSubtablaObligatoria(tbl, "razas", nombre);
 
     return StatsRaza{
-        .fVida = leerFloatEnTabla(r, "f_vida", rutaToml("razas", nombre, "f_vida")),
-        .fMana = leerFloatEnTabla(r, "f_mana", rutaToml("razas", nombre, "f_mana")),
-        .fRecuperacion = leerFloatEnTabla(
-                r, "f_recuperacion", rutaToml("razas", nombre, "f_recuperacion")),
-        .constitucion = leerIntEnTabla(
-                r, "constitucion", rutaToml("razas", nombre, "constitucion")),
-        .fuerza = leerIntEnTabla(r, "fuerza", rutaToml("razas", nombre, "fuerza")),
-        .agilidad = leerIntEnTabla(r, "agilidad", rutaToml("razas", nombre, "agilidad")),
-        .inteligencia = leerIntEnTabla(
-                r, "inteligencia", rutaToml("razas", nombre, "inteligencia")),
+            .fVida = leerFloatEnTabla(r, "f_vida", rutaToml("razas", nombre, "f_vida")),
+            .fMana = leerFloatEnTabla(r, "f_mana", rutaToml("razas", nombre, "f_mana")),
+            .fRecuperacion = leerFloatEnTabla(r, "f_recuperacion",
+                                              rutaToml("razas", nombre, "f_recuperacion")),
+            .constitucion =
+                    leerIntEnTabla(r, "constitucion", rutaToml("razas", nombre, "constitucion")),
+            .fuerza = leerIntEnTabla(r, "fuerza", rutaToml("razas", nombre, "fuerza")),
+            .agilidad = leerIntEnTabla(r, "agilidad", rutaToml("razas", nombre, "agilidad")),
+            .inteligencia =
+                    leerIntEnTabla(r, "inteligencia", rutaToml("razas", nombre, "inteligencia")),
     };
 }
 
@@ -212,8 +165,8 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
         }
 
         const uint16_t id = leerUint16EnTabla(*item, "id", rutaToml("items", nombre, "id"));
-        const std::string tipo = leerStringEnTabla(
-                *item, "tipo", rutaToml("items", nombre, "tipo"));
+        const std::string tipo =
+                leerStringEnTabla(*item, "tipo", rutaToml("items", nombre, "tipo"));
         const uint16_t spriteEquip =
                 static_cast<uint16_t>((*item)["sprite_equip"].value_or<int64_t>(0));
         const uint16_t spriteAtaque =
@@ -221,8 +174,7 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
 
         if (tipo == "arma" || tipo == "arma_distancia") {
             auto arma = std::make_unique<Arma>(
-                    id,
-                    nombre,
+                    id, nombre,
                     leerUint8EnTabla(*item, "danio_min", rutaToml("items", nombre, "danio_min")),
                     leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max")),
                     tipo == "arma_distancia");
@@ -230,8 +182,8 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
             arma->setSpriteAtaque(spriteAtaque);
             catalogo.registrar(id, std::move(arma));
         } else if (tipo == "baculo") {
-            const std::string hechizo = leerStringEnTabla(
-                    *item, "hechizo", rutaToml("items", nombre, "hechizo"));
+            const std::string hechizo =
+                    leerStringEnTabla(*item, "hechizo", rutaToml("items", nombre, "hechizo"));
 
             TipoHechizo tipoHechizo = TipoHechizo::Misil;
             if (hechizo == "curar") {
@@ -246,13 +198,14 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
             }
 
             auto baculo = std::make_unique<Baculo>(
-                    id,
-                    nombre,
-                    leerUint8EnTabla(*item, "danio_min", rutaToml("items", nombre, "danio_min"), true),
-                    leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max"), true),
+                    id, nombre,
+                    leerUint8EnTabla(*item, "danio_min", rutaToml("items", nombre, "danio_min"),
+                                     true),
+                    leerUint8EnTabla(*item, "danio_max", rutaToml("items", nombre, "danio_max"),
+                                     true),
                     tipoHechizo,
-                    leerUint16EnTabla(*item, "costo_mana",
-                                      rutaToml("items", nombre, "costo_mana"), true));
+                    leerUint16EnTabla(*item, "costo_mana", rutaToml("items", nombre, "costo_mana"),
+                                      true));
             baculo->setSpriteEquip(spriteEquip);
             catalogo.registrar(id, std::move(baculo));
         } else if (tipo == "armadura" || tipo == "casco" || tipo == "escudo") {
@@ -266,27 +219,22 @@ static void poblarCatalogo(CatalogoItems& catalogo, const toml::table& tbl) {
             const uint16_t spriteCuerpo =
                     static_cast<uint16_t>((*item)["sprite_cuerpo"].value_or<int64_t>(0));
             auto defensa = std::make_unique<Defensa>(
-                    id,
-                    nombre,
-                    leerUint8EnTabla(*item, "defensa_min",
-                                     rutaToml("items", nombre, "defensa_min"), true),
-                    leerUint8EnTabla(*item, "defensa_max",
-                                     rutaToml("items", nombre, "defensa_max"), true),
-                    slot,
-                    spriteCuerpo);
+                    id, nombre,
+                    leerUint8EnTabla(*item, "defensa_min", rutaToml("items", nombre, "defensa_min"),
+                                     true),
+                    leerUint8EnTabla(*item, "defensa_max", rutaToml("items", nombre, "defensa_max"),
+                                     true),
+                    slot, spriteCuerpo);
             defensa->setSpriteEquip(spriteEquip);  // escudo/casco: overlay
             catalogo.registrar(id, std::move(defensa));
         } else if (tipo == "pocion_vida" || tipo == "pocion_mana") {
             TipoPocion tipoPocion = (tipo == "pocion_vida") ? TipoPocion::Vida : TipoPocion::Mana;
 
-            catalogo.registrar(
-                    id,
-                    std::make_unique<Pocion>(
-                            id,
-                            nombre,
-                            leerUint16EnTabla(
-                                    *item, "cantidad", rutaToml("items", nombre, "cantidad")),
-                            tipoPocion));
+            catalogo.registrar(id, std::make_unique<Pocion>(
+                                           id, nombre,
+                                           leerUint16EnTabla(*item, "cantidad",
+                                                             rutaToml("items", nombre, "cantidad")),
+                                           tipoPocion));
         } else {
             throw std::runtime_error("Tipo de item invalido en TOML: " +
                                      rutaToml("items", nombre, "tipo"));
@@ -323,22 +271,20 @@ void LectorConfigToml::cargarSpawn(const toml::table& tbl, ConfigJuego& cfg) {
     const toml::table& spawn = leerSubtablaObligatoria(tbl, "mapa", "spawn");
 
     cfg.spawnInicial = Posicion{
-        leerUint16EnTabla(spawn, "x",       rutaToml("mapa", "spawn", "x"),       true),
-        leerUint16EnTabla(spawn, "y",       rutaToml("mapa", "spawn", "y"),       true),
-        leerUint16EnTabla(spawn, "mapa_id", rutaToml("mapa", "spawn", "mapa_id"), true),
+            leerUint16EnTabla(spawn, "x", rutaToml("mapa", "spawn", "x"), true),
+            leerUint16EnTabla(spawn, "y", rutaToml("mapa", "spawn", "y"), true),
+            leerUint16EnTabla(spawn, "mapa_id", rutaToml("mapa", "spawn", "mapa_id"), true),
     };
 
     if (cfg.spawnInicial.x >= cfg.mapaAncho || cfg.spawnInicial.y >= cfg.mapaAlto) {
-        throw std::runtime_error(
-                "mapa.spawn fuera de las dimensiones del mapa (ancho=" +
-                std::to_string(cfg.mapaAncho) + ", alto=" +
-                std::to_string(cfg.mapaAlto) + ")");
+        throw std::runtime_error("mapa.spawn fuera de las dimensiones del mapa (ancho=" +
+                                 std::to_string(cfg.mapaAncho) +
+                                 ", alto=" + std::to_string(cfg.mapaAlto) + ")");
     }
 }
 
 void LectorConfigToml::cargarStockNpcs(const toml::table& tbl, ConfigJuego& cfg) {
-    const toml::array* itemsComerciante =
-            tbl["npcs"]["comerciante"]["items"].as_array();
+    const toml::array* itemsComerciante = tbl["npcs"]["comerciante"]["items"].as_array();
     if (itemsComerciante == nullptr) {
         lanzarFaltaConfig("npcs.comerciante.items");
     }
@@ -353,8 +299,7 @@ void LectorConfigToml::cargarStockNpcs(const toml::table& tbl, ConfigJuego& cfg)
                 leerUint8EnTabla(*item, "venta", "npcs.comerciante.items.venta", true)});
     }
 
-    const toml::array* itemsSacerdote =
-            tbl["npcs"]["sacerdote"]["items"].as_array();
+    const toml::array* itemsSacerdote = tbl["npcs"]["sacerdote"]["items"].as_array();
     if (itemsSacerdote == nullptr) {
         lanzarFaltaConfig("npcs.sacerdote.items");
     }
@@ -412,25 +357,23 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
 
     cfg.factorTiempoResurreccion =
             leerFloatObligatorio(tbl, "muerte", "factor_tiempo_resurreccion");
-    cfg.expPerdidaMuertePct =
-            leerFloatObligatorio(tbl, "experiencia", "exp_perdida_muerte_pct");
+    cfg.expPerdidaMuertePct = leerFloatObligatorio(tbl, "experiencia", "exp_perdida_muerte_pct");
 
     cfg.tickMs = leerIntObligatorio(tbl, "servidor", "tick_ms");
-    cfg.movimientoJugadorTicks =
-            leerUint16Obligatorio(tbl, "servidor", "movimiento_jugador_ticks");
+    cfg.movimientoJugadorTicks = leerUint16Obligatorio(tbl, "servidor", "movimiento_jugador_ticks");
 
-    cfg.rutaJugadores = leerStringEnTabla(
-            leerTablaObligatoria(tbl, "persistencia"), "archivo_jugadores",
-            rutaToml("persistencia", "archivo_jugadores"));
-    cfg.rutaIndiceJugadores = leerStringEnTabla(
-            leerTablaObligatoria(tbl, "persistencia"), "archivo_indice",
-            rutaToml("persistencia", "archivo_indice"));
+    cfg.rutaJugadores =
+            leerStringEnTabla(leerTablaObligatoria(tbl, "persistencia"), "archivo_jugadores",
+                              rutaToml("persistencia", "archivo_jugadores"));
+    cfg.rutaIndiceJugadores =
+            leerStringEnTabla(leerTablaObligatoria(tbl, "persistencia"), "archivo_indice",
+                              rutaToml("persistencia", "archivo_indice"));
     cfg.guardadoSeg = leerIntObligatorio(tbl, "persistencia", "guardado_seg");
 
     cfg.mapaAncho = leerUint16Obligatorio(tbl, "mapa", "ancho");
     cfg.mapaAlto = leerUint16Obligatorio(tbl, "mapa", "alto");
-    cfg.mapaArchivo = leerStringEnTabla(
-            leerTablaObligatoria(tbl, "mapa"), "archivo", rutaToml("mapa", "archivo"));
+    cfg.mapaArchivo = leerStringEnTabla(leerTablaObligatoria(tbl, "mapa"), "archivo",
+                                        rutaToml("mapa", "archivo"));
     cargarSpawn(tbl, cfg);
 
     cfg.rangoInteraccionNpc = leerUint16Obligatorio(tbl, "npcs", "rango_interaccion");
@@ -455,8 +398,7 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.criaturaCooldownAtaqueSeg = leerFloatObligatorio(tbl, "criaturas", "cooldown_ataque_seg");
 
     const std::string criaturasArchivo = leerStringEnTabla(
-            leerTablaObligatoria(tbl, "criaturas"), "archivo",
-            rutaToml("criaturas", "archivo"));
+            leerTablaObligatoria(tbl, "criaturas"), "archivo", rutaToml("criaturas", "archivo"));
 
     ConfigCompleta resultado;
     resultado.juego = cfg;

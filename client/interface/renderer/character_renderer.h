@@ -2,8 +2,8 @@
 #define TALLER_TP_CHARACTER_RENDERER_H
 
 #include "SDL2pp/Renderer.hh"
-#include "client/interface/sprites_resolver/character_sprite_resolver.h"
 #include "client/entidad_renderizable.h"
+#include "client/interface/sprites_resolver/character_sprite_resolver.h"
 
 // dibujamos al personaje
 class CharacterRenderer {
@@ -19,14 +19,8 @@ private:
 public:
     explicit CharacterRenderer(CharacterSpriteResolver& resolver);
 
-    void render(SDL2pp::Renderer& renderer,
-                const EntidadRenderizable& entity,
-                int entity_x,
-                int entity_y,
-                int cell_width,
-                int cell_height,
-                int animation_row,
-                int frame_index,
+    void render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity, int entity_x,
+                int entity_y, int cell_width, int cell_height, int animation_row, int frame_index,
                 bool resaltar = false) const;
 };
 

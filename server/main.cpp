@@ -1,11 +1,11 @@
 #include <string>
 
-#include "server_.h"
 #include "common/thread/queue.h"
 #include "server/aceptador/aceptador.h"
+#include "server/game/registro_servidor.h"
 #include "server/gameloop/comando_cliente.h"
 #include "server/gameloop/monitor_clientes.h"
-#include "server/game/registro_servidor.h"
+#include "server_.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
 }
 
 
-//Queue<ComandoCliente> colaComandos;
-//MonitorClientes monitorClientes;
+// Queue<ComandoCliente> colaComandos;
+// MonitorClientes monitorClientes;
 
 // Aceptador aceptador(argv[1], &colaComandos, &monitorClientes);
 // aceptador.start();

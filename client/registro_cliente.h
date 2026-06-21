@@ -8,7 +8,7 @@
 class RegistroCliente {
 public:
     static void info(const std::string& mensaje);   // a stdout
-    static void error(const std::string& mensaje);   // a stderr
+    static void error(const std::string& mensaje);  // a stderr
 
     RegistroCliente() = delete;
 };

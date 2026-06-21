@@ -7,10 +7,12 @@
 
 class HandshakeError : public std::runtime_error {
 public:
-    explicit HandshakeError(ErrorUsuario code)
-        : std::runtime_error("handshake error"), code(code) {}
+    explicit HandshakeError(ErrorUsuario code) :
+            std::runtime_error("handshake error"), code(code) {}
 
-    ErrorUsuario getCode() const { return code; }
+    ErrorUsuario getCode() const {
+        return code;
+    }
 
 private:
     ErrorUsuario code;

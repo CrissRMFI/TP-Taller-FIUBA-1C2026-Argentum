@@ -7,15 +7,15 @@
 #include "item.h"
 
 class Equipamiento {
-  
-  private:
+
+private:
     uint16_t arma;
     uint16_t baculo;
     uint16_t defensa;
     uint16_t casco;
     uint16_t escudo;
-  
-  public:
+
+public:
     Equipamiento();
 
     // Retorna los IDs des-equipados (puede ser arma+baculo por la invariante)

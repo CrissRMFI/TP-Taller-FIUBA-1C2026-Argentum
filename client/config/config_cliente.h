@@ -8,12 +8,12 @@
 #include "../camara/player_camera.h"  // ConfigCamara
 
 struct ConfigCliente {
-    bool     vsync = true;
-    int      fpsMax = 120;
+    bool vsync = true;
+    int fpsMax = 120;
     uint32_t intervaloMovimientoMs = 130;
 
-    int  ancho = 640;
-    int  alto = 480;
+    int ancho = 640;
+    int alto = 480;
     bool fullscreen = false;
 
     std::string fuenteRuta = "fonts/font.ttf";
@@ -22,7 +22,7 @@ struct ConfigCliente {
     int chatMaxLineas = 6;
     int chatPanelX = 0;
     int chatPanelY = 0;
-    int chatPanelAlto = 120; 
+    int chatPanelAlto = 120;
     std::vector<int> chatColorTexto = {255, 255, 255};
     std::vector<int> chatColorInput = {255, 255, 0};
     // Colores por tipo de mensaje de chat (centralizados, configurables).
@@ -40,9 +40,9 @@ struct ConfigCliente {
     std::vector<std::string> clasesNombres = {"Mago", "Clerigo", "Paladin", "Guerrero"};
 
     // Panel derecho (inventario/equipo/stats/comercio).
-    int              panelAncho = 268;
-    std::string      panelIconDir = "imgs/items";
-    std::string      panelFondoCuero = "imgs/ui/leather_brown.png";
+    int panelAncho = 268;
+    std::string panelIconDir = "imgs/items";
+    std::string panelFondoCuero = "imgs/ui/leather_brown.png";
     std::vector<int> panelColorTexto = {235, 225, 200};
     std::vector<int> panelColorTitulo = {255, 220, 120};
 

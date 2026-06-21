@@ -7,12 +7,9 @@
 #include "recibidor.h"
 #include "server/game/registro_servidor.h"
 
-Recibidor::Recibidor(ProtocoloServidor &protocolo,
-    Queue<ComandoCliente> &colaComando,
-    MonitorClientes &monitor, uint16_t idCliente):
-    proto(protocolo), colaComando(colaComando),
-    monitor(monitor), idCliente(idCliente)
-{}
+Recibidor::Recibidor(ProtocoloServidor& protocolo, Queue<ComandoCliente>& colaComando,
+                     MonitorClientes& monitor, uint16_t idCliente) :
+        proto(protocolo), colaComando(colaComando), monitor(monitor), idCliente(idCliente) {}
 
 
 void Recibidor::run() {
@@ -22,7 +19,7 @@ void Recibidor::run() {
             ComandoJugador comando = proto.recibirComando();
             colaComando.push(ComandoCliente{idCliente, comando});
         }
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         RegistroServidor::error(std::string("Recibidor::run() EXCEPTION: ") + e.what());
     }
     running = false;

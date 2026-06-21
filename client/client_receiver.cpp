@@ -6,15 +6,13 @@
 
 #include <string>
 
-#include "registro_cliente.h"
 #include "../common/socket/liberror.h"
 #include "../common/thread/queue.h"
+#include "registro_cliente.h"
 
 
-ClientReceiver::ClientReceiver(ProtocoloCliente& protocol, Queue<MensajeServidor>& message_queue):
-    protocol(protocol),
-    queue(message_queue)
-{}
+ClientReceiver::ClientReceiver(ProtocoloCliente& protocol, Queue<MensajeServidor>& message_queue) :
+        protocol(protocol), queue(message_queue) {}
 
 void ClientReceiver::run() {
     try {
@@ -26,7 +24,8 @@ void ClientReceiver::run() {
         // La cola la cerro el cliente (cierre normal): no es una caida del servidor.
         RegistroCliente::info(std::string("[receiver] stopped: queue closed: ") + e.what());
     } catch (const LibError& e) {
-        RegistroCliente::info(std::string("[receiver] stopped: socket/protocol error: ") + e.what());
+        RegistroCliente::info(std::string("[receiver] stopped: socket/protocol error: ") +
+                              e.what());
         senalarCaida();
     } catch (const std::exception& e) {
         RegistroCliente::info(std::string("[receiver] stopped: ") + e.what());
@@ -37,8 +36,11 @@ void ClientReceiver::run() {
 void ClientReceiver::senalarCaida() {
     try {
         queue.close();
-    } catch (const std::exception&) {
-    }
+    } catch (const std::exception&) {}
 }
-void ClientReceiver::stop() { running = false; }
-bool ClientReceiver::is_running() const { return running; }
+void ClientReceiver::stop() {
+    running = false;
+}
+bool ClientReceiver::is_running() const {
+    return running;
+}

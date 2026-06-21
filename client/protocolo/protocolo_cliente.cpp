@@ -28,8 +28,7 @@ MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
     const auto opcode = Opcode(opcode_recibido);
     if (opcode != Opcode::ESTADO_USUARIO) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
     MensajeEstadoUsuario estado;
     estado.id = recibirDosBytes();  // id de cliente es uint16 (puede ser >255)
@@ -40,16 +39,14 @@ MensajeServidor ProtocoloCliente::recibirEstadoUsuario() {
 void ProtocoloCliente::validarDireccion(uint8_t direccion) const {
     if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::DIRECCION_INVALIDA));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::DIRECCION_INVALIDA));
     }
 }
 
 void ProtocoloCliente::validarCantidad(uint16_t cantidad) const {
     if (cantidad > MAX_CANTIDAD_UINT8) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::CAMPO_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }
 
@@ -145,8 +142,7 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
 
         default:
             throw std::runtime_error(
-                    MensajesErrorProtocolo::mensaje(
-                            CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
+                    MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
     }
 }
 
@@ -344,9 +340,8 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
             return recibirErrorAccion();
 
         default:
-            throw std::runtime_error(
-                    MensajesErrorProtocolo::mensaje(
-                            CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
+            throw std::runtime_error(MensajesErrorProtocolo::mensaje(
+                    CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
 }
 
@@ -402,7 +397,8 @@ MensajeServidor ProtocoloCliente::recibirPosicionEntidad() {
 
     return MensajeServidor{
             Opcode::POSICION_ENTIDAD,
-            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo, arma, escudo, casco, mapaId},
+            MensajePosicionEntidad{id, x, y, tipo, estado, cabeza, cuerpo, arma, escudo, casco,
+                                   mapaId},
     };
 }
 
@@ -626,23 +622,20 @@ MensajeServidor ProtocoloCliente::recibirResucitado() {
 void ProtocoloCliente::validarTipoEntidad(uint8_t tipo) const {
     if (tipo > MAX_TIPO_ENTIDAD) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::TIPO_ENTIDAD_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::TIPO_ENTIDAD_INVALIDO));
     }
 }
 
 void ProtocoloCliente::validarEstadoEntidad(uint8_t estado) const {
     if (estado > MAX_ESTADO_ENTIDAD) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::ESTADO_ENTIDAD_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::ESTADO_ENTIDAD_INVALIDO));
     }
 }
 
 void ProtocoloCliente::validarEsquivador(uint8_t esquivador) const {
     if (esquivador > MAX_ESQUIVADOR) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::CAMPO_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }

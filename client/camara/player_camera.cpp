@@ -24,8 +24,8 @@ void PlayerCamera::recalculate_scale() {
     map_pixel_height = map_height_tiles * cell_height;
 }
 
-void PlayerCamera::configure(const int view_width, const int view_height,
-                             const int map_width, const int map_height) {
+void PlayerCamera::configure(const int view_width, const int view_height, const int map_width,
+                             const int map_height) {
     viewport_width = view_width;
     viewport_height = view_height;
     map_width_tiles = map_width;
@@ -35,21 +35,22 @@ void PlayerCamera::configure(const int view_width, const int view_height,
 
 /*
  *  std::clamp comparo limites (v, low_ref, high_ref) :
-        * si v < low_ref, v = low_ref ;
-        * si v > high_ref, v = high_ref;
-        * cualquier otro caso: v = v
-*/
+ * si v < low_ref, v = low_ref ;
+ * si v > high_ref, v = high_ref;
+ * cualquier otro caso: v = v
+ */
 
-void PlayerCamera::target_offset_for_tile(const int tile_x, const int tile_y, int& out_x, int& out_y) const {
+void PlayerCamera::target_offset_for_tile(const int tile_x, const int tile_y, int& out_x,
+                                          int& out_y) const {
     const int desired_offset_x = viewport_width / 2 - (tile_x * cell_width + cell_width / 2);
     const int desired_offset_y = viewport_height / 2 - (tile_y * cell_height + cell_height / 2);
     const int min_offset_x = viewport_width - map_pixel_width;
     const int min_offset_y = viewport_height - map_pixel_height;
 
     if (map_pixel_width <= viewport_width) {
-      out_x = (viewport_width - map_pixel_width) / 2;
+        out_x = (viewport_width - map_pixel_width) / 2;
     } else {
-      out_x = std::clamp(desired_offset_x, min_offset_x, 0);
+        out_x = std::clamp(desired_offset_x, min_offset_x, 0);
     }
 
     if (map_pixel_height <= viewport_height) {
@@ -106,22 +107,19 @@ int PlayerCamera::tile_height() const {
 bool PlayerCamera::is_visible(const int tile_x, const int tile_y) const {
     const int screen_x = screen_x_for_tile(tile_x);
     const int screen_y = screen_y_for_tile(tile_y);
-    return screen_x + cell_width > 0 && screen_x < viewport_width &&
-        screen_y + cell_height > 0 && screen_y < viewport_height;
+    return screen_x + cell_width > 0 && screen_x < viewport_width && screen_y + cell_height > 0 &&
+           screen_y < viewport_height;
 }
 
 // aprece rectangulo un poco en la pantalla
 bool PlayerCamera::is_visible_rect(const int x, const int y, const int w, const int h) const {
-    return x + w > 0 &&
-           y + h > 0 &&
-           x < viewport_width &&
-           y < viewport_height;
+    return x + w > 0 && y + h > 0 && x < viewport_width && y < viewport_height;
 }
 
 int PlayerCamera::get_offset_x() const {
     return offset_x;
 }
-int PlayerCamera::get_offset_y () const {
+int PlayerCamera::get_offset_y() const {
     return offset_y;
 }
 

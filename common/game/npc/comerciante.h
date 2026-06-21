@@ -3,8 +3,8 @@
 
 #include "npc.h"
 
-#include <vector>
 #include <map>
+#include <vector>
 
 class Comerciante : public Npc {
 public:

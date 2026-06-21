@@ -9,8 +9,7 @@
 
 class EscritorJugadores {
 public:
-    EscritorJugadores(const std::string& rutaJugadoresBin,
-                      IndiceJugadores& indice);
+    EscritorJugadores(const std::string& rutaJugadoresBin, IndiceJugadores& indice);
 
     void guardar(const RegistroJugador& registro);
 

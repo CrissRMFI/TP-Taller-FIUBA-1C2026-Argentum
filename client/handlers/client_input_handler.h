@@ -59,33 +59,37 @@ private:
     void abrir_chat();
     void cerrar_chat();
     std::optional<ComandoJugador> handle_mouse_click(
-            int x, int y,
-            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
+            int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
     uint16_t buscar_id_objetivo(
-            int x, int y,
-            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const;
+            int x, int y, const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const;
 
 public:
     ClientInputHandler();
     ~ClientInputHandler();
 
-    ResultadoInput handle_event(
-            const SDL_Event& event,
-            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
+    ResultadoInput handle_event(const SDL_Event& event,
+                                const std::unordered_map<uint16_t, EntidadRenderizable>& entidades);
 
     bool should_quit() const;
-    bool chatActivo() const { return chat_activo; }
-    const std::string& bufferChat() const { return chat_buffer; }
-    std::optional<uint16_t> objetivoSeleccionado() const { return objetivo_seleccionado; }
+    bool chatActivo() const {
+        return chat_activo;
+    }
+    const std::string& bufferChat() const {
+        return chat_buffer;
+    }
+    std::optional<uint16_t> objetivoSeleccionado() const {
+        return objetivo_seleccionado;
+    }
     // Id de la entidad interactuable bajo una posicion de pantalla (0 = ninguna).
     // Se usa para el hover (resaltar lo clickeable). No selecciona nada.
-    uint16_t idEntidadEn(
-            int x, int y,
-            const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const {
+    uint16_t idEntidadEn(int x, int y,
+                         const std::unordered_map<uint16_t, EntidadRenderizable>& entidades) const {
         return buscar_id_objetivo(x, y, entidades);
     }
 
-    void setIdCliente(uint16_t id) { idCliente = id; }
+    void setIdCliente(uint16_t id) {
+        idCliente = id;
+    }
     void set_window_dimensions(int width, int height) {
         window_width = width;
         window_height = height;
@@ -95,13 +99,18 @@ public:
         chat_panel_y = y;
         chat_panel_alto = alto;
     }
-    void setAnchoPanel(int ancho) { ancho_panel = ancho; }
+    void setAnchoPanel(int ancho) {
+        ancho_panel = ancho;
+    }
     void setMapaDimensiones(int ancho, int alto) {
-        if (ancho > 0) mapa_ancho = ancho;
-        if (alto > 0) mapa_alto = alto;
+        if (ancho > 0)
+            mapa_ancho = ancho;
+        if (alto > 0)
+            mapa_alto = alto;
     }
     void setRadioSeleccion(float radioPx) {
-        if (radioPx > 0.0f) radio_seleccion_px = radioPx;
+        if (radioPx > 0.0f)
+            radio_seleccion_px = radioPx;
     }
     void setCamaraTransform(int offX, int offY, int tileW, int tileH) {
         cam_off_x = offX;
@@ -113,4 +122,3 @@ public:
 
 
 #endif
-

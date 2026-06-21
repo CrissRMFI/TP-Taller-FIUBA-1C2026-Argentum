@@ -26,24 +26,28 @@ std::vector<uint16_t> CatalogoItems::idsDisponibles() const {
 
 const Arma* CatalogoItems::comoArma(uint16_t id) const {
     const Item* item = buscar(id);
-    if (!item || item->getTipo() != TipoItem::Arma) return nullptr;
+    if (!item || item->getTipo() != TipoItem::Arma)
+        return nullptr;
     return static_cast<const Arma*>(item);
 }
 
 const Baculo* CatalogoItems::comoBaculo(uint16_t id) const {
     const Item* item = buscar(id);
-    if (!item || item->getTipo() != TipoItem::Baculo) return nullptr;
+    if (!item || item->getTipo() != TipoItem::Baculo)
+        return nullptr;
     return static_cast<const Baculo*>(item);
 }
 
 const Defensa* CatalogoItems::comoDefensa(uint16_t id) const {
     const Item* item = buscar(id);
-    if (!item || item->getTipo() != TipoItem::Defensa) return nullptr;
+    if (!item || item->getTipo() != TipoItem::Defensa)
+        return nullptr;
     return static_cast<const Defensa*>(item);
 }
 
 const Pocion* CatalogoItems::comoPocion(uint16_t id) const {
     const Item* item = buscar(id);
-    if (!item || item->getTipo() != TipoItem::Pocion) return nullptr;
+    if (!item || item->getTipo() != TipoItem::Pocion)
+        return nullptr;
     return static_cast<const Pocion*>(item);
 }

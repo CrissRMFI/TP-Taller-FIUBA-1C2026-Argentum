@@ -38,12 +38,8 @@ public:
     uint16_t getCascoEquipado() const;
     uint16_t getEscudoEquipado() const;
 
-    void restaurar(const std::vector<uint16_t>& slotsNuevos,
-                   uint16_t arma,
-                   uint16_t baculo,
-                   uint16_t defensa,
-                   uint16_t casco,
-                   uint16_t escudo);
+    void restaurar(const std::vector<uint16_t>& slotsNuevos, uint16_t arma, uint16_t baculo,
+                   uint16_t defensa, uint16_t casco, uint16_t escudo);
 
 private:
     std::vector<uint16_t> slots;

@@ -4,8 +4,7 @@
 
 #include "gestor_audio_menu.h"
 
-GestorAudioMenu::GestorAudioMenu(QObject* parent)
-    : QObject(parent) {
+GestorAudioMenu::GestorAudioMenu(QObject* parent) : QObject(parent) {
     player = new QMediaPlayer(this);
     output = new QAudioOutput(this);
     player->setAudioOutput(output);

@@ -16,12 +16,12 @@ struct EventoEstadoPersonaje {
     uint16_t manaActual;
     uint16_t manaMax;
     uint32_t oro;
-    uint8_t  nivel;
+    uint8_t nivel;
     uint32_t experiencia;
-    Estado   estado;
-    uint8_t  raza = 0;
-    uint8_t  clase = 0;
-    uint32_t expSiguienteNivel = 0;  // experiencia necesaria para subir de nivel
+    Estado estado;
+    uint8_t raza = 0;
+    uint8_t clase = 0;
+    uint32_t expSiguienteNivel = 0;     // experiencia necesaria para subir de nivel
     uint16_t tiempoResurreccionMs = 0;  // ms inmovil restantes al resucitar (0 si no resucita)
 };
 
@@ -29,8 +29,8 @@ struct EventoPosicionEntidad {
     uint16_t id;
     uint16_t x;
     uint16_t y;
-    uint8_t  tipo;
-    uint8_t  estado;
+    uint8_t tipo;
+    uint8_t estado;
     uint16_t cabeza;
     uint16_t cuerpo;
     uint16_t arma = 0;
@@ -46,19 +46,19 @@ struct EventoEntidadDesaparecio {
 struct EventoDanioRecibido {
     uint16_t cantidad;
     uint16_t idAtacante;
-    bool     esCritico = false;
+    bool esCritico = false;
 };
 
 struct EventoDanioProducido {
     uint16_t cantidad;
     uint16_t idObjetivo;
-    uint8_t  tipoGolpe;  // TipoGolpe: derivado del arma del atacante
-    bool     esCritico = false;
+    uint8_t tipoGolpe;  // TipoGolpe: derivado del arma del atacante
+    bool esCritico = false;
 };
 
 struct EventoEsquive {
     uint16_t idEntidad;
-    uint8_t  esquivador;
+    uint8_t esquivador;
 };
 
 struct EventoMuerteEntidad {
@@ -141,28 +141,13 @@ struct EventoErrorAccion {
     CodigoErrorAccion codigo;
 };
 
-using EventoJuego = std::variant<
-        EventoEstadoPersonaje,
-        EventoPosicionEntidad,
-        EventoEntidadDesaparecio,
-        EventoDanioRecibido,
-        EventoDanioProducido,
-        EventoEsquive,
-        EventoMuerteEntidad,
-        EventoItemEnSuelo,
-        EventoItemDesaparecioSuelo,
-        EventoOroEnSuelo,
-        EventoOroDesaparecioSuelo,
-        EventoActualizarInventario,
-        EventoActualizarEquipamiento,
-        EventoChat,
-        EventoResucitado,
-        EventoListaItems,
-        EventoContenidoBanco,
-        EventoListaHechizos,
-        EventoFxHechizo,
-        EventoProyectil,
-        EventoCambioMapa,
-        EventoErrorAccion>;
+using EventoJuego =
+        std::variant<EventoEstadoPersonaje, EventoPosicionEntidad, EventoEntidadDesaparecio,
+                     EventoDanioRecibido, EventoDanioProducido, EventoEsquive, EventoMuerteEntidad,
+                     EventoItemEnSuelo, EventoItemDesaparecioSuelo, EventoOroEnSuelo,
+                     EventoOroDesaparecioSuelo, EventoActualizarInventario,
+                     EventoActualizarEquipamiento, EventoChat, EventoResucitado, EventoListaItems,
+                     EventoContenidoBanco, EventoListaHechizos, EventoFxHechizo, EventoProyectil,
+                     EventoCambioMapa, EventoErrorAccion>;
 
 #endif

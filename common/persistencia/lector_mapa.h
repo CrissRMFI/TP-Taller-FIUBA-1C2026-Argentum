@@ -18,21 +18,20 @@
 #include "vinculo_mazmorra.h"
 
 struct MapaCargado {
-    Mapa     mapa;
+    Mapa mapa;
     uint16_t mapaId;
     std::optional<VinculoMazmorra> vinculoMazmorra;
 };
 
 struct WorldCargado {
     std::map<uint16_t, Mapa> mapas;
-    std::vector<Portal>      portales;
-    uint16_t                 mapaPrincipalId;
+    std::vector<Portal> portales;
+    uint16_t mapaPrincipalId;
 };
 
 class LectorMapa {
 private:
-    uint16_t leerUint16(
-            const toml::table& tabla, std::string_view clave, const std::string& path);
+    uint16_t leerUint16(const toml::table& tabla, std::string_view clave, const std::string& path);
 
     void verificarFirma(const toml::table& tabla, const std::string& path);
 
@@ -52,7 +51,8 @@ private:
 public:
     void validarFirma(const std::string& path);
 
-    // 'catalogoCriaturas' aporta los stats por tipo para instanciar las criaturas colocadas en el mapa
+    // 'catalogoCriaturas' aporta los stats por tipo para instanciar las criaturas colocadas en el
+    // mapa
     MapaCargado leer(const std::string& path,
                      const CatalogoCriaturas& catalogoCriaturas = CatalogoCriaturas{});
 
@@ -60,7 +60,6 @@ public:
     // servidor; el cliente/editor siguen usando leer() para el mapa principal.
     WorldCargado leerMundo(const std::string& path,
                            const CatalogoCriaturas& catalogoCriaturas = CatalogoCriaturas{});
-
 };
 
 #endif

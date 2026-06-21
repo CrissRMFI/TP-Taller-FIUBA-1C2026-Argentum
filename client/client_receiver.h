@@ -18,15 +18,13 @@ private:
 
     void senalarCaida();
 
-    public:
-    ClientReceiver(ProtocoloCliente& protocolo_cliente,
-        Queue<MensajeServidor>& request_queue);
+public:
+    ClientReceiver(ProtocoloCliente& protocolo_cliente, Queue<MensajeServidor>& request_queue);
     void run() override;
     void stop() override;
     bool is_running() const;
     ~ClientReceiver() override = default;
-
 };
 
 
-#endif //TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_RECEIVER_H
+#endif  // TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_RECEIVER_H

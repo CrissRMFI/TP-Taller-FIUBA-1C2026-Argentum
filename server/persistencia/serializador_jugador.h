@@ -10,10 +10,8 @@ class SerializadorJugador {
 public:
     static RegistroJugador aRegistro(const Jugador& jugador);
 
-    static Jugador aJugador(uint16_t sessionId,
-                            const RegistroJugador& registro,
-                            const ConfigJuego& cfg,
-                            const CatalogoItems& catalogo);
+    static Jugador aJugador(uint16_t sessionId, const RegistroJugador& registro,
+                            const ConfigJuego& cfg, const CatalogoItems& catalogo);
 };
 
 #endif

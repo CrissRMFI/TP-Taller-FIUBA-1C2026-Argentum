@@ -5,28 +5,28 @@
 #include <unordered_set>
 #include <vector>
 
+#include "../../../common/game/mapa/mapa.h"
+#include "../../../common/game/mapa/portal.h"
+#include "../../../common/persistencia/lector_mapa.h"
+#include "../../camara/player_camera.h"
+#include "../../config/catalogo_items.h"
+#include "../client_game_world.h"
+#include "../object_animation.h"
+#include "../sprite_manager.h"
+#include "../sprites_resolver/character_sprite_resolver.h"
+#include "../sprites_resolver/criatura_sprite_resolver.h"
+#include "../sprites_resolver/npc_sprite_resolver.h"
 #include "SDL2pp/Renderer.hh"
 #include "SDL2pp/SDL.hh"
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Texture.hh"
 #include "SDL2pp/Window.hh"
 #include "character_renderer.h"
-#include "../sprites_resolver/character_sprite_resolver.h"
-#include "../client_game_world.h"
 #include "criatura_renderer.h"
-#include "../sprites_resolver/criatura_sprite_resolver.h"
 #include "estado_chat_render.h"
 #include "estado_panel_render.h"
 #include "npc_renderer.h"
-#include "../sprites_resolver/npc_sprite_resolver.h"
-#include "../object_animation.h"
-#include "../sprite_manager.h"
 #include "text_renderer.h"
-#include "../../config/catalogo_items.h"
-#include "../../../common/game/mapa/mapa.h"
-#include "../../../common/game/mapa/portal.h"
-#include "../../../common/persistencia/lector_mapa.h"
-#include "../../camara/player_camera.h"
 
 // se encarga de encargar las texturas y de actualizar su estado de acuerdo al movimiento
 class ObjectRenderer {
@@ -89,10 +89,10 @@ private:
     void dibujar_tienda(const EstadoTiendaRender& tienda);
     void dibujar_meditacion(int entity_x, int entity_y, int cell_width, int cell_height,
                             uint32_t tick);
-    
+
     void dibujar_resurreccion(int entity_x, int entity_y, int cell_width, int cell_height,
                               uint32_t tick);
-    
+
     void dibujar_barra_resurreccion(int entity_x, int entity_y, int cell_width, int cell_height,
                                     float fraccion);
     SDL2pp::Texture* icono_item(uint16_t id);
@@ -110,15 +110,15 @@ private:
     std::vector<SDL2pp::Rect> tienda_inv;
     SDL2pp::Rect rect_tienda_comprar{0, 0, 0, 0};
     SDL2pp::Rect rect_tienda_vender{0, 0, 0, 0};
-    SDL2pp::Rect rect_tienda_curar{0, 0, 0, 0};   // solo sacerdote
+    SDL2pp::Rect rect_tienda_curar{0, 0, 0, 0};  // solo sacerdote
     SDL2pp::Rect rect_tienda_cerrar{0, 0, 0, 0};
     std::vector<SDL2pp::Rect> slots_equipo;
     std::vector<SDL2pp::Rect> slots_inventario;
     std::vector<SDL2pp::Rect> slots_stock;
-    std::vector<SDL2pp::Rect> slots_hechizos;       // filas de la pestaña HECHIZOS (lanzar)
-    std::vector<uint16_t> ids_hechizos_dibujados;   // id de hechizo por fila (pestaña)
-    std::vector<SDL2pp::Rect> slots_hechizos_venta; // filas de hechizos en venta del sacerdote
-    std::vector<uint16_t> ids_hechizos_venta;       // id por fila de venta
+    std::vector<SDL2pp::Rect> slots_hechizos;        // filas de la pestaña HECHIZOS (lanzar)
+    std::vector<uint16_t> ids_hechizos_dibujados;    // id de hechizo por fila (pestaña)
+    std::vector<SDL2pp::Rect> slots_hechizos_venta;  // filas de hechizos en venta del sacerdote
+    std::vector<uint16_t> ids_hechizos_venta;        // id por fila de venta
     SDL2pp::Rect rect_boton_vender{0, 0, 0, 0};
     SDL2pp::Rect rect_tab_inv{0, 0, 0, 0};   // pestaña INVENTARIO del marco
     SDL2pp::Rect rect_tab_hech{0, 0, 0, 0};  // pestaña HECHIZOS del marco
@@ -126,22 +126,45 @@ private:
 
 public:
     ObjectRenderer();
-    int anchoMapa() const { return mapaVigente().getAncho(); }
-    int altoMapa() const { return mapaVigente().getAlto(); }
-    int bordeIzquierdoPanel() const { return ancho_juego(); }
-    void setMapaActual(uint16_t id) { mapaActual = id; }
-    uint16_t getMapaPrincipal() const { return mapaPrincipalId; }  // exterior; otros = mazmorra
-    int camOffsetX() const { return camera.get_offset_x(); }
-    int camOffsetY() const { return chat_config.panelAlto + camera.get_offset_y(); }
-    int camTileW() const { return camera.tile_width(); }
-    int camTileH() const { return camera.tile_height(); }
-    void zoomIn() { camera.zoom_in(); }
-    void zoomOut() { camera.zoom_out(); }
+    int anchoMapa() const {
+        return mapaVigente().getAncho();
+    }
+    int altoMapa() const {
+        return mapaVigente().getAlto();
+    }
+    int bordeIzquierdoPanel() const {
+        return ancho_juego();
+    }
+    void setMapaActual(uint16_t id) {
+        mapaActual = id;
+    }
+    uint16_t getMapaPrincipal() const {
+        return mapaPrincipalId;
+    }  // exterior; otros = mazmorra
+    int camOffsetX() const {
+        return camera.get_offset_x();
+    }
+    int camOffsetY() const {
+        return chat_config.panelAlto + camera.get_offset_y();
+    }
+    int camTileW() const {
+        return camera.tile_width();
+    }
+    int camTileH() const {
+        return camera.tile_height();
+    }
+    void zoomIn() {
+        camera.zoom_in();
+    }
+    void zoomOut() {
+        camera.zoom_out();
+    }
     void init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen,
               bool vsync, int loop_fps, const ConfigChatRender& chat_config,
               const ConfigPanelRender& panel_config, const CatalogoItems* catalogo,
               const ConfigCamara& camara_config, uint32_t walk_tile_ms);
-    void update_animation(int it, const ObjectGameWorld& state_object, const ObjectAnimation& animation);
+    void update_animation(int it, const ObjectGameWorld& state_object,
+                          const ObjectAnimation& animation);
     void render(const ObjectGameWorld& state_object, const ObjectAnimation& animation,
                 const EstadoChatRender& chat, const EstadoPanelRender& panel,
                 const EstadoBancoRender& banco, const EstadoTiendaRender& tienda);

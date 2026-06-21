@@ -8,9 +8,8 @@
 
 #include "../../common/persistencia/error_persistencia.h"
 
-EscritorJugadores::EscritorJugadores(const std::string& rutaJugadoresBin,
-                                     IndiceJugadores& indice)
-    : rutaJugadores(rutaJugadoresBin), indice(indice) {}
+EscritorJugadores::EscritorJugadores(const std::string& rutaJugadoresBin, IndiceJugadores& indice) :
+        rutaJugadores(rutaJugadoresBin), indice(indice) {}
 
 void EscritorJugadores::guardar(const RegistroJugador& registro) {
     const std::string nombre(registro.nombre);
@@ -24,20 +23,16 @@ void EscritorJugadores::guardar(const RegistroJugador& registro) {
     }
 }
 
-void EscritorJugadores::escribirEnOffset(const RegistroJugador& registro,
-                                         uint64_t offset) {
-    std::fstream archivo(rutaJugadores,
-                         std::ios::binary | std::ios::in | std::ios::out);
+void EscritorJugadores::escribirEnOffset(const RegistroJugador& registro, uint64_t offset) {
+    std::fstream archivo(rutaJugadores, std::ios::binary | std::ios::in | std::ios::out);
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaJugadores);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaJugadores);
     }
 
     archivo.seekp(static_cast<std::streamoff>(offset));
     archivo.write(reinterpret_cast<const char*>(&registro), sizeof(registro));
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaJugadores);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaJugadores);
     }
 }
 
@@ -49,14 +44,12 @@ uint64_t EscritorJugadores::apenderRegistro(const RegistroJugador& registro) {
 
     std::ofstream archivo(rutaJugadores, std::ios::binary | std::ios::app);
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaJugadores);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaJugadores);
     }
 
     archivo.write(reinterpret_cast<const char*>(&registro), sizeof(registro));
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaJugadores);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaJugadores);
     }
 
     return offset;

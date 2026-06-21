@@ -4,9 +4,9 @@
 #include <atomic>
 #include <list>
 
+#include "../../common/game/constant_rate_loop.h"
 #include "../../common/thread/queue.h"
 #include "../../common/thread/thread.h"
-#include "../../common/game/constant_rate_loop.h"
 #include "../game/config/lector_config_toml.h"
 #include "../game/evento/evento_salida.h"
 #include "../game/juego.h"
@@ -14,10 +14,10 @@
 #include "evento_sesion.h"
 #include "monitor_clientes.h"
 
-class Gameloop: public Thread {
+class Gameloop : public Thread {
 private:
     Queue<ComandoCliente> colaComandos;
-    Queue<EventoSesion>   colaEventosSesion;
+    Queue<EventoSesion> colaEventosSesion;
     MonitorClientes& monitor;
     Juego juego;
     int tickMs;
@@ -38,7 +38,7 @@ public:
     void detener();
 
     Queue<ComandoCliente>& getColaComandos();
-    Queue<EventoSesion>&   getColaEventosSesion();
+    Queue<EventoSesion>& getColaEventosSesion();
 };
 
 #endif

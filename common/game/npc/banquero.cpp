@@ -2,9 +2,8 @@
 
 #include <limits>
 
-Banquero::Banquero(uint16_t id, Posicion posicion) : 
-  Npc(id, TipoNpc::Banquero, posicion) 
-  {cuentas = {};
+Banquero::Banquero(uint16_t id, Posicion posicion) : Npc(id, TipoNpc::Banquero, posicion) {
+    cuentas = {};
 }
 
 std::pair<uint32_t, std::vector<uint16_t>> Banquero::listarItemsDisponibles(uint16_t idJugador) {
@@ -43,7 +42,7 @@ bool Banquero::retirarOro(uint16_t idJugador, uint32_t cantidad) {
 }
 
 bool Banquero::depositarItem(uint16_t idJugador, uint16_t idItem) {
-    
+
     if (idItem == 0) {
         return false;
     }
@@ -75,5 +74,6 @@ bool Banquero::tieneItem(uint16_t idJugador, uint16_t idItem) const {
     }
 
     const auto& itemsDeLaCuenta = itCuenta->second.second;
-    return std::find(itemsDeLaCuenta.begin(), itemsDeLaCuenta.end(), idItem) != itemsDeLaCuenta.end();
+    return std::find(itemsDeLaCuenta.begin(), itemsDeLaCuenta.end(), idItem) !=
+           itemsDeLaCuenta.end();
 }

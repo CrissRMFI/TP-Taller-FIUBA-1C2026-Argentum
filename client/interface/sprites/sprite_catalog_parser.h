@@ -4,15 +4,16 @@
 
 #ifndef TALLER_TP_SPRITE_CATALOG_PARSER_H
 #define TALLER_TP_SPRITE_CATALOG_PARSER_H
-#include  "sprite_catalog_helper.h"
 #include "catalog_resources.h"
+#include "sprite_catalog_helper.h"
 
 class SpriteCatalogParser {
 private:
     SpriteCatalogHelper helper;
-    public:
+
+public:
     CharacterPartDefinition parse_head_part(const toml::key& key, const toml::table& item,
-                                          const std::string& path_prefix);
+                                            const std::string& path_prefix);
     CharacterPartDefinition parse_body_part(const toml::key& key, const toml::table& item,
                                             const std::string& path_prefix);
     std::unordered_map<std::string, SkinPreset> parse_skins(const toml::table& root);

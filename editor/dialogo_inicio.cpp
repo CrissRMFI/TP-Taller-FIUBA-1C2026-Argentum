@@ -16,15 +16,15 @@
 
 #define INICIO_MAPA_DIR "config"
 
-DialogoInicio::DialogoInicio(QWidget* parent):
+DialogoInicio::DialogoInicio(QWidget* parent) :
         QDialog(parent), eleccion(OpcionInicio::Cancelar), ruta() {
     setWindowTitle("Argentum - Editor de mapas");
     setFixedSize(INICIO_W, INICIO_H);
 
     QLabel* fondo = new QLabel(this);
-    fondo->setPixmap(QPixmap(":/editor/marco.bmp")
-                             .scaled(INICIO_W, INICIO_H, Qt::IgnoreAspectRatio,
-                                     Qt::SmoothTransformation));
+    fondo->setPixmap(
+            QPixmap(":/editor/marco.bmp")
+                    .scaled(INICIO_W, INICIO_H, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     fondo->setGeometry(0, 0, INICIO_W, INICIO_H);
 
     QLabel* titulo = new QLabel("Editor de Mapas", fondo);
@@ -54,12 +54,16 @@ DialogoInicio::DialogoInicio(QWidget* parent):
     connect(crear, &QPushButton::clicked, this, &DialogoInicio::elegirCrear);
 }
 
-OpcionInicio DialogoInicio::opcion() const { return eleccion; }
-QString DialogoInicio::rutaElegida() const { return ruta; }
+OpcionInicio DialogoInicio::opcion() const {
+    return eleccion;
+}
+QString DialogoInicio::rutaElegida() const {
+    return ruta;
+}
 
 void DialogoInicio::elegirCargar() {
-    const QString elegida = QFileDialog::getOpenFileName(
-            this, "Abrir mapa", INICIO_MAPA_DIR, "Mapas (*.toml)");
+    const QString elegida =
+            QFileDialog::getOpenFileName(this, "Abrir mapa", INICIO_MAPA_DIR, "Mapas (*.toml)");
     if (elegida.isEmpty()) {
         return;
     }

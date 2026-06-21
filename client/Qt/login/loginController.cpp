@@ -1,10 +1,10 @@
 #include "loginController.h"
 
+#include <QByteArray>
 #include <QEventLoop>
 #include <QQmlContext>
 #include <QQuickView>
 #include <QUrl>
-#include <QByteArray>
 #include <utility>
 
 void LoginController::run(QQuickView& ventana, DatosConexion& datos) {
@@ -28,7 +28,7 @@ LoginController::LoginController(QObject* parent) : QObject(parent) {}
 
 bool LoginController::esPuertoValido(const QString& puerto) const {
     // Verificar que el puerto sea un número y esté en el rango válido
-    bool ok;    
+    bool ok;
     int puertoNum = puerto.toInt(&ok);
     return ok && puertoNum > 0 && puertoNum <= 65535;
 }
@@ -55,6 +55,12 @@ void LoginController::setHost(const QString& host) {
     }
 }
 
-QString LoginController::getPuerto() const { return selectedPuerto; }
-QString LoginController::getHost() const { return selectedHost; }
-QString LoginController::getErrorLogin() const { return errorLoginMessage; }
+QString LoginController::getPuerto() const {
+    return selectedPuerto;
+}
+QString LoginController::getHost() const {
+    return selectedHost;
+}
+QString LoginController::getErrorLogin() const {
+    return errorLoginMessage;
+}

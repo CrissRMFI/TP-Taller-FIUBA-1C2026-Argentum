@@ -8,8 +8,7 @@
 #include "../../common/persistencia/error_persistencia.h"
 #include "../../common/persistencia/formato_jugador.h"
 
-IndiceJugadores::IndiceJugadores(const std::string& rutaIndiceBin)
-    : rutaIndice(rutaIndiceBin) {
+IndiceJugadores::IndiceJugadores(const std::string& rutaIndiceBin) : rutaIndice(rutaIndiceBin) {
     cargarDesdeArchivo();
 }
 
@@ -22,8 +21,7 @@ void IndiceJugadores::cargarDesdeArchivo() {
     archivo.seekg(0, std::ios::end);
     const auto fileSize = archivo.tellg();
     if (fileSize < 0) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaIndice);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaIndice);
     }
     if (static_cast<size_t>(fileSize) % sizeof(IndiceEntrada) != 0) {
         throw ErrorPersistencia(CodigoErrorPersistencia::BYTES_EXTRA, rutaIndice);
@@ -61,14 +59,12 @@ void IndiceJugadores::agregarEntrada(const std::string& nombre, uint64_t offset)
 
     std::ofstream archivo(rutaIndice, std::ios::binary | std::ios::app);
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaIndice);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ABRIR_ARCHIVO, rutaIndice);
     }
 
     archivo.write(reinterpret_cast<const char*>(&entrada), sizeof(entrada));
     if (!archivo) {
-        throw ErrorPersistencia(
-                CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaIndice);
+        throw ErrorPersistencia(CodigoErrorPersistencia::NO_SE_PUEDE_ESCRIBIR, rutaIndice);
     }
 }
 

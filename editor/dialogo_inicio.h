@@ -5,11 +5,7 @@
 #include <QString>
 
 
-enum class OpcionInicio {
-    Cancelar,
-    Cargar,
-    Crear
-};
+enum class OpcionInicio { Cancelar, Cargar, Crear };
 
 
 class DialogoInicio : public QDialog {

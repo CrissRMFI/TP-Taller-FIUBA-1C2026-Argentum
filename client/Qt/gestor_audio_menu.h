@@ -5,10 +5,10 @@
 #ifndef TALLER_TP_GESTOR_AUDIO_MENU_H
 #define TALLER_TP_GESTOR_AUDIO_MENU_H
 
-#include <QHash>
-#include <QObject>
-#include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QHash>
+#include <QMediaPlayer>
+#include <QObject>
 #include <QSoundEffect>
 #include <QUrl>
 
@@ -33,7 +33,6 @@ private:
     float volumenEfectos = 0.5f;
     QHash<QString, QUrl> efectos;
     QHash<QString, QSoundEffect*> cacheEfectos;
-
 };
 
 #endif  // TALLER_TP_GESTOR_AUDIO_MENU_H

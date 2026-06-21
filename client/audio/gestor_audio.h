@@ -44,7 +44,6 @@ private:
     int volumenCanalDe(int volumenBase0a100) const;
 
 public:
-    
     GestorAudio(const std::string& rutaConfig, const std::string& resourcesRoot);
     ~GestorAudio();
 
@@ -74,8 +73,9 @@ public:
     void iniciarResurreccion();
     void detenerResurreccion();
 
-    bool disponible() const { return audioOk; }
-
+    bool disponible() const {
+        return audioOk;
+    }
 };
 
 #endif

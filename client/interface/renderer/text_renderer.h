@@ -17,7 +17,8 @@ private:
 public:
     TextRenderer(const std::string& ruta_fuente, int tam);
 
-    void dibujar(SDL2pp::Renderer& renderer, const std::string& texto, int x, int y, const SDL_Color& color);
+    void dibujar(SDL2pp::Renderer& renderer, const std::string& texto, int x, int y,
+                 const SDL_Color& color);
 
     // Dibuja el texto escalado por 'escala' (para titulos grandes como el nombre del jugador).
     void dibujarEscalado(SDL2pp::Renderer& renderer, const std::string& texto, int x, int y,

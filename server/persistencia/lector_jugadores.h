@@ -9,8 +9,7 @@
 
 class LectorJugadores {
 public:
-    LectorJugadores(const std::string& rutaJugadoresBin,
-                    const IndiceJugadores& indice);
+    LectorJugadores(const std::string& rutaJugadoresBin, const IndiceJugadores& indice);
 
     std::optional<RegistroJugador> cargar(const std::string& nombre);
 

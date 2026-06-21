@@ -52,7 +52,6 @@ public:
 
     // Con este método decidimos si el mensaje es individual o a todo el mundo
     void despachar(const MensajeSalida& mensajeSalida);
-
 };
 
 #endif

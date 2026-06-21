@@ -3,13 +3,13 @@
 #include <iostream>
 #include <string>
 
+#include "common/persistencia/lector_mapa.h"
 #include "common/thread/queue.h"
 #include "game/config/lector_config_toml.h"
 #include "gameloop/gameloop.h"
 #include "server/aceptador/aceptador.h"
 #include "server/gameloop/comando_cliente.h"
 #include "server/gameloop/monitor_clientes.h"
-#include "common/persistencia/lector_mapa.h"
 
 #ifndef SERVER_GAME_CONFIG_PATH
 #define SERVER_GAME_CONFIG_PATH "config/game_config.toml"
@@ -24,8 +24,10 @@ void Server::run() {
     MonitorClientes monitor_clientes(config_completa.juego.rutaIndiceJugadores);
 
     LectorMapa lector_mapa;
-    WorldCargado mundoCargado = lector_mapa.leerMundo(config_completa.juego.mapaArchivo, config_completa.criaturas);
-    Mundo mundo(std::move(mundoCargado.mapas), std::move(mundoCargado.portales), mundoCargado.mapaPrincipalId);
+    WorldCargado mundoCargado =
+            lector_mapa.leerMundo(config_completa.juego.mapaArchivo, config_completa.criaturas);
+    Mundo mundo(std::move(mundoCargado.mapas), std::move(mundoCargado.portales),
+                mundoCargado.mapaPrincipalId);
 
     Gameloop gameloop(monitor_clientes, std::move(config_completa), std::move(mundo));
     Aceptador aceptador(skt, gameloop.getColaComandos(), monitor_clientes,

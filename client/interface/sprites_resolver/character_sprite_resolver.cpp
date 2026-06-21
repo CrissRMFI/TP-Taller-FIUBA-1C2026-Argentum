@@ -7,14 +7,14 @@
 #include <iostream>
 
 CharacterSpriteResolver::CharacterSpriteResolver(const SpriteCatalog& catalog,
-                                                 TextureCache& textures):
-sprite_catalog(catalog), texture_cache(textures){}
+                                                 TextureCache& textures) :
+        sprite_catalog(catalog), texture_cache(textures) {}
 
 CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable& entity) const {
     std::optional<ResolvedCharacterPart> body;
     const bool has_body = sprite_catalog.has_body(entity.cuerpo);
     const bool has_head = sprite_catalog.has_head(entity.cabeza);
-    
+
     if (has_body) {
         if (entity.estado == 1 || entity.estado == 3) {
             if (const StateOverride* ghost_state = sprite_catalog.state_override("fantasma");
@@ -37,8 +37,7 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
             };
         }
     } else {
-        std::cerr << "[sprite_resolver] body no encontrado para id=" << entity.cuerpo
-                  << std::endl;
+        std::cerr << "[sprite_resolver] body no encontrado para id=" << entity.cuerpo << std::endl;
     }
 
     std::optional<ResolvedCharacterPart> head;
@@ -52,14 +51,12 @@ CharacterSprite CharacterSpriteResolver::resolveSprite(const EntidadRenderizable
         };
     } else if (entity.tipo == 0) {
         std::cerr << "[sprite_resolver] head omitida para entidad: estado="
-                  << static_cast<int>(entity.estado)
-                  << " cabeza=" << entity.cabeza
+                  << static_cast<int>(entity.estado) << " cabeza=" << entity.cabeza
                   << " has_head=" << has_head << std::endl;
     }
     // Overlays de vestimenta. Solo personajes vivos (no fantasma/resucitando).
     const bool puedeVestir = (entity.tipo == 0 && entity.estado != 1 && entity.estado != 3);
-    const auto overlayCuerpo =
-            [&](uint16_t id) -> std::optional<ResolvedCharacterPart> {
+    const auto overlayCuerpo = [&](uint16_t id) -> std::optional<ResolvedCharacterPart> {
         if (!puedeVestir || id == 0 || !sprite_catalog.has_body(id)) {
             return std::nullopt;
         }

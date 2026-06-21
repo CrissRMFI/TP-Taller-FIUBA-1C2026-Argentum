@@ -16,8 +16,10 @@ handshakeInicial ProtocoloServidor::recibirUsuario() {
     handshakeInicial dataJugador;
     if (recibirUnByte() != 0) {
         dataJugador.crearPersonaje = true;
-    } else {dataJugador.crearPersonaje = false;}
-    dataJugador.nombre  = recibirCadenaConMaximo(MAX_NICK);
+    } else {
+        dataJugador.crearPersonaje = false;
+    }
+    dataJugador.nombre = recibirCadenaConMaximo(MAX_NICK);
     dataJugador.clasePersonaje = static_cast<ClasePersonaje>(recibirUnByte());
     dataJugador.raza = static_cast<Raza>(recibirUnByte());
     dataJugador.cabeza = recibirDosBytes();
@@ -62,7 +64,7 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::MEDITAR:
             return recibirComandoMeditar();
-        
+
         case Opcode::RESUCITAR:
             return recibirComandoResucitar();
 
@@ -71,7 +73,7 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::TOMAR:
             return recibirComandoTomar();
-        
+
         case Opcode::TIRAR:
             return recibirComandoTirar();
 
@@ -92,8 +94,8 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
         case Opcode::VENDER:
             return recibirComandoVender();
-        
-        
+
+
         case Opcode::DEPOSITAR_ITEM:
             return recibirComandoDepositarItem();
 
@@ -120,41 +122,43 @@ ComandoJugador ProtocoloServidor::recibirComando() {
 
 
         default:
-            throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
+            throw std::runtime_error(
+                    MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_CLIENTE_INVALIDO));
     }
 }
 
 void ProtocoloServidor::validarDireccion(const uint8_t direccion) const {
     if (DIRECCIONES_VALIDAS.find(direccion) == DIRECCIONES_VALIDAS.end()) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::DIRECCION_INVALIDA));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::DIRECCION_INVALIDA));
     }
 }
 
 void ProtocoloServidor::validarTipoEntidad(uint8_t tipo) const {
     if (tipo > MAX_TIPO_ENTIDAD) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::TIPO_ENTIDAD_INVALIDO));
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::TIPO_ENTIDAD_INVALIDO));
     }
 }
 
 void ProtocoloServidor::validarEstadoEntidad(uint8_t estado) const {
     if (estado > MAX_ESTADO_ENTIDAD) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::ESTADO_ENTIDAD_INVALIDO));
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::ESTADO_ENTIDAD_INVALIDO));
     }
 }
 
 void ProtocoloServidor::validarEsquivador(uint8_t esquivador) const {
     if (esquivador > MAX_ESQUIVADOR) {
         throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::CAMPO_INVALIDO));
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }
 
 void ProtocoloServidor::validarCantidad(uint16_t cantidad) const {
     if (cantidad > MAX_CANTIDAD_UINT8) {
-        throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
+        throw std::runtime_error(
+                MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }
 
@@ -219,8 +223,8 @@ ComandoJugador ProtocoloServidor::recibirComandoTirar() {
     uint8_t indiceItem = recibirUnByte();
 
     return ComandoJugador{
-      Opcode::TIRAR,
-      ComandoTirar{indiceItem},
+            Opcode::TIRAR,
+            ComandoTirar{indiceItem},
     };
 }
 
@@ -233,8 +237,8 @@ ComandoJugador ProtocoloServidor::recibirComandoEquipar() {
     uint8_t indiceItem = recibirUnByte();
 
     return ComandoJugador{
-      Opcode::EQUIPAR,
-      ComandoEquipar{indiceItem},
+            Opcode::EQUIPAR,
+            ComandoEquipar{indiceItem},
     };
 }
 
@@ -243,8 +247,8 @@ ComandoJugador ProtocoloServidor::recibirComandoComprar() {
     uint16_t idNPC = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::COMPRAR,
-      ComandoComprar{idItem, idNPC},
+            Opcode::COMPRAR,
+            ComandoComprar{idItem, idNPC},
     };
 }
 
@@ -265,8 +269,8 @@ ComandoJugador ProtocoloServidor::recibirComandoVender() {
     uint16_t idNPC = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::VENDER,
-      ComandoVender{indiceItem, idNPC},
+            Opcode::VENDER,
+            ComandoVender{indiceItem, idNPC},
     };
 }
 
@@ -275,8 +279,8 @@ ComandoJugador ProtocoloServidor::recibirComandoDepositarItem() {
     uint16_t idBanquero = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::DEPOSITAR_ITEM,
-      ComandoDepositarItem{indiceItem, idBanquero},
+            Opcode::DEPOSITAR_ITEM,
+            ComandoDepositarItem{indiceItem, idBanquero},
     };
 }
 
@@ -285,8 +289,8 @@ ComandoJugador ProtocoloServidor::recibirComandoDepositarOro() {
     uint16_t idBanquero = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::DEPOSITAR_ORO,
-      ComandoDepositarOro{monto, idBanquero},
+            Opcode::DEPOSITAR_ORO,
+            ComandoDepositarOro{monto, idBanquero},
     };
 }
 
@@ -295,8 +299,8 @@ ComandoJugador ProtocoloServidor::recibirComandoRetirarItem() {
     uint16_t idBanquero = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::RETIRAR_ITEM,
-      ComandoRetirarItem{idItem, idBanquero},
+            Opcode::RETIRAR_ITEM,
+            ComandoRetirarItem{idItem, idBanquero},
     };
 }
 
@@ -305,8 +309,8 @@ ComandoJugador ProtocoloServidor::recibirComandoRetirarOro() {
     uint16_t idBanquero = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::RETIRAR_ORO,
-      ComandoRetirarOro{monto, idBanquero},
+            Opcode::RETIRAR_ORO,
+            ComandoRetirarOro{monto, idBanquero},
     };
 }
 
@@ -314,8 +318,8 @@ ComandoJugador ProtocoloServidor::recibirComandoListar() {
     uint16_t idNPC = recibirDosBytes();
 
     return ComandoJugador{
-      Opcode::LISTAR,
-      ComandoListar{idNPC},
+            Opcode::LISTAR,
+            ComandoListar{idNPC},
     };
 }
 
@@ -323,8 +327,8 @@ ComandoJugador ProtocoloServidor::recibirComandoChatGlobal() {
     std::string mensaje = recibirCadenaConMaximo(MAX_CHAT);
 
     return ComandoJugador{
-      Opcode::CHAT_GLOBAL,
-      ComandoChatGlobal{mensaje},
+            Opcode::CHAT_GLOBAL,
+            ComandoChatGlobal{mensaje},
     };
 }
 
@@ -333,8 +337,8 @@ ComandoJugador ProtocoloServidor::recibirComandoChatPrivado() {
     std::string mensaje = recibirCadenaConMaximo(MAX_CHAT);
 
     return ComandoJugador{
-      Opcode::CHAT_PRIVADO,
-      ComandoChatPrivado{nickDestino, mensaje},
+            Opcode::CHAT_PRIVADO,
+            ComandoChatPrivado{nickDestino, mensaje},
     };
 }
 
@@ -342,27 +346,27 @@ ComandoJugador ProtocoloServidor::recibirComandoCheat() {
     uint8_t tipo = recibirUnByte();
 
     return ComandoJugador{
-      Opcode::CHEAT,
-      ComandoCheat{tipo},
+            Opcode::CHEAT,
+            ComandoCheat{tipo},
     };
 }
 
 
 void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
     switch (mensaje.opcode) {
-        
+
         case Opcode::ESTADO_PERSONAJE:
             enviarEstadoPersonaje(std::get<MensajeEstadoPersonaje>(mensaje.payload));
             break;
-        
-            case Opcode::POSICION_ENTIDAD:
+
+        case Opcode::POSICION_ENTIDAD:
             enviarPosicionEntidad(std::get<MensajePosicionEntidad>(mensaje.payload));
             break;
 
         case Opcode::ENTIDAD_DESAPARECIO:
             enviarEntidadDesaparecio(std::get<MensajeEntidadDesaparecio>(mensaje.payload));
             break;
-        
+
         case Opcode::DANIO_RECIBIDO:
             enviarDanioRecibido(std::get<MensajeDanoRecibido>(mensaje.payload));
             break;
@@ -378,8 +382,8 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         case Opcode::MUERTE_ENTIDAD:
             enviarMuerteEntidad(std::get<MensajeMuerteEntidad>(mensaje.payload));
             break;
-        
-         case Opcode::ITEM_EN_SUELO:
+
+        case Opcode::ITEM_EN_SUELO:
             enviarItemEnSuelo(std::get<MensajeItemEnSuelo>(mensaje.payload));
             break;
 
@@ -402,8 +406,8 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         case Opcode::ACTUALIZAR_EQUIPAMIENTO:
             enviarActualizarEquipamiento(std::get<MensajeActualizarEquipamiento>(mensaje.payload));
             break;
-        
-            case Opcode::MENSAJE_CHAT:
+
+        case Opcode::MENSAJE_CHAT:
             enviarMensajeChat(std::get<MensajeChat>(mensaje.payload));
             break;
 
@@ -438,9 +442,10 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         case Opcode::ERROR_ACCION:
             enviarErrorAccion(std::get<MensajeErrorAccion>(mensaje.payload));
             break;
-        
+
         default:
-            throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
+            throw std::runtime_error(MensajesErrorProtocolo::mensaje(
+                    CodigoErrorProtocolo::OPCODE_SERVIDOR_INVALIDO));
     }
 }
 
@@ -480,7 +485,7 @@ void ProtocoloServidor::enviarPosicionEntidad(const MensajePosicionEntidad& mens
     enviarDosBytes(mensaje.mapaId);
 }
 
-void ProtocoloServidor::enviarEntidadDesaparecio( const MensajeEntidadDesaparecio& mensaje) {
+void ProtocoloServidor::enviarEntidadDesaparecio(const MensajeEntidadDesaparecio& mensaje) {
     enviarUnByte((uint8_t)(Opcode::ENTIDAD_DESAPARECIO));
     enviarDosBytes(mensaje.id);
 }
@@ -554,7 +559,7 @@ void ProtocoloServidor::enviarActualizarInventario(const MensajeActualizarInvent
 
     enviarUnByte((uint8_t)(mensaje.slots_.size()));
 
-    for (uint16_t idItem: mensaje.slots_) {
+    for (uint16_t idItem : mensaje.slots_) {
         enviarDosBytes(idItem);
     }
 }
@@ -591,7 +596,7 @@ void ProtocoloServidor::enviarListaItems(const MensajeListaItems& mensaje) {
 
     enviarUnByte((uint8_t)(mensaje.ids.size()));
 
-    for (uint16_t idItem: mensaje.ids) {
+    for (uint16_t idItem : mensaje.ids) {
         enviarDosBytes(idItem);
     }
 }

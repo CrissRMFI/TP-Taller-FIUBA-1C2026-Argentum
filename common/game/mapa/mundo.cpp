@@ -8,9 +8,7 @@ Mundo::Mundo(Mapa&& mapaPrincipal, uint16_t mapaId) : principalId(mapaId) {
 
 Mundo::Mundo(std::map<uint16_t, Mapa>&& mapas, std::vector<Portal>&& portales,
              uint16_t mapaPrincipalId) :
-        mapas(std::move(mapas)),
-        portales(std::move(portales)),
-        principalId(mapaPrincipalId) {}
+        mapas(std::move(mapas)), portales(std::move(portales)), principalId(mapaPrincipalId) {}
 
 bool Mundo::existeMapa(uint16_t mapaId) const {
     return mapas.find(mapaId) != mapas.end();
@@ -25,19 +23,31 @@ std::optional<Posicion> Mundo::destinoPortalEn(const Posicion& origen) const {
     return std::nullopt;
 }
 
-Mapa& Mundo::mapaDe(const Posicion& posicion) { return mapas.at(posicion.mapaId); }
+Mapa& Mundo::mapaDe(const Posicion& posicion) {
+    return mapas.at(posicion.mapaId);
+}
 
-const Mapa& Mundo::mapaDe(const Posicion& posicion) const { return mapas.at(posicion.mapaId); }
+const Mapa& Mundo::mapaDe(const Posicion& posicion) const {
+    return mapas.at(posicion.mapaId);
+}
 
-Mapa& Mundo::mapaDe(uint16_t mapaId) { return mapas.at(mapaId); }
+Mapa& Mundo::mapaDe(uint16_t mapaId) {
+    return mapas.at(mapaId);
+}
 
-const Mapa& Mundo::mapaDe(uint16_t mapaId) const { return mapas.at(mapaId); }
+const Mapa& Mundo::mapaDe(uint16_t mapaId) const {
+    return mapas.at(mapaId);
+}
 
-Mapa& Mundo::mapaPrincipal() { return mapas.at(principalId); }
+Mapa& Mundo::mapaPrincipal() {
+    return mapas.at(principalId);
+}
 
-const Mapa& Mundo::mapaPrincipal() const { return mapas.at(principalId); }
+const Mapa& Mundo::mapaPrincipal() const {
+    return mapas.at(principalId);
+}
 
-// ── Ruteadas por la posicion 
+// ── Ruteadas por la posicion
 
 bool Mundo::posicionValida(const Posicion& posicion) const {
     return mapaDe(posicion).posicionValida(posicion);
@@ -100,8 +110,7 @@ std::optional<Npc> Mundo::buscarSacerdoteMasCercano(const Posicion& posicion) co
 }
 
 std::optional<Posicion> Mundo::buscarCeldaLibreCercaDe(
-        const Posicion& origen,
-        const std::function<bool(const Posicion&)>& celdaOcupada) const {
+        const Posicion& origen, const std::function<bool(const Posicion&)>& celdaOcupada) const {
     return mapaDe(origen).buscarCeldaLibreCercaDe(origen, celdaOcupada);
 }
 

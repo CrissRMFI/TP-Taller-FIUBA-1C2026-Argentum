@@ -145,10 +145,10 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     leerCamara("zoom_max_tiles_y", cfg.camara.zoom_max_tiles_y);
     leerCamara("zoom_paso_tiles", cfg.camara.zoom_paso_tiles);
 
-    cfg.seleccionRango = static_cast<int>(
-            tbl["seleccion"]["rango"].value_or<int64_t>(cfg.seleccionRango));
-    cfg.seleccionRadioPx = static_cast<int>(
-            tbl["seleccion"]["radio_px"].value_or<int64_t>(cfg.seleccionRadioPx));
+    cfg.seleccionRango =
+            static_cast<int>(tbl["seleccion"]["rango"].value_or<int64_t>(cfg.seleccionRango));
+    cfg.seleccionRadioPx =
+            static_cast<int>(tbl["seleccion"]["radio_px"].value_or<int64_t>(cfg.seleccionRadioPx));
 
     return cfg;
 }

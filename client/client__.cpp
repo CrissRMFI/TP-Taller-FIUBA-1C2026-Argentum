@@ -7,19 +7,20 @@
 #include <string>
 #include <utility>
 
-#include "client_game_loop.h"
-#include "registro_cliente.h"
-#include "client_manager.h"
+#include "../common/thread/queue.h"
 #include "client_business.h"
+#include "client_game_loop.h"
+#include "client_manager.h"
 #include "config/config_cliente.h"
 #include "config/lector_config_cliente.h"
-#include "../common/thread/queue.h"
+#include "registro_cliente.h"
 
 #ifndef CLIENT_CONFIG_PATH
 #define CLIENT_CONFIG_PATH "config/client_config.toml"
 #endif
 
-Client::Client(const char* hostname, const char* port, DatosConexion& datos): skt(hostname, port), datos(datos) {
+Client::Client(const char* hostname, const char* port, DatosConexion& datos) :
+        skt(hostname, port), datos(datos) {
     RegistroCliente::info("[cliente] socket conectado");
 }
 
@@ -42,9 +43,7 @@ void Client::run() {
     game_loop.setNick(datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick
                                                        : datos.getDatosPersonaje().nick);
     try {
-        game_loop.init("Argentum - TALLER FIUBA",
-                       SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED,
+        game_loop.init("Argentum - TALLER FIUBA", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        config.ancho, config.alto, config.fullscreen);
     } catch (const std::exception& e) {
         RegistroCliente::error(std::string("[cliente] error en el game loop: ") + e.what());

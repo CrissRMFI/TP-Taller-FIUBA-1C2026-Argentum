@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-SpriteManager::SpriteManager(const int animation_fps, const int loop_fps):
+SpriteManager::SpriteManager(const int animation_fps, const int loop_fps) :
         current_frame(0),
         frames_per_animation_step(
                 (animation_fps > 0 && loop_fps > 0) ? std::max(1, loop_fps / animation_fps) : 1) {}

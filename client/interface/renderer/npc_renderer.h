@@ -3,8 +3,8 @@
 
 #include "SDL2pp/Renderer.hh"
 #include "client/entidad_renderizable.h"
-#include "common/game/npc/npc.h"
 #include "client/interface/sprites_resolver/npc_sprite_resolver.h"
+#include "common/game/npc/npc.h"
 
 class NPCRenderer {
 private:
@@ -12,12 +12,11 @@ private:
     SDL2pp::Rect to_sdl_rect(const SpriteRect& rect) const;
 
 public:
-
     explicit NPCRenderer(NpcSpriteResolver& resolver);
 
-    void render(SDL2pp::Renderer& renderer,const Npc& npc, int entity_x,
-                int entity_y, int cell_width, int cell_height, int animation_row,
-                int frame_index, bool resaltar = false) const;
+    void render(SDL2pp::Renderer& renderer, const Npc& npc, int entity_x, int entity_y,
+                int cell_width, int cell_height, int animation_row, int frame_index,
+                bool resaltar = false) const;
 };
 
 #endif

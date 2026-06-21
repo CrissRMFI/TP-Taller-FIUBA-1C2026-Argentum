@@ -4,7 +4,7 @@
 #include <cctype>
 #include <sstream>
 
-ParserComandoChat::ParserComandoChat(std::unordered_map<std::string, uint16_t> nombreItemAId):
+ParserComandoChat::ParserComandoChat(std::unordered_map<std::string, uint16_t> nombreItemAId) :
         nombreItemAId(std::move(nombreItemAId)) {}
 
 ResultadoParseo ParserComandoChat::parsear(const std::string& linea,
@@ -89,8 +89,7 @@ ResultadoParseo ParserComandoChat::parsearComando(const std::string& cuerpo,
         if (!slot || *slot > 255) {
             return conError("Slot de inventario invalido");
         }
-        return soloComando(Opcode::VENDER,
-                           ComandoVender{static_cast<uint8_t>(*slot), *objetivo});
+        return soloComando(Opcode::VENDER, ComandoVender{static_cast<uint8_t>(*slot), *objetivo});
     }
     if (cmd == "depositar") {
         return parsearDepositar(tokens, objetivo);
@@ -203,8 +202,9 @@ std::optional<uint32_t> ParserComandoChat::aEntero(const std::string& texto) con
 
 std::string ParserComandoChat::aMinusculas(const std::string& texto) const {
     std::string r = texto;
-    std::transform(r.begin(), r.end(), r.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    std::transform(r.begin(), r.end(), r.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
     return r;
 }
 

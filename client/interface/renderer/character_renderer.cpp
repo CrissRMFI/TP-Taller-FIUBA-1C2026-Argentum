@@ -21,20 +21,14 @@ SpriteRect CharacterRenderer::body_src_rect_for(const CharacterPartDefinition& d
 
     const int clamped_frame = row->frames > 0 ? frame_index % row->frames : 0;
     if (!definition.frame_size.has_value()) {
-        return {
-                clamped_frame * row->step_x + definition.scr_body.x,
-                row->y + definition.scr_body.y,
-                definition.scr_body.width,
-                definition.scr_body.height};
+        return {clamped_frame * row->step_x + definition.scr_body.x, row->y + definition.scr_body.y,
+                definition.scr_body.width, definition.scr_body.height};
     }
 
     const int frame_w = definition.frame_size->x;
     const int frame_h = definition.frame_size->y;
-    return {
-            clamped_frame * frame_w + row->step_x,
-            row->row * frame_h + row->y,
-            definition.scr_body.width,
-            definition.scr_body.height};
+    return {clamped_frame * frame_w + row->step_x, row->row * frame_h + row->y,
+            definition.scr_body.width, definition.scr_body.height};
 }
 
 SpriteRect CharacterRenderer::head_src_rect_for(const CharacterPartDefinition& definition,
@@ -45,35 +39,23 @@ SpriteRect CharacterRenderer::head_src_rect_for(const CharacterPartDefinition& d
     }
 
     if (!definition.frame_size.has_value()) {
-        return {
-                direction->src.x + definition.scr_head.x,
-                direction->src.y + definition.scr_head.y,
-                definition.scr_head.width,
-                definition.scr_head.height};
+        return {direction->src.x + definition.scr_head.x, direction->src.y + definition.scr_head.y,
+                definition.scr_head.width, definition.scr_head.height};
     }
 
     const int frame_width = definition.frame_size->x;
-    return {
-            direction->column * frame_width + definition.scr_head.x,
-            definition.scr_head.y,
-            definition.scr_head.width,
-            definition.scr_head.height};
+    return {direction->column * frame_width + definition.scr_head.x, definition.scr_head.y,
+            definition.scr_head.width, definition.scr_head.height};
 }
 
-CharacterRenderer::CharacterRenderer(CharacterSpriteResolver& resolver): resolver_(resolver) {}
+CharacterRenderer::CharacterRenderer(CharacterSpriteResolver& resolver) : resolver_(resolver) {}
 
-void CharacterRenderer::render(SDL2pp::Renderer& renderer,
-                               const EntidadRenderizable& entity,
-                               const int entity_x,
-                               const int entity_y,
-                               const int cell_width,
-                               const int cell_height,
-                               const int animation_row,
-                               const int frame_index,
-                               const bool resaltar) const {
+void CharacterRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity,
+                               const int entity_x, const int entity_y, const int cell_width,
+                               const int cell_height, const int animation_row,
+                               const int frame_index, const bool resaltar) const {
     const auto resolved = resolver_.resolveSprite(entity);
-    const int effective_frame_index =
-            (entity.estado == 1 || entity.estado == 3) ? 0 : frame_index;
+    const int effective_frame_index = (entity.estado == 1 || entity.estado == 3) ? 0 : frame_index;
     int body_x = entity_x;
     int body_y = entity_y;
     int body_width = cell_width;
@@ -84,9 +66,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
     if (resolved.body.has_value()) {
         // Para overrides estaticos (ej. fantasma) usamos el recorte fijo del sprite
         // y evitamos cualquier animacion basada en filas/frames del cuerpo original.
-        const SpriteRect body_src = resolved.body->src_override.value_or(
-                body_src_rect_for(*resolved.body->definition, animation_row,
-                                  effective_frame_index));
+        const SpriteRect body_src = resolved.body->src_override.value_or(body_src_rect_for(
+                *resolved.body->definition, animation_row, effective_frame_index));
 
         body_width = static_cast<int>(body_src.width * CHARACTER_SCALE);
         body_height = static_cast<int>(body_src.height * CHARACTER_SCALE);
@@ -99,11 +80,11 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         if (resaltar) {
             SDL_SetTextureColorMod(resolved.body->texture->Get(), 80, 255, 120);
             const int o = 2;
-            for (const auto& d : {std::pair{-o, 0}, std::pair{o, 0}, std::pair{0, -o},
-                                  std::pair{0, o}}) {
-                renderer.Copy(*resolved.body->texture, to_sdl_rect(body_src),
-                              SDL2pp::Rect(body_x + d.first, body_y + d.second, body_width,
-                                           body_height));
+            for (const auto& d :
+                 {std::pair{-o, 0}, std::pair{o, 0}, std::pair{0, -o}, std::pair{0, o}}) {
+                renderer.Copy(
+                        *resolved.body->texture, to_sdl_rect(body_src),
+                        SDL2pp::Rect(body_x + d.first, body_y + d.second, body_width, body_height));
             }
             SDL_SetTextureColorMod(resolved.body->texture->Get(), 255, 255, 255);
         }
@@ -115,7 +96,8 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         SDL_SetTextureAlphaMod(resolved.body->texture->Get(), 255);
     }
 
-    // Overlays de arma/escudo: se dibujan en su celda completa (el item ya esta posicionado dentro del frame, p.ej. en la mano) alineada con el cuerpo por la base de la celda.
+    // Overlays de arma/escudo: se dibujan en su celda completa (el item ya esta posicionado dentro
+    // del frame, p.ej. en la mano) alineada con el cuerpo por la base de la celda.
     const auto dibujar_overlay_cuerpo = [&](const ResolvedCharacterPart& part) {
         const SpriteRect ov_src =
                 body_src_rect_for(*part.definition, animation_row, effective_frame_index);
@@ -133,16 +115,14 @@ void CharacterRenderer::render(SDL2pp::Renderer& renderer,
         dibujar_overlay_cuerpo(*resolved.arma);
     }
     if (resolved.head.has_value()) {
-        const SpriteRect head_src =
-                head_src_rect_for(*resolved.head->definition, animation_row);
+        const SpriteRect head_src = head_src_rect_for(*resolved.head->definition, animation_row);
 
         const int head_width = static_cast<int>(head_src.width * CHARACTER_SCALE);
         const int head_height = static_cast<int>(head_src.height * CHARACTER_SCALE);
 
         const int head_x = body_x + (body_width - head_width) / 2;
 
-        const int head_y =
-                body_y - head_height + resolved.head->definition->draw_offset.y;
+        const int head_y = body_y - head_height + resolved.head->definition->draw_offset.y;
 
         renderer.Copy(*resolved.head->texture, to_sdl_rect(head_src),
                       SDL2pp::Rect(head_x, head_y, head_width, head_height));

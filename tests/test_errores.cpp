@@ -9,9 +9,8 @@
 // Validacion de Direccion
 
 TEST_F(ProtocoloFixture, EmpezarMoverDireccionInvalidaLanzaExcepcionAlEnviar) {
-    EXPECT_THROW(
-        cliente->enviarComando({Opcode::EMPEZAR_MOVER, ComandoEmpezarMover{99}}),
-        std::runtime_error);
+    EXPECT_THROW(cliente->enviarComando({Opcode::EMPEZAR_MOVER, ComandoEmpezarMover{99}}),
+                 std::runtime_error);
 }
 
 // Opcode invalido

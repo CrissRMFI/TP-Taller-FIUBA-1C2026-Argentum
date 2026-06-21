@@ -11,11 +11,12 @@
 #include "../../common/mensajes/mensajes_error_audio.h"
 #include "../registro_cliente.h"
 
-// Canales de mezcla simultaneos. Si todos estan ocupados, los efectos nuevos se descartan (anti-saturacion natural cuando hay muchos eventos a la vez).
+// Canales de mezcla simultaneos. Si todos estan ocupados, los efectos nuevos se descartan
+// (anti-saturacion natural cuando hay muchos eventos a la vez).
 #define CANALES_MEZCLA 24
 #define VOLUMEN_MAX 128
 
-GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resourcesRoot):
+GestorAudio::GestorAudio(const std::string& rutaConfig, const std::string& resourcesRoot) :
         audioOk(false),
         subsistemaIniciado(false),
         volumenMaestroPct(90),
@@ -83,7 +84,7 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
         radioAudibleCeldas = 1;
     }
 
-    
+
     if (const toml::table* efectosTbl = tbl["efectos"].as_table()) {
         for (const auto& [clave, valor] : *efectosTbl) {
             const toml::table* def = valor.as_table();
@@ -97,8 +98,7 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
             const int volumen = (*def)["volumen"].value_or(100);
             const std::string nombre(clave.str());
             try {
-                efectos[nombre] =
-                        std::make_unique<SDL2pp::Chunk>(resourcesRoot + "/" + *path);
+                efectos[nombre] = std::make_unique<SDL2pp::Chunk>(resourcesRoot + "/" + *path);
                 volumenCanal[nombre] = volumenCanalDe(volumen);
             } catch (const std::exception& e) {
                 RegistroCliente::error(
@@ -122,8 +122,7 @@ void GestorAudio::cargarCatalogo(const std::string& rutaConfig, const std::strin
             }
             const std::string nombre(clave.str());
             try {
-                musicas[nombre] =
-                        std::make_unique<SDL2pp::Music>(resourcesRoot + "/" + *path);
+                musicas[nombre] = std::make_unique<SDL2pp::Music>(resourcesRoot + "/" + *path);
             } catch (const std::exception& e) {
                 RegistroCliente::error(
                         std::string("[audio] ") +
@@ -161,9 +160,8 @@ void GestorAudio::reproducirEfectoPosicional(const std::string& clave, int dista
     if (it == efectos.end() || !it->second) {
         return;
     }
-    
-    const int distancia255 =
-            std::clamp(distanciaCeldas * 255 / radioAudibleCeldas, 0, 255);
+
+    const int distancia255 = std::clamp(distanciaCeldas * 255 / radioAudibleCeldas, 0, 255);
     try {
         const int canal = mixer->PlayChannel(-1, *it->second, 0);
         mixer->SetVolume(canal, volumenCanal[clave]);
@@ -186,9 +184,10 @@ void GestorAudio::reproducirMusica(const std::string& clave) {
         mixer->PlayMusic(*it->second, -1);  // -1 = loop infinito
         musicaActual = clave;
     } catch (const std::exception& e) {
-        RegistroCliente::error(std::string("[audio] ") +
-                               MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_REPRODUCIDA) +
-                               " '" + clave + "': " + e.what());
+        RegistroCliente::error(
+                std::string("[audio] ") +
+                MensajesErrorAudio::mensaje(CodigoErrorAudio::MUSICA_NO_REPRODUCIDA) + " '" +
+                clave + "': " + e.what());
     }
 }
 
@@ -246,7 +245,7 @@ void GestorAudio::iniciarResurreccion() {
     if (it == efectos.end() || !it->second) {
         return;
     }
-   
+
     mixer->HaltChannel(-1);  // -1 = todos los canales de efectos
     canalPasos = -1;
     pasosActivos = false;

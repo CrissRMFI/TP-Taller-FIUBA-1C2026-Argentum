@@ -1,9 +1,9 @@
 #ifndef ELEGIR_PERSONAJE_CONTROLLER_H
 #define ELEGIR_PERSONAJE_CONTROLLER_H
 
+#include <qqml.h>
 #include <QObject>
 #include <QString>
-#include <qqml.h>
 
 #include "datosConexion.h"
 #include "server/game/modelo/clase_personaje.h"

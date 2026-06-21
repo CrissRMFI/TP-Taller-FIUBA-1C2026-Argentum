@@ -9,7 +9,8 @@
 
 enum class TipoEventoSesion { Conectar, Desconectar };
 
-// Datos que la capa de red entrega al dominio al abrir una sesion. No incluye Posicion: la spawn la decide Juego leyendo su ConfigJuego.
+// Datos que la capa de red entrega al dominio al abrir una sesion. No incluye Posicion: la spawn la
+// decide Juego leyendo su ConfigJuego.
 struct DatosSesion {
     std::string nombre;
     ClasePersonaje clase;

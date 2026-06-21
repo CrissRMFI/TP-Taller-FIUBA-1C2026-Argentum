@@ -44,32 +44,30 @@ ClasePersonaje parseClase(const QString& clase) {
     }
     return ClasePersonaje::GUERRERO;
 }
-}
+}  // namespace
 
-ElegirPersonajeController::ElegirPersonajeController(QObject* parent)
-    : QObject(parent) {}
+ElegirPersonajeController::ElegirPersonajeController(QObject* parent) : QObject(parent) {}
 
-void ElegirPersonajeController::run(QQuickView& ventana, DatosConexion& datos, ElegirPersonajeResultado& resultado) {
+void ElegirPersonajeController::run(QQuickView& ventana, DatosConexion& datos,
+                                    ElegirPersonajeResultado& resultado) {
     _volverAlMenu = false;
     resultado = ElegirPersonajeResultado::FinalizarRegistro;
 
     // Reemplaza el contenido de la ventana compartida por elegirPersonaje.qml.
     ventana.rootContext()->setContextProperty("personajeController", this);
-    ventana.setSource(QUrl(QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
+    ventana.setSource(QUrl(
+            QStringLiteral("qrc:/QmlCppExample/client/Qt/elegirPersonaje/elegirPersonaje.qml")));
     ventana.show();
-    // Corro eventLoop hasta que el usuario complete datos y se emita la señal elegirPersonajeCompleted
+    // Corro eventLoop hasta que el usuario complete datos y se emita la señal
+    // elegirPersonajeCompleted
     QEventLoop loop;
     connect(this, &ElegirPersonajeController::elegirPersonajeCompleted, &loop, &QEventLoop::quit);
-    
+
     // Espero a que el eventLoop termine
     loop.exec();
 
-    datos.setDatosNuevoPersonaje(
-        selectedNick.toStdString(),
-        selectedRaza,
-        selectedClase,
-        selectedCabeza,
-        selectedCuerpo);
+    datos.setDatosNuevoPersonaje(selectedNick.toStdString(), selectedRaza, selectedClase,
+                                 selectedCabeza, selectedCuerpo);
     if (_volverAlMenu) {
         resultado = ElegirPersonajeResultado::VolverAlMenu;
     }
@@ -134,9 +132,16 @@ QString ElegirPersonajeController::rutaCuerpoPreview(const int cuerpoIndex) cons
 }
 
 bool ElegirPersonajeController::camposCompletos() const {
-    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && cabezaSeleccionada && cuerpoSeleccionado;
+    return razaSeleccionada && claseSeleccionada && !selectedNick.isEmpty() && cabezaSeleccionada &&
+           cuerpoSeleccionado;
 }
 
-Raza ElegirPersonajeController::getRaza() const { return selectedRaza; }
-ClasePersonaje ElegirPersonajeController::getClase() const { return selectedClase; }
-QString ElegirPersonajeController::getNick() const { return selectedNick; }
+Raza ElegirPersonajeController::getRaza() const {
+    return selectedRaza;
+}
+ClasePersonaje ElegirPersonajeController::getClase() const {
+    return selectedClase;
+}
+QString ElegirPersonajeController::getNick() const {
+    return selectedNick;
+}

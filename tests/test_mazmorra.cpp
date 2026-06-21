@@ -15,22 +15,21 @@ namespace {
 std::string escribirEscenarioTemporal() {
     const std::string ruta = "test_mazmorra_tmp.toml";
     std::ofstream principal(ruta, std::ios::trunc);
-    principal <<
-            "formato = \"A.FI.G2\"\n"
-            "mapa_id = 0\n"
-            "ancho = 100\n"
-            "alto = 100\n"
-            "mazmorra_archivo = \"test_mazmorra_tmp.mazmorra.toml\"\n"
-            "entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }\n"
-            "salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }\n";
+    principal << "formato = \"A.FI.G2\"\n"
+                 "mapa_id = 0\n"
+                 "ancho = 100\n"
+                 "alto = 100\n"
+                 "mazmorra_archivo = \"test_mazmorra_tmp.mazmorra.toml\"\n"
+                 "entrada = { x = 70, y = 50, destino_x = 2, destino_y = 2 }\n"
+                 "salida  = { x = 1, y = 1, destino_x = 70, destino_y = 51 }\n";
 
     std::ofstream mazmorra("test_mazmorra_tmp.mazmorra.toml", std::ios::trunc);
-    mazmorra <<
-            "formato = \"A.FI.G2\"\n"
-            "mapa_id = 1\n"
-            "ancho = 40\n"
-            "alto = 40\n"
-            "pisos = [ { x_min = 0, y_min = 0, x_max = 39, y_max = 39, clave = \"caverna\" } ]\n";
+    mazmorra << "formato = \"A.FI.G2\"\n"
+                "mapa_id = 1\n"
+                "ancho = 40\n"
+                "alto = 40\n"
+                "pisos = [ { x_min = 0, y_min = 0, x_max = 39, y_max = 39, clave = \"caverna\" } "
+                "]\n";
     return ruta;
 }
 
@@ -40,7 +39,7 @@ void limpiarEscenario(const std::string& rutaPrincipal) {
     std::remove("test_mazmorra_tmp.mazmorra.toml");
 }
 
-}
+}  // namespace
 
 // leerMundo carga el exterior y la mazmorra como dos mapas distintos.
 TEST(Mazmorra, LeerMundoCargaExteriorYMazmorra) {
@@ -67,8 +66,7 @@ TEST(Mazmorra, LeerMundoArmaPortalesEntradaYSalida) {
 
     ASSERT_EQ(cargado.portales.size(), 2u);
 
-    Mundo mundo(std::move(cargado.mapas), std::move(cargado.portales),
-                cargado.mapaPrincipalId);
+    Mundo mundo(std::move(cargado.mapas), std::move(cargado.portales), cargado.mapaPrincipalId);
 
     EXPECT_TRUE(mundo.existeMapa(1));
     EXPECT_FALSE(mundo.existeMapa(2));

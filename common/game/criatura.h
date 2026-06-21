@@ -24,17 +24,9 @@ enum class TipoCriatura {
 
 class Criatura {
 public:
-    Criatura(uint16_t idCriatura,
-             TipoCriatura tipo,
-             uint16_t vidaMaxima,
-             uint8_t nivel,
-             uint8_t fuerza,
-             uint8_t agilidad,
-             Posicion posicion,
-             uint8_t rangoAggro,
-             uint8_t danioMin,
-             uint8_t danioMax,
-             uint16_t cuerpo);
+    Criatura(uint16_t idCriatura, TipoCriatura tipo, uint16_t vidaMaxima, uint8_t nivel,
+             uint8_t fuerza, uint8_t agilidad, Posicion posicion, uint8_t rangoAggro,
+             uint8_t danioMin, uint8_t danioMax, uint16_t cuerpo);
 
     uint16_t getId() const;
     TipoCriatura getTipo() const;

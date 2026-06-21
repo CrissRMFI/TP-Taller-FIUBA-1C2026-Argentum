@@ -21,4 +21,4 @@ public:
     void save_command(ComandoJugador action);
 };
 
-#endif //TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H
+#endif  // TP_TALLER_FIUBA_1C2026_ARGENTUM_CLIENT_BUSINESS_H

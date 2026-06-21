@@ -10,6 +10,7 @@ class ConnectionController {
 public:
     ConnectionController();
     int run(int argc, char* argv[]);
+
 private:
     MenuController menu;
     DatosConexion datos;

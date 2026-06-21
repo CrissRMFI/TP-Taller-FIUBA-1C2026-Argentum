@@ -16,8 +16,7 @@ static size_t contarItemsDesplazados(uint16_t primero, uint16_t segundo = ITEM_V
     return cantidad;
 }
 
-Inventario::Inventario(uint8_t cantidadMaximaItems) :
-        slots(cantidadMaximaItems, ITEM_VACIO) {}
+Inventario::Inventario(uint8_t cantidadMaximaItems) : slots(cantidadMaximaItems, ITEM_VACIO) {}
 
 bool Inventario::agregarItem(uint16_t idItem) {
     if (idItem == ITEM_VACIO) {
@@ -116,27 +115,37 @@ std::vector<uint16_t> Inventario::vaciar() {
         }
     }
 
-    for (uint16_t item : equipamiento.getArma() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getArma()} : std::vector<uint16_t>{}) {
+    for (uint16_t item : equipamiento.getArma() != ITEM_VACIO
+                                 ? std::vector<uint16_t>{equipamiento.getArma()}
+                                 : std::vector<uint16_t>{}) {
         items.push_back(item);
         equipamiento.desequiparArma();
     }
 
-    for (uint16_t item : equipamiento.getBaculo() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getBaculo()} : std::vector<uint16_t>{}) {
+    for (uint16_t item : equipamiento.getBaculo() != ITEM_VACIO
+                                 ? std::vector<uint16_t>{equipamiento.getBaculo()}
+                                 : std::vector<uint16_t>{}) {
         items.push_back(item);
         equipamiento.desequiparBaculo();
     }
 
-    for (uint16_t item : equipamiento.getDefensa() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getDefensa()} : std::vector<uint16_t>{}) {
+    for (uint16_t item : equipamiento.getDefensa() != ITEM_VACIO
+                                 ? std::vector<uint16_t>{equipamiento.getDefensa()}
+                                 : std::vector<uint16_t>{}) {
         items.push_back(item);
         equipamiento.desequiparDefensa();
     }
 
-    for (uint16_t item : equipamiento.getCasco() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getCasco()} : std::vector<uint16_t>{}) {
+    for (uint16_t item : equipamiento.getCasco() != ITEM_VACIO
+                                 ? std::vector<uint16_t>{equipamiento.getCasco()}
+                                 : std::vector<uint16_t>{}) {
         items.push_back(item);
         equipamiento.desequiparCasco();
     }
 
-    for (uint16_t item : equipamiento.getEscudo() != ITEM_VACIO ? std::vector<uint16_t>{equipamiento.getEscudo()} : std::vector<uint16_t>{}) {
+    for (uint16_t item : equipamiento.getEscudo() != ITEM_VACIO
+                                 ? std::vector<uint16_t>{equipamiento.getEscudo()}
+                                 : std::vector<uint16_t>{}) {
         items.push_back(item);
         equipamiento.desequiparEscudo();
     }
@@ -171,13 +180,15 @@ bool Inventario::equiparItem(uint16_t idItem, TipoItem tipo) {
     size_t espaciosLuegoDeQuitar = cantidadSlotsLibres() + 1;
 
     if (tipo == TipoItem::Arma) {
-        if (contarItemsDesplazados(getArmaEquipada(), getBaculoEquipado()) > espaciosLuegoDeQuitar) {
+        if (contarItemsDesplazados(getArmaEquipada(), getBaculoEquipado()) >
+            espaciosLuegoDeQuitar) {
             return false;
         }
         eliminarItem(idItem);
         desplazados = equipamiento.equiparArma(idItem);
     } else if (tipo == TipoItem::Baculo) {
-        if (contarItemsDesplazados(getBaculoEquipado(), getArmaEquipada()) > espaciosLuegoDeQuitar) {
+        if (contarItemsDesplazados(getBaculoEquipado(), getArmaEquipada()) >
+            espaciosLuegoDeQuitar) {
             return false;
         }
         eliminarItem(idItem);
@@ -331,15 +342,26 @@ bool Inventario::equiparPiezaSlot(uint8_t indice, TipoDefensa slot) {
 }
 
 bool Inventario::desequiparRanura(uint8_t ranura) {
-    
+
     uint16_t idEquipado = ITEM_VACIO;
     switch (ranura) {
-        case 0: idEquipado = getArmaEquipada();    break;
-        case 1: idEquipado = getBaculoEquipado();  break;
-        case 2: idEquipado = getDefensaEquipada(); break;
-        case 3: idEquipado = getCascoEquipado();   break;
-        case 4: idEquipado = getEscudoEquipado();  break;
-        default: return false;
+        case 0:
+            idEquipado = getArmaEquipada();
+            break;
+        case 1:
+            idEquipado = getBaculoEquipado();
+            break;
+        case 2:
+            idEquipado = getDefensaEquipada();
+            break;
+        case 3:
+            idEquipado = getCascoEquipado();
+            break;
+        case 4:
+            idEquipado = getEscudoEquipado();
+            break;
+        default:
+            return false;
     }
 
     if (idEquipado == ITEM_VACIO) {
@@ -351,12 +373,23 @@ bool Inventario::desequiparRanura(uint8_t ranura) {
     }
 
     switch (ranura) {
-        case 0: equipamiento.desequiparArma();    break;
-        case 1: equipamiento.desequiparBaculo();  break;
-        case 2: equipamiento.desequiparDefensa(); break;
-        case 3: equipamiento.desequiparCasco();   break;
-        case 4: equipamiento.desequiparEscudo();  break;
-        default: return false;
+        case 0:
+            equipamiento.desequiparArma();
+            break;
+        case 1:
+            equipamiento.desequiparBaculo();
+            break;
+        case 2:
+            equipamiento.desequiparDefensa();
+            break;
+        case 3:
+            equipamiento.desequiparCasco();
+            break;
+        case 4:
+            equipamiento.desequiparEscudo();
+            break;
+        default:
+            return false;
     }
 
     agregarItem(idEquipado);
@@ -383,12 +416,8 @@ uint16_t Inventario::getEscudoEquipado() const {
     return equipamiento.getEscudo();
 }
 
-void Inventario::restaurar(const std::vector<uint16_t>& slotsNuevos,
-                           uint16_t arma,
-                           uint16_t baculo,
-                           uint16_t defensa,
-                           uint16_t casco,
-                           uint16_t escudo) {
+void Inventario::restaurar(const std::vector<uint16_t>& slotsNuevos, uint16_t arma, uint16_t baculo,
+                           uint16_t defensa, uint16_t casco, uint16_t escudo) {
     const size_t n = std::min(slotsNuevos.size(), slots.size());
     for (size_t i = 0; i < n; ++i) {
         slots[i] = slotsNuevos[i];

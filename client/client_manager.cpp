@@ -7,20 +7,19 @@
 #include <ostream>
 #include <utility>
 
+#include "../common/socket/liberror.h"
+#include "../common/thread/queue.h"
 #include "client_receiver.h"
 #include "client_sender.h"
 #include "registro_cliente.h"
-#include "../common/socket/liberror.h"
-#include "../common/thread/queue.h"
 
-ClientManager::ClientManager(Socket&& skt,
-                             Queue<ComandoJugador>& outbound_commands,
-                             Queue<MensajeServidor>& inbound_messages,
-                             DatosConexion& datos):
+ClientManager::ClientManager(Socket&& skt, Queue<ComandoJugador>& outbound_commands,
+                             Queue<MensajeServidor>& inbound_messages, DatosConexion& datos) :
         protocol(std::move(skt)),
         outbound_commands(outbound_commands),
         inbound_messages(inbound_messages) {
-    handshake.nombre = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick : datos.getDatosPersonaje().nick;
+    handshake.nombre = datos.esConexionNuevoPersonaje() ? datos.getDatosNuevoPersonaje().nick
+                                                        : datos.getDatosPersonaje().nick;
     handshake.crearPersonaje = datos.esConexionNuevoPersonaje();
     if (datos.esConexionNuevoPersonaje()) {
         handshake.clasePersonaje = datos.getDatosNuevoPersonaje().clase;
@@ -59,7 +58,7 @@ uint16_t ClientManager::handleHandshake() {
         switch (estado.error) {
             case ErrorUsuario::NombreUsuarioNoEncontrado:
                 throw HandshakeError(ErrorUsuario::NombreUsuarioNoEncontrado);
-            case ErrorUsuario::NickYaExistente: 
+            case ErrorUsuario::NickYaExistente:
                 throw HandshakeError(ErrorUsuario::NickYaExistente);
             case ErrorUsuario::UsuarioYaConectado:
                 throw HandshakeError(ErrorUsuario::UsuarioYaConectado);

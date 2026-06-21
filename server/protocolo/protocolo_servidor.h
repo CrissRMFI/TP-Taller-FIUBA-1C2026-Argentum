@@ -6,28 +6,26 @@
 
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/protocolo/estado_entidad.h"
-#include "../../common/protocolo/protocolo.h"
 #include "../../common/protocolo/mensaje_servidor.h"
+#include "../../common/protocolo/protocolo.h"
 #include "common/protocolo/dato_sesion_cliente.h"
 
 class ProtocoloServidor : public Protocolo {
-  public:
-    
+public:
     explicit ProtocoloServidor(Socket&& skt);
 
     ComandoJugador recibirComando();
 
-     void enviarMensaje(const MensajeServidor& mensaje);
+    void enviarMensaje(const MensajeServidor& mensaje);
     handshakeInicial recibirUsuario();
     void enviarEstadoUsuario(const MensajeEstadoUsuario& mensaje);
 
     void cerrarConexion();
 
-  private:
-
+private:
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
-    //static constexpr uint8_t CANTIDAD_DIRECCIONES = 4;
+    // static constexpr uint8_t CANTIDAD_DIRECCIONES = 4;
     static const std::unordered_set<uint8_t> DIRECCIONES_VALIDAS;
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESTADO_ENTIDAD =
@@ -61,13 +59,12 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoCheat();
 
 
-
     void validarTipoEntidad(uint8_t tipo) const;
     void validarEstadoEntidad(uint8_t estado) const;
     void validarEsquivador(uint8_t esquivador) const;
     void validarCantidad(uint16_t cantidad) const;
 
-    void enviarEstadoPersonaje(const MensajeEstadoPersonaje &mensaje);
+    void enviarEstadoPersonaje(const MensajeEstadoPersonaje& mensaje);
     void enviarPosicionEntidad(const MensajePosicionEntidad& mensaje);
     void enviarEntidadDesaparecio(const MensajeEntidadDesaparecio& mensaje);
     void enviarDanioRecibido(const MensajeDanoRecibido& mensaje);

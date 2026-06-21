@@ -12,26 +12,26 @@
 #include "common/game/npc/npc.h"
 #include "common/persistencia/vinculo_mazmorra.h"
 
-//El id se asigna solo (incremental) para que sea unico dentro del mapa.
+// El id se asigna solo (incremental) para que sea unico dentro del mapa.
 struct NpcEditor {
     uint16_t id;
-    TipoNpc  tipo;
+    TipoNpc tipo;
     uint16_t x;
     uint16_t y;
 };
 
 struct CriaturaEditor {
-    uint16_t     id;
+    uint16_t id;
     TipoCriatura tipo;
-    uint16_t     x;
-    uint16_t     y;
+    uint16_t x;
+    uint16_t y;
 };
 
 // Elemento sobre el piso (arbol, cartel, etc.)
 struct ObjetoEditor {
     std::string clave;
-    uint16_t    x;
-    uint16_t    y;
+    uint16_t x;
+    uint16_t y;
 };
 
 
@@ -44,7 +44,7 @@ private:
     std::vector<Ciudad> ciudades;
     std::vector<NpcEditor> npcs;
     std::vector<CriaturaEditor> criaturas;
-    std::vector<ZonaPiso> pisos;  // zonas de piso visual; "ultima gana"
+    std::vector<ZonaPiso> pisos;        // zonas de piso visual; "ultima gana"
     std::vector<ObjetoEditor> objetos;  // elementos sobre el piso (arboles, carteles)
     std::string pisoBase;
     std::optional<VinculoMazmorra> vinculoMazmorra;
@@ -92,20 +92,18 @@ public:
     void pintarPiso(const std::string& clave, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
     void borrarEn(uint16_t x, uint16_t y);
 
-    const std::vector<Posicion>&       getParedes() const;
-    const std::vector<Ciudad>&         getCiudades() const;
-    const std::vector<NpcEditor>&      getNpcs() const;
+    const std::vector<Posicion>& getParedes() const;
+    const std::vector<Ciudad>& getCiudades() const;
+    const std::vector<NpcEditor>& getNpcs() const;
     const std::vector<CriaturaEditor>& getCriaturas() const;
-    const std::vector<ZonaPiso>&       getPisos() const;
-    const std::vector<ObjetoEditor>&   getObjetos() const;
+    const std::vector<ZonaPiso>& getPisos() const;
+    const std::vector<ObjetoEditor>& getObjetos() const;
 
     void redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto);
 
     void cargarDesde(const Mapa& mapa, uint16_t mapaId,
                      const std::optional<VinculoMazmorra>& vinculo);
     Mapa construirMapa() const;
-
-
 };
 
 #endif

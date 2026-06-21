@@ -60,7 +60,7 @@ public:
     bool criaturaPorClave(const QString& clave, TipoCriatura& tipo) const;
     bool esSoloMazmorra(const QString& claveCriatura) const;
     bool npcPorClave(const QString& clave, TipoNpc& tipo) const;
-    
+
     QPixmap iconoCriatura(TipoCriatura tipo) const;
     QPixmap iconoNpc(TipoNpc tipo) const;
     QPixmap tilePiso(const QString& clave) const;
@@ -69,8 +69,6 @@ public:
     QPixmap iconoElemento(const QString& clave) const;
     bool elementoPorClave(const QString& clave, ElementoCatalogo& out) const;
     bool pisoPermitido(const QString& claveElemento, const QString& clavePiso) const;
-
-
 };
 
 #endif

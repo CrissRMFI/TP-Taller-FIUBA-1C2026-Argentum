@@ -4,11 +4,11 @@
 #include <cmath>
 #include <iostream>
 
+#include "../../../common/persistencia/lector_mapa.h"
 #include "SDL2pp/Renderer.hh"
 #include "SDL2pp/SDLImage.hh"
 #include "SDL2pp/Surface.hh"
 #include "SDL_image.h"
-#include "../../../common/persistencia/lector_mapa.h"
 
 #define SPRITE_ANIMATION_FPS 8
 
@@ -51,19 +51,11 @@ ObjectRenderer::ObjectRenderer() {
     mapaPrincipalId = mundo.mapaPrincipalId;
 }
 
-void ObjectRenderer::init(const char* title,
-                          const int xpos,
-                          const int ypos,
-                          const int width,
-                          const int height,
-                          const bool fullscreen,
-                          const bool vsync,
-                          const int loop_fps,
-                          const ConfigChatRender& chat_config,
-                          const ConfigPanelRender& panel_config,
-                          const CatalogoItems* catalogo,
-                          const ConfigCamara& camara_config,
-                          const uint32_t walk_tile_ms) {
+void ObjectRenderer::init(const char* title, const int xpos, const int ypos, const int width,
+                          const int height, const bool fullscreen, const bool vsync,
+                          const int loop_fps, const ConfigChatRender& chat_config,
+                          const ConfigPanelRender& panel_config, const CatalogoItems* catalogo,
+                          const ConfigCamara& camara_config, const uint32_t walk_tile_ms) {
     this->chat_config = chat_config;
     this->panel_config = panel_config;
     this->catalogo = catalogo;
@@ -77,7 +69,7 @@ void ObjectRenderer::init(const char* title,
     image_context = std::make_unique<SDL2pp::SDLImage>(IMG_INIT_PNG);
     window = std::make_unique<SDL2pp::Window>(title, xpos, ypos, width, height, flags);
 
-    
+
     uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
     if (vsync) {
         renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -101,8 +93,7 @@ void ObjectRenderer::init(const char* title,
         text_renderer = std::make_unique<TextRenderer>(fuente_path, chat_config.fuenteTam);
     } catch (const std::exception& e) {
         // Sin fuente el chat no se dibuja, pero el juego sigue andando.
-        std::cerr << "[cliente] no se pudo cargar la fuente del chat: " << e.what()
-                  << std::endl;
+        std::cerr << "[cliente] no se pudo cargar la fuente del chat: " << e.what() << std::endl;
     }
 
     try {
@@ -112,18 +103,16 @@ void ObjectRenderer::init(const char* title,
         chat_background_texture = std::make_unique<SDL2pp::Texture>(*renderer, fondo_surface);
     } catch (const std::exception& e) {
         // Sin panel el chat igual se dibuja, solo que sin fondo.
-        std::cerr << "[cliente] no se pudo cargar el fondo del chat: " << e.what()
-                  << std::endl;
+        std::cerr << "[cliente] no se pudo cargar el fondo del chat: " << e.what() << std::endl;
     }
 
     try {
         const std::string resources_root = std::string(CLIENT_INTERFACE_DIR) + "/../resources";
         const std::string sprites_config_path = resources_root + "/config/sprites.toml";
-        catalog = std::make_unique<SpriteCatalog>(
-                SpriteCatalog::load_from_file(sprites_config_path));
+        catalog =
+                std::make_unique<SpriteCatalog>(SpriteCatalog::load_from_file(sprites_config_path));
         cache_texture = std::make_unique<TextureCache>(*renderer, resources_root);
-        resolver_sprite =
-                std::make_unique<CharacterSpriteResolver>(*catalog, *cache_texture);
+        resolver_sprite = std::make_unique<CharacterSpriteResolver>(*catalog, *cache_texture);
 
         character_renderer = std::make_unique<CharacterRenderer>(*resolver_sprite);
 
@@ -181,18 +170,16 @@ void ObjectRenderer::update_animation(/*const uint32_t current_tick*/ const int 
 }
 
 void ObjectRenderer::render(const ObjectGameWorld& state_object,
-                            const ObjectAnimation& /*animation*/,
-                            const EstadoChatRender& chat,
-                            const EstadoPanelRender& panel,
-                            const EstadoBancoRender& banco,
+                            const ObjectAnimation& /*animation*/, const EstadoChatRender& chat,
+                            const EstadoPanelRender& panel, const EstadoBancoRender& banco,
                             const EstadoTiendaRender& tienda) {
     if (!renderer) {
         return;
     }
-    
+
     const Mapa& mapa = mapaVigente();
     const uint32_t current_tick = SDL_GetTicks();
-    
+
     const int gw = ancho_juego();
     const int gy0 = chat_config.panelAlto;
     const int gh = std::max(1, window_height - gy0);
@@ -203,19 +190,23 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     const int tileH = camera.tile_height();
     const int camX = camera.get_offset_x();
     const int camY = gy0 + camera.get_offset_y();
-    const auto scrX = [&](double tile) { return camX + static_cast<int>(tile * tileW); };
-    const auto scrY = [&](double tile) { return camY + static_cast<int>(tile * tileH); };
+    const auto scrX = [&](double tile) {
+        return camX + static_cast<int>(tile * tileW);
+    };
+    const auto scrY = [&](double tile) {
+        return camY + static_cast<int>(tile * tileH);
+    };
     const bool esCaverna = (mapaActual != mapaPrincipalId);
 
     renderer->SetDrawColor(0, 0, 0, 255);
     renderer->Clear();
-    // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se desbordan por debajo del panel ni del chat.
+    // El mundo se recorta al area de juego: asi los sprites (mas grandes que la celda) no se
+    // desbordan por debajo del panel ni del chat.
     renderer->SetClipRect(SDL2pp::Rect(0, gy0, gw, gh));
     if (background_texture && !esCaverna) {
         // Aclara ligeramente el fondo para mejorar la lectura de criaturas y NPCs.
         SDL_SetTextureColorMod(background_texture->Get(), 155, 155, 155);
-        renderer->Copy(*background_texture, SDL2pp::NullOpt,
-                       SDL2pp::Rect(0, gy0, gw, gh));
+        renderer->Copy(*background_texture, SDL2pp::NullOpt, SDL2pp::Rect(0, gy0, gw, gh));
     }
     // --- Terreno por zona (sobre el pasto base): desierto y piso de ciudad, tileados ---
     const auto rectZona = [&](const Ciudad& z) {
@@ -247,15 +238,19 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     // Pisos por zona (modelo del editor): cada ZonaPiso tilea su textura sobre el
     // pasto base; el orden del vector resuelve "ultima zona gana".
     const auto texturaPiso = [](const std::string& clave) -> std::string {
-        if (clave == "desierto") return "imgs/mapas/desierto.png";
-        if (clave == "ciudad")   return "imgs/mapas/ciudad.png";
-        if (clave == "pasto")    return "imgs/mapas/pasto.png";
+        if (clave == "desierto")
+            return "imgs/mapas/desierto.png";
+        if (clave == "ciudad")
+            return "imgs/mapas/ciudad.png";
+        if (clave == "pasto")
+            return "imgs/mapas/pasto.png";
         return "imgs/mazmorras/piso_" + clave + ".png";
     };
     {
         const int paso = 48;
         for (const ZonaPiso& z : mapa.getPisos()) {
-            if (z.clave == "pasto") continue;  // ya es el fondo base
+            if (z.clave == "pasto")
+                continue;  // ya es el fondo base
             SDL2pp::Texture* t = nullptr;
             try {
                 t = &cache_texture->get_or_load(texturaPiso(z.clave));
@@ -277,14 +272,17 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
     tileZona(mapa.getCiudades(), "imgs/mapas/ciudad.png");
 
-    
+
     const auto altoObjeto = [](const std::string& clave) -> double {
-        if (clave == "cartel")  return 1.2;
-        if (clave == "arbusto") return 1.4;
+        if (clave == "cartel")
+            return 1.2;
+        if (clave == "arbusto")
+            return 1.4;
         return 2.2;  // arboles altos
     };
     for (const ObjetoMapa& o : mapa.getObjetos()) {
-        if (!camera.is_visible(o.x, o.y)) continue;
+        if (!camera.is_visible(o.x, o.y))
+            continue;
         SDL2pp::Texture* t = nullptr;
         try {
             t = &cache_texture->get_or_load("imgs/mapas/" + o.clave + ".png");
@@ -293,8 +291,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         }
         const int th = std::max(1, static_cast<int>(tileH * altoObjeto(o.clave)));
         const int tw = std::max(1, th * t->GetWidth() / std::max(1, t->GetHeight()));
-        const int cx = scrX(o.x) + tileW / 2;   // centro horizontal de la celda
-        const int by = scrY(o.y) + tileH;       // base = borde inferior de la celda
+        const int cx = scrX(o.x) + tileW / 2;  // centro horizontal de la celda
+        const int by = scrY(o.y) + tileH;      // base = borde inferior de la celda
         renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(cx - tw / 2, by - th, tw, th));
     }
 
@@ -309,11 +307,13 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         const double altoPortal = 6.0;  // alto en celdas (landmark grande, bien visible)
         if (texPortal) {
             for (const Portal& portal : portales) {
-                if (portal.origen.mapaId != mapaActual) continue;
-                if (!camera.is_visible(portal.origen.x, portal.origen.y)) continue;
+                if (portal.origen.mapaId != mapaActual)
+                    continue;
+                if (!camera.is_visible(portal.origen.x, portal.origen.y))
+                    continue;
                 const int th = std::max(1, static_cast<int>(tileH * altoPortal));
-                const int tw = std::max(1, th * texPortal->GetWidth() /
-                                                std::max(1, texPortal->GetHeight()));
+                const int tw = std::max(
+                        1, th * texPortal->GetWidth() / std::max(1, texPortal->GetHeight()));
                 const int cx = scrX(portal.origen.x) + tileW / 2;
                 const int by = scrY(portal.origen.y) + tileH;
                 renderer->Copy(*texPortal, SDL2pp::NullOpt,
@@ -326,10 +326,10 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     SDL2pp::Texture* texPared = nullptr;
     try {
         texPared = &cache_texture->get_or_load("imgs/mapas/pared.png");
-    } catch (const std::exception&) {
-    }
+    } catch (const std::exception&) {}
     for (const auto& wall : mapa.getParedes()) {
-        if (!camera.is_visible(wall.x, wall.y)) continue;
+        if (!camera.is_visible(wall.x, wall.y))
+            continue;
         const int cell_width = tileW;
         const int cell_height = tileH;
         const int wall_x = scrX(wall.x);
@@ -356,7 +356,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
                 return;
             }
             for (const auto& [cxd, cyd] : celdas) {
-                if (!camera.is_visible(cxd, cyd)) continue;
+                if (!camera.is_visible(cxd, cyd))
+                    continue;
                 const int dx = scrX(cxd);
                 const int dy = scrY(cyd);
                 renderer->Copy(*t, SDL2pp::NullOpt, SDL2pp::Rect(dx, dy, cw_cell, ch_cell));
@@ -408,8 +409,8 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             continue;
         }
 
-        npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width,
-                             cell_height, 0, 0,
+        npc_renderer->render(*renderer, banquero, banquero_x, banquero_y, cell_width, cell_height,
+                             0, 0,
                              npcResaltado(banquero.getPosicion().x, banquero.getPosicion().y));
     }
 
@@ -422,10 +423,9 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
         if (!npc_renderer) {
             continue;
         }
-        npc_renderer->render(*renderer, comerciante, comerciante_x, comerciante_y, cell_width,
-                             cell_height, 0, 0,
-                             npcResaltado(comerciante.getPosicion().x,
-                                          comerciante.getPosicion().y));
+        npc_renderer->render(
+                *renderer, comerciante, comerciante_x, comerciante_y, cell_width, cell_height, 0, 0,
+                npcResaltado(comerciante.getPosicion().x, comerciante.getPosicion().y));
     }
 
     for (const auto& [id, entity] : state_object.entities()) {
@@ -481,7 +481,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
     }
 
     // --- FX de hechizos en curso: animacion transitoria centrada en el objetivo ---
-    constexpr uint16_t FX_AURA_BASE = 900;    // ids 900..: auras de critico (imgs/estados/critico)
+    constexpr uint16_t FX_AURA_BASE = 900;     // ids 900..: auras de critico (imgs/estados/critico)
     constexpr uint16_t FX_ATAQUE_BASE = 7000;  // ids 7000..: swing de ataque (imgs/ataques/fx)
     for (auto it = fx_activos.begin(); it != fx_activos.end();) {
         std::string path;
@@ -522,8 +522,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             const int cellH = sheet.GetHeight();
             renderer->Copy(sheet, SDL2pp::Rect(frame * cellW, 0, cellW, cellH),
                            SDL2pp::Rect(tx + tileW / 2 - dw / 2, ty + tileH / 2 - dh, dw, dh));
-        } catch (const std::exception&) {
-        }
+        } catch (const std::exception&) {}
         ++it;
     }
 
@@ -549,8 +548,7 @@ void ObjectRenderer::render(const ObjectGameWorld& state_object,
             SDL2pp::Texture& roca = cache_texture->get_or_load("imgs/ataques/proyectil.png");
             const int s = 22;
             renderer->Copy(roca, SDL2pp::NullOpt, SDL2pp::Rect(cx - s / 2, cy - s / 2, s, s));
-        } catch (const std::exception&) {
-        }
+        } catch (const std::exception&) {}
         ++it;
     }
 
@@ -582,8 +580,8 @@ SDL2pp::Texture* ObjectRenderer::icono_item(const uint16_t id) {
         return &cache_texture->get_or_load(ruta);
     } catch (const std::exception& e) {
         iconos_fallidos.insert(id);  // no reintentar ni spamear cada frame
-        std::cerr << "[cliente] no se pudo cargar el icono del item (id=" << id << "): "
-                  << e.what() << std::endl;
+        std::cerr << "[cliente] no se pudo cargar el icono del item (id=" << id << "): " << e.what()
+                  << std::endl;
         return nullptr;
     }
 }
@@ -637,8 +635,9 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
     // --- Barras de vida y mana (con textura de relleno, recortada al valor) ---
     const auto barra = [&](const std::string& etiqueta, uint16_t act, uint16_t max,
                            const std::string& ruta, SDL_Color fallback) {
-        text_renderer->dibujar(*renderer, etiqueta + " " + std::to_string(act) + "/" +
-                                                  std::to_string(max), cx, y, cTxt);
+        text_renderer->dibujar(*renderer,
+                               etiqueta + " " + std::to_string(act) + "/" + std::to_string(max), cx,
+                               y, cTxt);
         y += lh;
         const int h = 14;
         renderer->SetDrawColor(20, 20, 20, 255);
@@ -663,17 +662,18 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
 
     // --- Barra de experiencia (exp acumulada / limite del nivel actual) ---
     {
-        text_renderer->dibujar(*renderer, "Exp " + std::to_string(s.experiencia) + "/" +
-                                                  std::to_string(s.expSiguienteNivel),
-                               cx, y, cTxt);
+        text_renderer->dibujar(
+                *renderer,
+                "Exp " + std::to_string(s.experiencia) + "/" + std::to_string(s.expSiguienteNivel),
+                cx, y, cTxt);
         y += lh;
         const int h = 14;
         renderer->SetDrawColor(20, 20, 20, 255);
         renderer->FillRect(SDL2pp::Rect(cx, y, cw, h));
-        const double pct = (s.expSiguienteNivel > 0)
-                                   ? std::min(1.0, static_cast<double>(s.experiencia) /
-                                                           s.expSiguienteNivel)
-                                   : 0.0;
+        const double pct =
+                (s.expSiguienteNivel > 0)
+                        ? std::min(1.0, static_cast<double>(s.experiencia) / s.expSiguienteNivel)
+                        : 0.0;
         const int w = static_cast<int>(cw * pct);
         if (w > 0) {
             try {
@@ -762,12 +762,11 @@ void ObjectRenderer::dibujar_panel(const EstadoPanelRender& panel) {
                     continue;
                 }
                 try {
-                    SDL2pp::Texture& ic = cache_texture->get_or_load(
-                            "imgs/hechizos/" + std::to_string(id) + ".png");
+                    SDL2pp::Texture& ic = cache_texture->get_or_load("imgs/hechizos/" +
+                                                                     std::to_string(id) + ".png");
                     renderer->Copy(ic, SDL2pp::NullOpt,
                                    SDL2pp::Rect(interiorX, hy, fila_h - 2, fila_h - 2));
-                } catch (const std::exception&) {
-                }
+                } catch (const std::exception&) {}
                 text_renderer->dibujar(*renderer, h->nombre + "  M" + std::to_string(h->mana),
                                        interiorX + fila_h, hy + 2, cTit);
                 slots_hechizos.push_back(SDL2pp::Rect(interiorX, hy, interiorW, fila_h));
@@ -947,8 +946,8 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     grilla(mx + panel_config.bancoInvX, my + panel_config.bancoInvY, b.inventario, b.selInventario,
            banco_inv);
 
-    text_renderer->dibujar(*renderer, "Oro banco: " + std::to_string(b.oroBanco), mx + 40,
-                           my + 350, cTxt);
+    text_renderer->dibujar(*renderer, "Oro banco: " + std::to_string(b.oroBanco), mx + 40, my + 350,
+                           cTxt);
     text_renderer->dibujar(*renderer, "Oro mano: " + std::to_string(b.oroJugador), mx + 300,
                            my + 350, cTxt);
 
@@ -970,7 +969,8 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
 
     // Botones de item (retirar de la boveda / depositar del inventario).
     rect_ret = boton(panel_config.botonRetirar, "Retirar", mx + 40, my + 380, {60, 40, 25, 255});
-    rect_dep = boton(panel_config.botonDepositar, "Depositar", mx + 300, my + 380, {45, 55, 35, 255});
+    rect_dep =
+            boton(panel_config.botonDepositar, "Depositar", mx + 300, my + 380, {45, 55, 35, 255});
 
     // Caja de monto + botones de oro.
     const int yo = my + 425;
@@ -981,7 +981,8 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     renderer->SetDrawColor(b.montoActivo ? 255 : 120, b.montoActivo ? 230 : 95, 60, 255);
     renderer->DrawRect(rect_caja_monto);
     text_renderer->dibujar(*renderer, b.monto + (b.montoActivo ? "_" : ""), mx + 94, yo + 4, cTxt);
-    rect_dep_oro = boton(panel_config.botonDepositarOro, "Dep oro", mx + 300, yo, {45, 55, 35, 255});
+    rect_dep_oro =
+            boton(panel_config.botonDepositarOro, "Dep oro", mx + 300, yo, {45, 55, 35, 255});
     rect_ret_oro = boton(panel_config.botonRetirarOro, "Ret oro", mx + 190, yo, {60, 40, 25, 255});
 
     // X para cerrar.
@@ -1003,8 +1004,8 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     const int mh = 481;
     const int mx = (window_width - mw) / 2;
     const int my = (window_height - mh) / 2;
-    const std::string& img = t.esSacerdote ? panel_config.tiendaImgSacerdote
-                                           : panel_config.tiendaImgComerciante;
+    const std::string& img =
+            t.esSacerdote ? panel_config.tiendaImgSacerdote : panel_config.tiendaImgComerciante;
     try {
         renderer->Copy(cache_texture->get_or_load(img), SDL2pp::NullOpt,
                        SDL2pp::Rect(mx, my, mw, mh));
@@ -1035,9 +1036,8 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     renderer->FillRect(SDL2pp::Rect(headerX + 14, headerY + 12, 16, 16));
 
     const std::string titulo = t.esSacerdote ? "Sacerdote" : "Comerciante";
-    const std::string subtitulo =
-            t.esSacerdote ? "Compra hechizos y objetos de apoyo"
-                          : "Compra y vende objetos del inventario";
+    const std::string subtitulo = t.esSacerdote ? "Compra hechizos y objetos de apoyo"
+                                                : "Compra y vende objetos del inventario";
     text_renderer->dibujarEscalado(*renderer, titulo, headerX + 42, headerY + 12, cTit, 1.4f);
     text_renderer->dibujar(*renderer, subtitulo, headerX + 42, headerY + 42, cTxt);
 
@@ -1137,8 +1137,8 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
         }
     };
 
-    const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items,
-                            int sel, bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
+    const auto grilla = [&](const SDL2pp::Rect& panel, const std::vector<uint16_t>& items, int sel,
+                            bool esHechizo, std::vector<SDL2pp::Rect>& rects) {
         const int cols = std::max(1, (panel.w + gap) / pitch);
         const int filas = std::max(1, (panel.h + gap) / pitch);
         const int gridW = cols * pitch - gap;
@@ -1168,18 +1168,18 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     grilla(panelInv, t.inventario, t.selInventario, t.esSacerdote, tienda_inv);
 
     const std::string oroTexto = "Oro disponible: " + std::to_string(t.oroJugador);
-    //text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + 190, my + 415, cTit);
+    // text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + 190, my + 415, cTit);
     text_renderer->dibujar(*renderer, oroTexto, panelOferta.x + mw - 200, my + 50, cTit);
     rect_tienda_comprar = SDL2pp::Rect(mx + 20, my + 434, 185, 30);
     rect_tienda_cerrar = SDL2pp::Rect(mx + mw - 42, my + 18, 22, 22);
 
     if (t.esSacerdote) {
-        
+
         rect_tienda_vender = SDL2pp::Rect(0, 0, 0, 0);
         rect_tienda_curar = SDL2pp::Rect(mx + 342, my + 434, 185, 30);
         try {
-            renderer->Copy(cache_texture->get_or_load(panel_config.botonCurar),
-                           SDL2pp::NullOpt, rect_tienda_curar);
+            renderer->Copy(cache_texture->get_or_load(panel_config.botonCurar), SDL2pp::NullOpt,
+                           rect_tienda_curar);
         } catch (const std::exception&) {
             renderer->SetDrawColor(55, 35, 50, 255);
             renderer->FillRect(rect_tienda_curar);
@@ -1198,12 +1198,11 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
 
     renderer->SetDrawColor(110, 28, 28, 255);
     renderer->FillRect(rect_tienda_cerrar);
-    text_renderer->dibujar(*renderer, "X", rect_tienda_cerrar.x + 4, rect_tienda_cerrar.y,
-                           cTit);
+    text_renderer->dibujar(*renderer, "X", rect_tienda_cerrar.x + 4, rect_tienda_cerrar.y, cTit);
 }
 
-void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width,
-                                        int cell_height, uint32_t tick) {
+void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_width, int cell_height,
+                                        uint32_t tick) {
     if (!cache_texture) {
         return;
     }
@@ -1222,7 +1221,7 @@ void ObjectRenderer::dibujar_meditacion(int entity_x, int entity_y, int cell_wid
     const int c = idx % cols;
     const int r = idx / cols;
     const SDL2pp::Rect src(c * fw, r * rowPitch, fw, contentH);
-    
+
     const int aw = 40;
     const int ah = 52;
     const int cx = entity_x + cell_width / 2;
@@ -1241,9 +1240,9 @@ void ObjectRenderer::dibujar_resurreccion(int entity_x, int entity_y, int cell_w
     try {
         tex = &cache_texture->get_or_load(panel_config.spriteResurreccion);
     } catch (const std::exception&) {
-        return; 
+        return;
     }
-    
+
     const int cols = 5;
     const int frames = 15;
     const int cell = tex->GetWidth() / cols;
@@ -1269,8 +1268,8 @@ void ObjectRenderer::dibujar_barra_resurreccion(int entity_x, int entity_y, int 
         return;
     }
     const float f = std::clamp(fraccion, 0.0f, 1.0f);
-    const int bw = cell_width;        // ancho de la celda
-    const int bh = 5;                 // alto de la barra
+    const int bw = cell_width;  // ancho de la celda
+    const int bh = 5;           // alto de la barra
     const int bx = entity_x;
     const int alturaPersonajePx = 52;
     const int feet = entity_y + cell_height;
@@ -1288,20 +1287,46 @@ void ObjectRenderer::dibujar_barra_resurreccion(int entity_x, int entity_y, int 
 int ObjectRenderer::bancoBovedaClickeada(int x, int y) const {
     return slot_en(banco_boveda, x, y);
 }
-int ObjectRenderer::bancoInvClickeado(int x, int y) const { return slot_en(banco_inv, x, y); }
-bool ObjectRenderer::clickBancoDepositar(int x, int y) const { return dentro(rect_dep, x, y); }
-bool ObjectRenderer::clickBancoRetirar(int x, int y) const { return dentro(rect_ret, x, y); }
-bool ObjectRenderer::clickBancoDepositarOro(int x, int y) const { return dentro(rect_dep_oro, x, y); }
-bool ObjectRenderer::clickBancoRetirarOro(int x, int y) const { return dentro(rect_ret_oro, x, y); }
-bool ObjectRenderer::clickBancoCajaMonto(int x, int y) const { return dentro(rect_caja_monto, x, y); }
-bool ObjectRenderer::clickBancoCerrar(int x, int y) const { return dentro(rect_cerrar_banco, x, y); }
+int ObjectRenderer::bancoInvClickeado(int x, int y) const {
+    return slot_en(banco_inv, x, y);
+}
+bool ObjectRenderer::clickBancoDepositar(int x, int y) const {
+    return dentro(rect_dep, x, y);
+}
+bool ObjectRenderer::clickBancoRetirar(int x, int y) const {
+    return dentro(rect_ret, x, y);
+}
+bool ObjectRenderer::clickBancoDepositarOro(int x, int y) const {
+    return dentro(rect_dep_oro, x, y);
+}
+bool ObjectRenderer::clickBancoRetirarOro(int x, int y) const {
+    return dentro(rect_ret_oro, x, y);
+}
+bool ObjectRenderer::clickBancoCajaMonto(int x, int y) const {
+    return dentro(rect_caja_monto, x, y);
+}
+bool ObjectRenderer::clickBancoCerrar(int x, int y) const {
+    return dentro(rect_cerrar_banco, x, y);
+}
 
-int ObjectRenderer::tiendaOfertaClickeada(int x, int y) const { return slot_en(tienda_oferta, x, y); }
-int ObjectRenderer::tiendaInvClickeado(int x, int y) const { return slot_en(tienda_inv, x, y); }
-bool ObjectRenderer::clickTiendaComprar(int x, int y) const { return dentro(rect_tienda_comprar, x, y); }
-bool ObjectRenderer::clickTiendaVender(int x, int y) const { return dentro(rect_tienda_vender, x, y); }
-bool ObjectRenderer::clickTiendaCurar(int x, int y) const { return dentro(rect_tienda_curar, x, y); }
-bool ObjectRenderer::clickTiendaCerrar(int x, int y) const { return dentro(rect_tienda_cerrar, x, y); }
+int ObjectRenderer::tiendaOfertaClickeada(int x, int y) const {
+    return slot_en(tienda_oferta, x, y);
+}
+int ObjectRenderer::tiendaInvClickeado(int x, int y) const {
+    return slot_en(tienda_inv, x, y);
+}
+bool ObjectRenderer::clickTiendaComprar(int x, int y) const {
+    return dentro(rect_tienda_comprar, x, y);
+}
+bool ObjectRenderer::clickTiendaVender(int x, int y) const {
+    return dentro(rect_tienda_vender, x, y);
+}
+bool ObjectRenderer::clickTiendaCurar(int x, int y) const {
+    return dentro(rect_tienda_curar, x, y);
+}
+bool ObjectRenderer::clickTiendaCerrar(int x, int y) const {
+    return dentro(rect_tienda_cerrar, x, y);
+}
 
 void ObjectRenderer::dibujar_chat(const EstadoChatRender& chat) {
     if (!text_renderer || !renderer) {
@@ -1348,7 +1373,7 @@ SDL_Color ObjectRenderer::elegircolor(uint8_t tipo, uint8_t estado) const {
             default:
                 break;
         }
-   }
+    }
     if (tipo == 1) {
         return {255, 0, 0, 255};
     }

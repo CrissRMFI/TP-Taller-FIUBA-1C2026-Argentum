@@ -7,7 +7,7 @@
 #define CONFIRMAR_W 314
 #define CONFIRMAR_H 213
 
-DialogoConfirmar::DialogoConfirmar(QWidget* parent): QDialog(parent) {
+DialogoConfirmar::DialogoConfirmar(QWidget* parent) : QDialog(parent) {
     setWindowTitle("Confirmar");
     setFixedSize(CONFIRMAR_W, CONFIRMAR_H);
 

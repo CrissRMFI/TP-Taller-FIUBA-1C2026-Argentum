@@ -13,11 +13,10 @@ SDL2pp::Rect CriaturaRenderer::to_sdl_rect(const SpriteRect& rect) const {
     return SDL2pp::Rect(rect.x, rect.y, rect.width, rect.height);
 }
 
-CriaturaRenderer::CriaturaRenderer(CreatureSpriteResolver& resolver):
-        resolver_(resolver) {}
+CriaturaRenderer::CriaturaRenderer(CreatureSpriteResolver& resolver) : resolver_(resolver) {}
 // tengo que ajustar el tamaño de corte
 void CriaturaRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderizable& entity,
-                              const int entity_x, const int entity_y, const int  cell_width,
+                              const int entity_x, const int entity_y, const int cell_width,
                               const int cell_height, const int /*animation_row*/,
                               const int /*frame_index*/, const bool resaltar) const {
     const auto resolved = resolver_.resolved_creature(entity);
@@ -33,13 +32,14 @@ void CriaturaRenderer::render(SDL2pp::Renderer& renderer, const EntidadRenderiza
     if (resaltar) {
         SDL_SetTextureColorMod(resolved.texture->Get(), 80, 255, 120);
         const int o = 2;
-        for (const auto& d : {std::pair{-o, 0}, std::pair{o, 0}, std::pair{0, -o}, std::pair{0, o}}) {
-            renderer.Copy(*resolved.texture, src,
-                          SDL2pp::Rect(body_x + d.first, body_y + d.second, body_width, body_height));
+        for (const auto& d :
+             {std::pair{-o, 0}, std::pair{o, 0}, std::pair{0, -o}, std::pair{0, o}}) {
+            renderer.Copy(
+                    *resolved.texture, src,
+                    SDL2pp::Rect(body_x + d.first, body_y + d.second, body_width, body_height));
         }
         SDL_SetTextureColorMod(resolved.texture->Get(), 255, 255, 255);
     }
 
-    renderer.Copy(*resolved.texture, src,
-                  SDL2pp::Rect(body_x, body_y, body_width, body_height));
+    renderer.Copy(*resolved.texture, src, SDL2pp::Rect(body_x, body_y, body_width, body_height));
 }

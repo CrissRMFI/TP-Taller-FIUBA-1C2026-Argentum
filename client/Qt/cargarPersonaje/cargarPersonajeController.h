@@ -1,9 +1,9 @@
 #ifndef CARGARPERSONAJECONTROLLER_H
 #define CARGARPERSONAJECONTROLLER_H
 
+#include <qqml.h>
 #include <QObject>
 #include <QString>
-#include <qqml.h>
 
 #include "datosConexion.h"
 

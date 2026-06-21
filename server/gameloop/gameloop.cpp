@@ -14,15 +14,17 @@ static void cerrarColaSiCorresponde(Queue<T>& cola, std::atomic_bool& cerrada) {
     cola.close();
 }
 
-Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mundo&& mundo)
-    : colaComandos(), colaEventosSesion(), monitor(monitor),
-      juego(config.juego, std::move(config.items), std::move(config.hechizos),
-            std::move(config.criaturas), std::move(mundo)),
-      tickMs(config.juego.tickMs),
-      guardadoSeg(config.juego.guardadoSeg),
-      loop(std::chrono::milliseconds(config.juego.tickMs)),
-      colaComandosCerrada(false),
-      colaEventosSesionCerrada(false) {
+Gameloop::Gameloop(MonitorClientes& monitor, ConfigCompleta config, Mundo&& mundo) :
+        colaComandos(),
+        colaEventosSesion(),
+        monitor(monitor),
+        juego(config.juego, std::move(config.items), std::move(config.hechizos),
+              std::move(config.criaturas), std::move(mundo)),
+        tickMs(config.juego.tickMs),
+        guardadoSeg(config.juego.guardadoSeg),
+        loop(std::chrono::milliseconds(config.juego.tickMs)),
+        colaComandosCerrada(false),
+        colaEventosSesionCerrada(false) {
     if (tickMs <= 0) {
         throw std::invalid_argument("El tick del gameloop debe ser mayor a cero");
     }
@@ -84,12 +86,9 @@ void Gameloop::procesarEventosSesion() {
     try {
         while (colaEventosSesion.try_pop(evento)) {
             if (evento.tipo == TipoEventoSesion::Conectar) {
-                despachar(juego.conectarJugador(evento.idCliente,
-                                                evento.datos.nombre,
-                                                evento.datos.clase,
-                                                evento.datos.raza,
-                                                evento.datos.cabeza,
-                                                evento.datos.cuerpo));
+                despachar(juego.conectarJugador(evento.idCliente, evento.datos.nombre,
+                                                evento.datos.clase, evento.datos.raza,
+                                                evento.datos.cabeza, evento.datos.cuerpo));
             } else {
                 despachar(juego.desconectarJugador(evento.idCliente));
             }
@@ -109,7 +108,7 @@ void Gameloop::procesarComandos() {
 
 void Gameloop::procesarComando(const ComandoCliente& comandoCliente) {
     std::list<EventoSalida> eventos =
-        juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
+            juego.ejecutarComando(comandoCliente.idCliente, comandoCliente.comando);
 
     despachar(eventos);
 }

@@ -9,7 +9,7 @@
 // daño, esquive, crítico, movimiento y spawn de criaturas, drops, XP por
 // kill, etc.
 class Aleatorio {
-  public:
+public:
     explicit Aleatorio(uint64_t semilla);
     Aleatorio();
 
@@ -22,7 +22,7 @@ class Aleatorio {
         return std::uniform_int_distribution<T>(min, max)(motor);
     }
 
-  private:
+private:
     std::mt19937_64 motor;
 };
 

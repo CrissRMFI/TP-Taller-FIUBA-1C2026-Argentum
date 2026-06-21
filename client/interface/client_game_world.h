@@ -8,10 +8,10 @@
 #include <utility>
 #include <vector>
 
-#include "client/entidad_renderizable.h"
-#include "renderer/estado_chat_render.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/thread/queue.h"
+#include "client/entidad_renderizable.h"
+#include "renderer/estado_chat_render.h"
 
 // para que dentro de la misma partida el movimiento de los jugadores no se vea tile x tile
 // ahora se trata la posicion de cada entidad dentro de la clase estado del jugador
@@ -27,7 +27,7 @@ struct EntityAnimationState {
     uint32_t vis_last_tick = 0;
 };
 
-// Lo que el jugador tiene equipado 
+// Lo que el jugador tiene equipado
 struct EquipamientoJugador {
     uint16_t arma = 0;
     uint16_t baculo = 0;
@@ -44,9 +44,9 @@ struct EstadoJugador {
     uint16_t manaMax = 0;
     uint32_t oro = 0;
     uint32_t experiencia = 0;
-    uint8_t  nivel = 0;
-    uint8_t  raza = 0;
-    uint8_t  clase = 0;
+    uint8_t nivel = 0;
+    uint8_t raza = 0;
+    uint8_t clase = 0;
     uint32_t expSiguienteNivel = 0;
 };
 
@@ -60,7 +60,7 @@ private:
     uint16_t idCliente;
     int posX;
     int posY;
-    // Nestro contrado va a ser mapaActual = 0 es el exterior, y > 0 son mazmorrras 
+    // Nestro contrado va a ser mapaActual = 0 es el exterior, y > 0 son mazmorrras
     uint16_t mapaActual_ = 0;
 
     uint8_t nivelAnterior;
@@ -71,7 +71,7 @@ private:
     uint32_t experienciaAnterior = 0;
     uint32_t oroAnterior = 0;
 
-    
+
     bool resurreccionActiva_ = false;
     uint32_t resurreccionInicioTick_ = 0;
     uint16_t resurreccionDuracionMs_ = 0;
@@ -82,16 +82,16 @@ private:
     std::string nick_;  // nombre del propio jugador (se conoce al loguear)
 
     // Estado de objetos del jugador (llega por protocolo; lo usa el panel derecho).
-    std::vector<uint16_t> inventario_;   // ids por slot (0 = vacio)
-    EquipamientoJugador   equipamiento_;
-    EstadoJugador         estadoJugador_;
-    std::vector<uint16_t> stockNpc_;      // ultimo /listar de un comerciante (ids en venta)
-    std::vector<uint16_t> bancoItems_;    // items guardados en el banco (ultimo CONTENIDO_BANCO)
-    uint32_t              bancoOro_ = 0;   // oro guardado en el banco
-    bool                  bancoRecibido_ = false;  // llego un CONTENIDO_BANCO (banco abierto)
-    bool                  tiendaAbierta_ = false;     // modal de comerciante/sacerdote abierto
-    bool                  tiendaEsSacerdote_ = false;  // la tienda abierta es de un sacerdote
-    std::vector<uint16_t> hechizosConocidos_;       // ids de hechizos del jugador (LISTA_HECHIZOS)
+    std::vector<uint16_t> inventario_;  // ids por slot (0 = vacio)
+    EquipamientoJugador equipamiento_;
+    EstadoJugador estadoJugador_;
+    std::vector<uint16_t> stockNpc_;    // ultimo /listar de un comerciante (ids en venta)
+    std::vector<uint16_t> bancoItems_;  // items guardados en el banco (ultimo CONTENIDO_BANCO)
+    uint32_t bancoOro_ = 0;             // oro guardado en el banco
+    bool bancoRecibido_ = false;        // llego un CONTENIDO_BANCO (banco abierto)
+    bool tiendaAbierta_ = false;        // modal de comerciante/sacerdote abierto
+    bool tiendaEsSacerdote_ = false;    // la tienda abierta es de un sacerdote
+    std::vector<uint16_t> hechizosConocidos_;  // ids de hechizos del jugador (LISTA_HECHIZOS)
     // Drops visibles en el piso (celda x,y). Oro -> monedas; item -> bolsa/cofre.
     std::set<std::pair<uint16_t, uint16_t>> oroEnSuelo_;
     std::set<std::pair<uint16_t, uint16_t>> itemEnSuelo_;
@@ -102,9 +102,7 @@ private:
 
     int distanciaAlJugador(int x, int y) const;
     void agregarLineaChat(const std::string& linea, TipoMensajeChat tipo = TipoMensajeChat::Normal);
-    void actualizarPosVisualEntidad(EntityAnimationState& animation_state,
-                                    int tile_x,
-                                    int tile_y,
+    void actualizarPosVisualEntidad(EntityAnimationState& animation_state, int tile_x, int tile_y,
                                     uint32_t current_tick);
 
 public:
@@ -116,7 +114,9 @@ public:
 
     const std::unordered_map<uint16_t, EntidadRenderizable>& entities() const;
     uint16_t client_id() const;
-    uint16_t mapaActual() const { return mapaActual_; }
+    uint16_t mapaActual() const {
+        return mapaActual_;
+    }
     int player_x() const;
     int player_y() const;
     bool player_is_moving() const;
@@ -127,10 +127,18 @@ public:
     double entity_visual_y(uint16_t entity_id) const;
     const std::deque<LineaChat>& historialChat() const;
     void setMaxLineasChat(size_t maximo);
-    void setNick(const std::string& nick) { nick_ = nick; }
-    const std::string& nick() const { return nick_; }
-    const std::set<std::pair<uint16_t, uint16_t>>& oroEnSuelo() const { return oroEnSuelo_; }
-    const std::set<std::pair<uint16_t, uint16_t>>& itemEnSuelo() const { return itemEnSuelo_; }
+    void setNick(const std::string& nick) {
+        nick_ = nick;
+    }
+    const std::string& nick() const {
+        return nick_;
+    }
+    const std::set<std::pair<uint16_t, uint16_t>>& oroEnSuelo() const {
+        return oroEnSuelo_;
+    }
+    const std::set<std::pair<uint16_t, uint16_t>>& itemEnSuelo() const {
+        return itemEnSuelo_;
+    }
     // Para que el loop agregue mensajes locales con color (ej. lanzar hechizo, "no hay nada").
     void mensajeLocal(const std::string& linea, TipoMensajeChat tipo);
 
@@ -147,11 +155,13 @@ public:
     bool tiendaAbierta() const;
     bool tiendaEsSacerdote() const;
     const std::vector<uint16_t>& hechizosConocidos() const;
-    
-    bool resurreccionActiva() const { return resurreccionActiva_; }
-    
+
+    bool resurreccionActiva() const {
+        return resurreccionActiva_;
+    }
+
     float fraccionResurreccionRestante(uint32_t tick) const;
-    
+
     std::vector<std::pair<uint16_t, uint16_t>> drenarFx();
     std::vector<std::pair<uint16_t, uint16_t>> drenarProyectiles();
 };

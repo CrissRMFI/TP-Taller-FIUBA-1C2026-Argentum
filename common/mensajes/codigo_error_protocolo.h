@@ -4,8 +4,8 @@
 #include <cstdint>
 
 enum class CodigoErrorProtocolo : uint8_t {
-    
-  // Errores de conexion 
+
+    // Errores de conexion
     CONEXION_CERRADA_AL_ENVIAR_BYTES,
     CONEXION_CERRADA_AL_RECIBIR_BYTES,
 
@@ -38,7 +38,7 @@ enum class CodigoErrorProtocolo : uint8_t {
     ESTADO_ENTIDAD_INVALIDO,
     CODIGO_ERROR_ACCION_INVALIDO,
 
-    
+
     ERROR_DESCONOCIDO,
 };
 

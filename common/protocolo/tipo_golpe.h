@@ -4,7 +4,7 @@
 #include <cstdint>
 
 enum class TipoGolpe : uint8_t {
-    Espada = 0,     // arma cuerpo a cuerpo por defecto 
+    Espada = 0,  // arma cuerpo a cuerpo por defecto
     Hacha = 1,
     Martillo = 2,
     Disparo = 3,    // arma a distancia (arco)

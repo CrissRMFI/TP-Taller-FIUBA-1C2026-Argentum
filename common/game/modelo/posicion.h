@@ -13,15 +13,15 @@ struct Posicion {
         return x == otro.x && y == otro.y && mapaId == otro.mapaId;
     }
 
-    bool operator!=(const Posicion& otro) const { 
-      return !(*this == otro); 
+    bool operator!=(const Posicion& otro) const {
+        return !(*this == otro);
     }
 
-    bool mismaMapa(const Posicion& otro) const { 
-      return mapaId == otro.mapaId; 
+    bool mismaMapa(const Posicion& otro) const {
+        return mapaId == otro.mapaId;
     }
 
-    
+
     float distanciaEuclidea(const Posicion& otro) const {
         int dx = (int)(x) - (int)(otro.x);
         int dy = (int)(y) - (int)(otro.y);
@@ -29,8 +29,7 @@ struct Posicion {
     }
 
     int distanciaManhattan(const Posicion& otro) const {
-        return std::abs((int)(x) - (int)(otro.x)) +
-               std::abs((int)(y) - (int)(otro.y));
+        return std::abs((int)(x) - (int)(otro.x)) + std::abs((int)(y) - (int)(otro.y));
     }
 
     bool esAdyacente(const Posicion& otro) const {

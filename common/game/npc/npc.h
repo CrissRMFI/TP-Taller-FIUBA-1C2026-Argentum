@@ -5,11 +5,7 @@
 
 #include "../modelo/posicion.h"
 
-enum class TipoNpc {
-    Banquero,
-    Comerciante,
-    Sacerdote
-};
+enum class TipoNpc { Banquero, Comerciante, Sacerdote };
 
 class Npc {
 private:

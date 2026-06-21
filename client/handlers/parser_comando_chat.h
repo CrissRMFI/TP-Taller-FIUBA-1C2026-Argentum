@@ -17,8 +17,10 @@ struct ResultadoParseo {
     std::string error;
 };
 
-/* Convierte el texto que el jugador escribe en el mini-chat en un ComandoJugador. Es logica pura: no depende de SDL ni de la red. El mapeo nombre-de-objeto -> id se inyecta por constructor (se carga desde el TOML de configuracion, eso nos evita el hardcodeo).
-*/
+/* Convierte el texto que el jugador escribe en el mini-chat en un ComandoJugador. Es logica pura:
+ * no depende de SDL ni de la red. El mapeo nombre-de-objeto -> id se inyecta por constructor (se
+ * carga desde el TOML de configuracion, eso nos evita el hardcodeo).
+ */
 class ParserComandoChat {
 public:
     explicit ParserComandoChat(std::unordered_map<std::string, uint16_t> nombreItemAId);

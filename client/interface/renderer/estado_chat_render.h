@@ -22,8 +22,9 @@ enum class TipoMensajeChat {
 
 using LineaChat = std::pair<std::string, TipoMensajeChat>;
 
-/* Configuracion ESTATICA del chat: sale del TOML y no cambia entre frames. Se le pasa al renderer una sola vez en init(). El ancho de la caja no esta aca: lo deriva el
-renderer como la mitad del ancho de la ventana.
+/* Configuracion ESTATICA del chat: sale del TOML y no cambia entre frames. Se le pasa al renderer
+una sola vez en init(). El ancho de la caja no esta aca: lo deriva el renderer como la mitad del
+ancho de la ventana.
 */
 struct ConfigChatRender {
     std::string fuenteRuta;
@@ -45,23 +46,32 @@ struct ConfigChatRender {
 
     SDL_Color colorPara(TipoMensajeChat tipo) const {
         switch (tipo) {
-            case TipoMensajeChat::Ataque: return colorAtaque;
-            case TipoMensajeChat::Hechizo: return colorHechizo;
-            case TipoMensajeChat::Sistema: return colorSistema;
-            case TipoMensajeChat::Experiencia: return colorExperiencia;
-            case TipoMensajeChat::Recuperacion: return colorRecuperacion;
-            case TipoMensajeChat::Privado: return colorPrivado;
-            case TipoMensajeChat::CriticoHecho: return colorCriticoHecho;
-            case TipoMensajeChat::CriticoRecibido: return colorCriticoRecibido;
-            default: return colorTexto;
+            case TipoMensajeChat::Ataque:
+                return colorAtaque;
+            case TipoMensajeChat::Hechizo:
+                return colorHechizo;
+            case TipoMensajeChat::Sistema:
+                return colorSistema;
+            case TipoMensajeChat::Experiencia:
+                return colorExperiencia;
+            case TipoMensajeChat::Recuperacion:
+                return colorRecuperacion;
+            case TipoMensajeChat::Privado:
+                return colorPrivado;
+            case TipoMensajeChat::CriticoHecho:
+                return colorCriticoHecho;
+            case TipoMensajeChat::CriticoRecibido:
+                return colorCriticoRecibido;
+            default:
+                return colorTexto;
         }
     }
 };
 
 struct EstadoChatRender {
-    bool activo = false; // hay foco para escribir
-    std::string entrada; // texto que se esta tipeando
-    std::vector<LineaChat> historial; // mensajes entrantes (mas viejo -> mas nuevo) con su tipo
+    bool activo = false;               // hay foco para escribir
+    std::string entrada;               // texto que se esta tipeando
+    std::vector<LineaChat> historial;  // mensajes entrantes (mas viejo -> mas nuevo) con su tipo
 };
 
 #endif

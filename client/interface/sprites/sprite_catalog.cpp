@@ -1,8 +1,8 @@
 
-#include <string>
-#include <unordered_map>
-#include <toml++/toml.hpp>
 #include "sprite_catalog.h"
+#include <string>
+#include <toml++/toml.hpp>
+#include <unordered_map>
 
 SpriteCatalogParser SpriteCatalog::get_parser() const {
     return this->parser;

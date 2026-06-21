@@ -7,9 +7,8 @@
 #include <stdexcept>
 #include <string>
 
-NpcSpriteResolver::NpcSpriteResolver(const SpriteCatalog& catalog, TextureCache& cache):
-        catalog_(catalog),
-        cache_(cache) {}
+NpcSpriteResolver::NpcSpriteResolver(const SpriteCatalog& catalog, TextureCache& cache) :
+        catalog_(catalog), cache_(cache) {}
 
 std::string NpcSpriteResolver::npc_key_from_npc(const Npc& npc) const {
     switch (npc.getTipo()) {

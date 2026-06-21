@@ -22,8 +22,9 @@ struct ConfigPanelRender {
     std::string barraVida = "imgs/ui/en_barradevida.bmp";
     std::string barraMana = "imgs/ui/en_barrademana.bmp";
     std::string barraExperiencia = "imgs/estados/es_barraexperiencia.bmp";
-    std::string spriteMeditacion = "imgs/estados/3446.png"; // Aura meditar
-    std::string spriteResurreccion = "imgs/personajes/aura/3499.png";  // Aura resucitar (5x3 = 15 cuadros)
+    std::string spriteMeditacion = "imgs/estados/3446.png";  // Aura meditar
+    std::string spriteResurreccion =
+            "imgs/personajes/aura/3499.png";  // Aura resucitar (5x3 = 15 cuadros)
     std::string bancoImg = "imgs/ui/es_banco.bmp";
     std::string botonDepositar = "imgs/ui/es_boton-depositar.bmp";
     std::string botonRetirar = "imgs/ui/es_boton-retirar.bmp";
@@ -38,8 +39,8 @@ struct ConfigPanelRender {
     int bancoCols = 6;
     std::string tiendaImgComerciante = "imgs/npc/comerciantes/es_comerciar.bmp";
     std::string tiendaImgSacerdote = "imgs/npc/sacerdotes/es_sacerdote.bmp";
-    SDL_Color   colorTexto = {235, 225, 200, 255};
-    SDL_Color   colorTitulo = {255, 220, 120, 255};
+    SDL_Color colorTexto = {235, 225, 200, 255};
+    SDL_Color colorTitulo = {255, 220, 120, 255};
 };
 
 
@@ -88,9 +89,10 @@ struct EstadoPanelRender {
     std::vector<uint16_t> stock;
     int seleccionInventario = -1;
     int scrollStock = 0;
-    std::vector<uint16_t> hechizosConocidos;  // ids que el jugador conoce (pestaña HECHIZOS = lanzar)
-    bool mostrarHechizos = false;             // pestaña activa: false=inventario, true=hechizos
-    bool sacerdoteSeleccionado = false;       // objetivo es un sacerdote -> ofrece hechizos en venta
+    std::vector<uint16_t>
+            hechizosConocidos;           // ids que el jugador conoce (pestaña HECHIZOS = lanzar)
+    bool mostrarHechizos = false;        // pestaña activa: false=inventario, true=hechizos
+    bool sacerdoteSeleccionado = false;  // objetivo es un sacerdote -> ofrece hechizos en venta
 };
 
 #endif

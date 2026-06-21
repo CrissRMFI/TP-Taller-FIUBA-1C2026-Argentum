@@ -19,8 +19,8 @@ enum class Opcode : uint8_t {
     DEPOSITAR_ITEM = 11,
     DEPOSITAR_ORO = 12,
     RETIRAR_ITEM = 13,
-    RETIRAR_ORO  = 14,
-    LISTAR  = 15,
+    RETIRAR_ORO = 14,
+    LISTAR = 15,
     CHAT_GLOBAL = 16,
     CHAT_PRIVADO = 17,
 

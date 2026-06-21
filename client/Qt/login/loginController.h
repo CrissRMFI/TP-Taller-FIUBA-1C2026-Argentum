@@ -1,9 +1,9 @@
 #ifndef LOGIN_CONTROLLER_H
 #define LOGIN_CONTROLLER_H
 
+#include <qqml.h>
 #include <QObject>
 #include <QString>
-#include <qqml.h>
 
 #include "datosConexion.h"
 
@@ -34,11 +34,10 @@ signals:
     void loginCompleted();
 
 private:
-QString selectedPuerto;
-QString selectedHost;
-bool errorLogin = false;
-QString errorLoginMessage;
-
+    QString selectedPuerto;
+    QString selectedHost;
+    bool errorLogin = false;
+    QString errorLoginMessage;
 };
 
 #endif

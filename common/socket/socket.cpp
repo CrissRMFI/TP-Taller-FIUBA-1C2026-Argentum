@@ -430,9 +430,13 @@ void Socket::shutdown(int how) {
     }
 }
 
-bool Socket::is_stream_send_closed() const { return stream_status & STREAM_SEND_CLOSED; }
+bool Socket::is_stream_send_closed() const {
+    return stream_status & STREAM_SEND_CLOSED;
+}
 
-bool Socket::is_stream_recv_closed() const { return stream_status & STREAM_RECV_CLOSED; }
+bool Socket::is_stream_recv_closed() const {
+    return stream_status & STREAM_RECV_CLOSED;
+}
 
 int Socket::close() {
     chk_skt_or_fail();
@@ -450,8 +454,9 @@ Socket::~Socket() {
 
 void Socket::chk_skt_or_fail() const {
     if (skt == -1) {
-        throw std::runtime_error("socket with invalid file descriptor (-1), "
-                                 "perhaps you are using a *previously moved* "
-                                 "socket (and therefore invalid).");
+        throw std::runtime_error(
+                "socket with invalid file descriptor (-1), "
+                "perhaps you are using a *previously moved* "
+                "socket (and therefore invalid).");
     }
 }

@@ -63,7 +63,6 @@ struct StaticSpriteDefinition {
     SpriteRect src;
     SpriteVec2 size;
     SpriteVec2 offset;
-
 };
 
 struct NpcSpriteDefinition {

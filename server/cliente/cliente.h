@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "../../common/protocolo/dato_sesion_cliente.h"
 #include "../../common/protocolo/mensaje_servidor.h"
 #include "../../common/socket/socket.h"
 #include "../../common/thread/queue.h"
@@ -12,9 +13,8 @@
 #include "common/thread/thread.h"
 #include "server/gameloop/evento_sesion.h"
 #include "server/gameloop/monitor_clientes.h"
-#include "../../common/protocolo/dato_sesion_cliente.h"
 
-class Cliente : public Thread{
+class Cliente : public Thread {
 private:
     uint16_t idCliente;
     std::unique_ptr<ProtocoloServidor> protocolo_servidor;
@@ -26,12 +26,9 @@ private:
     std::atomic<bool> estaActivo{true};
 
 public:
-    Cliente(uint16_t id,
-        std::unique_ptr<ProtocoloServidor> protocolo_servidor,
-        Queue<ComandoCliente>& colaComandos,
-        MonitorClientes& monitor,
-        Queue<EventoSesion>& colaEventos,
-        handshakeInicial handshake);
+    Cliente(uint16_t id, std::unique_ptr<ProtocoloServidor> protocolo_servidor,
+            Queue<ComandoCliente>& colaComandos, MonitorClientes& monitor,
+            Queue<EventoSesion>& colaEventos, handshakeInicial handshake);
 
     Queue<MensajeServidor>& obtenerColaSalida();
 
@@ -45,8 +42,6 @@ public:
     void stop() override;
 
     ~Cliente() override = default;
-
-
 };
 
 #endif

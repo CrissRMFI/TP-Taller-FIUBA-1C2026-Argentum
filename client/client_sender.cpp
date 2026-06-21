@@ -3,13 +3,13 @@
 //
 
 #include "client_sender.h"
+#include "../common/thread/queue.h"
 #include "client_data.h"
 #include "registro_cliente.h"
-#include "../common/thread/queue.h"
 
 #include <string>
 
-ClientSender::ClientSender(ProtocoloCliente& protocol, Queue<ComandoJugador>& incoming_queue):
+ClientSender::ClientSender(ProtocoloCliente& protocol, Queue<ComandoJugador>& incoming_queue) :
         protocol(protocol), command_queue(incoming_queue) {}
 
 void ClientSender::run() {
@@ -25,7 +25,9 @@ void ClientSender::run() {
     }
 }
 
-bool ClientSender::is_running() const { return running;}
+bool ClientSender::is_running() const {
+    return running;
+}
 
 void ClientSender::stop() {
     running = false;

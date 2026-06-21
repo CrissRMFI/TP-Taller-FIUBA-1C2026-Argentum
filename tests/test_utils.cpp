@@ -20,8 +20,7 @@ std::pair<Socket, Socket> crearParConectado() {
             std::thread conectador([&cliente_skt, &puerto_str]() {
                 try {
                     cliente_skt.emplace("localhost", puerto_str.c_str());
-                } catch (...) {
-                }
+                } catch (...) {}
             });
 
             Socket servidor_skt = listener.accept();
