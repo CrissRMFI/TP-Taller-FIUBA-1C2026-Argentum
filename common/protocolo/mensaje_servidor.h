@@ -7,6 +7,7 @@
 #include <vector>
 #include "../mensajes/codigo_error_accion.h"
 
+#include "./categoria_chat.h"
 #include "./opcode.h"
 
 struct MensajeEstadoPersonaje {
@@ -114,6 +115,7 @@ struct MensajeActualizarEquipamiento {
 struct MensajeChat {
   std::string nickOrigen;
   std::string mensaje;
+  uint8_t tipo = 0;  // CategoriaChat
 };
 
 struct MensajeResucitado {
