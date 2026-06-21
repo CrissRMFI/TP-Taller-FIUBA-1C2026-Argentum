@@ -605,10 +605,11 @@ MensajeServidor ProtocoloCliente::recibirActualizarEquipamiento() {
 MensajeServidor ProtocoloCliente::recibirMensajeChat() {
     std::string nickOrigen = recibirCadenaConMaximo(MAX_NICK);
     std::string mensaje = recibirCadenaConMaximo(MAX_CHAT);
+    uint8_t tipo = recibirUnByte();
 
     return MensajeServidor{
             Opcode::MENSAJE_CHAT,
-            MensajeChat{nickOrigen, mensaje},
+            MensajeChat{nickOrigen, mensaje, tipo},
     };
 }
 
