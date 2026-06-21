@@ -125,6 +125,11 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     // criaturas, NPCs y drops). Mismo snapshot que se reenvia al cruzar un portal.
     mensajes.splice(mensajes.end(), armarSnapshotMapaPara(id, jugador));
 
+    // Aviso al resto de jugadores conectados que entro alguien.
+    mensajes.push_back({TipoDestino::TODOS_EXCEPTO_UNO, id,
+                        EventoChat{"", jugador.getNombre() + " se conecto.",
+                                   static_cast<uint8_t>(CategoriaChat::Sistema)}});
+
     return mensajes;
 }
 
@@ -145,6 +150,11 @@ std::list<EventoSalida> Juego::desconectarJugador(uint16_t id) {
 
     jugadoresDesconectados.emplace(id, std::move(it->second));
     jugadoresConectados.erase(it);
+
+    // Aviso al resto que alguien se fue.
+    mensajes.push_back({TipoDestino::TODOS_EXCEPTO_UNO, id,
+                        EventoChat{"", nombre + " se desconecto.",
+                                   static_cast<uint8_t>(CategoriaChat::Sistema)}});
 
     return mensajes;
 }
@@ -386,6 +396,12 @@ std::list<EventoSalida> Juego::procesarPortalSiCorresponde(uint16_t idCliente, J
     mensajes.splice(mensajes.end(), armarSnapshotMapaPara(idCliente, jugador));
     // 4) Aparece para los jugadores del mapa destino (y recibe su propia posicion).
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(jugador));
+    // 5) Aviso al resto: entro o salio de la mazmorra (mapaId 0 = exterior).
+    const std::string aviso = (destinoLibre->mapaId != 0)
+            ? jugador.getNombre() + " entro a la mazmorra."
+            : jugador.getNombre() + " salio de la mazmorra.";
+    mensajes.push_back({TipoDestino::TODOS_EXCEPTO_UNO, idCliente,
+                        EventoChat{"", aviso, static_cast<uint8_t>(CategoriaChat::Sistema)}});
     return mensajes;
 }
 
@@ -818,8 +834,13 @@ std::list<EventoSalida> Juego::ejecutarChatPrivado(uint16_t idCliente,
         return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
     }
 
+    const uint8_t catPrivado = static_cast<uint8_t>(CategoriaChat::Privado);
+    // El privado muestra siempre "al otro": el destino ve al emisor; el emisor ve
+    // (eco) al destino. Ambas lineas van en la categoria Privado (color distinto).
     return {{TipoDestino::UNO, itDestino->second,
-             EventoChat{emisor->getNombre(), comando.mensaje}}};
+             EventoChat{emisor->getNombre(), comando.mensaje, catPrivado}},
+            {TipoDestino::UNO, idCliente,
+             EventoChat{comando.nickDestino, comando.mensaje, catPrivado}}};
 }
 
 // ─── Mapa/Mundo 
@@ -1199,6 +1220,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         }
 
         RegistroServidor::jugadorMurio(objetivo->getId());
+        mensajes.push_back({TipoDestino::UNO, idCliente,
+                            EventoChat{"", "Derrotaste a " + objetivo->getNombre() + ".",
+                                       static_cast<uint8_t>(CategoriaChat::Sistema)}});
         mensajes.splice(mensajes.end(), emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
     }
 
@@ -1413,6 +1437,9 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
             mensajes.push_back(armarEstado(*idObj, *objetivo));
         }
         if (!objetivo->estaVivo()) {
+            mensajes.push_back({TipoDestino::UNO, idCliente,
+                                EventoChat{"", "Derrotaste a " + objetivo->getNombre() + ".",
+                                           static_cast<uint8_t>(CategoriaChat::Sistema)}});
             mensajes.splice(mensajes.end(),
                             emitirMuerteJugador(*objetivo, objetivo->getPosicion()));
         }
@@ -1447,6 +1474,9 @@ std::list<EventoSalida> Juego::ejecutarLanzarHechizo(uint16_t idCliente,
     }
     if (criatura->esta_muerta()) {
         const uint16_t idCriatura = criatura->getId();
+        mensajes.push_back({TipoDestino::UNO, idCliente,
+                            EventoChat{"", "Derrotaste a una criatura.",
+                                       static_cast<uint8_t>(CategoriaChat::Sistema)}});
         const float rngXp = aleatorio.uniforme();
         const uint32_t xpKill = ReglasJuego::calcularExperienciaKill(
                 cfg, vidaMaxCriaturaAntes, nivelLanzador, nivelCriaturaAntes, rngXp);
@@ -1519,7 +1549,15 @@ std::list<EventoSalida> Juego::ejecutarComprar(uint16_t idCliente, const Comando
 
     jugador->gastar_oro(precioCompra);
 
-    return {armarInventario(idCliente, *jugador), armarEstado(idCliente, *jugador)};
+    std::list<EventoSalida> mensajes = {armarInventario(idCliente, *jugador),
+                                        armarEstado(idCliente, *jugador)};
+    const Item* itemComprado = catalogo.buscar(cmd.idItem);
+    const std::string nombreItem = (itemComprado != nullptr) ? itemComprado->getNombre()
+                                                             : std::string("un objeto");
+    mensajes.push_back({TipoDestino::UNO, idCliente,
+                        EventoChat{"", "Compraste " + nombreItem + ".",
+                                   static_cast<uint8_t>(CategoriaChat::Sistema)}});
+    return mensajes;
 }
 
 std::list<EventoSalida> Juego::ejecutarVender(uint16_t idCliente, const ComandoVender& cmd) {
@@ -2249,6 +2287,14 @@ std::list<EventoSalida> Juego::emitirMuerteJugador(Jugador& victima,
         }
     }
 
+    // Aviso a la victima (cualquier causa de muerte pasa por aca).
+    const std::optional<uint16_t> idClienteVictima = buscarIdClienteDeJugador(victima.getId());
+    if (idClienteVictima.has_value()) {
+        mensajes.push_back({TipoDestino::UNO, *idClienteVictima,
+                            EventoChat{"", "Has muerto. Escribi /resucitar cerca de un sacerdote.",
+                                       static_cast<uint8_t>(CategoriaChat::Sistema)}});
+    }
+
     mensajes.splice(mensajes.end(), procesarDropsJugadorMuerto(victima, posicionMuerte));
     mensajes.splice(mensajes.end(), armarPosicionParaMapa(victima));
 
@@ -2360,6 +2406,10 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
 
     if (criatura.esta_muerta()) {
         const uint16_t idCriatura = criatura.getId();
+
+        mensajes.push_back({TipoDestino::UNO, idCliente,
+                            EventoChat{"", "Derrotaste a una criatura.",
+                                       static_cast<uint8_t>(CategoriaChat::Sistema)}});
 
         // XP por kill
         const float valorAleatorioXpKill = aleatorio.uniforme();
