@@ -257,6 +257,10 @@ void EditorMapa::redimensionar(uint16_t nuevoAncho, uint16_t nuevoAlto) {
     };
     recortarZonas(pisos);
     recortarZonas(ciudades);
+
+    // El portal de mazmorra no puede quedar fuera del nuevo tamaño por eso lo reubicamos al borde para no perder la entrada/salida al achicar el mapa. Nunca perdemos la mazmorera
+    if (marcadorX >= ancho) marcadorX = static_cast<uint16_t>(ancho - 1);
+    if (marcadorY >= alto)  marcadorY = static_cast<uint16_t>(alto - 1);
 }
 
 void EditorMapa::cargarDesde(const Mapa& mapa, uint16_t nuevoMapaId,

@@ -1,6 +1,6 @@
 # Argentum Online — TP Taller de Programación I (FIUBA)
 
-Recreación del juego *Argentum Online*: un cliente gráfico (SDL2 + Qt), un
+Recreación del juego _Argentum Online_: un cliente gráfico (SDL2 + Qt), un
 servidor multijugador y un editor de mapas (Qt).
 
 ---
@@ -17,12 +17,12 @@ estándar del usuario.
 
 Esto deja:
 
-| Qué        | Dónde                        |
-|------------|------------------------------|
-| Binarios   | `~/.local/bin/argentum-{server,client,editor}` |
-| Config     | `~/.config/argentum/`        |
-| Assets     | `~/.local/share/argentum/`   |
-| Datos de jugadores | `~/.local/share/argentum/jugadores.bin` |
+| Qué                | Dónde                                          |
+| ------------------ | ---------------------------------------------- |
+| Binarios           | `~/.local/bin/argentum-{server,client,editor}` |
+| Config             | `~/.config/argentum/`                          |
+| Assets             | `~/.local/share/argentum/`                     |
+| Datos de jugadores | `~/.local/share/argentum/jugadores.bin`        |
 
 Opciones útiles:
 
@@ -104,3 +104,21 @@ En modo desarrollo, la configuración se lee de `config/` y los assets de
 ```bash
 ./build/taller_tests
 ```
+
+---
+
+## Limitaciones conocidas
+
+### Editor de mapas
+
+- **Reubicación del portal al redimensionar:** cada escenario tiene un portal que
+  vincula el mapa exterior con su mazmorra (la entrada/salida marcada con el ícono
+  de portal). Si se achica un mapa por debajo de la celda donde está ese portal, el
+  marcador se reubica automáticamente al nuevo borde para no quedar fuera de los
+  límites; lo mismo aplica a la celda de destino del teletransporte. Conviene
+  revisar la posición del portal después de redimensionar y reacomodarlo si hace
+  falta.
+- **Exterior y mazmorra en archivos separados:** la mazmorra se guarda en un
+  archivo aparte (`<nombre>.mazmorra.toml`) vinculado por nombre al exterior
+  (`<nombre>.toml`). Si se renombran o mueven los archivos por fuera del editor,
+  puede perderse la relación entre ambos.
