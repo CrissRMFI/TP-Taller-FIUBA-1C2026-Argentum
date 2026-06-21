@@ -115,30 +115,6 @@ ComandoJugador ProtocoloServidor::recibirComando() {
         case Opcode::CHAT_PRIVADO:
             return recibirComandoChatPrivado();
 
-        case Opcode::FUNDAR_CLAN:
-            return recibirComandoFundarClan();
-
-        case Opcode::UNIRSE_CLAN:
-            return recibirComandoUnirseClan();
-
-        case Opcode::REVISAR_CLAN:
-            return recibirComandoRevisarClan();
-
-        case Opcode::CLAN_ACEPTAR:
-            return recibirComandoClanAceptar();
-
-        case Opcode::CLAN_RECHAZAR:
-            return recibirComandoClanRechazar();
-
-        case Opcode::CLAN_BAN:
-            return recibirComandoClanBan();
-
-        case Opcode::CLAN_KICK:
-            return recibirComandoClanKick();
-
-        case Opcode::DEJAR_CLAN:
-            return recibirComandoDejarClan();
-
         case Opcode::CHEAT:
             return recibirComandoCheat();
 
@@ -179,12 +155,6 @@ void ProtocoloServidor::validarEsquivador(uint8_t esquivador) const {
 void ProtocoloServidor::validarCantidad(uint16_t cantidad) const {
     if (cantidad > MAX_CANTIDAD_UINT8) {
         throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
-    }
-}
-
-void ProtocoloServidor::validarTipoClan(uint8_t tipo) const {
-    if (tipo > MAX_TIPO_CLAN) {
-      throw std::runtime_error(MensajesErrorProtocolo::mensaje(CodigoErrorProtocolo::CAMPO_INVALIDO));
     }
 }
 
@@ -368,74 +338,6 @@ ComandoJugador ProtocoloServidor::recibirComandoChatPrivado() {
     };
 }
 
-ComandoJugador ProtocoloServidor::recibirComandoFundarClan() {
-    std::string nombreClan = recibirCadenaConMaximo(MAX_CLAN);
-
-    return ComandoJugador{
-      Opcode::FUNDAR_CLAN,
-      ComandoFundarClan{nombreClan},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoUnirseClan() {
-    std::string nombreClan = recibirCadenaConMaximo(MAX_CLAN);
-
-    return ComandoJugador{
-      Opcode::UNIRSE_CLAN,
-      ComandoUnirseClan{nombreClan},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoRevisarClan() {
-    return ComandoJugador{
-      Opcode::REVISAR_CLAN,
-      ComandoRevisarClan{},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoClanAceptar() {
-    std::string nick = recibirCadenaConMaximo(MAX_NICK);
-
-    return ComandoJugador{
-      Opcode::CLAN_ACEPTAR,
-      ComandoGestionMiembreClan{nick},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoClanRechazar() {
-    std::string nick = recibirCadenaConMaximo(MAX_NICK);
-
-    return ComandoJugador{
-      Opcode::CLAN_RECHAZAR,
-      ComandoGestionMiembreClan{nick},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoClanBan() {
-    std::string nick = recibirCadenaConMaximo(MAX_NICK);
-
-    return ComandoJugador{
-      Opcode::CLAN_BAN,
-      ComandoGestionMiembreClan{nick},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoClanKick() {
-    std::string nick = recibirCadenaConMaximo(MAX_NICK);
-
-    return ComandoJugador{
-      Opcode::CLAN_KICK,
-      ComandoGestionMiembreClan{nick},
-    };
-}
-
-ComandoJugador ProtocoloServidor::recibirComandoDejarClan() {
-    return ComandoJugador{
-      Opcode::DEJAR_CLAN,
-      ComandoDejarClan{},
-    };
-}
-
 ComandoJugador ProtocoloServidor::recibirComandoCheat() {
     uint8_t tipo = recibirUnByte();
 
@@ -503,10 +405,6 @@ void ProtocoloServidor::enviarMensaje(const MensajeServidor& mensaje) {
         
             case Opcode::MENSAJE_CHAT:
             enviarMensajeChat(std::get<MensajeChat>(mensaje.payload));
-            break;
-
-        case Opcode::MENSAJE_CLAN:
-            enviarMensajeClan(std::get<MensajeClan>(mensaje.payload));
             break;
 
         case Opcode::RESUCITADO:
@@ -676,15 +574,6 @@ void ProtocoloServidor::enviarMensajeChat(const MensajeChat& mensaje) {
 
     enviarCadenaConMaximo(mensaje.nickOrigen, MAX_NICK);
     enviarCadenaConMaximo(mensaje.mensaje, MAX_CHAT);
-}
-
-void ProtocoloServidor::enviarMensajeClan(const MensajeClan& mensaje) {
-    validarTipoClan(static_cast<uint8_t>(mensaje.tipo));
-
-    enviarUnByte(static_cast<uint8_t>(Opcode::MENSAJE_CLAN));
-
-    enviarUnByte(static_cast<uint8_t>(mensaje.tipo));
-    enviarCadenaConMaximo(mensaje.texto, MAX_NICK);
 }
 
 void ProtocoloServidor::enviarResucitado(const MensajeResucitado& mensaje) {

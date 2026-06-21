@@ -100,11 +100,6 @@ uint32_t ReglasJuego::calcularDropOroNpc(const ConfigJuego& cfg, uint16_t vidaMa
     return static_cast<uint32_t>(std::max(0.0f, oro));
 }
 
-float ReglasJuego::calcularMultiplicadorClan(const ConfigJuego& cfg, size_t aliadosCercanos) {
-    const float bonusPorAliado = std::max(0.0f, cfg.bonusClanPorAliado);
-    return 1.0f + bonusPorAliado * static_cast<float>(aliadosCercanos);
-}
-
 uint16_t ReglasJuego::aplicarMultiplicadorCombate(uint16_t valor, float multiplicador) {
     const float multiplicadorSeguro = std::max(0.0f, multiplicador);
     const float resultado = static_cast<float>(valor) * multiplicadorSeguro;

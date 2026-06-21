@@ -410,11 +410,6 @@ ConfigCompleta LectorConfigToml::cargar(const std::string& ruta) {
     cfg.nivelNewbie = leerIntObligatorio(tbl, "fair_play", "nivel_newbie");
     cfg.maxDiffNivel = leerIntObligatorio(tbl, "fair_play", "max_diff_nivel");
 
-    cfg.clanMaxMiembros = leerIntObligatorio(tbl, "clanes", "max_miembros");
-    cfg.clanNivelMinimo = leerIntObligatorio(tbl, "clanes", "nivel_minimo");
-    cfg.clanRadioBonus = leerUint16Obligatorio(tbl, "clanes", "radio_bonus");
-    cfg.bonusClanPorAliado = leerFloatObligatorio(tbl, "clanes", "bonus_por_aliado");
-
     cfg.factorTiempoResurreccion =
             leerFloatObligatorio(tbl, "muerte", "factor_tiempo_resurreccion");
     cfg.expPerdidaMuertePct =

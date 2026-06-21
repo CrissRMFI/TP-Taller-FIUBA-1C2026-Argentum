@@ -456,13 +456,6 @@ nivel_newbie       = 3      # Nivel <= 12 es newbie
 max_diff_nivel     = 10      # No se pueden atacar si diff > 10
 
 # ------------------------------------------------------------
-[clanes]
-max_miembros  = 16
-nivel_minimo  = 6            # Nivel mínimo para fundar
-radio_bonus = 5              # Distancia Manhattan para contar aliados cercanos
-bonus_por_aliado = 0.10      # Multiplicador extra por aliado cercano
-
-# ------------------------------------------------------------
 [muerte]
 # Tiempo de inmovilización al usar /resucitar = distancia * factor_seg
 factor_tiempo_resurreccion = 0.5

@@ -43,9 +43,6 @@ public:
                                        uint16_t vidaMaxNpc,
                                        float valorAleatorio);
 
-    static float calcularMultiplicadorClan(const ConfigJuego& cfg,
-                                           size_t aliadosCercanos);
-
     static uint16_t aplicarMultiplicadorCombate(uint16_t valor,
                                                 float multiplicador);
 

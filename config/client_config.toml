@@ -64,7 +64,6 @@ color_hechizo = [240, 150, 40]      # lanzo hechizo -> naranja
 color_sistema = [40, 120, 160]      # "no hay nada aqui" -> celeste oscuro
 color_experiencia = [80, 120, 255]  # gano XP -> azul
 color_recuperacion = [40, 150, 60]  # recupero vida/mana -> verde oscuro
-color_clan = [150, 100, 50]         # mensajes con @ -> marron
 color_critico_hecho = [255, 200, 60]      # yo pego critico -> dorado
 color_critico_recibido = [255, 40, 100]   # me pegan critico -> magenta
 

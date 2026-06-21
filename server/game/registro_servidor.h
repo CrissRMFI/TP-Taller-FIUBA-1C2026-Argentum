@@ -22,7 +22,6 @@ public:
     static void ataqueEnZonaSegura();
     static void ataqueEntreNewbies();
     static void ataqueDiferenciaNivelExcesiva(int diferencia);
-    static void ataqueMismoClan();
     static void ataqueHechizoNoOfensivo();
     static void ataqueFueraDeRango(int distancia, int alcanceMaximo);
     static void ataqueManaInsuficiente();

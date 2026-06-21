@@ -40,10 +40,6 @@ void RegistroServidor::ataqueDiferenciaNivelExcesiva(int diferencia) {
               << diferencia << std::endl;
 }
 
-void RegistroServidor::ataqueMismoClan() {
-    std::cout << "Atacante y objetivo pertenecen al mismo clan" << std::endl;
-}
-
 void RegistroServidor::ataqueHechizoNoOfensivo() {
     std::cout << "El atacante intenta usar un hechizo no ofensivo" << std::endl;
 }

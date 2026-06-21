@@ -31,7 +31,6 @@ static void aplicarRecuperacion(float& pendiente, uint16_t& actual, uint16_t max
 
 Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, Raza raza, uint16_t cabeza, uint16_t cuerpo, Posicion posicion, const ConfigJuego& config) :
         idJugador(id),
-        idClan(0),
         nombre(nombre),
         nivel(1),
         experiencia(0),
@@ -60,7 +59,6 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
         raza(raza),
         cabeza(cabeza),
         cuerpo(cuerpo),
-        fundadoClan(false),
         tiempoRestanteInmovilizado(0.0f),
         tiempoDesdeUltimoAtaque(config.cooldownAtaqueSeg),
         vidaInfinita(false),
@@ -88,8 +86,6 @@ Jugador::Jugador(uint16_t id, const std::string& nombre, ClasePersonaje clase, R
 }
 
 void Jugador::restaurar(const DatosRestauracion& datos) {
-    idClan = datos.idClan;
-    fundadoClan = datos.fundadoClan;
     estado = datos.estado;
     nivel = datos.nivel;
     experiencia = datos.experiencia;
@@ -665,19 +661,6 @@ bool Jugador::sacar_oro_banco(uint32_t cantidad) {
     return true;
 }
 
-void Jugador::asignarClan(uint16_t id) {
-    idClan = id;
-}
-
-void Jugador::salirClan() {
-    idClan = 0;
-    fundadoClan = false;
-}
-
-void Jugador::marcarFundadorClan() {
-    fundadoClan = true;
-}
-
 bool Jugador::puedeMeditar() const {
     return manaMax > 0;
 }
@@ -711,10 +694,6 @@ bool Jugador::esFantasma() const {
 
 bool Jugador::enMeditacion() const {
     return estado == Estado::Meditando;
-}
-
-bool Jugador::tieneClan() const {
-    return idClan != 0;
 }
 
 uint16_t Jugador::getId() const {
@@ -765,10 +744,6 @@ uint32_t Jugador::getOroPerdidoPendiente() const {
     return oroPerdidoPendiente;
 }
 
-uint16_t Jugador::getClan() const {
-    return idClan;
-}
-
 ClasePersonaje Jugador::getClase() const {
     return clase;
 }
@@ -791,10 +766,6 @@ float Jugador::getTiempoRestanteInmovilizado() const {
 
 bool Jugador::estaInmovilizado() const {
     return tiempoRestanteInmovilizado > 0.0f;
-}
-
-bool Jugador::fundo_clan() const {
-    return fundadoClan;
 }
 
 bool Jugador::es_newbie() const {

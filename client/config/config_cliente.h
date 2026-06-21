@@ -31,7 +31,6 @@ struct ConfigCliente {
     std::vector<int> chatColorSistema = {40, 120, 160};
     std::vector<int> chatColorExperiencia = {80, 120, 255};
     std::vector<int> chatColorRecuperacion = {40, 150, 60};
-    std::vector<int> chatColorClan = {150, 100, 50};
     std::vector<int> chatColorCriticoHecho = {255, 200, 60};
     std::vector<int> chatColorCriticoRecibido = {255, 40, 100};
 

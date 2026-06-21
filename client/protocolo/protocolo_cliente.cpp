@@ -139,38 +139,6 @@ void ProtocoloCliente::enviarComando(const ComandoJugador& comando) {
             enviarComandoChatPrivado(std::get<ComandoChatPrivado>(comando.payload));
             break;
 
-        case Opcode::FUNDAR_CLAN:
-            enviarComandoFundarClan(std::get<ComandoFundarClan>(comando.payload));
-            break;
-
-        case Opcode::UNIRSE_CLAN:
-            enviarComandoUnirseClan(std::get<ComandoUnirseClan>(comando.payload));
-            break;
-
-        case Opcode::REVISAR_CLAN:
-            enviarComandoRevisarClan(std::get<ComandoRevisarClan>(comando.payload));
-            break;
-
-        case Opcode::CLAN_ACEPTAR:
-            enviarComandoClanAceptar(std::get<ComandoGestionMiembreClan>(comando.payload));
-            break;
-
-        case Opcode::CLAN_RECHAZAR:
-            enviarComandoClanRechazar(std::get<ComandoGestionMiembreClan>(comando.payload));
-            break;
-
-        case Opcode::CLAN_BAN:
-            enviarComandoClanBan(std::get<ComandoGestionMiembreClan>(comando.payload));
-            break;
-
-        case Opcode::CLAN_KICK:
-            enviarComandoClanKick(std::get<ComandoGestionMiembreClan>(comando.payload));
-            break;
-
-        case Opcode::DEJAR_CLAN:
-            enviarComandoDejarClan(std::get<ComandoDejarClan>(comando.payload));
-            break;
-
         case Opcode::CHEAT:
             enviarComandoCheat(std::get<ComandoCheat>(comando.payload));
             break;
@@ -294,44 +262,6 @@ void ProtocoloCliente::enviarComandoChatPrivado(const ComandoChatPrivado& comand
     enviarCadenaConMaximo(comando.mensaje, MAX_CHAT);
 }
 
-void ProtocoloCliente::enviarComandoFundarClan(const ComandoFundarClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::FUNDAR_CLAN));
-    enviarCadenaConMaximo(comando.nombreClan, MAX_CLAN);
-}
-
-void ProtocoloCliente::enviarComandoUnirseClan(const ComandoUnirseClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::UNIRSE_CLAN));
-    enviarCadenaConMaximo(comando.nombreClan, MAX_CLAN);
-}
-
-void ProtocoloCliente::enviarComandoRevisarClan(const ComandoRevisarClan&) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::REVISAR_CLAN));
-}
-
-void ProtocoloCliente::enviarComandoClanAceptar(const ComandoGestionMiembreClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::CLAN_ACEPTAR));
-    enviarCadenaConMaximo(comando.nick, MAX_NICK);
-}
-
-void ProtocoloCliente::enviarComandoClanRechazar(const ComandoGestionMiembreClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::CLAN_RECHAZAR));
-    enviarCadenaConMaximo(comando.nick, MAX_NICK);
-}
-
-void ProtocoloCliente::enviarComandoClanBan(const ComandoGestionMiembreClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::CLAN_BAN));
-    enviarCadenaConMaximo(comando.nick, MAX_NICK);
-}
-
-void ProtocoloCliente::enviarComandoClanKick(const ComandoGestionMiembreClan& comando) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::CLAN_KICK));
-    enviarCadenaConMaximo(comando.nick, MAX_NICK);
-}
-
-void ProtocoloCliente::enviarComandoDejarClan(const ComandoDejarClan&) {
-    enviarUnByte(static_cast<uint8_t>(Opcode::DEJAR_CLAN));
-}
-
 void ProtocoloCliente::enviarComandoCheat(const ComandoCheat& comando) {
     enviarUnByte(static_cast<uint8_t>(Opcode::CHEAT));
     enviarUnByte(comando.tipo);
@@ -388,9 +318,6 @@ MensajeServidor ProtocoloCliente::recibirMensaje() {
 
         case Opcode::MENSAJE_CHAT:
             return recibirMensajeChat();
-
-        case Opcode::MENSAJE_CLAN:
-            return recibirMensajeClan();
 
         case Opcode::RESUCITADO:
             return recibirResucitado();
@@ -685,18 +612,6 @@ MensajeServidor ProtocoloCliente::recibirMensajeChat() {
     };
 }
 
-MensajeServidor ProtocoloCliente::recibirMensajeClan() {
-    uint8_t tipo = recibirUnByte();
-    validarTipoClan(tipo);
-
-    std::string nick = recibirCadenaConMaximo(MAX_NICK);
-
-    return MensajeServidor{
-            Opcode::MENSAJE_CLAN,
-            MensajeClan{(TipoMensajeClan)(tipo), nick},
-    };
-}
-
 MensajeServidor ProtocoloCliente::recibirResucitado() {
     uint16_t x = recibirDosBytes();
     uint16_t y = recibirDosBytes();
@@ -725,14 +640,6 @@ void ProtocoloCliente::validarEstadoEntidad(uint8_t estado) const {
 
 void ProtocoloCliente::validarEsquivador(uint8_t esquivador) const {
     if (esquivador > MAX_ESQUIVADOR) {
-        throw std::runtime_error(
-                MensajesErrorProtocolo::mensaje(
-                        CodigoErrorProtocolo::CAMPO_INVALIDO));
-    }
-}
-
-void ProtocoloCliente::validarTipoClan(uint8_t tipo) const {
-    if (tipo > MAX_TIPO_CLAN) {
         throw std::runtime_error(
                 MensajesErrorProtocolo::mensaje(
                         CodigoErrorProtocolo::CAMPO_INVALIDO));

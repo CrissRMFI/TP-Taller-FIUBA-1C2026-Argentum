@@ -37,14 +37,11 @@ private:
                                      std::optional<uint16_t> objetivo) const;
     ResultadoParseo parsearRetirar(const std::vector<std::string>& tokens,
                                    std::optional<uint16_t> objetivo) const;
-    ResultadoParseo parsearGestionClan(Opcode opcode,
-                                       const std::vector<std::string>& tokens) const;
 
     std::string aMinusculas(const std::string& texto) const;
     std::string recortar(const std::string& texto) const;
     std::vector<std::string> tokenizar(const std::string& texto) const;
     std::string restoDeLinea(const std::string& linea, size_t desdeToken) const;
-    std::string restoCrudo(const std::string& cuerpo) const;
     std::optional<uint16_t> idDeItem(const std::string& nombre) const;
     std::optional<uint32_t> aEntero(const std::string& texto) const;
 

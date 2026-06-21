@@ -27,7 +27,6 @@ class ProtocoloServidor : public Protocolo {
 
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
-    static constexpr uint16_t MAX_CLAN = 32;
     //static constexpr uint8_t CANTIDAD_DIRECCIONES = 4;
     static const std::unordered_set<uint8_t> DIRECCIONES_VALIDAS;
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
@@ -35,7 +34,6 @@ class ProtocoloServidor : public Protocolo {
             static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
-    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Abandono);
 
     void validarDireccion(const uint8_t direccion) const;
 
@@ -60,14 +58,6 @@ class ProtocoloServidor : public Protocolo {
     ComandoJugador recibirComandoListar();
     ComandoJugador recibirComandoChatGlobal();
     ComandoJugador recibirComandoChatPrivado();
-    ComandoJugador recibirComandoFundarClan();
-    ComandoJugador recibirComandoUnirseClan();
-    ComandoJugador recibirComandoRevisarClan();
-    ComandoJugador recibirComandoClanAceptar();
-    ComandoJugador recibirComandoClanRechazar();
-    ComandoJugador recibirComandoClanBan();
-    ComandoJugador recibirComandoClanKick();
-    ComandoJugador recibirComandoDejarClan();
     ComandoJugador recibirComandoCheat();
 
 
@@ -76,7 +66,6 @@ class ProtocoloServidor : public Protocolo {
     void validarEstadoEntidad(uint8_t estado) const;
     void validarEsquivador(uint8_t esquivador) const;
     void validarCantidad(uint16_t cantidad) const;
-    void validarTipoClan(uint8_t tipo) const;
 
     void enviarEstadoPersonaje(const MensajeEstadoPersonaje &mensaje);
     void enviarPosicionEntidad(const MensajePosicionEntidad& mensaje);
@@ -92,7 +81,6 @@ class ProtocoloServidor : public Protocolo {
     void enviarActualizarInventario(const MensajeActualizarInventario& mensaje);
     void enviarActualizarEquipamiento(const MensajeActualizarEquipamiento& mensaje);
     void enviarMensajeChat(const MensajeChat& mensaje);
-    void enviarMensajeClan(const MensajeClan& mensaje);
     void enviarResucitado(const MensajeResucitado& mensaje);
     void enviarListaItems(const MensajeListaItems& mensaje);
     void enviarContenidoBanco(const MensajeContenidoBanco& mensaje);

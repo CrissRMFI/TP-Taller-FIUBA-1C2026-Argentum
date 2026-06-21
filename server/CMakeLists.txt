@@ -10,7 +10,6 @@ target_sources(taller_server
     # Modelo del juego
     game/jugador.cpp
     game/juego.cpp
-    game/clan.cpp
     game/registro_servidor.cpp
 
     # Objetos
@@ -53,7 +52,6 @@ target_sources(taller_server
     game/objeto/catalogo_items.h
 
     # Juego
-    game/clan.h
     game/jugador.h
     game/juego.h
 

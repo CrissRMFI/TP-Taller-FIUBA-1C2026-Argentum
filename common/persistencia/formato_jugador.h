@@ -12,11 +12,11 @@
 
 struct RegistroJugador {
     char     nombre[32];
-    uint16_t idClan;
+    uint16_t _reservado0; // libre (mantiene tamano/offsets del formato)
     uint8_t  clase;
     uint8_t  raza;
     uint8_t  nivel;
-    uint8_t  fundadoClan;
+    uint8_t  _reservado1; // libre (mantiene tamano/offsets del formato)
     uint8_t  estado;
     uint8_t  _pad1; // relleno con esto para no depender de padding automático del compilador
 

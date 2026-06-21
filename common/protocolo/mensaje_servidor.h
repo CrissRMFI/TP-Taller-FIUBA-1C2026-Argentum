@@ -116,25 +116,6 @@ struct MensajeChat {
   std::string mensaje;
 };
 
-enum class TipoMensajeClan : uint8_t {
-    MiembroActivo    = 0,
-    MiembroPendiente = 1,
-    Fundado          = 2,
-    Aceptado         = 3,
-    Rechazado        = 4,
-    Baneado          = 5,
-    Kickeado         = 6,
-    Conectado        = 7,
-    Desconectado     = 8,
-    BajoAtaque       = 9,
-    Abandono         = 10,
-};
-
-struct MensajeClan {
-    TipoMensajeClan tipo;
-    std::string texto;
-};
-
 struct MensajeResucitado {
   uint16_t x;
   uint16_t y;
@@ -187,7 +168,6 @@ using PayloadMensajeServidor = std::variant<
         MensajeActualizarInventario,
         MensajeActualizarEquipamiento,
         MensajeChat,
-        MensajeClan,
         MensajeResucitado,
         MensajeErrorAccion,
         MensajeListaItems,

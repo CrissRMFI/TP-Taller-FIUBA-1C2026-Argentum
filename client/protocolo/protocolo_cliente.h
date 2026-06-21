@@ -26,14 +26,12 @@ public:
 private:
     static constexpr uint16_t MAX_NICK = 32;
     static constexpr uint16_t MAX_CHAT = 256;
-    static constexpr uint16_t MAX_CLAN = 32;
     static const std::unordered_set<uint8_t> DIRECCIONES_VALIDAS;
 
     static constexpr uint8_t MAX_TIPO_ENTIDAD = 2;
     static constexpr uint8_t MAX_ESTADO_ENTIDAD =
             static_cast<uint8_t>(EstadoEntidadProtocolo::Resucitando);
     static constexpr uint8_t MAX_ESQUIVADOR = 1;
-    static constexpr uint8_t MAX_TIPO_CLAN = static_cast<uint8_t>(TipoMensajeClan::Abandono);
     static constexpr uint16_t MAX_CANTIDAD_UINT8 = 255;
 
     void validarDireccion(uint8_t direccion) const;
@@ -42,7 +40,6 @@ private:
     void validarTipoEntidad(uint8_t tipo) const;
     void validarEstadoEntidad(uint8_t estado) const;
     void validarEsquivador(uint8_t esquivador) const;
-    void validarTipoClan(uint8_t tipo) const;
 
     void enviarComandoEmpezarMover(const ComandoEmpezarMover& comando);
     void enviarComandoDetenerMover(const ComandoDetenerMover& comando);
@@ -66,14 +63,6 @@ private:
     void enviarComandoListar(const ComandoListar& comando);
     void enviarComandoChatGlobal(const ComandoChatGlobal& comando);
     void enviarComandoChatPrivado(const ComandoChatPrivado& comando);
-    void enviarComandoFundarClan(const ComandoFundarClan& comando);
-    void enviarComandoUnirseClan(const ComandoUnirseClan& comando);
-    void enviarComandoRevisarClan(const ComandoRevisarClan& comando);
-    void enviarComandoClanAceptar(const ComandoGestionMiembreClan& comando);
-    void enviarComandoClanRechazar(const ComandoGestionMiembreClan& comando);
-    void enviarComandoClanBan(const ComandoGestionMiembreClan& comando);
-    void enviarComandoClanKick(const ComandoGestionMiembreClan& comando);
-    void enviarComandoDejarClan(const ComandoDejarClan& comando);
     void enviarComandoCheat(const ComandoCheat& comando);
 
 
@@ -92,7 +81,6 @@ private:
     MensajeServidor recibirActualizarInventario();
     MensajeServidor recibirActualizarEquipamiento();
     MensajeServidor recibirMensajeChat();
-    MensajeServidor recibirMensajeClan();
     MensajeServidor recibirResucitado();
     MensajeServidor recibirListaItems();
     MensajeServidor recibirContenidoBanco();

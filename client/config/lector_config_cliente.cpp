@@ -85,7 +85,6 @@ ConfigCliente LectorConfigCliente::cargar(const std::string& path) {
     leerColor("chat", "color_sistema", cfg.chatColorSistema);
     leerColor("chat", "color_experiencia", cfg.chatColorExperiencia);
     leerColor("chat", "color_recuperacion", cfg.chatColorRecuperacion);
-    leerColor("chat", "color_clan", cfg.chatColorClan);
     leerColor("chat", "color_critico_hecho", cfg.chatColorCriticoHecho);
     leerColor("chat", "color_critico_recibido", cfg.chatColorCriticoRecibido);
 

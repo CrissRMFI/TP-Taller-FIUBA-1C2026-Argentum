@@ -263,13 +263,6 @@ TEST_F(ProtocoloFixture, MensajeChatMensajeVacio) {
     EXPECT_EQ(std::get<MensajeChat>(cliente->recibirMensaje().payload).mensaje, "");
 }
 
-TEST_F(ProtocoloFixture, MensajeClan) {
-    servidor->enviarMensaje({Opcode::MENSAJE_CLAN, MensajeClan{TipoMensajeClan::Fundado, "LosCapos"}});
-    auto p = std::get<MensajeClan>(cliente->recibirMensaje().payload);
-    EXPECT_EQ(p.tipo, TipoMensajeClan::Fundado);
-    EXPECT_EQ(p.texto, "LosCapos");
-}
-
 // Listas
 
 TEST_F(ProtocoloFixture, ListaItemsVacia) {

@@ -351,10 +351,6 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
         } else if (auto* equip = std::get_if<MensajeActualizarEquipamiento>(&mensaje.payload)) {
             equipamiento_ = EquipamientoJugador{equip->arma, equip->baculo, equip->defensa,
                                                 equip->casco, equip->escudo};
-        } else if (auto* mensaje_clan = std::get_if<MensajeClan>(&mensaje.payload)) {
-            if (mensaje_clan->tipo == TipoMensajeClan::Conectado) {
-                gestorAudio.reproducirEfecto("clanMiembroEntra");
-            }
         } else if (auto* item_desaparecio = std::get_if<MensajeItemDesaparecioSuelo>(&mensaje.payload)) {
             itemEnSuelo_.erase({item_desaparecio->x, item_desaparecio->y});
         } else if (auto* oro_desaparecio = std::get_if<MensajeOroDesaparecioSuelo>(&mensaje.payload)) {
@@ -460,10 +456,6 @@ double ObjectGameWorld::entity_visual_y(const uint16_t entity_id) const {
 }
 
 void ObjectGameWorld::agregarLineaChat(const std::string& linea, TipoMensajeChat tipo) {
-    // Regla centralizada: cualquier mensaje con '@' va en color de clan (marron).
-    if (tipo == TipoMensajeChat::Normal && linea.find('@') != std::string::npos) {
-        tipo = TipoMensajeChat::Clan;
-    }
     historialChatReciente.emplace_back(linea, tipo);
     while (historialChatReciente.size() > maxLineasChat) {
         historialChatReciente.pop_front();

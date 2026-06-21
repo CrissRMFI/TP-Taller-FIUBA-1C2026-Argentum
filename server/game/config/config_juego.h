@@ -83,12 +83,6 @@ struct ConfigJuego {
     uint8_t inventarioMaxItems;
     uint16_t tiempoItemSueloSeg;
 
-    // ---- Clanes ----
-    int clanMaxMiembros;
-    int clanNivelMinimo;
-    uint16_t clanRadioBonus;
-    float bonusClanPorAliado;
-
     // ---- Criaturas ----
     uint16_t movimientoCriaturasTicks;
     uint16_t spawnCriaturasTicks;

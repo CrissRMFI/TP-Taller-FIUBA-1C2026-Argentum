@@ -28,7 +28,6 @@ Juego::Juego(const ConfigJuego& cfg, CatalogoItems&& cat, CatalogoHechizos&& hec
         catalogo(std::move(cat)),
         catalogoHechizos(std::move(hechizos)),
         catalogoCriaturas(std::move(criaturas)),
-        proximoIdClan(1),
         proximoIdCriatura(std::numeric_limits<uint16_t>::max()),
         mundo(std::move(mundo)),
         ticksTranscurridos(0),
@@ -75,17 +74,13 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     }
 
     // Si no es una reconexion de esta misma corrida (no esta en RAM), intentamos
-    // cargar su progreso del disco. Los clanes no se persisten, asi que si el
-    // registro traia un clan lo limpiamos para no dejar una referencia colgada.
+    // cargar su progreso del disco.
     std::optional<Jugador> jugadorDisco;
     if (itDesconectado == jugadoresDesconectados.end()) {
         try {
             std::optional<RegistroJugador> registro = lectorJugadores.cargar(nombre);
             if (registro.has_value()) {
                 jugadorDisco.emplace(SerializadorJugador::aJugador(id, *registro, cfg, catalogo));
-                if (jugadorDisco->tieneClan()) {
-                    jugadorDisco->salirClan();
-                }
             }
         } catch (const std::exception& e) {
             RegistroServidor::errorCargandoJugador(nombre, e.what());
@@ -130,10 +125,6 @@ std::list<EventoSalida> Juego::conectarJugador(uint16_t id, const std::string& n
     // criaturas, NPCs y drops). Mismo snapshot que se reenvia al cruzar un portal.
     mensajes.splice(mensajes.end(), armarSnapshotMapaPara(id, jugador));
 
-    if (jugador.tieneClan()) {
-        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(jugador.getClan(), TipoEventoClan::Conectado, jugador.getNombre(), id));
-    }
-
     return mensajes;
 }
 
@@ -145,17 +136,11 @@ std::list<EventoSalida> Juego::desconectarJugador(uint16_t id) {
 
     std::list<EventoSalida> mensajes = armarDesaparicionParaMapa(it->second);
 
-    if (it->second.tieneClan()) {
-        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
-                                                it->second.getClan(), TipoEventoClan::Desconectado,
-                                                it->second.getNombre(), id));
-    }
-
     const std::string nombre = it->second.getNombre();
     indiceNicksConectados.erase(nombre);
 
     // Persistimos el progreso a disco (cross-restart) y ademas lo mantenemos en
-    // RAM para reconexion rapida y operaciones de clan sobre miembros offline.
+    // RAM para reconexion rapida.
     guardarJugador(it->second);
 
     jugadoresDesconectados.emplace(id, std::move(it->second));
@@ -254,34 +239,6 @@ std::optional<Posicion> Juego::buscarPosicionLibreCercaDe(
     });
 }
 
-size_t Juego::contarAliadosClanCercanos(const Jugador& jugador) const {
-    if (!jugador.tieneClan()) {
-        return 0;
-    }
-
-    size_t aliados = 0;
-    const Posicion posicionJugador = jugador.getPosicion();
-
-    for (const auto& [idCliente, otro] : jugadoresConectados) {
-        if (otro.getId() == jugador.getId() || !otro.estaVivo() || !otro.tieneClan() ||
-            otro.getClan() != jugador.getClan()) {
-            continue;
-        }
-
-        const Posicion posicionOtro = otro.getPosicion();
-        if (posicionJugador.mismaMapa(posicionOtro) &&
-            posicionJugador.distanciaManhattan(posicionOtro) <= cfg.clanRadioBonus) {
-            aliados++;
-        }
-    }
-
-    return aliados;
-}
-
-float Juego::multiplicadorClan(const Jugador& jugador) const {
-    return ReglasJuego::calcularMultiplicadorClan(cfg, contarAliadosClanCercanos(jugador));
-}
-
 Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
     auto itIndice = indiceNicksConectados.find(nick);
     if (itIndice == indiceNicksConectados.end()) {
@@ -294,13 +251,6 @@ Jugador* Juego::buscarJugadorPorNick(const std::string& nick) {
     }
 
     return &itJugador->second;
-}
-
-Clan* Juego::buscarClanPorNombre(const std::string& nombre) {
-    for (auto& [id, c] : clanes)
-        if (c.getNombre() == nombre)
-            return &c;
-    return nullptr;
 }
 
 EventoSalida Juego::armarError(uint16_t idCliente, CodigoErrorAccion cod) {
@@ -520,22 +470,6 @@ std::list<EventoSalida> Juego::armarItemDesaparecioSueloParaMapa(const Posicion&
     return mensajes;
 }
 
-std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline( uint16_t idClan, TipoEventoClan tipo, const std::string& texto, std::optional<uint16_t> idExcluido) const {
-    std::list<EventoSalida> mensajes;
-
-    for (const auto& [idCliente, jugador] : jugadoresConectados) {
-        if (idExcluido.has_value() && idCliente == *idExcluido) {
-            continue;
-        }
-
-        if (jugador.tieneClan() && jugador.getClan() == idClan) {
-            mensajes.push_back({TipoDestino::UNO, idCliente, EventoClan{tipo, texto}});
-        }
-    }
-
-    return mensajes;
-}
-
 bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
                                       Posicion& posicionFinal) {
     // Cada celda admite un solo item. Buscamos la celda libre mas cercana con el BFS
@@ -603,12 +537,6 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
         case Opcode::TOMAR:
             return ejecutarSinPayload(std::holds_alternative<ComandoTomar>(comando.payload),
                                       [&]() { return ejecutarTomar(idCliente); });
-        case Opcode::REVISAR_CLAN:
-            return ejecutarSinPayload(std::holds_alternative<ComandoRevisarClan>(comando.payload),
-                                      [&]() { return ejecutarRevisarClan(idCliente); });
-        case Opcode::DEJAR_CLAN:
-            return ejecutarSinPayload(std::holds_alternative<ComandoDejarClan>(comando.payload),
-                                      [&]() { return ejecutarDejarClan(idCliente); });
         case Opcode::EMPEZAR_MOVER:
             if (const auto* payload = std::get_if<ComandoEmpezarMover>(&comando.payload)) {
                 return finalizar(ejecutarEmpezarMover(idCliente, *payload), false);
@@ -695,25 +623,6 @@ std::list<EventoSalida> Juego::ejecutarComando(const uint16_t idCliente, const C
             return ejecutarConPayload(std::get_if<ComandoChatPrivado>(&comando.payload),
                                       [&](const ComandoChatPrivado& payload) {
                                           return ejecutarChatPrivado(idCliente, payload);
-                                      });
-        case Opcode::FUNDAR_CLAN:
-            return ejecutarConPayload(std::get_if<ComandoFundarClan>(&comando.payload),
-                                      [&](const ComandoFundarClan& payload) {
-                                          return ejecutarFundarClan(idCliente, payload);
-                                      });
-        case Opcode::UNIRSE_CLAN:
-            return ejecutarConPayload(std::get_if<ComandoUnirseClan>(&comando.payload),
-                                      [&](const ComandoUnirseClan& payload) {
-                                          return ejecutarUnirseClan(idCliente, payload);
-                                      });
-        case Opcode::CLAN_ACEPTAR:
-        case Opcode::CLAN_RECHAZAR:
-        case Opcode::CLAN_BAN:
-        case Opcode::CLAN_KICK:
-            return ejecutarConPayload(std::get_if<ComandoGestionMiembreClan>(&comando.payload),
-                                      [&](const ComandoGestionMiembreClan& payload) {
-                                          return ejecutarGestionMiembroClan(
-                                                  idCliente, payload, comando.opcode);
                                       });
         case Opcode::CHEAT:
             return ejecutarConPayload(std::get_if<ComandoCheat>(&comando.payload),
@@ -911,229 +820,6 @@ std::list<EventoSalida> Juego::ejecutarChatPrivado(uint16_t idCliente,
 
     return {{TipoDestino::UNO, itDestino->second,
              EventoChat{emisor->getNombre(), comando.mensaje}}};
-}
-
-// ─── Clan 
-
-std::list<EventoSalida> Juego::ejecutarFundarClan(uint16_t idCliente,
-                                                  const ComandoFundarClan& comando) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador)
-        return {};
-
-    if (!jugador->estaVivo() || jugador->tieneClan()) {
-        return {armarError(idCliente, CodigoErrorAccion::YA_TENES_CLAN)};
-    }
-
-    if (jugador->getNivel() < cfg.clanNivelMinimo) {
-        return {armarError(idCliente, CodigoErrorAccion::NIVEL_INSUFICIENTE)};
-    }
-
-    if (buscarClanPorNombre(comando.nombreClan)) {
-        return {armarError(idCliente, CodigoErrorAccion::CLAN_NOMBRE_EN_USO)};
-    }
-
-
-    uint16_t idClan = proximoIdClan++;
-    clanes.emplace(idClan, Clan(idClan, comando.nombreClan, jugador->getNombre()));
-    jugador->asignarClan(idClan);
-    jugador->marcarFundadorClan();
-
-    return {{TipoDestino::UNO, idCliente, EventoClan{TipoEventoClan::Fundado, comando.nombreClan}}};
-}
-
-std::list<EventoSalida> Juego::ejecutarUnirseClan(uint16_t idCliente,
-                                                  const ComandoUnirseClan& comando) {
-    Jugador* jugador = buscarJugador(idCliente);
-    if (!jugador)
-        return {};
-
-    if (!jugador->estaVivo() || jugador->tieneClan()) {
-        return {armarError(idCliente, CodigoErrorAccion::YA_TENES_CLAN)};
-    }
-
-    Clan* clan = buscarClanPorNombre(comando.nombreClan);
-    if (!clan) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
-
-    const std::string nickSolicitante = jugador->getNombre();
-
-    if (clan->estaBaneado(nickSolicitante))
-        return {armarError(idCliente, CodigoErrorAccion::BANEADO_DEL_CLAN)};
-
-
-    if ((int)(clan->cantidadMiembros()) >= cfg.clanMaxMiembros) {
-        return {armarError(idCliente, CodigoErrorAccion::CLAN_LLENO)};
-    }
-
-
-    clan->pedirUnirse(nickSolicitante);
-
-    // Notificar al fundador si está conectado
-    std::list<EventoSalida> mensajes;
-    uint16_t idClan = clan->getId();
-    for (auto& [id, jugador_] : jugadoresConectados) {
-        if (jugador_.fundo_clan() && jugador_.getClan() == idClan) {
-            mensajes.push_back({TipoDestino::UNO, id,
-                                EventoClan{TipoEventoClan::MiembroPendiente, nickSolicitante}});
-        }
-    }
-    return mensajes;
-}
-
-std::list<EventoSalida> Juego::ejecutarDejarClan(uint16_t idCliente) {
-    Jugador* jugador = buscarJugador(idCliente);
-
-    if (!jugador || !jugador->estaVivo() || !jugador->tieneClan())
-        return {armarError(idCliente, CodigoErrorAccion::NO_TENES_CLAN)};
-    if (jugador->fundo_clan())
-        return {armarError(idCliente, CodigoErrorAccion::ACCION_NO_PERMITIDA)};
-
-    const uint16_t idClan = jugador->getClan();
-    const std::string nombreJugador = jugador->getNombre();
-
-    clanes.at(idClan).eliminarMiembro(nombreJugador);
-    jugador->salirClan();
-
-    return armarEventoClanParaMiembrosOnline(
-            idClan, TipoEventoClan::Abandono, nombreJugador, idCliente);
-}
-
-std::list<EventoSalida> Juego::ejecutarRevisarClan(uint16_t idCliente) {
-    Jugador* jugador = buscarJugador(idCliente);
-
-    if (!jugador || !jugador->estaVivo() || !jugador->tieneClan() || !jugador->fundo_clan())
-        return {armarError(idCliente, CodigoErrorAccion::NO_SOS_LIDER_CLAN)};
-
-    Clan& clan = clanes.at(jugador->getClan());
-    std::list<EventoSalida> mensajes;
-
-    for (const std::string& nickPendiente : clan.obtenerPendientes()) {
-        mensajes.push_back({TipoDestino::UNO, idCliente,
-                            EventoClan{TipoEventoClan::MiembroPendiente, nickPendiente}});
-    }
-
-    for (const std::string& nickMiembro : clan.obtenerMiembros()) {
-        mensajes.push_back({TipoDestino::UNO, idCliente,
-                            EventoClan{TipoEventoClan::MiembroActivo, nickMiembro}});
-    }
-
-    return mensajes;
-}
-
-std::list<EventoSalida> Juego::ejecutarGestionMiembroClan(uint16_t idCliente,
-                                                          const ComandoGestionMiembreClan& comando,
-                                                          Opcode accion) {
-
-    Jugador* lider = buscarJugador(idCliente);
-    if (!lider || !lider->estaVivo() || !lider->fundo_clan())
-        return {armarError(idCliente, CodigoErrorAccion::NO_SOS_LIDER_CLAN)};
-
-    Clan& clan = clanes.at(lider->getClan());
-    Jugador* objetivo = buscarJugadorPorNick(comando.nick);
-
-    // Para operaciones sobre miembros activos/pendientes el objetivo puede estar desconectado.
-    // Buscamos su id iterando ambos mapas.
-    uint16_t idObjetivo = 0;
-
-    auto itNickConectado = indiceNicksConectados.find(comando.nick);
-
-    if (itNickConectado != indiceNicksConectados.end()) {
-        idObjetivo = itNickConectado->second;
-    }
-
-    if (!idObjetivo) {
-        for (auto& [id, j] : jugadoresDesconectados) {
-            if (j.getNombre() == comando.nick) {
-                idObjetivo = id;
-                break;
-            }
-        }
-    }
-
-    if (!idObjetivo)
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-
-    if (idObjetivo == idCliente)
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-
-    if ((accion == Opcode::CLAN_KICK || accion == Opcode::CLAN_BAN) &&
-        clan.esFundador(comando.nick)) {
-        return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-    }
-
-    std::list<EventoSalida> msgs;
-
-    switch (accion) {
-        case Opcode::CLAN_ACEPTAR: {
-            if (!clan.estaPendiente(comando.nick)) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-
-            clan.agregarMiembro(comando.nick);
-            // Actualizar el jugador conectado o desconectado
-            if (objetivo) {
-                objetivo->asignarClan(lider->getClan());
-                msgs.push_back({TipoDestino::UNO, idObjetivo,
-                                EventoClan{TipoEventoClan::Aceptado, clan.getNombre()}});
-            } else {
-                auto itDesc = jugadoresDesconectados.find(idObjetivo);
-                if (itDesc != jugadoresDesconectados.end())
-                    itDesc->second.asignarClan(lider->getClan());
-            }
-            break;
-        }
-
-        case Opcode::CLAN_RECHAZAR:
-            if (!clan.estaPendiente(comando.nick)) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-
-            clan.eliminarMiembro(comando.nick);
-            if (objetivo)
-                msgs.push_back({TipoDestino::UNO, idObjetivo,
-                                EventoClan{TipoEventoClan::Rechazado, clan.getNombre()}});
-            break;
-
-        case Opcode::CLAN_BAN:
-            if (!clan.esMiembro(comando.nick) && !clan.estaPendiente(comando.nick)) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-
-            clan.banearMiembro(comando.nick);
-            if (objetivo) {
-                objetivo->salirClan();
-                msgs.push_back({TipoDestino::UNO, idObjetivo,
-                                EventoClan{TipoEventoClan::Baneado, clan.getNombre()}});
-            } else {
-                auto itDesc = jugadoresDesconectados.find(idObjetivo);
-                if (itDesc != jugadoresDesconectados.end())
-                    itDesc->second.salirClan();
-            }
-            break;
-
-        case Opcode::CLAN_KICK:
-            if (!clan.esMiembro(comando.nick)) {
-                return {armarError(idCliente, CodigoErrorAccion::OBJETIVO_INVALIDO)};
-            }
-
-            clan.eliminarMiembro(comando.nick);
-            if (objetivo) {
-                objetivo->salirClan();
-                msgs.push_back({TipoDestino::UNO, idObjetivo,
-                                EventoClan{TipoEventoClan::Kickeado, clan.getNombre()}});
-            } else {
-                auto itDesc = jugadoresDesconectados.find(idObjetivo);
-                if (itDesc != jugadoresDesconectados.end())
-                    itDesc->second.salirClan();
-            }
-            break;
-
-        default:
-            break;
-    }
-    return msgs;
 }
 
 // ─── Mapa/Mundo 
@@ -1418,12 +1104,6 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
         return {armarError(idCliente, CodigoErrorAccion::DIFERENCIA_NIVEL_EXCESIVA)};
     }
 
-    if (atacante->tieneClan() && objetivo->tieneClan() &&
-        atacante->getClan() == objetivo->getClan()) {
-        RegistroServidor::ataqueMismoClan();
-        return {armarError(idCliente, CodigoErrorAccion::ATAQUE_ALIADO)};
-    }
-
     // El alcance depende del equipamiento del atacante.
     // Si es hechizo, el atacante debe tener maná suficiente.
     const DescriptorAtaque descriptorAtaque = atacante->describir_ataque(catalogo);
@@ -1455,10 +1135,9 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
 
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
     const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
-            resultadoDanio.valor, multiplicadorClan(*atacante));
+            resultadoDanio.valor, 1.0f);
     const ResultadoDefensa resultadoDefensa = objetivo->recibir_ataque_fisico(
-            danioBruto, resultadoDanio.esCritico, catalogo, aleatorio,
-            multiplicadorClan(*objetivo));
+            danioBruto, resultadoDanio.esCritico, catalogo, aleatorio, 1.0f);
 
     std::list<EventoSalida> mensajes;
     bool atacanteGanoXp = false;
@@ -1490,12 +1169,6 @@ std::list<EventoSalida> Juego::ejecutarAtaqueAJugador(uint16_t idCliente, Jugado
             mensajes.splice(mensajes.end(), armarFxHechizoParaMapa(
                     900 + static_cast<uint16_t>(atacante->getClase()), atacante->getId(),
                     atacante->getPosicion().mapaId));
-        }
-
-        if (danioAplicado > 0 && objetivo->tieneClan()) {
-            mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
-                                                    objetivo->getClan(), TipoEventoClan::BajoAtaque,
-                                                    objetivo->getNombre(), *idClienteObjetivo));
         }
 
         // XP por impacto. Sólo si el golpe entró con daño efectivo.
@@ -2260,8 +1933,7 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
     // Pasamos esCritico=false explícito para que el defensor pueda evaluar evasión normalmente.
     const uint16_t danioBrutoCriatura = criatura.calcularDanio(aleatorio);
     const ResultadoDefensa resultadoDefensa = jugador->recibir_ataque_fisico(
-            danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio,
-            multiplicadorClan(*jugador));
+            danioBrutoCriatura, /*esCritico=*/false, catalogo, aleatorio, 1.0f);
 
     // Jugador sale de estado de meditando al ser atacado, si estaba meditanto.
     jugador->cancelarMeditacion();
@@ -2279,12 +1951,6 @@ std::list<EventoSalida> Juego::atacarJugadorConCriatura(const Criatura& criatura
                                     EventoDanioRecibido{danio, criatura.getId()}});
 
     mensajes.push_back(armarEstado(idJugador, *jugador));
-
-    if (danio > 0 && jugador->tieneClan()) {
-        mensajes.splice(mensajes.end(), armarEventoClanParaMiembrosOnline(
-                                                jugador->getClan(), TipoEventoClan::BajoAtaque,
-                                                jugador->getNombre(), idJugador));
-    }
 
     if (!jugador->estaVivo()) {
         mensajes.splice(mensajes.end(), emitirMuerteJugador(*jugador, jugador->getPosicion()));
@@ -2640,7 +2306,7 @@ std::list<EventoSalida> Juego::ejecutarAtaqueACriatura(uint16_t idCliente, Jugad
     // conocer el flag de crítico antes de decidir si la criatura puede esquivar.
     const ResultadoDanio resultadoDanio = atacante->calcular_danio(catalogo, aleatorio);
     const uint16_t danioBruto = ReglasJuego::aplicarMultiplicadorCombate(
-            resultadoDanio.valor, multiplicadorClan(*atacante));
+            resultadoDanio.valor, 1.0f);
 
     std::list<EventoSalida> mensajes;
 

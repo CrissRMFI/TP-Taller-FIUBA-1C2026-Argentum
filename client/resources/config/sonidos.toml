@@ -249,11 +249,6 @@ volumen = 55
 path = "sound/entrarCaverna.ogg"
 volumen = 15
 
-# --- Clan ---
-[efectos.clanMiembroEntra]
-path = "sound/clanMiembroEntra.ogg"
-volumen = 85
-
 # --- UI / menu ---
 [efectos.menuBoton]
 path = "sound/menuBoton.ogg"

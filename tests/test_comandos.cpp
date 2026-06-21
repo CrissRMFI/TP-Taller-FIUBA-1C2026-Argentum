@@ -87,16 +87,6 @@ TEST_F(ProtocoloFixture, Tomar) {
     EXPECT_EQ(servidor->recibirComando().opcode, Opcode::TOMAR);
 }
 
-TEST_F(ProtocoloFixture, RevisarClan) {
-    cliente->enviarComando({Opcode::REVISAR_CLAN, ComandoRevisarClan{}});
-    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::REVISAR_CLAN);
-}
-
-TEST_F(ProtocoloFixture, DejarClan) {
-    cliente->enviarComando({Opcode::DEJAR_CLAN, ComandoDejarClan{}});
-    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::DEJAR_CLAN);
-}
-
 // Inventario
 
 TEST_F(ProtocoloFixture, Tirar) {
@@ -259,42 +249,6 @@ TEST_F(ProtocoloFixture, ChatPrivadoRoundTrip) {
     auto p = std::get<ComandoChatPrivado>(cmd.payload);
     EXPECT_EQ(p.nickDestino, "juan");
     EXPECT_EQ(p.mensaje, "hola juan");
-}
-
-// Clanes
-
-TEST_F(ProtocoloFixture, FundarClan) {
-    cliente->enviarComando({Opcode::FUNDAR_CLAN, ComandoFundarClan{"LosCapos"}});
-    EXPECT_EQ(std::get<ComandoFundarClan>(servidor->recibirComando().payload).nombreClan, "LosCapos");
-}
-
-TEST_F(ProtocoloFixture, UnirseClan) {
-    cliente->enviarComando({Opcode::UNIRSE_CLAN, ComandoUnirseClan{"LosCapos"}});
-    EXPECT_EQ(std::get<ComandoUnirseClan>(servidor->recibirComando().payload).nombreClan, "LosCapos");
-}
-
-TEST_F(ProtocoloFixture, ClanAceptar) {
-    cliente->enviarComando({Opcode::CLAN_ACEPTAR, ComandoGestionMiembreClan{"pepe"}});
-    auto cmd = servidor->recibirComando();
-    EXPECT_EQ(cmd.opcode, Opcode::CLAN_ACEPTAR);
-    EXPECT_EQ(std::get<ComandoGestionMiembreClan>(cmd.payload).nick, "pepe");
-}
-
-TEST_F(ProtocoloFixture, ClanRechazar) {
-    cliente->enviarComando({Opcode::CLAN_RECHAZAR, ComandoGestionMiembreClan{"pepe"}});
-    auto cmd = servidor->recibirComando();
-    EXPECT_EQ(cmd.opcode, Opcode::CLAN_RECHAZAR);
-    EXPECT_EQ(std::get<ComandoGestionMiembreClan>(cmd.payload).nick, "pepe");
-}
-
-TEST_F(ProtocoloFixture, ClanBan) {
-    cliente->enviarComando({Opcode::CLAN_BAN, ComandoGestionMiembreClan{"malo"}});
-    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::CLAN_BAN);
-}
-
-TEST_F(ProtocoloFixture, ClanKick) {
-    cliente->enviarComando({Opcode::CLAN_KICK, ComandoGestionMiembreClan{"malo"}});
-    EXPECT_EQ(servidor->recibirComando().opcode, Opcode::CLAN_KICK);
 }
 
 // Cheats

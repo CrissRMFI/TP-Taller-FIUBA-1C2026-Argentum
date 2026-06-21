@@ -12,7 +12,6 @@
 #include "../../common/protocolo/comando_jugador.h"
 #include "../../common/mensajes/codigo_error_accion.h"
 #include "../../common/game/aleatorio.h"
-#include "clan.h"
 #include "config/config_juego.h"
 #include "evento/evento_salida.h"
 #include "jugador.h"
@@ -48,9 +47,7 @@ class Juego {
     CatalogoItems     catalogo;
     CatalogoHechizos  catalogoHechizos;
     CatalogoCriaturas catalogoCriaturas;
-    uint16_t         proximoIdClan;
     uint16_t      proximoIdCriatura;
-    std::map<uint16_t, Clan>     clanes;
     std::unordered_map<uint16_t, Jugador> jugadoresConectados;
     std::unordered_map<uint16_t, Jugador> jugadoresDesconectados;
     std::unordered_map<std::string, uint16_t> indiceNicksConectados;
@@ -83,7 +80,6 @@ class Juego {
     std::optional<uint16_t> buscarIdClienteDeJugador(uint16_t idPersonaje) const;
     bool        existeIdPersonaje(uint16_t idPersonaje) const;
     Jugador*    buscarJugadorPorNick(const std::string& nick);
-    Clan*       buscarClanPorNombre(const std::string& nombre);
 
     // Construcción de eventos comunes
     EventoSalida armarError(uint16_t idCliente, CodigoErrorAccion cod);
@@ -109,11 +105,6 @@ class Juego {
     std::list<EventoSalida> armarPosicionCriaturaParaMapa(const Criatura& criatura);
     std::list<EventoSalida> armarItemEnSueloParaMapa(const Posicion& posicion, uint16_t idItem);
     std::list<EventoSalida> armarItemDesaparecioSueloParaMapa(const Posicion& posicion);
-    std::list<EventoSalida> armarEventoClanParaMiembrosOnline(
-            uint16_t idClan,
-            TipoEventoClan tipo,
-            const std::string& texto,
-            std::optional<uint16_t> idExcluido = std::nullopt) const;
     bool agregarCriatura(const Criatura& criatura);
     std::list<EventoSalida> intentarSpawnCriatura();
     std::optional<uint16_t> reservarIdCriatura();
@@ -134,8 +125,6 @@ class Juego {
     // Levanta el oro y/o item de la celda del jugador (silencioso, sin errores).
     // Devuelve los eventos a difundir; vacio si no habia nada.
     std::list<EventoSalida> recogerObjetosDelSuelo(uint16_t idCliente, Jugador& jugador);
-    std::list<EventoSalida> ejecutarRevisarClan(uint16_t idCliente);
-    std::list<EventoSalida> ejecutarDejarClan(uint16_t idCliente);
     std::list<EventoSalida> ejecutarEmpezarMover(uint16_t idCliente, const ComandoEmpezarMover& comando);
     std::list<EventoSalida> ejecutarDetenerMover(uint16_t idCliente);
     std::list<EventoSalida> ejecutarAtacar(uint16_t idCliente, const ComandoAtacar& comando);
@@ -156,9 +145,6 @@ class Juego {
     std::list<EventoSalida> ejecutarCurar(uint16_t idCliente, const ComandoCurar& comando);
     std::list<EventoSalida> ejecutarChatGlobal(uint16_t idCliente, const ComandoChatGlobal& comando);
     std::list<EventoSalida> ejecutarChatPrivado(uint16_t idCliente, const ComandoChatPrivado& comando);
-    std::list<EventoSalida> ejecutarFundarClan(uint16_t idCliente, const ComandoFundarClan& comando);
-    std::list<EventoSalida> ejecutarUnirseClan(uint16_t idCliente, const ComandoUnirseClan& comando);
-    std::list<EventoSalida> ejecutarGestionMiembroClan(uint16_t idCliente, const ComandoGestionMiembreClan& comando, Opcode accion);
     std::list<EventoSalida> ejecutarCheat(uint16_t idCliente, const ComandoCheat& comando);
 
     std::optional<uint16_t> buscarIdJugadorEn(
@@ -167,8 +153,6 @@ class Juego {
     std::optional<Posicion> buscarPosicionLibreCercaDe(
             const Posicion& origen,
             std::optional<uint16_t> idJugadorExcluido = std::nullopt) const;
-    size_t contarAliadosClanCercanos(const Jugador& jugador) const;
-    float multiplicadorClan(const Jugador& jugador) const;
     std::list<EventoSalida> actualizarCriaturas();
 
     std::optional<Jugador> buscarJugadorCercano(const Criatura& criatura) const;

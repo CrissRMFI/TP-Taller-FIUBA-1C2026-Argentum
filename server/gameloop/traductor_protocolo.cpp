@@ -73,10 +73,6 @@ static MensajeServidor aMensajeServidor(const EventoJuego& evento) {
         return { Opcode::MENSAJE_CHAT,
                  MensajeChat{ e->nickOrigen, e->mensaje } };
     }
-    if (auto* e = std::get_if<EventoClan>(&evento)) {
-        return { Opcode::MENSAJE_CLAN,
-                 MensajeClan{ static_cast<TipoMensajeClan>(e->tipo), e->texto } };
-    }
     if (auto* e = std::get_if<EventoResucitado>(&evento)) {
         return { Opcode::RESUCITADO,
                  MensajeResucitado{ e->x, e->y } };

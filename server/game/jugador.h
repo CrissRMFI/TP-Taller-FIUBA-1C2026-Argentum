@@ -52,10 +52,8 @@ struct DescriptorAtaque {
 };
 
 struct DatosRestauracion {
-    uint16_t idClan;
     uint16_t skinCabeza;
     uint16_t skinCuerpo;
-    bool     fundadoClan;
     Estado   estado;
     uint8_t  nivel;
     uint32_t experiencia;
@@ -166,18 +164,12 @@ public:
     void alternarManaInfinito();
     void matar();
 
-    // Clan
-    void asignarClan(uint16_t idClan);
-    void salirClan();
-    void marcarFundadorClan();
-
     // Queries de estado
     bool puedeMeditar() const;
     bool puedeUsarMagia() const;
     bool estaVivo() const;
     bool esFantasma() const;
     bool enMeditacion() const;
-    bool tieneClan() const;
 
     // Getters
     uint16_t getId() const;
@@ -192,7 +184,6 @@ public:
     uint32_t getOroExceso() const;
     uint32_t getOroBanco() const;
     uint32_t getOroPerdidoPendiente() const;
-    uint16_t getClan() const;
     uint16_t getCabeza() const;
     uint16_t getCuerpo() const;
     uint16_t getSpriteArma() const;
@@ -203,7 +194,6 @@ public:
     bool estaInmovilizado() const;
     // Segundos que aun le restan inmovil mientras resucita (0 si no esta resucitando).
     float getTiempoRestanteInmovilizado() const;
-    bool fundo_clan() const;
     bool es_newbie() const;
     std::string getNombre() const;
     Posicion getPosicion() const;
@@ -222,7 +212,6 @@ public:
 
 private:
     uint16_t idJugador;
-    uint16_t idClan;
     std::string nombre;
 
     uint8_t nivel;
@@ -263,7 +252,6 @@ private:
     uint16_t spriteArma = 0; // overlay del arma/baculo equipado (vestimenta)
     uint16_t spriteEscudo = 0; // overlay del escudo equipado
     uint16_t spriteCasco = 0; // overlay del casco equipado
-    bool fundadoClan;
     float tiempoRestanteInmovilizado;
     float tiempoDesdeUltimoAtaque;
 

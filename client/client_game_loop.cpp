@@ -64,7 +64,6 @@ void ClientGameLoop::init(const char* title,
     chatCfg.colorSistema = aColor(config.chatColorSistema, chatCfg.colorSistema);
     chatCfg.colorExperiencia = aColor(config.chatColorExperiencia, chatCfg.colorExperiencia);
     chatCfg.colorRecuperacion = aColor(config.chatColorRecuperacion, chatCfg.colorRecuperacion);
-    chatCfg.colorClan = aColor(config.chatColorClan, chatCfg.colorClan);
     chatCfg.colorCriticoHecho = aColor(config.chatColorCriticoHecho, chatCfg.colorCriticoHecho);
     chatCfg.colorCriticoRecibido =
             aColor(config.chatColorCriticoRecibido, chatCfg.colorCriticoRecibido);

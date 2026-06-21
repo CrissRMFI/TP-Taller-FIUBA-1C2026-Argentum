@@ -20,10 +20,8 @@ Jugador SerializadorJugador::aJugador(uint16_t sessionId,
     Jugador jugador(sessionId, nombre, clase, raza, reg.skinCabeza, reg.skinCuerpo, posicion, cfg);
 
     DatosRestauracion datos;
-    datos.idClan = reg.idClan;
     datos.skinCabeza = reg.skinCabeza;
     datos.skinCuerpo = reg.skinCuerpo;
-    datos.fundadoClan = (reg.fundadoClan != 0);
     datos.estado = static_cast<Estado>(reg.estado);
     datos.nivel = reg.nivel;
     datos.experiencia = reg.experiencia;
@@ -67,11 +65,9 @@ RegistroJugador SerializadorJugador::aRegistro(const Jugador& jugador) {
     const size_t lenCopiar = std::min(nombre.size(), maxNombre);
     std::memcpy(reg.nombre, nombre.data(), lenCopiar);
 
-    reg.idClan = jugador.getClan();
     reg.clase = static_cast<uint8_t>(jugador.getClase());
     reg.raza = static_cast<uint8_t>(jugador.getRaza());
     reg.nivel = jugador.getNivel();
-    reg.fundadoClan = jugador.fundo_clan() ? 1 : 0;
 
     Estado estado = jugador.getEstado();
     if (estado == Estado::Meditando) {

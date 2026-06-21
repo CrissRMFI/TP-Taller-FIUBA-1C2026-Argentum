@@ -15,7 +15,6 @@ enum class TipoMensajeChat {
     Sistema,       // "no hay nada aqui", etc. -> celeste oscuro
     Experiencia,   // gano XP -> azul
     Recuperacion,  // recupero vida/mana -> verde oscuro
-    Clan,          // mensajes con @ -> marron
     CriticoHecho,      // yo pego un critico -> dorado
     CriticoRecibido,   // me pegan un critico -> magenta
 };
@@ -40,7 +39,6 @@ struct ConfigChatRender {
     SDL_Color   colorSistema = {40, 120, 160, 255};
     SDL_Color   colorExperiencia = {80, 120, 255, 255};
     SDL_Color   colorRecuperacion = {40, 150, 60, 255};
-    SDL_Color   colorClan = {150, 100, 50, 255};
     SDL_Color   colorCriticoHecho = {255, 200, 60, 255};      // dorado
     SDL_Color   colorCriticoRecibido = {255, 40, 100, 255};   // magenta
 
@@ -51,7 +49,6 @@ struct ConfigChatRender {
             case TipoMensajeChat::Sistema:         return colorSistema;
             case TipoMensajeChat::Experiencia:     return colorExperiencia;
             case TipoMensajeChat::Recuperacion:    return colorRecuperacion;
-            case TipoMensajeChat::Clan:            return colorClan;
             case TipoMensajeChat::CriticoHecho:    return colorCriticoHecho;
             case TipoMensajeChat::CriticoRecibido: return colorCriticoRecibido;
             default:                               return colorTexto;

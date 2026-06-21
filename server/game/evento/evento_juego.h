@@ -103,25 +103,6 @@ struct EventoChat {
     std::string mensaje;
 };
 
-enum class TipoEventoClan : uint8_t {
-    MiembroActivo    = 0,
-    MiembroPendiente = 1,
-    Fundado          = 2,
-    Aceptado         = 3,
-    Rechazado        = 4,
-    Baneado          = 5,
-    Kickeado         = 6,
-    Conectado        = 7,
-    Desconectado     = 8,
-    BajoAtaque       = 9,
-    Abandono         = 10,
-};
-
-struct EventoClan {
-    TipoEventoClan tipo;
-    std::string    texto;
-};
-
 struct EventoResucitado {
     uint16_t x;
     uint16_t y;
@@ -173,7 +154,6 @@ using EventoJuego = std::variant<
         EventoActualizarInventario,
         EventoActualizarEquipamiento,
         EventoChat,
-        EventoClan,
         EventoResucitado,
         EventoListaItems,
         EventoContenidoBanco,

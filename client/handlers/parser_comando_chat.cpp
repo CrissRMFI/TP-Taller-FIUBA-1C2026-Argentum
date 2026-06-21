@@ -51,12 +51,6 @@ ResultadoParseo ParserComandoChat::parsearComando(const std::string& cuerpo,
     if (cmd == "resucitar") {
         return soloComando(Opcode::RESUCITAR, ComandoResucitar{});
     }
-    if (cmd == "revisar-clan") {
-        return soloComando(Opcode::REVISAR_CLAN, ComandoRevisarClan{});
-    }
-    if (cmd == "dejar-clan") {
-        return soloComando(Opcode::DEJAR_CLAN, ComandoDejarClan{});
-    }
 
     // --- Comandos que requieren un NPC/jugador seleccionado ---
     if (cmd == "curar") {
@@ -127,34 +121,6 @@ ResultadoParseo ParserComandoChat::parsearComando(const std::string& cuerpo,
         return soloComando(Opcode::EQUIPAR, ComandoEquipar{static_cast<uint8_t>(*slot)});
     }
 
-    // --- Clanes ---
-    if (cmd == "fundar-clan") {
-        const std::string nombre = restoCrudo(cuerpo);
-        if (nombre.empty()) {
-            return conError("Uso: /fundar-clan <nombre>");
-        }
-        return soloComando(Opcode::FUNDAR_CLAN, ComandoFundarClan{nombre});
-    }
-    if (cmd == "unirse") {
-        const std::string nombre = restoCrudo(cuerpo);
-        if (nombre.empty()) {
-            return conError("Uso: /unirse <nombre del clan>");
-        }
-        return soloComando(Opcode::UNIRSE_CLAN, ComandoUnirseClan{nombre});
-    }
-    if (cmd == "clan-aceptar") {
-        return parsearGestionClan(Opcode::CLAN_ACEPTAR, tokens);
-    }
-    if (cmd == "clan-rechazar") {
-        return parsearGestionClan(Opcode::CLAN_RECHAZAR, tokens);
-    }
-    if (cmd == "clan-ban") {
-        return parsearGestionClan(Opcode::CLAN_BAN, tokens);
-    }
-    if (cmd == "clan-kick") {
-        return parsearGestionClan(Opcode::CLAN_KICK, tokens);
-    }
-
     return conError("Comando desconocido: /" + cmd);
 }
 
@@ -209,14 +175,6 @@ ResultadoParseo ParserComandoChat::parsearRetirar(const std::vector<std::string>
         return soloComando(Opcode::RETIRAR_ITEM, ComandoRetirarItem{*idItem, *objetivo});
     }
     return conError("Uso: /retirar <objeto>  |  /retirar oro <cant>");
-}
-
-ResultadoParseo ParserComandoChat::parsearGestionClan(Opcode opcode,
-                                                      const std::vector<std::string>& tokens) const {
-    if (tokens.size() < 2) {
-        return conError("Uso: /" + aMinusculas(tokens[0]) + " <nick>");
-    }
-    return soloComando(opcode, ComandoGestionMiembreClan{tokens[1]});
 }
 
 std::optional<uint16_t> ParserComandoChat::idDeItem(const std::string& nombre) const {
@@ -282,15 +240,6 @@ std::string ParserComandoChat::restoDeLinea(const std::string& linea, size_t des
         resto += tokens[i];
     }
     return aMinusculas(resto);
-}
-
-std::string ParserComandoChat::restoCrudo(const std::string& cuerpo) const {
-    const std::string c = recortar(cuerpo);
-    const size_t espacio = c.find_first_of(" \t");
-    if (espacio == std::string::npos) {
-        return "";
-    }
-    return recortar(c.substr(espacio + 1));
 }
 
 ResultadoParseo ParserComandoChat::soloComando(Opcode opcode, PayloadComando payload) const {
