@@ -270,6 +270,12 @@ if(TALLER_EDITOR)
 
     target_include_directories(taller_editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/editor)
 
+    if(NOT DEFINED ARGENTUM_CONFIG_DIR)
+        set(ARGENTUM_CONFIG_DIR "config")
+    endif()
+    target_compile_definitions(taller_editor PRIVATE
+        EDITOR_CONFIG_DIR="${ARGENTUM_CONFIG_DIR}")
+
     target_link_libraries(taller_editor taller_common Qt6::Core Qt6::Gui Qt6::Widgets)
 endif()
 

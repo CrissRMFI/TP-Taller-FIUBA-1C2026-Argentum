@@ -99,14 +99,22 @@ install_files() {
 
     log "Instalando configuracion en ${CONFIG_DIR}"
     install -d "${CONFIG_DIR}"
-    install -m 644 "${PROJECT_ROOT}/config/client_config.toml" "${CONFIG_DIR}/"
-    install -m 644 "${PROJECT_ROOT}/config/game_config.toml"   "${CONFIG_DIR}/"
-    install -m 644 "${PROJECT_ROOT}/config/mapa.toml"          "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/client_config.toml"  "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/game_config.toml"    "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/criaturas.toml"      "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/elementos.toml"      "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/pisos.toml"          "${CONFIG_DIR}/"
+    install -m 644 "${PROJECT_ROOT}/config/mapa.toml"           "${CONFIG_DIR}/"
+    # La mazmorra se resuelve relativa a mapa.toml (mismo directorio), por eso va aca.
+    install -m 644 "${PROJECT_ROOT}/config/mapa.mazmorra.toml"  "${CONFIG_DIR}/"
 
 
     install -d "${DATA_DIR}"
     local gc="${CONFIG_DIR}/game_config.toml"
-    sed -i "s#^[[:space:]]*archivo[[:space:]]*=.*#archivo = \"${CONFIG_DIR}/mapa.toml\"#" "${gc}"
+    # Reescribimos cada 'archivo =' por su archivo concreto: el patron incluye el
+    # nombre del .toml para no pisar una linea con otra (mapa vs criaturas).
+    sed -i "s#^[[:space:]]*archivo[[:space:]]*=.*mapa\.toml.*#archivo = \"${CONFIG_DIR}/mapa.toml\"#" "${gc}"
+    sed -i "s#^[[:space:]]*archivo[[:space:]]*=.*criaturas\.toml.*#archivo = \"${CONFIG_DIR}/criaturas.toml\"#" "${gc}"
     sed -i "s#^[[:space:]]*archivo_jugadores[[:space:]]*=.*#archivo_jugadores = \"${DATA_DIR}/jugadores.bin\"#" "${gc}"
     sed -i "s#^[[:space:]]*archivo_indice[[:space:]]*=.*#archivo_indice = \"${DATA_DIR}/jugadores_indice.bin\"#" "${gc}"
 }

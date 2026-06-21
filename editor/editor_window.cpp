@@ -24,8 +24,11 @@
 #include "common/persistencia/escritor_mapa.h"
 #include "common/persistencia/lector_mapa.h"
 
-#define EDITOR_MAPA_DEFAULT "config/mapa.toml"
-#define EDITOR_MAPA_DIR "config"
+#ifndef EDITOR_CONFIG_DIR
+#define EDITOR_CONFIG_DIR "config"
+#endif
+#define EDITOR_MAPA_DEFAULT EDITOR_CONFIG_DIR "/mapa.toml"
+#define EDITOR_MAPA_DIR EDITOR_CONFIG_DIR
 #define EDITOR_ANCHO_DEFAULT 100
 #define EDITOR_ALTO_DEFAULT 100
 #define EDITOR_MAZMORRA_ANCHO 40

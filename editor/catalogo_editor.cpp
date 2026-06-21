@@ -7,6 +7,11 @@
 
 #include <toml++/toml.hpp>
 
+
+#ifndef EDITOR_CONFIG_DIR
+#define EDITOR_CONFIG_DIR "config"
+#endif
+
 CatalogoEditor::CatalogoEditor() {
     cargar();
 }
@@ -94,13 +99,14 @@ void CatalogoEditor::parsearLista(const std::string& archivoPath, const char* cl
 }
 
 void CatalogoEditor::cargar() {
+    const std::string dir = std::string(EDITOR_CONFIG_DIR) + "/";
     // Criaturas y NPCs: fuente unica compartida con el server
-    parsearLista("config/criaturas.toml", "criatura", SeccionCatalogo::Criaturas, criaturas);
-    parsearLista("config/criaturas.toml", "npc", SeccionCatalogo::Npc, npcs);
+    parsearLista(dir + "criaturas.toml", "criatura", SeccionCatalogo::Criaturas, criaturas);
+    parsearLista(dir + "criaturas.toml", "npc", SeccionCatalogo::Npc, npcs);
     // Pisos / terreno: catalogo del editor
-    parsearLista("config/pisos.toml", "piso", SeccionCatalogo::Pisos, pisos);
+    parsearLista(dir + "pisos.toml", "piso", SeccionCatalogo::Pisos, pisos);
     // Elementos (objetos sobre el piso): catalogo del editor
-    parsearLista("config/elementos.toml", "elemento", SeccionCatalogo::Elementos, elementos);
+    parsearLista(dir + "elementos.toml", "elemento", SeccionCatalogo::Elementos, elementos);
 }
 
 const std::vector<ElementoCatalogo>& CatalogoEditor::elementosDe(SeccionCatalogo seccion) const {
