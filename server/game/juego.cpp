@@ -538,16 +538,16 @@ std::list<EventoSalida> Juego::armarEventoClanParaMiembrosOnline( uint16_t idCla
 
 bool Juego::agregarItemEnSueloCercano(const Posicion& origen, uint16_t idItem,
                                       Posicion& posicionFinal) {
-    if (mundo.agregarItem(origen, idItem)) {
-        posicionFinal = origen;
+    // Cada celda admite un solo item. Buscamos la celda libre mas cercana con el BFS
+    const std::optional<Posicion> celdaLibre = mundo.buscarCeldaLibreCercaDe(
+            origen, [this](const Posicion& celda) {
+                return mundo.hayParedEn(celda) || mundo.hayObjetoEn(celda) ||
+                       mundo.hayNpcEn(celda) || mundo.hayCriaturaEn(celda) ||
+                       mundo.hayItemEn(celda);
+            });
+    if (celdaLibre.has_value() && mundo.agregarItem(*celdaLibre, idItem)) {
+        posicionFinal = *celdaLibre;
         return true;
-    }
-
-    for (const Posicion& posicionCandidata : calcularDestinosAdyacentes(origen)) {
-        if (mundo.agregarItem(posicionCandidata, idItem)) {
-            posicionFinal = posicionCandidata;
-            return true;
-        }
     }
 
     return false;
