@@ -195,6 +195,10 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
             if (estado->nivel > nivelAnterior) {
                 gestorAudio.reproducirEfecto("subirNivel");
+                if (nivelAnterior != 0) {
+                    agregarLineaChat("Subiste al nivel " + std::to_string(estado->nivel) + ".",
+                                     TipoMensajeChat::Sistema);
+                }
             }
             const uint8_t meditando = static_cast<uint8_t>(EstadoEntidadProtocolo::Meditando);
             if (estado->estado == meditando && estadoAnterior != meditando) {
@@ -315,7 +319,16 @@ void ObjectGameWorld::upload_server_msg(Queue<MensajeServidor>& server_msgs,
             }
             agregarLineaChat("El ataque fue esquivado.");
         } else if (auto* mensaje_chat = std::get_if<MensajeChat>(&mensaje.payload)) {
-            agregarLineaChat(mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje);
+            TipoMensajeChat tipoChat = TipoMensajeChat::Normal;
+            if (mensaje_chat->tipo == static_cast<uint8_t>(CategoriaChat::Privado)) {
+                tipoChat = TipoMensajeChat::Privado;
+            } else if (mensaje_chat->tipo == static_cast<uint8_t>(CategoriaChat::Sistema)) {
+                tipoChat = TipoMensajeChat::Sistema;
+            }
+            const std::string linea = mensaje_chat->nickOrigen.empty()
+                    ? mensaje_chat->mensaje
+                    : mensaje_chat->nickOrigen + ": " + mensaje_chat->mensaje;
+            agregarLineaChat(linea, tipoChat);
         } else if (auto* error_accion = std::get_if<MensajeErrorAccion>(&mensaje.payload)) {
             // El cooldown de ataque es esperado al golpear seguido: no lo mostramos.
             if (error_accion->codigo == CodigoErrorAccion::COOLDOWN_ATAQUE) {
