@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../../../common/mensajes/codigo_error_accion.h"
+#include "../../../common/protocolo/categoria_chat.h"
 #include "../jugador.h"
 
 struct EventoEstadoPersonaje {
@@ -101,6 +102,7 @@ struct EventoActualizarEquipamiento {
 struct EventoChat {
     std::string nickOrigen;
     std::string mensaje;
+    uint8_t tipo = 0;
 };
 
 struct EventoResucitado {
