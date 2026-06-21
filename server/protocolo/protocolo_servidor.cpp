@@ -574,6 +574,7 @@ void ProtocoloServidor::enviarMensajeChat(const MensajeChat& mensaje) {
 
     enviarCadenaConMaximo(mensaje.nickOrigen, MAX_NICK);
     enviarCadenaConMaximo(mensaje.mensaje, MAX_CHAT);
+    enviarUnByte(mensaje.tipo);
 }
 
 void ProtocoloServidor::enviarResucitado(const MensajeResucitado& mensaje) {
