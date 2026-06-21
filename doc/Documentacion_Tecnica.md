@@ -1,9 +1,6 @@
 # Documentación Técnica — Argentum Online (FIUBA)
 
-Documento para que otra persona desarrolladora entienda la arquitectura y pueda
-continuar el desarrollo. Los diagramas están en **Mermaid**: GitHub, GitLab y la
-mayoría de los editores Markdown los renderizan directamente (también
-<https://mermaid.live>).
+Para que se entienda la arquitectura. Los diagramas están en **Mermaid**
 
 Documentos complementarios:
 
@@ -157,6 +154,45 @@ El estado del mundo del lado del cliente se concentra en
 [`ObjectGameWorld`](../client/interface/client_game_world.h): mantiene las
 entidades visibles, los stats del propio jugador, el inventario, el chat y el
 estado de animación. El render (`ObjectRenderer`) **solo lee** ese estado.
+
+### 3.1 Carga de recursos del cliente (texturas, sprites, fondos, sonidos)
+
+El cliente usa un esquema **híbrido**: los **metadatos** y el audio se cargan **al
+inicio**, y las **texturas** se cargan **bajo demanda** (la primera vez que se van
+a dibujar) y quedan **cacheadas** para los siguientes frames.
+
+**Se carga al arranque (init del renderer/audio):**
+
+- **Catálogo de sprites** ([`sprite_catalog.h`](../client/interface/sprites/sprite_catalog.h)):
+  `SpriteCatalog::load_from_file("config/sprites.toml")` lee de un TOML las
+  _definiciones_ (qué spritesheet usar, recortes/frames, cabezas, cuerpos, skins,
+  criaturas, NPCs, overrides de estado como "fantasma"). Son metadatos —rutas y
+  rectángulos—, **no** las imágenes en sí.
+- **Fondo de pasto:** es **una imagen única** (`resources/mapas/pasto.png`) que se
+  carga una sola vez en `init()` y se dibuja **escalada** sobre el área visible.
+  No se genera por código ni se arma tile por tile: es un _background_ fijo.
+- **Fondo del chat** (panel): se carga una vez en `init()`.
+- **Audio** ([`gestor_audio.cpp`](../client/audio/gestor_audio.cpp)): al construir
+  el `GestorAudio` se **precargan todos** los efectos y músicas listados en
+  `sonidos.toml` (cada uno a un `SDL2pp::Chunk`/música en un mapa por nombre), para
+  que reproducir un sonido no toque disco en pleno juego.
+
+**Se carga bajo demanda y se cachea ([`texture_cache.h`](../client/interface/texture_cache.h)):**
+
+- `TextureCache::get_or_load(path)` busca la textura en un `unordered_map<path,
+Texture>`; si no está, la **carga del disco en ese momento**, le aplica color key
+  (negro → transparente) y la guarda. Las siguientes veces devuelve la cacheada
+  (no se recarga ni se duplica en memoria).
+- Así se cargan: **personajes** (cuerpo + overlays de arma/escudo/casco),
+  **criaturas**, **NPCs**, los **tiles de zona** (desierto, piso de ciudad, pisos de
+  mazmorra) que se dibujan tileados sobre el pasto base, los **objetos** del mapa
+  (árboles, carteles) y el marcador de portal.
+
+**En resumen** (respuesta a "¿cargan todo al inicio o bajo demanda?"): el fondo de
+pasto y el audio se cargan **al inicio**; las texturas de entidades y tiles se
+cargan **bajo demanda la primera vez que aparecen en pantalla** y quedan en una
+**caché** (`TextureCache`) para reutilizarse. El catálogo de sprites (metadatos) se
+lee una vez al arranque desde TOML.
 
 ---
 
@@ -348,9 +384,9 @@ La lista completa de opcodes y el layout de cada payload está en
 [`doc/ProtocoloCliente.md`](../doc/ProtocoloCliente.md) /
 [`doc/ProtocoloServidor.md`](../doc/ProtocoloServidor.md). Resumen de familias:
 
-| Dirección          | Opcodes (ejemplos)                                                                                                                                                                                                                                         |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cliente → Servidor | `EMPEZAR_MOVER`, `DETENER_MOVER`, `ATACAR`, `MEDITAR`, `RESUCITAR`, `CURAR`, `TOMAR`, `TIRAR`, `EQUIPAR`/`DESEQUIPAR`, `COMPRAR`/`VENDER`, banco, chat (global/privado), `COMPRAR_HECHIZO`/`LANZAR_HECHIZO`, `CHEAT`                                       |
+| Dirección          | Opcodes (ejemplos)                                                                                                                                                                                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cliente → Servidor | `EMPEZAR_MOVER`, `DETENER_MOVER`, `ATACAR`, `MEDITAR`, `RESUCITAR`, `CURAR`, `TOMAR`, `TIRAR`, `EQUIPAR`/`DESEQUIPAR`, `COMPRAR`/`VENDER`, banco, chat (global/privado), `COMPRAR_HECHIZO`/`LANZAR_HECHIZO`, `CHEAT`                                                                                    |
 | Servidor → Cliente | `ESTADO_PERSONAJE`, `POSICION_ENTIDAD`, `ENTIDAD_DESAPARECIO`, `DANIO_RECIBIDO`/`PRODUCIDO`, `ESQUIVE`, `MUERTE_ENTIDAD`, items/oro en suelo, inventario/equipamiento, `MENSAJE_CHAT` (global/privado/sistema), `RESUCITADO`, banco, hechizos, `FX_HECHIZO`, `PROYECTIL`, `CAMBIO_MAPA`, `ERROR_ACCION` |
 
 Los errores de acción se reportan con `ERROR_ACCION` + un código
@@ -413,3 +449,38 @@ correspondiente, manteniendo la velocidad de animación estable aunque baje el F
 El movimiento es íntegramente _server-driven_ (sin interpolación del lado del
 cliente, decisión tomada para simplificar y estabilizar — ver el manual de
 proyecto).
+
+---
+
+## 9. Sistema de chat y avisos
+
+El chat distingue **categorías** que viajan en `MENSAJE_CHAT` (campo `tipo`) y el
+cliente colorea según corresponda:
+
+- **Global:** texto sin prefijo. Lo reciben **todos** los jugadores conectados
+  (incluido el emisor).
+- **Privado (`@nick mensaje`):** lo recibe el destinatario **y** el emisor (eco), en
+  un **color distinto**; no se reenvía a terceros.
+- **Sistema (sin emisor):** avisos generados por el juego, mostrados sin prefijo
+  `nick:`. Se emiten para: muerte propia ("Has muerto..."), feedback de combate
+  ("Derrotaste a X"), compra de ítems, subir de nivel, entrada/salida de mazmorra
+  y conexión/desconexión de jugadores.
+
+El reparto lo decide el dominio con `TipoDestino` (`UNO`, `TODOS`,
+`TODOS_EXCEPTO_UNO`) y lo ejecuta el `MonitorClientes`.
+
+---
+
+## 10. Limitaciones conocidas
+
+- **Editor — portal al redimensionar:** si se achica un mapa por debajo de la celda
+  del portal de mazmorra, el marcador (y el destino del teletransporte) se
+  **reubican automáticamente al borde** para no quedar fuera de límites. Conviene
+  revisar la posición del portal después de redimensionar.
+- **Editor — exterior y mazmorra en archivos separados:** la mazmorra se guarda en
+  `<nombre>.mazmorra.toml`, vinculada por nombre al `<nombre>.toml`. Renombrar o
+  mover los archivos por fuera del editor puede romper esa relación.
+- **Chat global no es por zona:** llega a todos los conectados, sin filtrar por
+  mapa ni cercanía.
+- **Ventana SDL:** se usa una resolución lógica fija; la ventana se puede escalar
+  para mejorar la legibilidad, sin fullscreen real.
