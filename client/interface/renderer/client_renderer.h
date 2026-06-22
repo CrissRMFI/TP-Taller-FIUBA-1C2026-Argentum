@@ -75,6 +75,8 @@ private:
     uint32_t walk_tile_ms = 130;
     int window_width = 0;
     int window_height = 0;
+    int initial_window_width = 0;
+    float panel_width_ratio = 0.26f;
     std::map<uint16_t, Mapa> mapas;
     std::vector<Portal> portales;
     uint16_t mapaActual = 0;
@@ -83,6 +85,9 @@ private:
     SDL_Color elegircolor(uint8_t tipo, uint8_t estado) const;
     WorldCargado cargarMundo() const;
     const Mapa& mapaVigente() const;
+    void sincronizar_dimensiones_ventana();
+    int ancho_panel_actual() const;
+    int ancho_chat_actual() const;
     void dibujar_chat(const EstadoChatRender& chat);
     void dibujar_panel(const EstadoPanelRender& panel);
     void dibujar_banco(const EstadoBancoRender& banco);
@@ -134,6 +139,14 @@ public:
     }
     int bordeIzquierdoPanel() const {
         return ancho_juego();
+    }
+    void setWindowDimensions(int width, int height) {
+        if (width > 0) {
+            window_width = width;
+        }
+        if (height > 0) {
+            window_height = height;
+        }
     }
     void setMapaActual(uint16_t id) {
         mapaActual = id;

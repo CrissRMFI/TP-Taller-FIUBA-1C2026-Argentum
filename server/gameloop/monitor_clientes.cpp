@@ -164,7 +164,7 @@ void MonitorClientes::broadcast(const MensajeServidor& mensaje) {
 
 void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido,
                                        const MensajeServidor& mensaje) {
-    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> snapshot;
+    std::vector<std::pair<uint16_t, Queue<MensajeServidor>*>> snapshot;
 
     {
         std::lock_guard<std::mutex> lock(mtx);
@@ -177,7 +177,7 @@ void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido,
         }
     }
 
-    std::vector<std::pair<uint16_t, std::shared_ptr<Queue<MensajeServidor>>>> clientesDesconectados;
+    std::vector<std::pair<uint16_t, Queue<MensajeServidor>*>> clientesDesconectados;
 
     for (const auto& [idCliente, colaSalida] : snapshot) {
         if (colaSalida == nullptr) {
@@ -192,8 +192,12 @@ void MonitorClientes::broadcastExcepto(const uint16_t idClienteExcluido,
         }
     }
 
-    for (const auto& idCliente : clientesDesconectados | std::views::keys) {
-        colasClientes.erase(idCliente);
+    std::lock_guard<std::mutex> lock(mtx);
+    for (const auto& [idCliente, colaSalida] : clientesDesconectados) {
+        if (auto it = colasClientes.find(idCliente);
+            it != colasClientes.end() && it->second == colaSalida) {
+            colasClientes.erase(it);
+        }
     }
 }
 

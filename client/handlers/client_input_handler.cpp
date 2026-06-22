@@ -91,14 +91,31 @@ ResultadoInput ClientInputHandler::manejar_texto_chat(const SDL_Event& event) {
 }
 
 bool ClientInputHandler::click_en_chat(const int x, const int y) const {
-    // El ancho de la caja es la mitad de la ventana (igual que el renderer).
-    const int ancho = window_width / 2;
+    const int ancho = ancho_chat_actual();
     return x >= chat_panel_x && x < chat_panel_x + ancho && y >= chat_panel_y &&
            y < chat_panel_y + chat_panel_alto;
 }
 
+int ClientInputHandler::ancho_panel_actual() const {
+    if (window_width <= 0) {
+        return ancho_panel;
+    }
+
+    const int base_width = (initial_window_width > 0) ? initial_window_width : window_width;
+    const float ratio = (panel_width_ratio > 0.0f) ? panel_width_ratio
+                                                   : static_cast<float>(ancho_panel) / base_width;
+    const int min_panel = std::min(window_width, std::max(220, ancho_panel * 3 / 4));
+    const int max_panel = std::max(min_panel, window_width / 2);
+    const int scaled = static_cast<int>(std::lround(window_width * ratio));
+    return std::clamp(scaled, min_panel, max_panel);
+}
+
+int ClientInputHandler::ancho_chat_actual() const {
+    return ancho_juego();
+}
+
 int ClientInputHandler::ancho_juego() const {
-    const int gw = window_width - ancho_panel;
+    const int gw = window_width - ancho_panel_actual();
     return (gw > 0) ? gw : window_width;
 }
 
