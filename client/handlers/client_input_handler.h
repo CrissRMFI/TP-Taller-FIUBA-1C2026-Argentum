@@ -109,7 +109,8 @@ public:
     void setAnchoPanel(int ancho) {
         ancho_panel = ancho;
         if (initial_window_width > 0 && ancho > 0) {
-            panel_width_ratio = static_cast<float>(ancho) / static_cast<float>(initial_window_width);
+            panel_width_ratio =
+                    static_cast<float>(ancho) / static_cast<float>(initial_window_width);
         }
     }
     void setMapaDimensiones(int ancho, int alto) {

@@ -102,9 +102,8 @@ int ClientInputHandler::ancho_panel_actual() const {
     }
 
     const int base_width = (initial_window_width > 0) ? initial_window_width : window_width;
-    const float ratio = (panel_width_ratio > 0.0f)
-                                ? panel_width_ratio
-                                : static_cast<float>(ancho_panel) / base_width;
+    const float ratio = (panel_width_ratio > 0.0f) ? panel_width_ratio
+                                                   : static_cast<float>(ancho_panel) / base_width;
     const int min_panel = std::min(window_width, std::max(220, ancho_panel * 3 / 4));
     const int max_panel = std::max(min_panel, window_width / 2);
     const int scaled = static_cast<int>(std::lround(window_width * ratio));

@@ -127,8 +127,7 @@ void ClientGameLoop::init(const char* title, const int xpos, const int ypos, con
 void ClientGameLoop::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_WINDOWEVENT &&
-            event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             handler.set_window_dimensions(event.window.data1, event.window.data2);
             object_renderer.setWindowDimensions(event.window.data1, event.window.data2);
         }

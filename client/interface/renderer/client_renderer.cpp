@@ -933,7 +933,9 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     const float scale_x = static_cast<float>(std::max(320, window_width - 40)) / base_mw;
     const float scale_y = static_cast<float>(std::max(280, window_height - 40)) / base_mh;
     const float scale = std::clamp(std::min(scale_x, scale_y), 0.75f, 1.8f);
-    const auto sx = [&](int value) { return static_cast<int>(std::lround(value * scale)); };
+    const auto sx = [&](int value) {
+        return static_cast<int>(std::lround(value * scale));
+    };
     const int mw = sx(base_mw);
     const int mh = sx(base_mh);
     const int mx = (window_width - mw) / 2;
@@ -1009,8 +1011,8 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     };
 
     // Botones de item (retirar de la boveda / depositar del inventario).
-    rect_ret =
-            boton(panel_config.botonRetirar, "Retirar", mx + sx(40), my + sx(380), {60, 40, 25, 255});
+    rect_ret = boton(panel_config.botonRetirar, "Retirar", mx + sx(40), my + sx(380),
+                     {60, 40, 25, 255});
     rect_dep = boton(panel_config.botonDepositar, "Depositar", mx + sx(300), my + sx(380),
                      {45, 55, 35, 255});
 
@@ -1022,12 +1024,12 @@ void ObjectRenderer::dibujar_banco(const EstadoBancoRender& b) {
     renderer->FillRect(rect_caja_monto);
     renderer->SetDrawColor(b.montoActivo ? 255 : 120, b.montoActivo ? 230 : 95, 60, 255);
     renderer->DrawRect(rect_caja_monto);
-    text_renderer->dibujar(*renderer, b.monto + (b.montoActivo ? "_" : ""), mx + sx(94),
-                           yo + sx(4), cTxt);
-    rect_dep_oro = boton(panel_config.botonDepositarOro, "Dep oro", mx + sx(300), yo,
-                         {45, 55, 35, 255});
-    rect_ret_oro = boton(panel_config.botonRetirarOro, "Ret oro", mx + sx(190), yo,
-                         {60, 40, 25, 255});
+    text_renderer->dibujar(*renderer, b.monto + (b.montoActivo ? "_" : ""), mx + sx(94), yo + sx(4),
+                           cTxt);
+    rect_dep_oro =
+            boton(panel_config.botonDepositarOro, "Dep oro", mx + sx(300), yo, {45, 55, 35, 255});
+    rect_ret_oro =
+            boton(panel_config.botonRetirarOro, "Ret oro", mx + sx(190), yo, {60, 40, 25, 255});
 
     // X para cerrar.
     rect_cerrar_banco = SDL2pp::Rect(mx + mw - sx(34), my + sx(10), sx(26), sx(26));
@@ -1049,7 +1051,9 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     const float scale_x = static_cast<float>(std::max(320, window_width - 40)) / base_mw;
     const float scale_y = static_cast<float>(std::max(280, window_height - 40)) / base_mh;
     const float scale = std::clamp(std::min(scale_x, scale_y), 0.75f, 1.8f);
-    const auto sx = [&](int value) { return static_cast<int>(std::lround(value * scale)); };
+    const auto sx = [&](int value) {
+        return static_cast<int>(std::lround(value * scale));
+    };
     const int mw = sx(base_mw);
     const int mh = sx(base_mh);
     const int mx = (window_width - mw) / 2;
@@ -1072,8 +1076,8 @@ void ObjectRenderer::dibujar_tienda(const EstadoTiendaRender& t) {
     const int headerH = sx(74);
     const int sectionY = my + sx(84);
     const int sectionH = sx(40);  // antes 24: ahora cubre tambien las pestañas OFERTA/INVENTARIO
-                              // que trae dibujadas el asset base, evitando que se asomen
-                              // por encima de nuestro rotulo "Oferta"/"Inventario"
+                                  // que trae dibujadas el asset base, evitando que se asomen
+                                  // por encima de nuestro rotulo "Oferta"/"Inventario"
 
     // Cubrimos la cabecera embebida en el BMP y la rehacemos por código para que el título
     // del sacerdote/comerciante quede legible y consistente.
