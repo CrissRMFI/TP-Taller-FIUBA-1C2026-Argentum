@@ -106,6 +106,44 @@ En modo desarrollo, la configuración se lee de `config/` y los assets de
 ```
 
 ---
+### Esquema visual
+
+##### Conexión con el servidor  
+![img.png](imgs_readme/img.png)
+
+##### Inicio de sesión 
+![img_1.png](imgs_readme/img_1.png)
+
+##### Creación del personaje
+![img_2.png](imgs_readme/img_2.png)
+
+##### Editor de mapas
+![img_3.png](imgs_readme/img_3.png)
+
+---
+### Demo del juego realizado 
+
+- [Video demostrativo del juego realizado](https://youtu.be/nplStrABoS8)
+---
+
+### Desarrollo
+
+##### Archivos de la cátedra
+
+Los siguientes archivos fueron extraídos de material de la cátedra:
+
+- En la carpeta common/socket se encuentran:
+  - liberror.h / liberror.cpp
+  - socket.h / socket.cpp
+  - resolver.h / resolver.cpp
+  - resolvererror.h /resolvererror.cpp
+
+
+- En la carpeta common/thread se encuentran:
+    - queue.h
+    - thread.h
+
+También fue utilizado el [tp-grupal-template](https://github.com/Taller-de-Programacion-TPs/tp-grupal-template) para el desarrollo del trabajo.
 
 ## Limitaciones conocidas
 
