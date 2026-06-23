@@ -5,6 +5,14 @@ servidor multijugador y un editor de mapas (Qt).
 
 ---
 
+##  Integrantes del equipo
+
+- Cristian Roldan 
+- Francisco Cordara 
+- Ramiro Besse 
+- Victoria Zubieta 
+
+---
 ## Instalación rápida (recomendada)
 
 El instalador hace todo: instala las dependencias del sistema, compila, corre
