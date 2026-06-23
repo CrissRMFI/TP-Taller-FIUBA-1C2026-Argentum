@@ -128,6 +128,7 @@ En modo desarrollo, la configuración se lee de `config/` y los assets de
 
 ### Desarrollo
 
+
 ##### Archivos de la cátedra
 
 Los siguientes archivos fueron extraídos de material de la cátedra:
@@ -145,6 +146,7 @@ Los siguientes archivos fueron extraídos de material de la cátedra:
 
 También fue utilizado el [tp-grupal-template](https://github.com/Taller-de-Programacion-TPs/tp-grupal-template) para el desarrollo del trabajo.
 
+---
 ## Limitaciones conocidas
 
 ### Editor de mapas
