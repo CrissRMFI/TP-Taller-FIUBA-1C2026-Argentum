@@ -149,6 +149,8 @@ Los siguientes archivos fueron extraídos de material de la cátedra:
 
 También fue utilizado el [tp-grupal-template](https://github.com/Taller-de-Programacion-TPs/tp-grupal-template) para el desarrollo del trabajo.
 
+Los recursos gráficos utilizados para elaborar la interfaz del usuario fueron obtenidos del siguiente [repositorio oficial](https://github.com/ao-org/Recursos) de Argentum.
+
 ---
 ## Limitaciones conocidas
 
