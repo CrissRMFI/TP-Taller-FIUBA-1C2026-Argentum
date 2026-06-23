@@ -109,16 +109,19 @@ En modo desarrollo, la configuración se lee de `config/` y los assets de
 ### Esquema visual
 
 ##### Conexión con el servidor  
-![img.png](imgs_readme/img.png)
+![login.png](doc/imgs/login.png)
 
 ##### Inicio de sesión 
-![img_1.png](imgs_readme/img_1.png)
+![ventanaSesion.png](doc/imgs/ventanaSesion.png)
 
 ##### Creación del personaje
-![img_2.png](imgs_readme/img_2.png)
+![creacionDEPersonaje.png](doc/imgs/creacionDePersonaje.png)
 
 ##### Editor de mapas
-![img_3.png](imgs_readme/img_3.png)
+![editorMapa.png](doc/imgs/editorMapa.png)
+
+#### Juego
+![juego.png](doc/imgs/juego.png)
 
 ---
 ### Demo del juego realizado 
